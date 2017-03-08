@@ -1,0 +1,17 @@
+{% extends "stregsystem/base.html" %}
+
+{% block content %}
+<h1>Treoens stregsystem</h1>
+<h2>Vælg lokale:</h2>
+{% if room_list %}
+<ul>
+  {% for room in room_list %}
+  <li>
+  <a href="{{room.id}}/">{{room.description}} ({{room.name}})</a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>Ingen lokaler i databasen.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,21 @@
+body {
+       color: black;
+       background-color: white;
+/*       text-align: center;*/
+}
+
+h1 { color: red }
+
+/*div { border-color: red;
+      border-style: solid;
+      border-width: thin;
+}*/
+
+ol {
+    font-weight: bold;
+    margin-top: 0px;
+}
+
+ol span {
+    font-weight: normal;
+}

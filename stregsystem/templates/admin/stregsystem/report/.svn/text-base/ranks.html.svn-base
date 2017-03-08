@@ -1,0 +1,100 @@
+﻿{% extends "admin/base_site.html" %}
+
+{% block title %}Rangeringer for {{year}}{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Reports</a>&nbsp;&rsaquo;&nbsp;Rangeringer</div>{% endblock %}
+
+{% block content %}
+
+<div id="content-main">
+<h1>Rangeringer for {{year}}</h1>
+	<br />
+	{% if is_ongoing %}
+		<b>Siden sidste julefrokost ({{from_time_string}})</b>
+	{% else %}
+		<b>({{from_time_string}} til {{to_time_string}})</b>
+	{% endif %}
+<center>
+	<div id="statscontainer" style="margin-top: 12px; width: 800px; float: left;">
+		<div id="stats" style="width: 200px; float: left;">
+			<table border="1" cellspacing="2" cellpadding="2">
+			<tr>
+				<th valign="top" colspan="3">Øl</th>
+			</tr>
+	  		<tr>
+		  	  <th>#</th>
+	  	  	<th>Bruger</th>
+  			  <th>Antal</th>
+		  	</tr>
+		  	{% for stat in beer_stat_list %}
+			  <tr>
+		    	<td>{{stat.0}}</td>
+  			  <td>{{stat.1}}</td>
+	  		  <td>{{stat.2}}</td>
+		  	</tr>
+		  {% endfor %}
+			</table>
+		</div>
+		<div id="stats2" style="width: 200px; float: left;">
+			<table border="1" cellspacing="2" cellpadding="2">
+			<tr>
+				<th valign="top" colspan="3">Koffein</th>
+			</tr>
+	  		<tr>
+		  	  <th>#</th>
+	  	  	<th>Bruger</th>
+  			  <th>Antal</th>
+		  	</tr>
+		  	{% for stat in caffeine_stat_list %}
+			  <tr>
+		    	<td>{{stat.0}}</td>
+  			  <td>{{stat.1}}</td>
+	  		  <td>{{stat.2}}</td>
+		  	</tr>
+		  {% endfor %}
+			</table>
+		</div>
+		<div id="stats3" style="width: 200px; float: left;">
+			<table border="1" cellspacing="2" cellpadding="2">
+			<tr>
+				<th valign="top" colspan="3">Mælkeprodukter</th>
+			</tr>
+	  		<tr>
+		  	  <th>#</th>
+	  	  	<th>Bruger</th>
+  			  <th>Antal</th>
+		  	</tr>
+		  	{% for stat in milk_stat_list %}
+			  <tr>
+		    	<td>{{stat.0}}</td>
+  			  <td>{{stat.1}}</td>
+	  		  <td>{{stat.2}}</td>
+		  	</tr>
+		  {% endfor %}
+			</table>
+		</div>
+		<div id="stats4" style="width: 200px; float: left;">
+			<table border="1" cellspacing="2" cellpadding="2">
+			<tr>
+				<th valign="top" colspan="3">Forbrug</th>
+			</tr>
+	  		<tr>
+		  	  <th>#</th>
+	  	  	<th>Bruger</th>
+  			  <th>Kroner</th>
+		  	</tr>
+		  	{% for stat in kr_stat_list %}
+			  <tr>
+		    	<td>{{stat.0}}</td>
+  			  <td>{{stat.1}}</td>
+	  		  <td>{{stat.2}}</td>
+		  	</tr>
+		  {% endfor %}
+			</table>
+		</div>
+	</div>
+</center>
+</div>
+<div style="clear: both;">&nbsp;</div>
+<a href="./{{last_year}}">Forrige år</a>
+
+{% endblock %}

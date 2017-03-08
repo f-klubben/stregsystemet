@@ -1,0 +1,22 @@
+[general]
+SECRET_KEY=_Secret_
+X_FRAME_OPTIONS = SAMEORIGIN
+
+[debug]
+DEBUG = True
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_HTTPONLY = False
+SESSION_COOKIT_SECURE = False
+SECURE_BROWSER_XSS_FILTER = False
+SECURE_CONTENT_TYPE_NOSNIFF = False
+
+[database]
+ENGINE = django.db.backends.sqlite3
+HOST =
+PORT =
+NAME = db.sqlite3
+USER =
+PASSWORD =
+
+[hostnames]
+1=fklub.dk

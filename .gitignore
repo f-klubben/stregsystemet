@@ -1,0 +1,5 @@
+venv/
+static/
+
+local.cfg
+db.sqlite3

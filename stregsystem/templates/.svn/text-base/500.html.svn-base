@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>{% block title %}TREOENs STREGSYSTEM{% endblock %}</title>
+<link rel="stylesheet" type="text/css" media="screen" href="/stregsystem/stregsystem.css" />
+<style type="text/css">
+
+</style>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+</head>
+<body>
+{% comment %}
+<pre>{% filter escape %}{% debug %}{% endfilter %}</pre>
+
+{% endcomment %}
+
+<h1>Der er desv&aelig;rre sket en fejl i stregsystemet!</h1>
+Fejlen er blevet logget, og vil blive fixet over tid...<br />
+
+<h3>Brug tilbage linket her, for at komme tilbage: <a href="javascript:history.back()">Tilbage</a></h3>
+
+Hvis det er en af Treo'ens faste maskiner, og intet virker, er du velkommen til at genstarte den. Den vil s&aring; automatisk komme op med stregsystemet igen.
+
+</body>
+</html>

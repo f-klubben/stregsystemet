@@ -1,0 +1,56 @@
+﻿{% extends "admin/base_site.html" %}
+
+{% block title %}Salgsrapporteringer{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Reports</a>&nbsp;&rsaquo;&nbsp;Salgsraporteringer</div>{% endblock %}
+
+{% block content %}
+{% load admin_static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/forms.css' %}" />
+<script type="text/javascript">window.__admin_media_prefix__ = "/media/";</script>
+
+<script type="text/javascript" src="/admin/jsi18n/"></script>
+<script type="text/javascript" src="{% static 'js/core.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/admin/RelatedObjectLookups.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/jquery.init.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/actions.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/calendar.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/admin/DateTimeShortcuts.js' %}"></script>
+
+<div id="content-main">
+<h1>Salg</h1>
+<form action="./" method="post">{% csrf_token %}
+	<label for="id_from_date" class="required">Fra:</label>
+	<p class="datetime">Dato: <input id="id_from_date" type="text" class="vDateField" name="from_date" size="10" value="{{from_time}}" /></p>
+    <label for="id_to_date" class="required">Til:</label>
+	<p class="datetime">Dato: <input id="id_to_date" type="text" class="vDateField" name="to_date" size="10" value="{{to_time}}" /></p>
+	<label for="id_products">Produkter:</label>
+	<input id="id_products" type="text" class="vTextField" name="products" maxlength="40" value="{{products}}" />
+	<input type="submit" value="Vis">
+	<br />
+	<label><small>Produkter sepereres med mellemrum eks: <i>11 32 14</i></small></label>
+	</form>
+	<br /><br />
+{% if sales %}
+<table border="1" cellspacing="2" cellpadding="2">
+<tr>
+	<th valign="top" colspan="4">Salg</th>
+</tr>
+<tr>
+	<th>ID</th>
+	<th>Produkt</th>
+	<th>Salg</th>
+	<th>Kroner</th>
+</tr>
+{% for sale in sales %}
+<tr>
+	<td>{{sale.0}}</td>
+	<td>{{sale.1}}</td>
+	<td style="text-align: right">{{sale.2}}</td>
+	<td style="text-align: right">{{sale.3}}</td>
+</tr>
+{% endfor %}
+</table>
+{% endif %}
+</div>
+{% endblock %}

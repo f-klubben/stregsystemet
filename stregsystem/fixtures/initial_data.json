@@ -1,0 +1,52 @@
+[
+    {
+        "fields": {
+            "description": "Kaffestuen, KMD",
+            "name": "CS Kaffestuen"
+        },
+        "model": "streg.room",
+        "pk": "1"
+    },
+    {
+        "fields": {
+            "active": 1,
+            "name": "Limfjordsporter",
+            "price": 900
+        },
+        "model": "streg.product",
+        "pk": "1"
+    },
+    {
+        "fields": {
+            "changed_on": "2007-07-11 22:21:02",
+            "price": 900,
+            "product": 1
+        },
+        "model": "streg.oldprice",
+        "pk": "1"
+    },
+    {
+        "fields": {
+            "changed_on": "2007-07-11 22:32:06",
+            "price": 900,
+            "product": 1
+        },
+        "model": "streg.oldprice",
+        "pk": "2"
+    },
+    {
+        "fields": {
+            "active": 1,
+            "balance": 0,
+            "email": "treo@cs.aau.dk",
+            "firstname": "Joakim",
+            "lastname": "Byg",
+            "undo_count": 0,
+            "username": "jokke",
+            "want_spam": 1,
+            "year": "2007"
+        },
+        "model": "streg.member",
+        "pk": "1"
+    }
+]

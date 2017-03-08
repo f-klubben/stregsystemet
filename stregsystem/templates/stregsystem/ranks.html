@@ -1,0 +1,86 @@
+{% extends "stregsystem/base.html" %}
+
+{% load stregsystem_extras %}
+
+{% block title %}TREOENs STREGSYSTEM
+{% ifnotequal room.id 1 %}
+ : {{room.description}}
+{% endifnotequal %}
+{% endblock %}
+
+{% block content %}
+<div>
+<center>
+	<b>Rangeringer for {{year}}</b>
+	<br />
+	{% if is_ongoing %}
+		<b>Siden sidste julefrokost ({{from_time_string}})</b>
+	{% else %}
+		<b>({{from_time_string}} til {{to_time_string}})</b>
+	{% endif %}
+	<div id="statscontainer" style="margin-top: 12px; width: 900px; margin-left: auto; margin-right: auto;">
+		<div id="stats" style="width: 300px; float: left;">
+			<table border="1" cellspacing="2" cellpadding="2">
+			<tr>
+				<th valign="top" colspan="3">Øl</th>
+			</tr>
+	  		<tr>
+		  	  <th>#</th>
+	  	  	<th>Bruger</th>
+  			  <th>Antal</th>
+		  	</tr>
+		  	{% for stat in beer_stat_list %}
+			  <tr>
+		    	<td>{{stat.0}}</td>
+  			  <td>{{stat.1}}</td>
+	  		  <td>{{stat.2}}</td>
+		  	</tr>
+		  {% endfor %}
+			</table>
+		</div>
+		<div id="stats2" style="width: 300px; float: left;">
+			<table border="1" cellspacing="2" cellpadding="2">
+			<tr>
+				<th valign="top" colspan="3">Koffein</th>
+			</tr>
+	  		<tr>
+		  	  <th>#</th>
+	  	  	<th>Bruger</th>
+  			  <th>Antal</th>
+		  	</tr>
+		  	{% for stat in caffeine_stat_list %}
+			  <tr>
+		    	<td>{{stat.0}}</td>
+  			  <td>{{stat.1}}</td>
+	  		  <td>{{stat.2}}</td>
+		  	</tr>
+		  {% endfor %}
+			</table>
+		</div>
+		<div id="stats3" style="width: 300px; float: left;">
+			<table border="1" cellspacing="2" cellpadding="2">
+			<tr>
+				<th valign="top" colspan="3">Mælkeprodukter</th>
+			</tr>
+	  		<tr>
+		  	  <th>#</th>
+	  	  	<th>Bruger</th>
+  			  <th>Antal</th>
+		  	</tr>
+		  	{% for stat in milk_stat_list %}
+			  <tr>
+		    	<td>{{stat.0}}</td>
+  			  <td>{{stat.1}}</td>
+	  		  <td>{{stat.2}}</td>
+		  	</tr>
+		  {% endfor %}
+			</table>
+		</div>
+	</div>
+</center>
+</div>
+<div style="clear: both;">&nbsp;</div>
+
+
+{% endblock %}
+
