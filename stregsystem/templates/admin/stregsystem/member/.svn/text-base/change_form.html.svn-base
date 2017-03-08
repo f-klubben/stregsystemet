@@ -1,8 +1,0 @@
-{% extends "admin/change_form.html" %}
-{% load admin_list %}
-
-{% block after_related_objects %}
-
-<a href="../../../stregsystem/sale/?member__id__exact={{original.id}}">List sales</a><br />
-<a href="../../../stregsystem/payment/?member__id__exact={{original.id}}">List payments</a>
-{% endblock %}
