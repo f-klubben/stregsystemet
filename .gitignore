@@ -3,3 +3,5 @@ static/
 
 local.cfg
 db.sqlite3
+*.pyc
+
