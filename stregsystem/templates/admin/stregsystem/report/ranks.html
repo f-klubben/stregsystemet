@@ -27,9 +27,9 @@
 		  	</tr>
 		  	{% for stat in beer_stat_list %}
 			  <tr>
-		    	<td>{{stat.0}}</td>
-  			  <td>{{stat.1}}</td>
-	  		  <td>{{stat.2}}</td>
+		      <td>{{forloop.counter}}</td>
+  			  <td>{{stat.username}}</td>
+	  		  <td>{{stat.sale__count}}</td>
 		  	</tr>
 		  {% endfor %}
 			</table>
@@ -46,9 +46,9 @@
 		  	</tr>
 		  	{% for stat in caffeine_stat_list %}
 			  <tr>
-		    	<td>{{stat.0}}</td>
-  			  <td>{{stat.1}}</td>
-	  		  <td>{{stat.2}}</td>
+		      <td>{{forloop.counter}}</td>
+  			  <td>{{stat.username}}</td>
+	  		  <td>{{stat.sale__count}}</td>
 		  	</tr>
 		  {% endfor %}
 			</table>
@@ -65,9 +65,9 @@
 		  	</tr>
 		  	{% for stat in milk_stat_list %}
 			  <tr>
-		    	<td>{{stat.0}}</td>
-  			  <td>{{stat.1}}</td>
-	  		  <td>{{stat.2}}</td>
+		      <td>{{forloop.counter}}</td>
+  			  <td>{{stat.username}}</td>
+	  		  <td>{{stat.sale__count}}</td>
 		  	</tr>
 		  {% endfor %}
 			</table>
@@ -122,9 +122,9 @@
 		  	</tr>
 		  	{% for stat in kr_stat_list %}
 			  <tr>
-		    	<td>{{stat.0}}</td>
-  			  <td>{{stat.1}}</td>
-	  		  <td>{{stat.2}}</td>
+		    	<td>{{forloop.counter}}</td>
+  			  <td>{{stat.username}}</td>
+	  		  <td>{{stat.sale__price__sum__formatted}}</td>
 		  	</tr>
 		  {% endfor %}
 			</table>
