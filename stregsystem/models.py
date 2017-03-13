@@ -4,6 +4,7 @@ import fpformat
 
 from datetime import datetime
 from datetime import date
+from django.utils import timezone
 
 
 # treo.stregsystem.templatetags stregsystem_extras : money
@@ -114,16 +115,16 @@ class Member(models.Model): # id automatisk...
         #Disabled:
         #return False
         from django.db import connection
-        from datetime import datetime
+        from datetime import datetime, timedelta
         import math
         # formodet draenet vaegt paa en gennemsnitsdatalog
         weight = 80.0
+        # Vi burde flytte det her til databasen, saa kan treoen lave noget ;) 
         drinks_in_product = {13: 1.24, 14: 1.0, 29: 1.0, 42: 1.72, 47: 1.52, 54: 1.24, 65: 1.5, 66: 1.5, 1773: 0.37, 1773: 1.0, 1776: 1.52, 1777: 1.52, 1779: 2.0, 1780: 2.58, 1783: 1.0, 1793: 1.0, 1794: 0.96, 22: 7.0, 23: 7.0, 41: 19.14, 53: 9.22, 63: 1.0, 64: 7.0, 1767: 1.02, 1769: 1.0, 1770: 2.0, 1802: 2.0, 1807: 6.6, 1808: 7.5, 1809: 8.3}
         
-        cursor = connection.cursor()
-        cursor.execute("SELECT product_id, timestamp FROM stregsystem_sale WHERE member_id=%s AND DATE_SUB(NOW(), INTERVAL 12 HOUR) <= timestamp AND product_id IN (13, 14, 29, 42, 47, 54, 65, 66, 1773, 1773, 1776, 1777, 1779, 1780, 1783, 1793, 1794, 22, 23, 41, 53, 63, 64, 1767, 1769, 1770, 1802) ORDER BY timestamp ASC LIMIT 30", [self.id])
-        
-        alcohol_sales = cursor.fetchall()
+        now = timezone.now()
+        delta = now - timedelta(hours=12)
+        alcohol_sales = Sale.objects.filter(member_id=self.id, timestamp__gt=delta, product__in=drinks_in_product.keys()).order_by('timestamp')
         drinks = 0.0
         
         if self.gender == 'M':
@@ -133,17 +134,15 @@ class Member(models.Model): # id automatisk...
         else:
             #tilfaeldigt gennemsnit for ukendt koen
             drinks_pr_hour = 0.01042 * weight
-        
+
         if (len(alcohol_sales) > 0):
-            last_time_frame = alcohol_sales[0][1]
+            last_time_frame = alcohol_sales[0].timestamp
             for sale in alcohol_sales:
-                current_time_frame = sale[1]
-                #drinks = max(0.0, drinks - (current_time_frame - last_time_frame).total_seconds() / 3600.0 * drinks_pr_hour)
+                current_time_frame = sale.timestamp
                 drinks = max(0.0, drinks - (current_time_frame - last_time_frame).seconds / 3600.0 * drinks_pr_hour)
-                drinks = drinks + drinks_in_product[sale[0]]
+                drinks = drinks + drinks_in_product[sale.product_id]
                 last_time_frame = current_time_frame
-            #drinks = max(0.0, drinks - (datetime.now() - last_time_frame).total_seconds() / 3600.0 * drinks_pr_hour)
-            drinks = max(0.0, drinks - (datetime.now() - last_time_frame).seconds / 3600.0 * drinks_pr_hour)
+            drinks = max(0.0, drinks - (now - last_time_frame).seconds / 3600.0 * drinks_pr_hour)
 
             
         #Tihi:
