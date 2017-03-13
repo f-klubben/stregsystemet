@@ -12,8 +12,8 @@ class SaleAdmin(admin.ModelAdmin):
 
     def get_product_name(self, obj):
         return obj.product.name
-    get_username.short_description = "Product"
-    get_username.admin_order_field = "product__name"
+    get_product_name.short_description = "Product"
+    get_product_name.admin_order_field = "product__name"
 
 def toggle_active_selected_products(modeladmin, request, queryset):
     "toggles active on products, also removes deactivation date."
