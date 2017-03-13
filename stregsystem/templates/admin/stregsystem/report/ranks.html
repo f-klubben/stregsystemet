@@ -14,7 +14,7 @@
 		<b>({{from_time_string}} til {{to_time_string}})</b>
 	{% endif %}
 <center>
-	<div id="statscontainer" style="margin-top: 12px; width: 800px; float: left;">
+	<div id="statscontainer" style="margin-top: 12px; width: 1200px; float: left;">
 		<div id="stats" style="width: 200px; float: left;">
 			<table border="1" cellspacing="2" cellpadding="2">
 			<tr>
@@ -73,6 +73,44 @@
 			</table>
 		</div>
 		<div id="stats4" style="width: 200px; float: left;">
+			<table border="1" cellspacing="2" cellpadding="2">
+			<tr>
+				<th valign="top" colspan="3">Kaffe</th>
+			</tr>
+	  		<tr>
+		  	  <th>#</th>
+	  	  	<th>Bruger</th>
+  			  <th>Antal</th>
+		  	</tr>
+		  	{% for stat in coffee_stat_list %}
+			  <tr>
+		    	<td>{{stat.0}}</td>
+  			  <td>{{stat.1}}</td>
+	  		  <td>{{stat.2}}</td>
+		  	</tr>
+		  {% endfor %}
+			</table>
+		</div>
+		<div id="stats5" style="width: 200px; float: left;">
+			<table border="1" cellspacing="2" cellpadding="2">
+			<tr>
+				<th valign="top" colspan="3">Vitaminvand</th>
+			</tr>
+	  		<tr>
+		  	  <th>#</th>
+	  	  	<th>Bruger</th>
+  			  <th>Antal</th>
+		  	</tr>
+		  	{% for stat in vitamin_stat_list %}
+			  <tr>
+		    	<td>{{stat.0}}</td>
+  			  <td>{{stat.1}}</td>
+	  		  <td>{{stat.2}}</td>
+		  	</tr>
+		  {% endfor %}
+			</table>
+		</div>
+		<div id="stats6" style="width: 200px; float: left;">
 			<table border="1" cellspacing="2" cellpadding="2">
 			<tr>
 				<th valign="top" colspan="3">Forbrug</th>
