@@ -74,10 +74,12 @@ def sales_product(request, ids, from_time, to_time):
 def ranks_for_year(request, year):
     if (year <= 1900 or year > 9999):
         return render(request, 'admin/stregsystem/report/error_ranksnotfound.html', locals())
-    milk = [2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 17, 18, 19, 20, 24, 25, 43, 44, 45 ]
-    caffeine = [11, 12, 30, 32, 34, 35, 36, 37, 39, 1787, 1790, 1791, 1795, 1799, 1800, 1803]
-    beer = [13, 14, 29, 42, 47, 54, 65, 66, 1773, 1776, 1777, 1779, 1780, 1783, 1793, 1794]
-    
+    milk = [2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 17, 18, 19, 20, 24, 25, 43, 44, 45, 1865 ]
+    caffeine = [11, 12, 30, 34, 37, 1787, 1790, 1791, 1795, 1799, 1800, 1803, 1804, 1837, 1864]
+    beer = [13, 14, 29, 42, 47, 54, 65, 66, 1773, 1776, 1777, 1779, 1780, 1783, 1793, 1794, 1807, 1808, 1809, 1820, 1822, 1840, 1844, 1846, 1847, 1853, 1855, 1856, 1858, 1859]
+    coffee = [32, 35, 36, 39]
+    vitamin = [1850, 1851, 1852, 1863]
+
     FORMAT = '%d/%m/%Y kl. %H:%M'
     last_year = year - 1
     from_time = fjule_party(year - 1)
@@ -86,6 +88,8 @@ def ranks_for_year(request, year):
     beer_stat_list = sale_product_rank(beer, from_time, to_time)
     caffeine_stat_list = sale_product_rank(caffeine, from_time, to_time)
     milk_stat_list = sale_product_rank(milk, from_time, to_time)
+    coffee_stat_list = sale_product_rank(coffee, from_time, to_time)
+    vitamin_stat_list = sale_product_rank(vitamin, from_time, to_time)
     if not len(kr_stat_list) and not len(beer_stat_list) and not len(caffeine_stat_list) and not len(milk_stat_list):
         return render(request, 'admin/stregsystem/report/error_ranksnotfound.html', locals())
     from_time_string = from_time.strftime(FORMAT)
