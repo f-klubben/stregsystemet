@@ -90,34 +90,22 @@ def ranks_for_year(request, year):
     milk_stat_list = sale_product_rank(milk, from_time, to_time)
     coffee_stat_list = sale_product_rank(coffee, from_time, to_time)
     vitamin_stat_list = sale_product_rank(vitamin, from_time, to_time)
-    if not len(kr_stat_list) and not len(beer_stat_list) and not len(caffeine_stat_list) and not len(milk_stat_list):
-        return render(request, 'admin/stregsystem/report/error_ranksnotfound.html', locals())
     from_time_string = from_time.strftime(FORMAT)
     to_time_string = to_time.strftime(FORMAT)
     current_date = datetime.datetime.now()
     is_ongoing = current_date > from_time and current_date <= to_time
     return render(request, 'admin/stregsystem/report/ranks.html', locals())
     
-# gives a list of tuples (int_rank, string_username, int_value) of rankings of sales of the specified products done between from_time and to_time.
-#Limit is the maximum size of the returned list.
+# gives a list of member objects, with the additional field sale__count, with the number of sales which are in the parameter id
 def sale_product_rank(ids, from_time, to_time, rank_limit=10):
-    try:
-        query = reduce(lambda x, y: x | y, map(lambda z: Q(sale__product__id=z), ids))
-        #query &= Q(active=True)
-        query &= Q(sale__timestamp__gt = from_time)
-        query &= Q(sale__timestamp__lte = to_time)
-        stat_list = map(lambda x, y: (y, x.username, x.sale__count), Member.objects.filter(query).annotate(Count('sale')).order_by('-sale__count', 'username')[:rank_limit], xrange(1,rank_limit+1))
-    except:
-        stat_list = {}
+    stat_list = Member.objects.filter(sale__timestamp__gt=from_time, sale__timestamp__lte=to_time, sale__product__in=ids).annotate(Count('sale')).order_by('-sale__count', 'username')[:rank_limit]
     return stat_list
-    
-   # gives a list of tuples (int_rank, string_username, int_value) of rankings of money spent between from_time and to_time.
-#Limit is the maximum size of the returned list. 
+
+# gives a list of member object, with the additional field sale__price__sum__formatted which is the number of money spent in the period given.
 def sale_money_rank(from_time, to_time, rank_limit=10):
-    try:
-        stat_list = map(lambda x, y: (y, x.username, money(x.sale__price__sum)), Member.objects.filter(active=True, sale__timestamp__gt = from_time, sale__timestamp__lte = to_time).annotate(Sum('sale__price')).order_by('-sale__price__sum', 'username')[:rank_limit], xrange(1, rank_limit+1))
-    except:
-        stat_list = []
+    stat_list = Member.objects.filter(active=True, sale__timestamp__gt = from_time, sale__timestamp__lte = to_time).annotate(Sum('sale__price')).order_by('-sale__price__sum', 'username')[:rank_limit]
+    for member in stat_list:
+        member.sale__price__sum__formatted = money(member.sale__price__sum)
     return stat_list
 
 #year of the last fjuleparty
