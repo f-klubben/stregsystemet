@@ -84,9 +84,9 @@
 		  	</tr>
 		  	{% for stat in coffee_stat_list %}
 			  <tr>
-		    	<td>{{stat.0}}</td>
-  			  <td>{{stat.1}}</td>
-	  		  <td>{{stat.2}}</td>
+		    	<td>{{forloop.counter}}</td>
+  			  <td>{{stat.username}}</td>
+	  		  <td>{{stat.sale__count}}</td>
 		  	</tr>
 		  {% endfor %}
 			</table>
@@ -103,9 +103,9 @@
 		  	</tr>
 		  	{% for stat in vitamin_stat_list %}
 			  <tr>
-		    	<td>{{stat.0}}</td>
-  			  <td>{{stat.1}}</td>
-	  		  <td>{{stat.2}}</td>
+		    	<td>{{forloop.counter}}</td>
+  			  <td>{{stat.username}}</td>
+	  		  <td>{{stat.sale__count}}</td>
 		  	</tr>
 		  {% endfor %}
 			</table>
