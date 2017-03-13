@@ -39,11 +39,6 @@ def index(request, room_id):
     news = __get_news()
     return render(request, 'stregsystem/index.html', locals())
 
-def css(request):
-    t = loader.get_template('stregsystem/stregsystem.css')
-    c = Context({})
-    return HttpResponse(t.render(c), content_type="text/css")
-
 def sale(request, room_id):
     room = get_object_or_404(Room, pk=room_id)
     news = __get_news()
