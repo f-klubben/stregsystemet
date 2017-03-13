@@ -24,7 +24,6 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.roomindex),
-    url(r'^stregsystem.css$', views.css),
     url(r'^(?P<room_id>\d+)/$', views.index),
     url(r'^(?P<room_id>\d+)/sale/$', views.sale),
     url(r'^(?P<room_id>\d+)/sale/(?P<member_id>\d+)/$', views.menu_sale),
