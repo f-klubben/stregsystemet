@@ -3,7 +3,7 @@ from stregsystem.models import Sale, Member, Payment, News, Product, Room
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
-    list_display = ('get_username', 'get_product_name', 'price')
+    list_display = ('get_username', 'get_product_name', 'room', 'timestamp', 'price_display')
 
     def get_username(self, obj):
         return obj.member.username
@@ -14,6 +14,9 @@ class SaleAdmin(admin.ModelAdmin):
         return obj.product.name
     get_product_name.short_description = "Product"
     get_product_name.admin_order_field = "product__name"
+
+    search_fields = ['=member__username', '=product__id', '=product__name']
+    valid_lookups = ('member')
 
 def toggle_active_selected_products(modeladmin, request, queryset):
     "toggles active on products, also removes deactivation date."
