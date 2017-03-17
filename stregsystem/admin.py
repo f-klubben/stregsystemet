@@ -36,12 +36,23 @@ class MemberAdmin(admin.ModelAdmin):
     list_display = ('username', 'firstname', 'lastname', 'balance', 'email', 'notes')
 
 class PaymentAdmin(admin.ModelAdmin):
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "member":
+            kwargs["queryset"] = Member.objects.filter(active=True).order_by('username')
+            return db_field.formfield(**kwargs)
+        return super(SmarterModelAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+        
     list_display = ('get_username', 'amount', 'timestamp')
 
     def get_username(self, obj):
         return obj.member.username
     get_username.short_description = "Username"
     get_username.admin_order_field = "member__username"
+
+    valid_lookups = ('member')
+    search_fields = ['member__username']
+
+    
 
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(Member, MemberAdmin)
