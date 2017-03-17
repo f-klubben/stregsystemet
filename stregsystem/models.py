@@ -41,6 +41,16 @@ class MoneyTransaction(object):
         """
         self.amount += change
 
+    def change(self):
+        raise NotImplementedError
+
+    def __eq__(self, other):
+        """
+        The equality of two transactions is based on the effect
+        to the users balance
+        """
+        return self.change() == other.change()
+
 class PayTransaction(MoneyTransaction):
     #The change to the users account
     #Negative because the user is losing money

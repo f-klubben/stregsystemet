@@ -1,2 +1,4 @@
 Django==1.10.5
 MySQL-python==1.2.5
+
+mock==2.0.0 

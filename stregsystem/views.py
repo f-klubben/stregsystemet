@@ -69,27 +69,22 @@ def sale(request, room_id):
         return usermenu(request, room, member, None)
 
 def quicksale(request, room, member, bought_ids):
-    bought_ids_count = {}
     news = __get_news()
     product_list = __get_productlist()
-    for i in bought_ids:
-        bought_ids_count[i] = bought_ids_count.get(i,0) + 1
 
-    try:
-        info = {}
-        for i in bought_ids_count.keys():
-            product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
-            info[i] = {'count': bought_ids_count[i], 'product': product}
-        cost = reduce(lambda s, i: s + i['count']*i['product'].price, info.values(), 0)
-    except Product.DoesNotExist:
-        return usermenu(request, room, member, None)
-    bought_list = info.values()
+    products = {}
 
     #TODO: Make atomic
     transaction = PayTransaction()
-    for i in bought_ids:
-        product = info[i]['product']
-        transaction.add(product.price)
+
+    #Retrieve products and construct transaction
+    try:
+        for i in bought_ids:
+            product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
+            products[i] = product
+            transaction.add(product.price)
+    except Product.DoesNotExist:
+        return usermenu(request, room, member, None)
 
     if not member.can_fulfill(transaction):
         return render(request, 'stregsystem/error_stregforbud.html', locals())
@@ -97,7 +92,7 @@ def quicksale(request, room, member, bought_ids):
     member.fulfill(transaction)
 
     for i in bought_ids:
-        product = info[i]['product']
+        product = products[i]
         s = Sale(
             member=member,
             product=product,
@@ -108,6 +103,8 @@ def quicksale(request, room, member, bought_ids):
     member.save()
 
     promille = member.calculate_alcohol_promille()
+
+    cost = transaction.amount
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
@@ -177,8 +174,6 @@ def menu_sale(request, room_id, member_id, product_id=None):
         member.save()
     except Product.DoesNotExist:
         pass
-    #Refresh member, to get new amount
-    member = Member.objects.get(pk=member_id, active=True)
     return usermenu(request, room, member, product)
 
 def ranks(request, year = None):
