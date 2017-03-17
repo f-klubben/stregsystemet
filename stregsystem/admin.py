@@ -3,7 +3,7 @@ from stregsystem.models import Sale, Member, Payment, News, Product, Room
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
-    list_display = ('get_username', 'get_product_name', 'room', 'timestamp', 'price_display')
+    list_display = ('get_username', 'get_product_name', 'get_room_name', 'timestamp', 'price_display')
 
     def get_username(self, obj):
         return obj.member.username
@@ -15,7 +15,12 @@ class SaleAdmin(admin.ModelAdmin):
     get_product_name.short_description = "Product"
     get_product_name.admin_order_field = "product__name"
 
-    search_fields = ['=member__username', '=product__id', '=product__name']
+    def get_room_name(self, obj):
+        return obj.room.name
+    get_room_name.short_description = "Room"
+    get_room_name.admin_order_field = "room__name"
+
+    search_fields = ['^member__username', '=product__id', 'product__name']
     valid_lookups = ('member')
 
 def toggle_active_selected_products(modeladmin, request, queryset):
