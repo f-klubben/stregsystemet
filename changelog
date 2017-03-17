@@ -1,0 +1,12 @@
+Fri Mar 17 14:36:20 CET 2017
+-- Bugfix quickbuy letters
+-- Added more columns and search to the sales admin interface
+-- Sort dropdown in admin/payment by username
+-- Renames the model prefix in stregsystem fixture
+-- Correct label in sale listings
+-- Added testdata, and simple readme on usage
+-- Refactor queries in ranks
+-- Changed SQL query to Django query
+-- Updated lists of ranks and introduced new ones
+-- Moved css from templates to static
+-- Cleanup of .svn folders, .pyc files and added localhost to local.cfg.skel
