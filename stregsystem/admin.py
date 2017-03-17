@@ -1,9 +1,10 @@
 from django.contrib import admin
 from stregsystem.models import Sale, Member, Payment, News, Product, Room
+import fpformat
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
-    list_display = ('get_username', 'get_product_name', 'get_room_name', 'timestamp', 'price_display')
+    list_display = ('get_username', 'get_product_name', 'get_room_name', 'timestamp', 'get_price_display')
 
     def get_username(self, obj):
         return obj.member.username
@@ -19,6 +20,13 @@ class SaleAdmin(admin.ModelAdmin):
         return obj.room.name
     get_room_name.short_description = "Room"
     get_room_name.admin_order_field = "room__name"
+
+    def get_price_display(self, obj):
+        if obj.price is None:
+            obj.price = 0
+        return fpformat.fix(obj.price/100.0,2)   + " kr."
+    get_price_display.short_description = "Price"
+    get_price_display.admin_order_field = "price"
 
     search_fields = ['^member__username', '=product__id', 'product__name']
     valid_lookups = ('member')
