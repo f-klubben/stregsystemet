@@ -2,7 +2,9 @@ from django.test import TestCase
 from django.urls import reverse
 from mock import patch, MagicMock
 
-from .models import PayTransaction
+from .models import Member
+from .models import StregForbudError
+from .models import PayTransaction, GetTransaction
 
 class SaleViewTests(TestCase):
     fixtures = ["initial_data"]
@@ -63,3 +65,53 @@ class SaleViewTests(TestCase):
         (args, kwargs) = fulfill.call_args
         (last_trans, ) = args
         self.assertEqual(last_trans, PayTransaction(900))
+
+class TransactionTests(TestCase):
+    def test_pay_transaction_change(self):
+        transaction = PayTransaction(100)
+        self.assertEqual(transaction.change(), -100)
+
+    def test_pay_transaction_change(self):
+        transaction = GetTransaction(100)
+        self.assertEqual(transaction.change(), 100)
+
+class MemberTests(TestCase):
+    def test_fulfill_pay_transaction(self):
+        member = Member(
+            balance = 100
+        )
+        transaction = PayTransaction(10)
+        member.fulfill(transaction)
+
+        self.assertEqual(member.balance, 90)
+
+    def test_fulfill_pay_transaction_no_money(self):
+        member = Member(
+            balance = 2
+        )
+        transaction = PayTransaction(10)
+        with self.assertRaises(StregForbudError) as c:
+            member.fulfill(transaction)
+
+        self.assertTrue(c.exception)
+        self.assertEqual(member.balance, 2)
+
+    def test_fulfill_check_transaction_has_money(self):
+        member = Member(
+            balance = 10
+        )
+        transaction = PayTransaction(10)
+
+        has_money = member.can_fulfill(transaction)
+
+        self.assertTrue(has_money)
+
+    def test_fulfill_check_transaction_no_money(self):
+        member = Member(
+            balance = 2
+        )
+        transaction = PayTransaction(10)
+
+        has_money = member.can_fulfill(transaction)
+
+        self.assertFalse(has_money)
