@@ -51,9 +51,16 @@ def sale(request, room_id):
         return render(request, 'stregsystem/index.html', locals())
     try:
         member = Member.objects.get(username=username, active=True)
-        bought_ids = map(int, quickbuy_list[1:])
     except Member.DoesNotExist:
         return render(request, 'stregsystem/error_usernotfound.html', locals())
+
+    bought_ids = []
+    for x in quickbuy_list[1:]:
+        if not x.isdigit():
+            return render(request, 'stregsystem/error_invalidinput.html', locals())
+        else:
+            bought_ids.append(int(x))
+
     #XXX disabled multibuy
     if len(bought_ids) == 1:
         return quicksale(request, room, member, bought_ids)
