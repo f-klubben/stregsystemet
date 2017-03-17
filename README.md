@@ -1,3 +1,9 @@
+Branches
+-------
+ - `master`: The running code on the live system.
+ - `next`: The set of changes which will be included in the next release.
+ - Any other: Dunno.
+
 Using Testdata
 --------
 1. `python manage.py migrate`
