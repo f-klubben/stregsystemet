@@ -1,9 +1,10 @@
 from django.contrib import admin
 from stregsystem.models import Sale, Member, Payment, News, Product, Room
+import fpformat
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
-    list_display = ('get_username', 'get_product_name', 'price')
+    list_display = ('get_username', 'get_product_name', 'get_room_name', 'timestamp', 'get_price_display')
 
     def get_username(self, obj):
         return obj.member.username
@@ -14,6 +15,21 @@ class SaleAdmin(admin.ModelAdmin):
         return obj.product.name
     get_product_name.short_description = "Product"
     get_product_name.admin_order_field = "product__name"
+
+    def get_room_name(self, obj):
+        return obj.room.name
+    get_room_name.short_description = "Room"
+    get_room_name.admin_order_field = "room__name"
+
+    def get_price_display(self, obj):
+        if obj.price is None:
+            obj.price = 0
+        return fpformat.fix(obj.price/100.0,2)   + " kr."
+    get_price_display.short_description = "Price"
+    get_price_display.admin_order_field = "price"
+
+    search_fields = ['^member__username', '=product__id', 'product__name']
+    valid_lookups = ('member')
 
 def toggle_active_selected_products(modeladmin, request, queryset):
     "toggles active on products, also removes deactivation date."
