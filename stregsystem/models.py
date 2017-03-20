@@ -51,10 +51,6 @@ class Member(models.Model): # id automatisk...
     balance_display.short_description = "Balance"
     balance_display.admin_order_field = 'balance'
 
-    def member_sales(self):
-        return '<a href="../../stregsystem/sale/?member__id__exact=%i">%i sales</a>' % (self.id, self.sale_set.count())
-    member_sales.allow_tags = True
-
     def __unicode__(self):
         return self.username + active_str(self.active) + ": " + self.email + " " + money(self.balance)
 
