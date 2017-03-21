@@ -43,8 +43,15 @@ def toggle_active_selected_products(modeladmin, request, queryset):
 class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'price', 'id')
     list_filter = ('deactivate_date', 'price')
-    list_display = ('name', 'price')
+    list_display = ('activated', 'id', 'name', 'get_price_display',)
     actions = [toggle_active_selected_products]
+
+    def get_price_display(self, obj):
+        if obj.price is None:
+            obj.price = 0
+        return fpformat.fix(obj.price/100.0,2)   + " kr."
+    get_price_display.short_description = "Price"
+    get_price_display.admin_order_field = "price"
 
 class MemberAdmin(admin.ModelAdmin):
     list_filter = ('want_spam', )
