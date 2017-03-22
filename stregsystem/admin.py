@@ -58,17 +58,22 @@ class PaymentAdmin(admin.ModelAdmin):
             return db_field.formfield(**kwargs)
         return super(SmarterModelAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
         
-    list_display = ('get_username', 'amount', 'timestamp')
+    list_display = ('get_username', 'timestamp', 'get_amount_display')
+    valid_lookups = ('member')
+    search_fields = ['member__username']
 
     def get_username(self, obj):
         return obj.member.username
     get_username.short_description = "Username"
     get_username.admin_order_field = "member__username"
 
-    valid_lookups = ('member')
-    search_fields = ['member__username']
+    def get_amount_display(self, obj):
+        if obj.amount is None:
+            obj.amount = 0
+        return fpformat.fix(obj.amount/100.0,2)   + " kr."
+    get_amount_display.short_description = "Amount"
+    get_amount_display.admin_order_field = "amount"
 
-    
 
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(Member, MemberAdmin)
