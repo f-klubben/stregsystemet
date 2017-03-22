@@ -33,7 +33,6 @@ class SaleAdmin(admin.ModelAdmin):
         super(SaleAdmin, self).delete_model(request, obj)
 
     def save_model(self, request, obj, form, change):
-        print(change)
         if change:
             return
         transaction = PayTransaction(obj.price)
