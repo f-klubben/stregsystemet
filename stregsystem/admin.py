@@ -44,7 +44,7 @@ def toggle_active_selected_products(modeladmin, request, queryset):
 class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'price', 'id')
     list_filter = ('deactivate_date', 'price')
-    list_display = ('activated', 'id', 'name', 'get_price_display',)
+    list_display = ('activated', 'id', 'name', 'get_price_display')
     actions = [toggle_active_selected_products]
 
     def get_price_display(self, obj):
