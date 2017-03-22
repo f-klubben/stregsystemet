@@ -20,11 +20,9 @@
 <table width="100%%">
     <tr>
         <td>
-            <form action="/{{room.id}}">{% csrf_token %}
-            <center>
-                <input type="submit" value="Genstart" tabindex="10" accesskey="q">
-            </center>
-            </form>
+          <center>
+            <input type="button" onclick="location.href='/{{room.id}}';" value="Genstart" tabindex="10" accesskey="q" />
+          </center>
         </td>
         <td align=center>
             <h1>{% block heading %}TREOENs STREGSYSTEM
@@ -34,11 +32,9 @@
 {% endblock %}</h1>
         </td>
         <td>
-            <form action="/{{room.id}}">{% csrf_token %}
-            <center>
-                <input type="submit" value="Menu" tabindex="11">
-            </center>
-            </form>
+          <center>
+            <input type="button" onclick="location.href='/{{room.id}}';" value="Menu" tabindex="11" />
+          </center>
         </td>
     </tr>
 </table>
