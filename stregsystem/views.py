@@ -4,7 +4,6 @@ from django.http import HttpResponse, HttpResponsePermanentRedirect
 import re
 import datetime
 import fpformat
-from django.db import transaction
 
 from django.shortcuts import render, render_to_response, get_object_or_404
 from django.db.models import Q
@@ -63,12 +62,11 @@ def sale(request, room_id):
             bought_ids.append(int(x))
 
     #XXX disabled multibuy
-    if len(bought_ids):
+    if len(bought_ids) == 1:
         return quicksale(request, room, member, bought_ids)
     else:
         return usermenu(request, room, member, None)
 
-@transaction.atomic
 def quicksale(request, room, member, bought_ids):
     bought_ids_count = {}
     news = __get_news()
@@ -87,14 +85,13 @@ def quicksale(request, room, member, bought_ids):
     bought_list = info.values()
 
     try:
-        with transaction.atomic():
-            for i in bought_ids:
-                product = info[i]['product']
-                s = Sale(member=member,
-                         product=product,
-                         room=room,
-                         price=product.price)
-                s.save()
+        for i in bought_ids:
+            product = info[i]['product']
+            s = Sale(member=member,
+                     product=product,
+                     room=room,
+                     price=product.price)
+            s.save()
     except StregForbudError:
         return render(request, 'stregsystem/error_stregforbud.html', locals())
     
