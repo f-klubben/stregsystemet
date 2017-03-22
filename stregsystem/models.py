@@ -197,13 +197,6 @@ class Product(models.Model): # id automatisk...
     active = models.BooleanField()
     deactivate_date = models.DateTimeField(blank=True, null=True)
 
-    def activated(self):
-        if self.active and (self.deactivate_date == None or self.deactivate_date > timezone.now()):
-            return '<img src="/static/admin/img/icon-yes.svg" alt="1" />'
-        else:
-            return '<img src="/static/admin/img/icon-no.svg" alt="0" />'
-    activated.allow_tags = True
-
     def __unicode__(self):
         return active_str(self.active) + " " + self.name + " (" + money(self.price) + ")"
     def save(self, *args, **kwargs):
