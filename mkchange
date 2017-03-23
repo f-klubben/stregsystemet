@@ -1,0 +1,12 @@
+#!/bin/sh
+git reset .
+
+echo "" >> changelog
+
+date >> changelog
+git log --merges --pretty="format:-- %b" master..next >> changelog
+
+git add changelog
+git commit -m "Updated changelog"
+
+echo "" >> changelog
