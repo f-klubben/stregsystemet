@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils import timezone
 from stregsystem.models import Sale, Member, Payment, News, Product, Room
 import fpformat
 
@@ -43,8 +44,22 @@ def toggle_active_selected_products(modeladmin, request, queryset):
 class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'price', 'id')
     list_filter = ('deactivate_date', 'price')
-    list_display = ('name', 'price')
+    list_display = ('activated', 'id', 'name', 'get_price_display')
     actions = [toggle_active_selected_products]
+
+    def get_price_display(self, obj):
+        if obj.price is None:
+            obj.price = 0
+        return fpformat.fix(obj.price/100.0,2)   + " kr."
+    get_price_display.short_description = "Price"
+    get_price_display.admin_order_field = "price"
+
+    def activated(self, obj):
+        if obj.active and (obj.deactivate_date == None or obj.deactivate_date > timezone.now()):
+            return '<img src="/static/admin/img/icon-yes.svg" alt="1" />'
+        else:
+            return '<img src="/static/admin/img/icon-no.svg" alt="0" />'
+    activated.allow_tags = True
 
 class MemberAdmin(admin.ModelAdmin):
     list_filter = ('want_spam', )
