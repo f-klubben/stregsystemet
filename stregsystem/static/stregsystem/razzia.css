@@ -1,0 +1,51 @@
+.searcher {
+    margin: auto;
+    width: 50%;
+    padding: 10px;
+    font-size:14pt;
+    height: 40pt;
+}
+
+.vTextField  {
+	width: 80%;
+	font-size:30pt;
+}
+
+.ourform {
+	font-size:32pt;
+	padding-top: 12px;
+}
+
+.result {
+    width: 75%;
+    padding: 25px;
+    margin: auto;
+    font-size: 35pt;
+    text-align: center;
+}
+
+.searcherFindButton {
+	font-size:30pt;
+}
+
+h1 {
+    margin: auto;
+    font-size: 45pt;
+    text-align: center;
+}
+
+.sucesscolor {
+	color: green;
+}
+
+.failurecolor {
+	color: red;
+}
+
+.fa-input {
+  font-family: FontAwesome, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.bread-icon {
+	width: 64px;
+}

@@ -1,0 +1,38 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Salgsrapporteringer{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Razzia</a>&nbsp;&rsaquo;&nbsp;Bread</div>{% endblock %}
+
+{% block content %}
+{% load admin_static %}
+<link rel="stylesheet" type="text/css" href="{% static '/stregsystem/razzia.css' %}" />
+
+<script src="https://use.fontawesome.com/fd7e4e00a3.js"></script>
+
+<div id="content-main">
+	<h1>Brødrazzia!</h1>
+	<div class="searcher">
+		<form action="./" method="post" class="fak">{% csrf_token %}
+				<input id="usernamesearcher" autofocus type="text" class="vTextField" name="username" maxlength="40" value="{{username}}" autocomplete="off" placeholder="Brugernavn" />
+				<input type="submit" class="fa fa-search ourform" value="&#xf002;">
+		</form>
+	</div>
+	{% if queryname %}
+		{% if member %}
+			<div id="result" class="result">
+				<br>
+				{{member.firstname}} {{member.lastname}} ({{member.username}}) 
+				<br>
+				<i class="fa fa-5x fa-check-circle sucesscolor" aria-hidden="true"></i>
+			</div>
+		{% else %}
+			<div id="result" class="result">
+				<br>
+				{{queryname}} is not a fember!!!
+				<br>
+				<i class="fa fa-5x fa-times-circle failurecolor" aria-hidden="true"></i>
+			</div>
+		{% endif %}
+	{% endif %}
+</div>
+{% endblock %}
