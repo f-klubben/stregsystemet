@@ -1,6 +1,6 @@
 {% extends "admin/base_site.html" %}
 
-{% block title %}Salgsrapporteringer{% endblock %}
+{% block title %}Brødrazzia{% endblock %}
 {% block breadcrumbs %}<div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Razzia</a>&nbsp;&rsaquo;&nbsp;Bread</div>{% endblock %}
 
 {% block content %}
@@ -10,29 +10,33 @@
 <script src="https://use.fontawesome.com/fd7e4e00a3.js"></script>
 
 <div id="content-main">
-	<h1>Brødrazzia!</h1>
-	<div class="searcher">
-		<form action="./" method="post" class="fak">{% csrf_token %}
-				<input id="usernamesearcher" autofocus type="text" class="vTextField" name="username" maxlength="40" value="{{username}}" autocomplete="off" placeholder="Brugernavn" />
-				<input type="submit" class="fa fa-search ourform" value="&#xf002;">
-		</form>
-	</div>
-	{% if queryname %}
-		{% if member %}
-			<div id="result" class="result">
-				<br>
+	<div class="grouped-vertical">
+		<div class="searcher">
+			<div class="titlebar">
+				<h1>Brødrazzia!</h1>
+			</div>
+			<form action="./" method="post" class="content">{% csrf_token %}
+				<div class="grouped">
+					<span class="group-label fa fa-search">
+					</span>
+					<input id="usernamesearcher" type="text" name="username" maxlength="40" value="{{username}}" autocomplete="off" placeholder="Brugernavn" />
+					<input type="submit" class="" value="Search">
+				</div>
+			</form>
+		</div>
+		{% if queryname %}
+		<div id="result" class="result">
+			{% if member %}
+				<div class="status">
+					<div class="fa fa-check-circle sucess" aria-hidden="true"></div></div>
 				{{member.firstname}} {{member.lastname}} ({{member.username}}) 
-				<br>
-				<i class="fa fa-5x fa-check-circle sucesscolor" aria-hidden="true"></i>
-			</div>
-		{% else %}
-			<div id="result" class="result">
-				<br>
+			{% else %}
+				<div class="status">
+					<div class="fa fa-times-circle failure" aria-hidden="true"></div></div>
 				{{queryname}} is not a fember!!!
-				<br>
-				<i class="fa fa-5x fa-times-circle failurecolor" aria-hidden="true"></i>
-			</div>
+			{% endif %}
+		</div>
 		{% endif %}
-	{% endif %}
+	</div>
 </div>
 {% endblock %}
