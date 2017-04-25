@@ -1,37 +1,20 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
+  <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>F-Klubben</title>
+    <title>F-Klubben - kiosk mode</title>
 
     <link href="{% static "kiosk/kiosk.css" %}" rel="stylesheet">
 
     <script>
-    function updateKiosk(){
-        var xmlHttp = new XMLHttpRequest();
-        xmlHttp.onreadystatechange = function() {
-            if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-                var element = document.querySelector("#dummy");
-                element.style.backgroundImage = 'url(' + xmlHttp.responseText + ')';
-            }
-        }
-        xmlHttp.open("GET", "/kiosk/random", true);
-        xmlHttp.send(null);
-    }
-  
-    setInterval("updateKiosk()", 10000);
-    updateKiosk();
+     setTimeout(function(){ location = ''; }, 10000);
     </script>
-</head>
+  </head>
 
-<body>
-    <div id="dummy">
-
-    </div>
-</body>
-
+  <body>
+    <div id="element" style="background-image: url({{ MEDIA_URL }}{{ item.image.url }});"></div>
+  </body>
 </html>
