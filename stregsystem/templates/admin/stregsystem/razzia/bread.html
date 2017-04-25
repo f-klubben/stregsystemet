@@ -1,0 +1,42 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Brødrazzia{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Razzia</a>&nbsp;&rsaquo;&nbsp;Bread</div>{% endblock %}
+
+{% block content %}
+{% load admin_static %}
+<link rel="stylesheet" type="text/css" href="{% static '/stregsystem/razzia.css' %}" />
+
+<script src="https://use.fontawesome.com/fd7e4e00a3.js"></script>
+
+<div id="content-main">
+	<div class="grouped-vertical">
+		<div class="searcher">
+			<div class="titlebar">
+				<h1>Brødrazzia!</h1>
+			</div>
+			<form action="./" method="post" class="content">{% csrf_token %}
+				<div class="grouped">
+					<span class="group-label fa fa-search">
+					</span>
+					<input id="usernamesearcher" type="text" name="username" maxlength="40" value="{{username}}" autocomplete="off" placeholder="Brugernavn" />
+					<input type="submit" class="" value="Search">
+				</div>
+			</form>
+		</div>
+		{% if queryname %}
+		<div id="result" class="result">
+			{% if member %}
+				<div class="status">
+					<div class="fa fa-check-circle sucess" aria-hidden="true"></div></div>
+				{{member.firstname}} {{member.lastname}} ({{member.username}}) 
+			{% else %}
+				<div class="status">
+					<div class="fa fa-times-circle failure" aria-hidden="true"></div></div>
+				{{queryname}} is not a fember!!!
+			{% endif %}
+		</div>
+		{% endif %}
+	</div>
+</div>
+{% endblock %}

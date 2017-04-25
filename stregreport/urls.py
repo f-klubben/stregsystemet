@@ -19,6 +19,7 @@ from django.contrib import admin
 from . import views
 
 urlpatterns = [
+    url(r'^admin/stregsystem/razzia/bread/$', views.bread),
     url(r'^admin/stregsystem/report/sales/$', views.sales),
     url(r'^admin/stregsystem/report/ranks/$', views.ranks),
     url(r'^admin/stregsystem/report/ranks/(?P<year>\d+)$', views.ranks),
