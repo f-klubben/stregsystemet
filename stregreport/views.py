@@ -26,6 +26,22 @@ def sales(request):
     
 sales = staff_member_required(sales)
 
+def bread(request):
+    if request.method == 'POST':
+        return bread_view(request, request.POST['username'])
+    else:
+        return bread_view(request, None)
+
+bread = staff_member_required(bread)
+
+def bread_view(request, queryname):
+    if not queryname is None:
+        result = list(Member.objects.filter(username__iexact=queryname))
+        if len(result) > 0: 
+            member = result[0]
+
+    return render(request, 'admin/stregsystem/razzia/bread.html', locals())
+
 def ranks(request, year = None):
     if (year):
         return ranks_for_year(request, int(year))

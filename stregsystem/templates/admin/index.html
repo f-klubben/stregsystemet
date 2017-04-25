@@ -47,20 +47,33 @@
 {% endif %}
 
 	<div class="module">
-		<table>
-		<caption><a href="/admin/stregsystem/report/" class="section">{% blocktrans with app.name as name %}Rapporter{% endblocktrans %}</a></caption>
-			<tr>
-				<th scope="row"><a href = "/admin/stregsystem/report/ranks/">Købs- og forbrugsrangeringer</a></th>
-				<td>&nbsp;</td>
-				<td>&nbsp;</td>
-			</tr>
-			<tr>
-				<th scope="row"><a href = "/admin/stregsystem/report/sales/">Salgsrapporteringer</a></th>
-				<td>&nbsp;</td>
-				<td>&nbsp;</td>
-			</tr>
-		</table>
-	</div>
+        <table>
+        <caption><a href="/admin/stregsystem/report/" class="section">{% blocktrans with app.name as name %}Rapporter{% endblocktrans %}</a></caption>
+            <tr>
+                <th scope="row"><a href = "/admin/stregsystem/report/ranks/">Købs- og forbrugsrangeringer</a></th>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <th scope="row"><a href = "/admin/stregsystem/report/sales/">Salgsrapporteringer</a></th>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="module">
+        <table>
+        <caption><a class="section">{% blocktrans with app.name as name %}Razzia{% endblocktrans %}</a></caption>
+            <tr>
+                <th scope="row"><a href = "/admin/stregsystem/razzia/bread/">Brødrazzia (Tjek om Fember)</a></th>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+            </tr>
+        </table>
+    </div>
+
+
 </div>
 {% endblock %}
 
