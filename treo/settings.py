@@ -38,6 +38,18 @@ defaults = {
         "PASSWORD": "",
 }
 
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'default',
+    },
+    'kiosk': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'kiosk',
+    },
+}
+
 cfg = SafeConfigParser(defaults)
 cfg.read(os.path.join(BASE_DIR, "local.cfg"))
 
