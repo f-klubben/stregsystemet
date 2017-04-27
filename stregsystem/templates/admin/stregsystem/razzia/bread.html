@@ -1,7 +1,7 @@
 {% extends "admin/base_site.html" %}
 
 {% block title %}Brødrazzia{% endblock %}
-{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Razzia</a>&nbsp;&rsaquo;&nbsp;Bread</div>{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a>Razzia</a>&nbsp;&rsaquo;&nbsp;Bread</div>{% endblock %}
 
 {% block content %}
 {% load admin_static %}
@@ -19,7 +19,7 @@
 				<div class="grouped">
 					<span class="group-label fa fa-search">
 					</span>
-					<input id="usernamesearcher" type="text" name="username" maxlength="40" value="{{username}}" autocomplete="off" placeholder="Brugernavn" />
+					<input id="usernamesearcher" type="text" autofocus name="username" maxlength="40" value="{{username}}" autocomplete="off" placeholder="Brugernavn" />
 					<input type="submit" class="" value="Search">
 				</div>
 			</form>
