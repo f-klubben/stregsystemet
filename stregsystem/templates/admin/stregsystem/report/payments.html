@@ -1,0 +1,47 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Indbetalinger{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Reports</a>&nbsp;&rsaquo;&nbsp;Indbetalinger</div>{% endblock %}
+
+{% block content %}
+{% load admin_static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/forms.css' %}" />
+<script type="text/javascript">window.__admin_media_prefix__ = "/media/";</script>
+
+<script type="text/javascript" src="/admin/jsi18n/"></script>
+<script type="text/javascript" src="{% static 'js/admin/RelatedObjectLookups.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/actions.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/calendar.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/admin/DateTimeShortcuts.js' %}"></script>
+
+<div id="content-main">
+  <h1>Indbetalinger</h1>
+  <!-- <form action="./" method="post">{% csrf_token %}
+       TODO: Add some way of getting another day!
+       TODO: Increments against today.
+       </form> -->
+  <br /><br />
+  {% if payments %}
+  <table border="1" cellspacing="2" cellpadding="2">
+    <tr>
+      <th valign="top" colspan="4">Betaliner</th>
+    </tr>
+    <tr>
+      <th>Brugernavn</th>
+      <th>Indbetalt (Kr.)</th>
+      <th>Tid</th>
+      <th>Ny</th>
+    </tr>
+    {% for payment in payments %}
+    <tr>
+      <td>{{ payment.member.username }}</td>
+      <td>{{ payment.amount }}</td>
+      <td>{{ payment.timestamp }}</td>
+      <td></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+  <p>Nye medlemmer: <b>{{ new_count }}</b></p>
+</div>
+{% endblock %}

@@ -23,5 +23,6 @@ urlpatterns = [
     url(r'^admin/stregsystem/report/sales/$', views.sales),
     url(r'^admin/stregsystem/report/ranks/$', views.ranks),
     url(r'^admin/stregsystem/report/ranks/(?P<year>\d+)$', views.ranks),
+    url(r'^admin/stregsystem/report/payments/$', views.payments),
     url(r'^admin/stregsystem/report/$', views.reports),
 ]
