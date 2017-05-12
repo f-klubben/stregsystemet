@@ -72,7 +72,7 @@ class PaymentAdmin(admin.ModelAdmin):
             kwargs["queryset"] = Member.objects.filter(active=True).order_by('username')
             return db_field.formfield(**kwargs)
         return super(SmarterModelAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
-        
+
     list_display = ('get_username', 'timestamp', 'get_amount_display')
     valid_lookups = ('member')
     search_fields = ['member__username']
