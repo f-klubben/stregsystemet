@@ -47,14 +47,14 @@ def partition(thelist, n):
 @register.filter
 def partition_horizontal(thelist, n):
     """
-    Break a list into ``n`` peices, but "horizontally." That is, 
+    Break a list into ``n`` peices, but "horizontally." That is,
     ``partition_horizontal(range(10), 3)`` gives::
-    
+
         [[1, 2, 3],
          [4, 5, 6],
          [7, 8, 9],
          [10]]
-        
+
     Clear as mud?
     """
     try:

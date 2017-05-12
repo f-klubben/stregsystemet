@@ -43,7 +43,7 @@ def sale(request, room_id):
     room = get_object_or_404(Room, pk=room_id)
     news = __get_news()
     product_list = __get_productlist()
-    
+
     quickbuy_list = re.split('\s+', request.POST['quickbuy'].strip())
 
     username = quickbuy_list[0]
@@ -94,9 +94,9 @@ def quicksale(request, room, member, bought_ids):
             s.save()
     except StregForbudError:
         return render(request, 'stregsystem/error_stregforbud.html', locals())
-    
+
     promille = member.calculate_alcohol_promille()
-    
+
     return render(request, 'stregsystem/index_sale.html', locals())
 
 def usermenu(request, room, member, bought):
@@ -112,7 +112,7 @@ def usermenu(request, room, member, bought):
 def __get_total_by_product(member):
     from django.db import connection
     cursor = connection.cursor()
-    cursor.execute("""SELECT name, SUM(sale.price) 
+    cursor.execute("""SELECT name, SUM(sale.price)
                     FROM `stregsystem_sale` as `sale`, `stregsystem_product` as `product`
                     WHERE `member_id` = %s AND product.id = sale.product_id GROUP BY `product_id`""", [member.id])
     l = cursor.fetchall()
@@ -126,7 +126,7 @@ def menu_userinfo(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
-    
+
     last_sale_list = member.sale_set.order_by('-timestamp')[:10]
     try:
         last_payment = member.payment_set.order_by('-timestamp')[0]
@@ -135,7 +135,7 @@ def menu_userinfo(request, room_id, member_id):
 
     total_by_product = __get_total_by_product(member)
     total_sales = reduce(lambda s, i: s + i[1], total_by_product, 0)
-    
+
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()
 
@@ -175,7 +175,7 @@ def ranks_for_year(year):
     milk = [2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 17, 18, 19, 20, 24, 25, 43, 44, 45 ]
     caffeine = [11, 12, 30, 32, 34, 35, 36, 37, 39, 1787, 1790, 1791, 1795, 1799, 1800, 1803]
     beer = [13, 14, 29, 42, 47, 54, 65, 66, 1773, 1776, 1777, 1779, 1780, 1783, 1793, 1794]
-    
+
     FORMAT = '%d/%m/%Y kl. %H:%M'
     from_time = fjule_party(year - 1)
     to_time = fjule_party(year)
@@ -190,9 +190,9 @@ def ranks_for_year(year):
     current_date = datetime.datetime.now()
     is_ongoing = current_date > from_time and current_date <= to_time
     return render(request, 'stregsystem/ranks.html', locals())
-    
+
 # gives a list of tuples (int_rank, string_username, int_value) of rankings of money spent between from_time and to_time.
-#Limit is the maximum size of the returned list. 
+#Limit is the maximum size of the returned list.
 def sale_money_rank(from_time, to_time, rank_limit=10):
     try:
         stat_list = map(lambda x, y: (y, x.username, money(x.sale__price__sum)), Member.objects.filter(active=True, sale__timestamp__gt = from_time, sale__timestamp__lte = to_time).annotate(Sum('sale__price')).order_by('-sale__price__sum', 'username')[:rank_limit], xrange(1, rank_limit+1))
@@ -234,7 +234,7 @@ def fjule_party(year):
     first_december = datetime.datetime(year, 12, 1, 22)
     days_to_add = (11 - first_december.weekday()) % 7
     return first_december + datetime.timedelta(days = days_to_add)
-    
+
 def money(value):
     if value is None:
         value = 0

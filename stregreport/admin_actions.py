@@ -8,4 +8,3 @@ def toggle_active_selected_products(modeladmin, request, queryset):
         obj.save()
 
 toggle_active_selected_products.short_description = "Toggle Active"
-
