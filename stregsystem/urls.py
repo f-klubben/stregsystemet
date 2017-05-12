@@ -37,7 +37,7 @@ urlpatterns = [
     #(r'^admin/', 'admin'),
 ]
 
-# urlpatterns += patterns('', 
+# urlpatterns += patterns('',
 #     (r'^mat/$', 'django.views.generic.simple.redirect_to', {'url': '/3/'}),
 #     (r'^cs/$', 'django.views.generic.simple.redirect_to', {'url': '/2/'}),
 # )

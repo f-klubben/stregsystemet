@@ -45,7 +45,7 @@ class Member(models.Model): # id automatisk...
     notes = models.TextField(blank=True)
 
     stregforbud_override = False
-    
+
     def balance_display(self):
         return money(self.balance) + " kr."
     balance_display.short_description = "Balance"
@@ -61,7 +61,7 @@ class Member(models.Model): # id automatisk...
     def make_payment(self, amount):
         """
         Should only be called by the Payment class.
-        
+
         >>> jokke = Member.objects.create(username="jokke", firstname="Joakim", lastname="Byg", email="treo@cs.aau.dk", year=2007)
         >>> jokke.balance
         0
@@ -70,7 +70,7 @@ class Member(models.Model): # id automatisk...
         100
         """
         self.balance = self.balance + amount
-    
+
     def make_sale(self, price):
         """
         Should only be called by the Sale class.
@@ -104,7 +104,7 @@ class Member(models.Model): # id automatisk...
         if Member.stregforbud_override:
             return False
 
-        
+
         return self.balance - buy < 0
 
     def calculate_alcohol_promille(self):
@@ -115,14 +115,14 @@ class Member(models.Model): # id automatisk...
         import math
         # formodet draenet vaegt paa en gennemsnitsdatalog
         weight = 80.0
-        # Vi burde flytte det her til databasen, saa kan treoen lave noget ;) 
+        # Vi burde flytte det her til databasen, saa kan treoen lave noget ;)
         drinks_in_product = {13: 1.24, 14: 1.0, 29: 1.0, 42: 1.72, 47: 1.52, 54: 1.24, 65: 1.5, 66: 1.5, 1773: 0.37, 1773: 1.0, 1776: 1.52, 1777: 1.52, 1779: 2.0, 1780: 2.58, 1783: 1.0, 1793: 1.0, 1794: 0.96, 22: 7.0, 23: 7.0, 41: 19.14, 53: 9.22, 63: 1.0, 64: 7.0, 1767: 1.02, 1769: 1.0, 1770: 2.0, 1802: 2.0, 1807: 6.6, 1808: 7.5, 1809: 8.3}
-        
+
         now = timezone.now()
         delta = now - timedelta(hours=12)
         alcohol_sales = Sale.objects.filter(member_id=self.id, timestamp__gt=delta, product__in=drinks_in_product.keys()).order_by('timestamp')
         drinks = 0.0
-        
+
         if self.gender == 'M':
             drinks_pr_hour = 0.01250 * weight
         elif self.gender == 'F':
@@ -140,7 +140,7 @@ class Member(models.Model): # id automatisk...
                 last_time_frame = current_time_frame
             drinks = max(0.0, drinks - (now - last_time_frame).seconds / 3600.0 * drinks_pr_hour)
 
-            
+
         #Tihi:
         drunken_bastards = {
             2219: 42.0, #mbogh
@@ -156,7 +156,7 @@ class Member(models.Model): # id automatisk...
             consume_percent = 0.55
         else:
             consume_percent = 0.615
-        
+
         promille = 12.0 * drinks / (consume_percent * weight)
         promille = promille + drunken_bastards.get(self.id, 0.0)
         return str(round(promille,2))
@@ -171,7 +171,7 @@ class Payment(models.Model): # id automatisk...
     amount_display.short_description = "Amount"
     #XXX - django bug - kan ikke vaelge mellem desc og asc i admin, som ved normalt felt
     amount_display.admin_order_field = '-amount'
-    
+
     def __unicode__(self):
         return self.member.username + " " + str(self.timestamp) + ": " + money(self.amount)
     def save(self, *args, **kwargs):
@@ -222,7 +222,7 @@ class OldPrice(models.Model): # gamle priser, skal huskes; til regnskab/statisti
 class Room(models.Model):
     name = models.CharField(max_length=20)
     description = models.CharField(max_length=20)
-    
+
     def __unicode__(self):
         return self.name
 
@@ -238,7 +238,7 @@ class Sale(models.Model):
     price_display.short_description = "Price"
     #XXX - django bug - kan ikke vaelge mellem desc og asc i admin, som ved normalt felt
     price_display.admin_order_field = 'price'
-    
+
     def __unicode__(self):
         return self.member.username + " " + self.product.name + " (" + money(self.price) + ") " + str(self.timestamp)
     def save(self, *args, **kwargs):
@@ -266,7 +266,7 @@ class News(models.Model):
     text = models.TextField()
     pub_date = models.DateTimeField()
     stop_date = models.DateTimeField()
-    
+
     class Meta:
         verbose_name_plural = "News"
 
