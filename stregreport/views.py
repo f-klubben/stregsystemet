@@ -1,7 +1,6 @@
 from django.contrib.admin.views.decorators import staff_member_required
 
 import datetime
-import fpformat
 import collections
 
 from django.shortcuts import render
@@ -12,6 +11,7 @@ from django.db.models import Sum
 from stregsystem.models import Member
 from stregsystem.models import Sale
 from stregsystem.models import Product
+from functools import reduce
 
 def reports(request):
     return render(request, 'admin/stregsystem/report/index.html', locals())
@@ -68,7 +68,7 @@ def sales_product(request, ids, from_time, to_time):
         sales = []
         if ids and len(ids) > 0:
             products = reduce(lambda a, b: a + str(b) + ' ', ids, '')
-            query = reduce(lambda x, y: x | y, map(lambda z: Q(id=z), ids))
+            query = reduce(lambda x, y: x | y, [Q(id=z) for z in ids])
             query &= Q(sale__timestamp__gt = from_date_time)
             query &= Q(sale__timestamp__lte = to_date_time)
             result = Product.objects.filter(query).annotate(Count('sale'), Sum('sale__price'))
@@ -149,11 +149,11 @@ def fjule_party(year):
 def money(value):
     if value is None:
         value = 0
-    return fpformat.fix(value/100.0,2)
+    return "{0:.2f}".format(value/100.0)
 
 def strings_to_whole(strings):
     def append_if_digit(list, digit):
-        if isinstance(digit, unicode) and digit.isdigit():
+        if isinstance(digit, str) and digit.isdigit():
             list.append(int(digit))
         return list
     if not isinstance(strings, collections.Iterable):

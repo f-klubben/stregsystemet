@@ -1,9 +1,5 @@
 from django.db import models
 
-import fpformat
-
-from datetime import datetime
-from datetime import date
 from django.utils import timezone
 
 
@@ -11,7 +7,7 @@ from django.utils import timezone
 def money(value):
     if value is None:
         value = 0
-    return fpformat.fix(value/100.0,2)
+    return "{0:.2f}".format(value/100.0)
 def price_display(value):
     return money(value) + " kr."
 def active_str(a):
@@ -110,9 +106,7 @@ class Member(models.Model): # id automatisk...
     def calculate_alcohol_promille(self):
         #Disabled:
         #return False
-        from django.db import connection
-        from datetime import datetime, timedelta
-        import math
+        from datetime import timedelta
         # formodet draenet vaegt paa en gennemsnitsdatalog
         weight = 80.0
         # Vi burde flytte det her til databasen, saa kan treoen lave noget ;) 
@@ -120,7 +114,7 @@ class Member(models.Model): # id automatisk...
         
         now = timezone.now()
         delta = now - timedelta(hours=12)
-        alcohol_sales = Sale.objects.filter(member_id=self.id, timestamp__gt=delta, product__in=drinks_in_product.keys()).order_by('timestamp')
+        alcohol_sales = Sale.objects.filter(member_id=self.id, timestamp__gt=delta, product__in=list(drinks_in_product.keys())).order_by('timestamp')
         drinks = 0.0
         
         if self.gender == 'M':
@@ -204,7 +198,7 @@ class Product(models.Model): # id automatisk...
         if self.id:
             try:
                 oldprice = self.old_prices.order_by('-changed_on')[0:1].get()
-                price_changed = oldprice <> self.price
+                price_changed = oldprice != self.price
             except OldPrice.DoesNotExist: # der findes varer hvor der ikke er nogen "tidligere priser"
                 pass
         super(Product, self).save(*args, **kwargs)

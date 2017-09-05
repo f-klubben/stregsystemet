@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.utils import timezone
 from stregsystem.models import Sale, Member, Payment, News, Product, Room
-import fpformat
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
@@ -25,7 +24,7 @@ class SaleAdmin(admin.ModelAdmin):
     def get_price_display(self, obj):
         if obj.price is None:
             obj.price = 0
-        return fpformat.fix(obj.price/100.0,2)   + " kr."
+        return "{0:.2f} kr.".format(obj.price/100.0)
     get_price_display.short_description = "Price"
     get_price_display.admin_order_field = "price"
 
@@ -50,7 +49,7 @@ class ProductAdmin(admin.ModelAdmin):
     def get_price_display(self, obj):
         if obj.price is None:
             obj.price = 0
-        return fpformat.fix(obj.price/100.0,2)   + " kr."
+        return "{0:.2f} kr.".format(obj.price/100.0)
     get_price_display.short_description = "Price"
     get_price_display.admin_order_field = "price"
 
@@ -85,7 +84,7 @@ class PaymentAdmin(admin.ModelAdmin):
     def get_amount_display(self, obj):
         if obj.amount is None:
             obj.amount = 0
-        return fpformat.fix(obj.amount/100.0,2)   + " kr."
+        return "{0:.2f} kr.".format(obj.amount/100.0)
     get_amount_display.short_description = "Amount"
     get_amount_display.admin_order_field = "amount"
 
