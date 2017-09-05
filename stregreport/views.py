@@ -5,7 +5,6 @@ from functools import reduce
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count, Q, Sum
 from django.shortcuts import render
-
 from stregsystem.models import Member, Product
 
 

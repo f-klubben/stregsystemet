@@ -5,9 +5,8 @@ from functools import reduce
 from django.db.models import Count, Q, Sum
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
-
-from stregsystem.models import Room, Product, Member, Sale, StregForbudError, News
-from stregsystem.models import GetTransaction, PayTransaction
+from stregsystem.models import (Member, News, PayTransaction, Product, Room,
+                                Sale, StregForbudError)
 
 
 def __get_news():
@@ -75,13 +74,14 @@ def quicksale(request, room, member, bought_ids):
 
     products = {}
 
-    #TODO: Make atomic
+    # TODO: Make atomic
     transaction = PayTransaction()
 
-    #Retrieve products and construct transaction
+    # Retrieve products and construct transaction
     try:
         for i in bought_ids:
-            product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
+            product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(
+                deactivate_date__isnull=True))
             products[i] = product
             transaction.add(product.price)
     except Product.DoesNotExist:
@@ -161,7 +161,8 @@ def menu_sale(request, room_id, member_id, product_id=None):
     member = Member.objects.get(pk=member_id, active=True)
     product = None
     try:
-        product = Product.objects.get(Q(pk=product_id), Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
+        product = Product.objects.get(Q(pk=product_id), Q(active=True),
+                                      Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
 
         transaction = PayTransaction(product.price)
         if not member.can_fulfill(transaction):

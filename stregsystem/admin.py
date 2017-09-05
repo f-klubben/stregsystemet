@@ -1,8 +1,7 @@
 from django.contrib import admin
 from django.utils import timezone
-
-from stregsystem.models import PayTransaction, GetTransaction
-from stregsystem.models import Member, News, Payment, Product, Room, Sale
+from stregsystem.models import (Member, News, Payment, PayTransaction, Product,
+                                Room, Sale)
 
 
 class SaleAdmin(admin.ModelAdmin):

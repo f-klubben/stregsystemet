@@ -27,13 +27,13 @@ class StregForbudError(Exception):
 
 # Create your models here.
 
-#So we have two "basic" operations to do with money
-#we can take money from a user and we can give them money
-#the class names here are written from the perspective of
-#the user.
+# So we have two "basic" operations to do with money
+# we can take money from a user and we can give them money
+# the class names here are written from the perspective of
+# the user.
 # A monetary transaction, not a database transaction
 class MoneyTransaction(object):
-    def __init__(self, amount = 0):
+    def __init__(self, amount=0):
         self.amount = amount
 
     def add(self, change):
@@ -52,9 +52,10 @@ class MoneyTransaction(object):
         """
         return self.change() == other.change()
 
+
 class PayTransaction(MoneyTransaction):
-    #The change to the users account
-    #Negative because the user is losing money
+    # The change to the users account
+    # Negative because the user is losing money
     def change(self):
         """
         Returns the change to the users account
@@ -62,14 +63,16 @@ class PayTransaction(MoneyTransaction):
         """
         return -self.amount
 
+
 class GetTransaction(MoneyTransaction):
-    #The change to the users account
+    # The change to the users account
     def change(self):
         """
         Returns the change to the users account
         caused by fulfilling this transaction
         """
         return self.amount
+
 
 class Member(models.Model):  # id automatisk...
     GENDER_CHOICES = (
@@ -116,7 +119,6 @@ class Member(models.Model):  # id automatisk...
         100
         """
         self.balance = self.balance + amount
-
 
     def fulfill(self, transaction):
         """
