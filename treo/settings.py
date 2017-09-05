@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+
 try:
     from configparser import SafeConfigParser
 except ImportError:
@@ -20,37 +21,37 @@ except ImportError:
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 defaults = {
-        #GENERAL
-        "SECRET_KEY": "_Secret_",
-        "X_FRAME_OPTIONS": "SAMEORIGIN",
+    # GENERAL
+    "SECRET_KEY": "_Secret_",
+    "X_FRAME_OPTIONS": "SAMEORIGIN",
 
-        #DEBUG
-        "DEBUG": "True",
-        "CSRF_COOKIE_SECURE": "False",
-        "CSRF_COOKIE_HTTPONLY": "False",
-        "SESSION_COOKIT_SECURE": "False",
-        "SECURE_BROWSER_XSS_FILTER": "False",
-        "SECURE_CONTENT_TYPE_NOSNIFF": "False",
+    # DEBUG
+    "DEBUG": "True",
+    "CSRF_COOKIE_SECURE": "False",
+    "CSRF_COOKIE_HTTPONLY": "False",
+    "SESSION_COOKIT_SECURE": "False",
+    "SECURE_BROWSER_XSS_FILTER": "False",
+    "SECURE_CONTENT_TYPE_NOSNIFF": "False",
 
-        #DATABASE
-        "ENGINE": "django.db.backends.sqlite3",
-        "HOST": "",
-        "PORT": "",
-        "NAME": "db.sqlite3",
-        "USER": "",
-        "PASSWORD": "",
+    # DATABASE
+    "ENGINE": "django.db.backends.sqlite3",
+    "HOST": "",
+    "PORT": "",
+    "NAME": "db.sqlite3",
+    "USER": "",
+    "PASSWORD": "",
 }
 
 cfg = SafeConfigParser(defaults)
 cfg.read(os.path.join(BASE_DIR, "local.cfg"))
 
-if cfg.getboolean("debug", "DEBUG") == True:
+if cfg.getboolean("debug", "DEBUG") is True:
     print("WARNING: Not in production mode, If you are running on the server, stop right now")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = cfg.get("general", "SECRET_KEY")
 
-#Setting debug to false forces everything else into secure production settings
+# Setting debug to false forces everything else into secure production settings
 DEBUG = cfg.getboolean("debug", "DEBUG")
 
 CSRF_COOKIE_SECURE = cfg.getboolean("debug", "CSRF_COOKIE_SECURE")
@@ -63,8 +64,8 @@ SECURE_CONTENT_TYPE_NOSNIFF = cfg.getboolean("debug", "SECURE_CONTENT_TYPE_NOSNI
 
 X_FRAME_OPTIONS = cfg.get("general", "X_FRAME_OPTIONS")
 
-#We don't have any default hostnames for debug
-#But you really should have some when you are deploying
+# We don't have any default hostnames for debug
+# But you really should have some when you are deploying
 ALLOWED_HOSTS = []
 
 for e in cfg.items("hostnames"):
@@ -112,7 +113,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'treo.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
@@ -126,7 +126,6 @@ DATABASES = {
         'PASSWORD': cfg.get("database", "PASSWORD"),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -156,9 +155,8 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.Argon2PasswordHasher',
     'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
     'django.contrib.auth.hashers.BCryptPasswordHasher',
-    'django.contrib.auth.hashers.SHA1PasswordHasher', # <--- THIS ONE IS UNSAFE
+    'django.contrib.auth.hashers.SHA1PasswordHasher',  # <--- THIS ONE IS UNSAFE
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
@@ -172,7 +170,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/

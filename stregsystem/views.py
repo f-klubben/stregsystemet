@@ -1,16 +1,12 @@
-from django.template import Context, loader
-from django.http import HttpResponse, HttpResponsePermanentRedirect
-# from django.http import Http404
-import re
 import datetime
-
-from django.shortcuts import render, render_to_response, get_object_or_404
-from django.db.models import Q
-from django.db.models import Count
-from django.db.models import Sum
-
-from .models import Room, Product, Member, Sale, StregForbudError, News
+import re
 from functools import reduce
+
+from django.db.models import Count, Q, Sum
+from django.http import HttpResponsePermanentRedirect
+from django.shortcuts import get_object_or_404, render
+
+from .models import Member, News, Product, Room, Sale, StregForbudError
 
 
 def __get_news():
@@ -124,7 +120,7 @@ def usermenu(request, room, member, bought):
 def __get_total_by_product(member):
     from django.db import connection
     cursor = connection.cursor()
-    cursor.execute("""SELECT name, SUM(sale.price) 
+    cursor.execute("""SELECT name, SUM(sale.price)
                     FROM `stregsystem_sale` as `sale`, `stregsystem_product` as `product`
                     WHERE `member_id` = %s AND product.id = sale.product_id GROUP BY `product_id`""", [member.id])
     l = cursor.fetchall()
