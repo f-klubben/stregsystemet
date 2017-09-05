@@ -1,4 +1,4 @@
-Stregsystemet
+Stregsystemet [![Build Status](https://travis-ci.org/f-klubben/stregsystemet.svg?branch=next)](https://travis-ci.org/f-klubben/stregsystemet)
 ========
 
 This is the current stregsystem in the F-Klub.
