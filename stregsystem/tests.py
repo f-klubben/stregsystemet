@@ -1,10 +1,13 @@
 from django.test import TestCase
 from django.urls import reverse
-from mock import patch, MagicMock
+from stregsystem.models import (GetTransaction, Member, PayTransaction,
+                                StregForbudError)
 
-from .models import Member
-from .models import StregForbudError
-from .models import PayTransaction, GetTransaction
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
+
 
 class SaleViewTests(TestCase):
     fixtures = ["initial_data"]
@@ -19,13 +22,13 @@ class SaleViewTests(TestCase):
     def test_make_sale_quickbuy_success(self, fulfill, can_fulfill):
         can_fulfill.return_value = True
 
-        response = self.client.post(reverse('quickbuy', args=(1, )), {"quickbuy": "jokke 1"})
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke 1"})
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
         (args, kwargs) = fulfill.call_args
-        (last_trans, ) = args
+        (last_trans,) = args
         self.assertEqual(last_trans, PayTransaction(900))
 
     @patch('stregsystem.models.Member.can_fulfill')
@@ -33,7 +36,7 @@ class SaleViewTests(TestCase):
     def test_make_sale_quickbuy_fail(self, fulfill, can_fulfill):
         can_fulfill.return_value = False
 
-        response = self.client.post(reverse('quickbuy', args=(1, )), {"quickbuy": "jan 1"})
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jan 1"})
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/error_stregforbud.html")
@@ -63,22 +66,24 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
         (args, kwargs) = fulfill.call_args
-        (last_trans, ) = args
+        (last_trans,) = args
         self.assertEqual(last_trans, PayTransaction(900))
 
+
 class TransactionTests(TestCase):
-    def test_pay_transaction_change(self):
+    def test_pay_transaction_change_neg(self):
         transaction = PayTransaction(100)
         self.assertEqual(transaction.change(), -100)
 
-    def test_pay_transaction_change(self):
+    def test_pay_transaction_change_pos(self):
         transaction = GetTransaction(100)
         self.assertEqual(transaction.change(), 100)
+
 
 class MemberTests(TestCase):
     def test_fulfill_pay_transaction(self):
         member = Member(
-            balance = 100
+            balance=100
         )
         transaction = PayTransaction(10)
         member.fulfill(transaction)
@@ -87,7 +92,7 @@ class MemberTests(TestCase):
 
     def test_fulfill_pay_transaction_no_money(self):
         member = Member(
-            balance = 2
+            balance=2
         )
         transaction = PayTransaction(10)
         with self.assertRaises(StregForbudError) as c:
@@ -98,7 +103,7 @@ class MemberTests(TestCase):
 
     def test_fulfill_check_transaction_has_money(self):
         member = Member(
-            balance = 10
+            balance=10
         )
         transaction = PayTransaction(10)
 
@@ -108,7 +113,7 @@ class MemberTests(TestCase):
 
     def test_fulfill_check_transaction_no_money(self):
         member = Member(
-            balance = 2
+            balance=2
         )
         transaction = PayTransaction(10)
 

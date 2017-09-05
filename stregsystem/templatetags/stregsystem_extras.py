@@ -1,10 +1,10 @@
 from django import template
 
-import fpformat
-
 register = template.Library()
 
+
 def money(value):
-    return fpformat.fix(value/100.0,2)
+    return "{0:.2f}".format(value / 100.0)
+
 
 register.filter('money', money)

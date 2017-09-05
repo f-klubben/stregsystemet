@@ -1,17 +1,13 @@
-from django.template import Context, loader
-from django.http import HttpResponse, HttpResponsePermanentRedirect
-#from django.http import Http404
-import re
 import datetime
-import fpformat
+import re
+from functools import reduce
 
-from django.shortcuts import render, render_to_response, get_object_or_404
-from django.db.models import Q
-from django.db.models import Count
-from django.db.models import Sum
+from django.db.models import Count, Q, Sum
+from django.http import HttpResponsePermanentRedirect
+from django.shortcuts import get_object_or_404, render
+from stregsystem.models import (Member, News, PayTransaction, Product, Room,
+                                Sale, StregForbudError)
 
-from models import Room, Product, Member, Sale, StregForbudError, News
-from models import GetTransaction, PayTransaction
 
 def __get_news():
     try:
@@ -19,18 +15,20 @@ def __get_news():
     except News.DoesNotExist:
         return None
 
+
 def __get_productlist():
-    l = Product.objects.filter(Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True)).order_by('id')
-    #Magic to make the list sorted in two columns (A, B, C, D) =>
+    l = Product.objects.filter(Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(
+        deactivate_date__isnull=True)).order_by('id')
+    # Magic to make the list sorted in two columns (A, B, C, D) =>
     # A C
     # B D
     return l
-    low = l[:int(len(l)/2.0+0.5)] + [None]
-    high = l[int(len(l)/2.0+0.5):] + [None]
-    return [a for a in reduce(lambda x,y: x+y, zip(low, high)) if a]
+
 
 def roomindex(request):
     return HttpResponsePermanentRedirect('/1/')
+
+
 #    room_list = Room.objects.all().order_by('name', 'description')
 #    return render(request, 'stregsystem/roomindex.html', {'room_list': room_list})
 
@@ -40,11 +38,12 @@ def index(request, room_id):
     news = __get_news()
     return render(request, 'stregsystem/index.html', locals())
 
+
 def sale(request, room_id):
     room = get_object_or_404(Room, pk=room_id)
     news = __get_news()
     product_list = __get_productlist()
-    
+
     quickbuy_list = re.split('\s+', request.POST['quickbuy'].strip())
 
     username = quickbuy_list[0]
@@ -62,11 +61,12 @@ def sale(request, room_id):
         else:
             bought_ids.append(int(x))
 
-    #XXX disabled multibuy
+    # XXX disabled multibuy
     if len(bought_ids) == 1:
         return quicksale(request, room, member, bought_ids)
     else:
         return usermenu(request, room, member, None)
+
 
 def quicksale(request, room, member, bought_ids):
     news = __get_news()
@@ -74,13 +74,14 @@ def quicksale(request, room, member, bought_ids):
 
     products = {}
 
-    #TODO: Make atomic
+    # TODO: Make atomic
     transaction = PayTransaction()
 
-    #Retrieve products and construct transaction
+    # Retrieve products and construct transaction
     try:
         for i in bought_ids:
-            product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
+            product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(
+                deactivate_date__isnull=True))
             products[i] = product
             transaction.add(product.price)
     except Product.DoesNotExist:
@@ -108,6 +109,7 @@ def quicksale(request, room, member, bought_ids):
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
+
 def usermenu(request, room, member, bought):
     negative_balance = member.balance < 0
     product_list = __get_productlist()
@@ -118,10 +120,11 @@ def usermenu(request, room, member, bought):
     else:
         return render(request, 'stregsystem/menu.html', locals())
 
+
 def __get_total_by_product(member):
     from django.db import connection
     cursor = connection.cursor()
-    cursor.execute("""SELECT name, SUM(sale.price) 
+    cursor.execute("""SELECT name, SUM(sale.price)
                     FROM `stregsystem_sale` as `sale`, `stregsystem_product` as `product`
                     WHERE `member_id` = %s AND product.id = sale.product_id GROUP BY `product_id`""", [member.id])
     l = cursor.fetchall()
@@ -131,11 +134,12 @@ def __get_total_by_product(member):
 
     return l2
 
+
 def menu_userinfo(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
-    
+
     last_sale_list = member.sale_set.order_by('-timestamp')[:10]
     try:
         last_payment = member.payment_set.order_by('-timestamp')[0]
@@ -144,11 +148,12 @@ def menu_userinfo(request, room_id, member_id):
 
     total_by_product = __get_total_by_product(member)
     total_sales = reduce(lambda s, i: s + i[1], total_by_product, 0)
-    
+
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()
 
     return render(request, 'stregsystem/menu_userinfo.html', locals())
+
 
 def menu_sale(request, room_id, member_id, product_id=None):
     room = Room.objects.get(pk=room_id)
@@ -156,7 +161,8 @@ def menu_sale(request, room_id, member_id, product_id=None):
     member = Member.objects.get(pk=member_id, active=True)
     product = None
     try:
-        product = Product.objects.get(Q(pk=product_id), Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
+        product = Product.objects.get(Q(pk=product_id), Q(active=True),
+                                      Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
 
         transaction = PayTransaction(product.price)
         if not member.can_fulfill(transaction):
@@ -174,23 +180,29 @@ def menu_sale(request, room_id, member_id, product_id=None):
         member.save()
     except Product.DoesNotExist:
         pass
+    except StregForbudError:
+        return render(request, 'stregsystem/error_stregforbud.html', locals())
+    # Refresh member, to get new amount
+    member = Member.objects.get(pk=member_id, active=True)
     return usermenu(request, room, member, product)
 
-def ranks(request, year = None):
+
+def ranks(request, year=None):
     if (year):
-        return ranks_for_year(int(year))
+        return ranks_for_year(request, int(year))
     else:
-        return ranks_for_year(next_fjule_party_year())
+        return ranks_for_year(request, next_fjule_party_year())
+
 
 # renders stats for the year starting at first friday in december (year - 1) to the first friday in december (year)
 # both at 10 o'clock
-def ranks_for_year(year):
+def ranks_for_year(request, year):
     if (year <= 1900 or year > 9999):
         return render(request, 'stregsystem/error_ranksnotfound.html', locals())
-    milk = [2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 17, 18, 19, 20, 24, 25, 43, 44, 45 ]
+    milk = [2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 17, 18, 19, 20, 24, 25, 43, 44, 45]
     caffeine = [11, 12, 30, 32, 34, 35, 36, 37, 39, 1787, 1790, 1791, 1795, 1799, 1800, 1803]
     beer = [13, 14, 29, 42, 47, 54, 65, 66, 1773, 1776, 1777, 1779, 1780, 1783, 1793, 1794]
-    
+
     FORMAT = '%d/%m/%Y kl. %H:%M'
     from_time = fjule_party(year - 1)
     to_time = fjule_party(year)
@@ -205,30 +217,38 @@ def ranks_for_year(year):
     current_date = datetime.datetime.now()
     is_ongoing = current_date > from_time and current_date <= to_time
     return render(request, 'stregsystem/ranks.html', locals())
-    
+
+
 # gives a list of tuples (int_rank, string_username, int_value) of rankings of money spent between from_time and to_time.
-#Limit is the maximum size of the returned list. 
+# Limit is the maximum size of the returned list.
 def sale_money_rank(from_time, to_time, rank_limit=10):
     try:
-        stat_list = map(lambda x, y: (y, x.username, money(x.sale__price__sum)), Member.objects.filter(active=True, sale__timestamp__gt = from_time, sale__timestamp__lte = to_time).annotate(Sum('sale__price')).order_by('-sale__price__sum', 'username')[:rank_limit], xrange(1, rank_limit+1))
+        stat_list = list(map(lambda x, y: (y, x.username, money(x.sale__price__sum)),
+                             Member.objects.filter(active=True, sale__timestamp__gt=from_time,
+                                                   sale__timestamp__lte=to_time).annotate(Sum('sale__price')).order_by(
+                                 '-sale__price__sum', 'username')[:rank_limit], range(1, rank_limit + 1)))
     except:
         stat_list = {}
     return stat_list
+
 
 # gives a list of tuples (int_rank, string_username, int_value) of rankings of sales of the specified products done between from_time and to_time.
-#Limit is the maximum size of the returned list.
+# Limit is the maximum size of the returned list.
 def sale_product_rank(ids, from_time, to_time, rank_limit=10):
     try:
-        query = reduce(lambda x, y: x | y, map(lambda z: Q(sale__product__id=z), ids))
-        #query &= Q(active=True)
-        query &= Q(sale__timestamp__gt = from_time)
-        query &= Q(sale__timestamp__lte = to_time)
-        stat_list = map(lambda x, y: (y, x.username, x.sale__count), Member.objects.filter(query).annotate(Count('sale')).order_by('-sale__count', 'username')[:rank_limit], xrange(1,rank_limit+1))
+        query = reduce(lambda x, y: x | y, [Q(sale__product__id=z) for z in ids])
+        # query &= Q(active=True)
+        query &= Q(sale__timestamp__gt=from_time)
+        query &= Q(sale__timestamp__lte=to_time)
+        stat_list = list(map(lambda x, y: (y, x.username, x.sale__count),
+                             Member.objects.filter(query).annotate(Count('sale')).order_by('-sale__count', 'username')[
+                             :rank_limit], range(1, rank_limit + 1)))
     except:
         stat_list = {}
     return stat_list
 
-#year of the last fjuleparty
+
+# year of the last fjuleparty
 def last_fjule_party_year():
     current_date = datetime.datetime.now()
     fjule_party_this_year = fjule_party(current_date.year)
@@ -236,7 +256,8 @@ def last_fjule_party_year():
         return current_date.year
     return current_date.year - 1
 
-#year of the next fjuleparty
+
+# year of the next fjuleparty
 def next_fjule_party_year():
     current_date = datetime.datetime.now()
     fjule_party_this_year = fjule_party(current_date.year)
@@ -244,13 +265,15 @@ def next_fjule_party_year():
         return current_date.year
     return current_date.year + 1
 
-#date of fjuleparty (first friday of december) for the given year at 10 o'clock
+
+# date of fjuleparty (first friday of december) for the given year at 10 o'clock
 def fjule_party(year):
     first_december = datetime.datetime(year, 12, 1, 22)
     days_to_add = (11 - first_december.weekday()) % 7
-    return first_december + datetime.timedelta(days = days_to_add)
-    
+    return first_december + datetime.timedelta(days=days_to_add)
+
+
 def money(value):
     if value is None:
         value = 0
-    return fpformat.fix(value/100.0,2)
+    return "{0:.2f}".format(value / 100.0)

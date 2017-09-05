@@ -10,3 +10,6 @@ Fri Mar 17 14:36:20 CET 2017
 -- Updated lists of ranks and introduced new ones
 -- Moved css from templates to static
 -- Cleanup of .svn folders, .pyc files and added localhost to local.cfg.skel
+
+Wed Mar 22 09:54:15 CET 2017
+-- Fixed the links in the bottom of the member page of the admin panel
