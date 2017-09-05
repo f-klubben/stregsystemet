@@ -37,7 +37,7 @@
     {
         "fields": {
             "active": 1,
-            "balance": 0,
+            "balance": 1800,
             "email": "treo@cs.aau.dk",
             "firstname": "Joakim",
             "lastname": "Byg",
@@ -48,5 +48,20 @@
         },
         "model": "stregsystem.member",
         "pk": "1"
+    },
+    {
+        "fields": {
+            "active": 1,
+            "balance": 0,
+            "email": "treo2@cs.aau.dk",
+            "firstname": "Jan",
+            "lastname": "Byg",
+            "undo_count": 0,
+            "username": "jan",
+            "want_spam": 1,
+            "year": "2017"
+        },
+        "model": "stregsystem.member",
+        "pk": "2"
     }
 ]

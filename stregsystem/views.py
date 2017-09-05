@@ -11,6 +11,7 @@ from django.db.models import Count
 from django.db.models import Sum
 
 from models import Room, Product, Member, Sale, StregForbudError, News
+from models import GetTransaction, PayTransaction
 
 def __get_news():
     try:
@@ -68,35 +69,43 @@ def sale(request, room_id):
         return usermenu(request, room, member, None)
 
 def quicksale(request, room, member, bought_ids):
-    bought_ids_count = {}
     news = __get_news()
     product_list = __get_productlist()
-    for i in bought_ids:
-        bought_ids_count[i] = bought_ids_count.get(i,0) + 1
 
-    try:
-        info = {}
-        for i in bought_ids_count.keys():
-            product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
-            info[i] = {'count': bought_ids_count[i], 'product': product}
-        cost = reduce(lambda s, i: s + i['count']*i['product'].price, info.values(), 0)
-    except Product.DoesNotExist:
-        return usermenu(request, room, member, None)
-    bought_list = info.values()
+    products = {}
 
+    #TODO: Make atomic
+    transaction = PayTransaction()
+
+    #Retrieve products and construct transaction
     try:
         for i in bought_ids:
-            product = info[i]['product']
-            s = Sale(member=member,
-                     product=product,
-                     room=room,
-                     price=product.price)
-            s.save()
-    except StregForbudError:
+            product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
+            products[i] = product
+            transaction.add(product.price)
+    except Product.DoesNotExist:
+        return usermenu(request, room, member, None)
+
+    if not member.can_fulfill(transaction):
         return render(request, 'stregsystem/error_stregforbud.html', locals())
-    
+
+    member.fulfill(transaction)
+
+    for i in bought_ids:
+        product = products[i]
+        s = Sale(
+            member=member,
+            product=product,
+            room=room,
+            price=product.price
+        )
+        s.save()
+    member.save()
+
     promille = member.calculate_alcohol_promille()
-    
+
+    cost = transaction.amount
+
     return render(request, 'stregsystem/index_sale.html', locals())
 
 def usermenu(request, room, member, bought):
@@ -148,17 +157,23 @@ def menu_sale(request, room_id, member_id, product_id=None):
     product = None
     try:
         product = Product.objects.get(Q(pk=product_id), Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
-        s = Sale(member=member,
-                 product=product,
-                 room=room,
-                 price=product.price)
+
+        transaction = PayTransaction(product.price)
+        if not member.can_fulfill(transaction):
+            return render(request, 'stregsystem/error_stregforbud.html', locals())
+
+        member.fulfill(transaction)
+
+        s = Sale(
+            member=member,
+            product=product,
+            room=room,
+            price=product.price
+        )
         s.save()
+        member.save()
     except Product.DoesNotExist:
         pass
-    except StregForbudError:
-        return render(request, 'stregsystem/error_stregforbud.html', locals())
-    #Refresh member, to get new amount
-    member = Member.objects.get(pk=member_id, active=True)
     return usermenu(request, room, member, product)
 
 def ranks(request, year = None):

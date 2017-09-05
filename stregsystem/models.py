@@ -26,6 +26,50 @@ class StregForbudError(Exception):
 
 # Create your models here.
 
+#So we have two "basic" operations to do with money
+#we can take money from a user and we can give them money
+#the class names here are written from the perspective of
+#the user.
+# A monetary transaction, not a database transaction
+class MoneyTransaction(object):
+    def __init__(self, amount = 0):
+        self.amount = amount
+
+    def add(self, change):
+        """
+        Add to the amount this transaction is for
+        """
+        self.amount += change
+
+    def change(self):
+        raise NotImplementedError
+
+    def __eq__(self, other):
+        """
+        The equality of two transactions is based on the effect
+        to the users balance
+        """
+        return self.change() == other.change()
+
+class PayTransaction(MoneyTransaction):
+    #The change to the users account
+    #Negative because the user is losing money
+    def change(self):
+        """
+        Returns the change to the users account
+        caused by fulfilling this transaction
+        """
+        return -self.amount
+
+class GetTransaction(MoneyTransaction):
+    #The change to the users account
+    def change(self):
+        """
+        Returns the change to the users account
+        caused by fulfilling this transaction
+        """
+        return self.amount
+
 class Member(models.Model): # id automatisk...
     GENDER_CHOICES = (
         ('U', 'Unknown'),
@@ -61,7 +105,7 @@ class Member(models.Model): # id automatisk...
     def make_payment(self, amount):
         """
         Should only be called by the Payment class.
-        
+
         >>> jokke = Member.objects.create(username="jokke", firstname="Joakim", lastname="Byg", email="treo@cs.aau.dk", year=2007)
         >>> jokke.balance
         0
@@ -70,26 +114,30 @@ class Member(models.Model): # id automatisk...
         100
         """
         self.balance = self.balance + amount
-    
-    def make_sale(self, price):
+
+
+    def fulfill(self, transaction):
         """
-        Should only be called by the Sale class.
-        >>> jokke = Member.objects.create(username="jokke", firstname="Joakim", lastname="Byg", email="treo@cs.aau.dk", year=2007, balance=100)
-        >>> jokke.balance
-        100
-        >>> jokke.make_sale(65)
-        >>> jokke.balance
-        35
-        >>> try:
-        ...   jokke.make_sale(36)
-        ...   fail()
-        ... except StregForbudError:
-        ...   pass
+        Fulfill the transaction
         """
-        if self.has_stregforbud(buy=price):
-            raise StregForbudError
-        else:
-            self.balance = self.balance - price
+        if not self.can_fulfill(transaction):
+            raise StregForbudError 
+        self.balance += transaction.change()
+
+    def rollback(self, transaction):
+        """
+        Rollback transaction
+        """
+        self.balance -= transaction.change()
+
+    def can_fulfill(self, transaction):
+        """
+        Can the member fulfill the transaction
+        """
+
+        if self.balance + transaction.change() < 0:
+            return False
+        return True
 
 #    def clear_undo_count(self):
 #        from django.db import connection
@@ -238,27 +286,20 @@ class Sale(models.Model):
     price_display.short_description = "Price"
     #XXX - django bug - kan ikke vaelge mellem desc og asc i admin, som ved normalt felt
     price_display.admin_order_field = 'price'
-    
+
     def __unicode__(self):
         return self.member.username + " " + self.product.name + " (" + money(self.price) + ") " + str(self.timestamp)
+
     def save(self, *args, **kwargs):
         if self.id:
-            return # update -- should not be allowed
-        else:
-            if not self.price:
-                self.price = self.product.price
-            #TODO: Make atomic
-            self.member.make_sale(self.price)
-            super(Sale, self).save(*args, **kwargs)
-            self.member.save()
+            raise RuntimeError("Updates of sales are not allowed")
+        super(Sale, self).save(*args, **kwargs)
+
     def delete(self, *args, **kwargs):
         if self.id:
-            #TODO: Make atomic
-            self.member.make_sale(-self.price)
             super(Sale, self).delete(*args, **kwargs)
-            self.member.save()
         else:
-            super(Payment, self).delete(*args, **kwargs)
+            raise RuntimeError("You can't delete a sale that hasn't happened")
 
 #XXX
 class News(models.Model):
