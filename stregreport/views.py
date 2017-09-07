@@ -187,9 +187,6 @@ def late(date):
 def first_of_month(date):
     return datetime.datetime(date.year, date.month, 1, 23, 59, 59)
 
-#current_date = datetime.datetime.now().replace(hour=0, minute=0, second=0)
-#stat_list = Member.objects.filter(sale__timestamp__gt=current_date)  # .annotate(Count('sale')).order_by('-sale__count', 'username')[:5]
-
 def daily(request):
     current_date = datetime.datetime.now().replace(hour=0, minute=0, second=0)
     latest_sales = Sale.objects.prefetch_related('product', 'member').order_by('-timestamp')[:7]
