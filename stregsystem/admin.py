@@ -1,8 +1,9 @@
 from django.contrib import admin
+from django.db.models import Q
 from django.utils import timezone
 from stregsystem.models import (Member, News, Payment, PayTransaction, Product,
                                 Room, Sale)
-
+import datetime
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
@@ -70,9 +71,28 @@ def toggle_active_selected_products(modeladmin, request, queryset):
         obj.save()
 
 
+class ProductActivatedListFilter(admin.SimpleListFilter):
+    title = 'activated'
+    parameter_name = 'activated'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('Yes', 'Yes'),
+            ('No', 'No'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'Yes':
+            return queryset.filter(Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
+        elif self.value() == 'No':
+            return queryset.filter(Q(active=False) | Q(deactivate_date__lt=datetime.datetime.now()))
+        else:
+            return queryset
+
+
 class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'price', 'id')
-    list_filter = ('active', 'deactivate_date', 'price')
+    list_filter = (ProductActivatedListFilter, 'deactivate_date', 'price')
     list_display = ('activated', 'id', 'name', 'get_price_display')
     actions = [toggle_active_selected_products]
 
