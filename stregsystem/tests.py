@@ -5,8 +5,13 @@ from django.urls import reverse
 
 from stregsystem import admin
 from stregsystem.admin import ProductAdmin
-from stregsystem.models import (GetTransaction, Member, PayTransaction,
-                                StregForbudError, Product)
+from stregsystem.models import (
+    GetTransaction,
+    Member,
+    PayTransaction,
+    StregForbudError,
+    Product
+)
 
 try:
     from unittest.mock import patch
@@ -18,7 +23,10 @@ class SaleViewTests(TestCase):
     fixtures = ["initial_data"]
 
     def test_make_sale_letter_quickbuy(self):
-        response = self.client.post(reverse('quickbuy', args="1"), {"quickbuy": "jokke a"})
+        response = self.client.post(
+            reverse('quickbuy', args="1"),
+            {"quickbuy": "jokke a"}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed("stregsystem/error_invalidinput.html")
 
@@ -27,7 +35,10 @@ class SaleViewTests(TestCase):
     def test_make_sale_quickbuy_success(self, fulfill, can_fulfill):
         can_fulfill.return_value = True
 
-        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke 1"})
+        response = self.client.post(
+            reverse('quickbuy', args=(1,)),
+            {"quickbuy": "jokke 1"}
+        )
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
@@ -41,7 +52,10 @@ class SaleViewTests(TestCase):
     def test_make_sale_quickbuy_fail(self, fulfill, can_fulfill):
         can_fulfill.return_value = False
 
-        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jan 1"})
+        response = self.client.post(
+            reverse('quickbuy', args=(1,)),
+            {"quickbuy": "jan 1"}
+        )
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/error_stregforbud.html")
@@ -127,29 +141,161 @@ class MemberTests(TestCase):
         self.assertFalse(has_money)
 
 
-class AdminTests(TestCase):
-    def test_product_activated_filter(self):
-        Product.objects.create(name="active_dec_none", price=1.0, active=True, deactivate_date=None)
-        Product.objects.create(name="active_dec_future", price=1.0, active=True, deactivate_date=datetime.datetime.now() + datetime.timedelta(hours=1))
-        Product.objects.create(name="active_dec_past", price=1.0, active=True, deactivate_date=datetime.datetime.now() - datetime.timedelta(hours=1))
+class ProductActivatedListFilterTests(TestCase):
+    def setUp(self):
+        Product.objects.create(
+            name="active_dec_none",
+            price=1.0, active=True,
+            deactivate_date=None
+        )
+        Product.objects.create(
+            name="active_dec_future",
+            price=1.0,
+            active=True,
+            deactivate_date=(datetime.datetime.now()
+                             + datetime.timedelta(hours=1))
+        )
+        Product.objects.create(
+            name="active_dec_past",
+            price=1.0,
+            active=True,
+            deactivate_date=(datetime.datetime.now()
+                             - datetime.timedelta(hours=1))
+        )
 
-        Product.objects.create(name="deactivated_dec_none", price=1.0, active=False, deactivate_date=None)
-        Product.objects.create(name="deactivated_dec_future", price=1.0, active=False, deactivate_date=datetime.datetime.now() + datetime.timedelta(hours=1))
-        Product.objects.create(name="deactivated_dec_past", price=1.0, active=False, deactivate_date=datetime.datetime.now() - datetime.timedelta(hours=1))
+        Product.objects.create(
+            name="deactivated_dec_none",
+            price=1.0,
+            active=False,
+            deactivate_date=None
+        )
+        Product.objects.create(
+            name="deactivated_dec_future",
+            price=1.0,
+            active=False,
+            deactivate_date=(datetime.datetime.now()
+                             + datetime.timedelta(hours=1))
+        )
+        Product.objects.create(
+            name="deactivated_dec_past",
+            price=1.0,
+            active=False,
+            deactivate_date=(datetime.datetime.now()
+                             - datetime.timedelta(hours=1)))
 
-        f_1 = admin.ProductActivatedListFilter(None, {'activated': 'Yes'}, Product, ProductAdmin)
-        poll_1 = list(f_1.queryset(None, Product.objects.all()))
+    def test_active_trivial(self):
+        fy = admin.ProductActivatedListFilter(
+            None,
+            {'activated': 'Yes'},
+            Product,
+            ProductAdmin
+        )
+        qy = list(fy.queryset(None, Product.objects.all()))
+        fn = admin.ProductActivatedListFilter(
+            None,
+            {'activated': 'No'},
+            Product,
+            ProductAdmin
+        )
+        qn = list(fn.queryset(None, Product.objects.all()))
 
-        f_2 = admin.ProductActivatedListFilter(None, {'activated': 'No'}, Product, ProductAdmin)
-        poll_2 = list(f_2.queryset(None, Product.objects.all()))
+        self.assertIn(Product.objects.get(name="active_dec_none"), qy)
+        self.assertNotIn(Product.objects.get(name="active_dec_none"), qn)
 
-        for e in ["active_dec_none", "active_dec_future"]:
-            self.assertIn(Product.objects.get(name=e), poll_1)
-            self.assertNotIn(Product.objects.get(name=e), poll_2)
+    def test_active_deac_future(self):
+        fy = admin.ProductActivatedListFilter(
+            None,
+            {'activated': 'Yes'},
+            Product,
+            ProductAdmin
+        )
+        qy = list(fy.queryset(None, Product.objects.all()))
+        fn = admin.ProductActivatedListFilter(
+            None,
+            {'activated': 'No'},
+            Product,
+            ProductAdmin
+        )
+        qn = list(fn.queryset(None, Product.objects.all()))
 
-        for e in ["active_dec_past", "deactivated_dec_none", "deactivated_dec_future", "deactivated_dec_past"]:
-            self.assertIn(Product.objects.get(name=e), poll_2)
-            self.assertNotIn(Product.objects.get(name=e), poll_1)
+        self.assertIn(Product.objects.get(name="active_dec_future"), qy)
+        self.assertNotIn(Product.objects.get(name="active_dec_future"), qn)
 
+    def test_active_deac_past(self):
+        fy = admin.ProductActivatedListFilter(
+            None,
+            {'activated': 'Yes'},
+            Product,
+            ProductAdmin
+        )
+        qy = list(fy.queryset(None, Product.objects.all()))
+        fn = admin.ProductActivatedListFilter(
+            None,
+            {'activated': 'No'},
+            Product,
+            ProductAdmin
+        )
+        qn = list(fn.queryset(None, Product.objects.all()))
 
+        self.assertNotIn(Product.objects.get(name="active_dec_past"), qy)
+        self.assertIn(Product.objects.get(name="active_dec_past"), qn)
 
+    def test_inactive_trivial(self):
+        fy = admin.ProductActivatedListFilter(
+            None,
+            {'activated': 'Yes'},
+            Product,
+            ProductAdmin
+        )
+        qy = list(fy.queryset(None, Product.objects.all()))
+        fn = admin.ProductActivatedListFilter(
+            None,
+            {'activated': 'No'},
+            Product,
+            ProductAdmin
+        )
+        qn = list(fn.queryset(None, Product.objects.all()))
+
+        self.assertNotIn(Product.objects.get(name="deactivated_dec_none"), qy)
+        self.assertIn(Product.objects.get(name="deactivated_dec_none"), qn)
+
+    def test_inactive_deac_future(self):
+        fy = admin.ProductActivatedListFilter(
+            None,
+            {'activated': 'Yes'},
+            Product,
+            ProductAdmin
+        )
+        qy = list(fy.queryset(None, Product.objects.all()))
+        fn = admin.ProductActivatedListFilter(
+            None,
+            {'activated': 'No'},
+            Product,
+            ProductAdmin
+        )
+        qn = list(fn.queryset(None, Product.objects.all()))
+
+        self.assertNotIn(
+            Product.objects.get(name="deactivated_dec_future"),
+            qy
+        )
+        self.assertIn(Product.objects.get(name="deactivated_dec_future"), qn)
+
+    def test_inactive_deac_past(self):
+        fy = admin.ProductActivatedListFilter(
+            None,
+            {'activated': 'Yes'},
+            Product,
+            ProductAdmin
+        )
+        qy = list(fy.queryset(None, Product.objects.all()))
+        fn = admin.ProductActivatedListFilter(
+            None,
+            {'activated': 'No'},
+            Product,
+            ProductAdmin
+        )
+        qn = list(fn.queryset(None, Product.objects.all()))
+
+        self.assertNotIn(Product.objects.get(name="deactivated_dec_past"), qy)
+        self.assertIn(Product.objects.get(name="deactivated_dec_past"), qn)
