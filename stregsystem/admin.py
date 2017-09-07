@@ -105,12 +105,11 @@ class ProductAdmin(admin.ModelAdmin):
     get_price_display.admin_order_field = "price"
 
     def activated(self, obj):
-        if obj.active and (obj.deactivate_date is None or obj.deactivate_date > timezone.now()):
-            return '<img src="/static/admin/img/icon-yes.svg" alt="1" />'
-        else:
-            return '<img src="/static/admin/img/icon-no.svg" alt="0" />'
-
-    activated.allow_tags = True
+        active = obj.active
+        if active and obj.deactivate_date is not None:
+            active = (obj.deactivate_date > timezone.now())
+        return active
+    activated.boolean = True
 
 
 class MemberAdmin(admin.ModelAdmin):
