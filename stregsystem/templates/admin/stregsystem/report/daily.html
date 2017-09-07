@@ -1,0 +1,55 @@
+{% extends "admin/base_site.html" %}
+{% load humanize %}
+
+{% block title %}Rangeringer for {{ year }}{% endblock %}
+{% block breadcrumbs %}
+    <div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a
+            href="../">Reports</a>&nbsp;&rsaquo;&nbsp;Daily stats
+    </div>{% endblock %}
+
+{% block content %}
+    <div id="statscontainer" style="margin-top: 12px; width: 100%; float: left; margin-left: 10px;">
+        <div id="latestsales" style="float: left;">
+            <table border="1">
+                <tr>
+                    <th valign="top" colspan="5" align="center">Latest sales</th>
+                </tr>
+                <tr>
+                    <th>Age</th>
+                    <th>Product id</th>
+                    <th>Product name</th>
+                    <th>Username</th>
+                    <th>Full name</th>
+                </tr>
+                {% for sale in latest_sales %}
+                    <tr>
+                        <td>{{ sale.timestamp | naturaltime }}</td>
+                        <td>{{ sale.product_id }}</td>
+                        <td>{{ sale.product.name }}</td>
+                        <td>{{ sale.member.username }}</td>
+                        <td>{{ sale.member.firstname }} {{ sale.member.lastname  }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div id="Most sold today" style="float: left; padding-left: 20px;">
+            <table border="1">
+                <tr>
+                    <th valign="top" colspan="5" align="center">Top sales today</th>
+                </tr>
+                <tr>
+                    <th>Product id</th>
+                    <th>Product name</th>
+                    <th>Sales</th>
+                </tr>
+                {% for dd in top_today %}
+                    <tr>
+                        <td>{{ dd.id }}</td>
+                        <td>{{ dd.name }}</td>
+                        <td>{{ dd.sale__count }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}
