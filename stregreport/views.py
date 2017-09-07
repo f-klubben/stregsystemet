@@ -5,7 +5,7 @@ from functools import reduce
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count, Q, Sum
 from django.shortcuts import render
-from stregsystem.models import Member, Product
+from stregsystem.models import Member, Product, Sale
 
 
 def reports(request):
@@ -186,3 +186,12 @@ def late(date):
 
 def first_of_month(date):
     return datetime.datetime(date.year, date.month, 1, 23, 59, 59)
+
+def daily(request):
+    current_date = datetime.datetime.now().replace(hour=0, minute=0, second=0)
+    latest_sales = Sale.objects.prefetch_related('product', 'member').order_by('-timestamp')[:7]
+    top_today = Product.objects.filter(sale__timestamp__gt=current_date).annotate(Count('sale')).order_by('-sale__count')[:7]
+
+    return render(request, 'admin/stregsystem/report/daily.html', locals())
+
+daily = staff_member_required(daily)
