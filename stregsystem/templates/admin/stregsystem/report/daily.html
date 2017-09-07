@@ -1,13 +1,14 @@
 {% extends "admin/base_site.html" %}
 {% load humanize %}
 
-{% block title %}Rangeringer for {{ year }}{% endblock %}
+{% block title %}Daily stats{% endblock %}
 {% block breadcrumbs %}
     <div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a
             href="../">Reports</a>&nbsp;&rsaquo;&nbsp;Daily stats
     </div>{% endblock %}
 
 {% block content %}
+<h1>Daily stats</h1>
     <div id="statscontainer" style="margin-top: 12px; width: 100%; float: left; margin-left: 10px;">
         <div id="latestsales" style="float: left;">
             <table border="1">
