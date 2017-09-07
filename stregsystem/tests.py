@@ -1,7 +1,12 @@
+import datetime
+
 from django.test import TestCase
 from django.urls import reverse
+
+from stregsystem import admin
+from stregsystem.admin import ProductAdmin
 from stregsystem.models import (GetTransaction, Member, PayTransaction,
-                                StregForbudError)
+                                StregForbudError, Product)
 
 try:
     from unittest.mock import patch
@@ -120,3 +125,31 @@ class MemberTests(TestCase):
         has_money = member.can_fulfill(transaction)
 
         self.assertFalse(has_money)
+
+
+class AdminTests(TestCase):
+    def test_product_activated_filter(self):
+        Product.objects.create(name="active_dec_none", price=1.0, active=True, deactivate_date=None)
+        Product.objects.create(name="active_dec_future", price=1.0, active=True, deactivate_date=datetime.datetime.now() + datetime.timedelta(hours=1))
+        Product.objects.create(name="active_dec_past", price=1.0, active=True, deactivate_date=datetime.datetime.now() - datetime.timedelta(hours=1))
+
+        Product.objects.create(name="deactivated_dec_none", price=1.0, active=False, deactivate_date=None)
+        Product.objects.create(name="deactivated_dec_future", price=1.0, active=False, deactivate_date=datetime.datetime.now() + datetime.timedelta(hours=1))
+        Product.objects.create(name="deactivated_dec_past", price=1.0, active=False, deactivate_date=datetime.datetime.now() - datetime.timedelta(hours=1))
+
+        f_1 = admin.ProductActivatedListFilter(None, {'activated': 'Yes'}, Product, ProductAdmin)
+        poll_1 = list(f_1.queryset(None, Product.objects.all()))
+
+        f_2 = admin.ProductActivatedListFilter(None, {'activated': 'No'}, Product, ProductAdmin)
+        poll_2 = list(f_2.queryset(None, Product.objects.all()))
+
+        for e in ["active_dec_none", "active_dec_future"]:
+            self.assertIn(Product.objects.get(name=e), poll_1)
+            self.assertNotIn(Product.objects.get(name=e), poll_2)
+
+        for e in ["active_dec_past", "deactivated_dec_none", "deactivated_dec_future", "deactivated_dec_past"]:
+            self.assertIn(Product.objects.get(name=e), poll_2)
+            self.assertNotIn(Product.objects.get(name=e), poll_1)
+
+
+
