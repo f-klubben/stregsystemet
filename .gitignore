@@ -5,3 +5,6 @@ local.cfg
 db.sqlite3
 *.pyc
 
+.idea/
+.tox/
+MANIFEST/
