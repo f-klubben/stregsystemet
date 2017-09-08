@@ -61,9 +61,7 @@ def bread_view(request, queryname):
     return render(request, 'admin/stregsystem/razzia/bread.html', locals())
 
 
-def _sales_to_user_in_period(username, start, end, product_list, product_dict):
-    start_date = datetime.datetime.strptime(start, "%Y-%m-%d").date()
-    end_date = datetime.datetime.strptime(end, "%Y-%m-%d").date()
+def _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict):
     result = Sale.objects.prefetch_related('member').filter(
         member__username__iexact=username,
         product__in=product_list,
@@ -90,7 +88,7 @@ def razzia_view(request):
         return render(request, 'admin/stregsystem/razzia/error_wizarderror.html', {})
 
     product_dict = {k.name: 0 for k in Product.objects.filter(id__in=product_list)}
-    if len(product_list) != len(products):
+    if len(product_list) != len(product_dict.items()):
         return render(request, 'admin/stregsystem/razzia/error_wizarderror.html', {})
 
     try:
@@ -105,7 +103,9 @@ def razzia_view(request):
                           'razzia_title': title}
                       )
 
-    sales_to_user = _sales_to_user_in_period(username, start, end, product_list, product_dict)
+    start_date = datetime.datetime.strptime(start, "%Y-%m-%d").date()
+    end_date = datetime.datetime.strptime(end, "%Y-%m-%d").date()
+    sales_to_user = _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict)
 
     return render(request, 'admin/stregsystem/razzia/wizard_view.html',
                   {

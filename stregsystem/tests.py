@@ -8,10 +8,12 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 import stregsystem.parser as parser
+from stregreport import views
 from stregsystem.admin import (
     CategoryAdmin,
     ProductAdmin,
 )
+from stregsystem.booze import ballmer_peak
 from stregsystem.models import (
     Category,
     GetTransaction,
@@ -25,12 +27,9 @@ from stregsystem.models import (
     NoMoreInventoryError,
     Sale,
     StregForbudError,
-)
-from stregsystem.models import (
     price_display,
     active_str,
 )
-from stregsystem.booze import ballmer_peak
 
 try:
     from unittest.mock import patch
@@ -1315,3 +1314,42 @@ class QuickbuyParserTests(TestCase):
         buy_string = self.test_username + ' a:2 1337:3'
         with self.assertRaises(parser.QuickBuyError):
             parser.parse(buy_string)
+
+
+class RazziaTests(TestCase):
+    def setUp(self):
+        self.flan = Product.objects.create(name="FLan", price=1.0, active=True)
+        self.flanmad = Product.objects.create(name="FLan mad", price=2.0, active=True)
+        self.notflan = Product.objects.create(name="Ikke Flan", price=2.0, active=True)
+
+        self.alan = Member.objects.create(username="tester", firstname="Alan", lastname="Alansen")
+        self.bob = Member.objects.create(username="bob", firstname="bob", lastname="bob")
+
+        self.now = datetime.datetime.now()
+        Sale.objects.create(member=self.alan,
+                            product=self.flan,
+                            timestamp=self.now - datetime.timedelta(hours=1),
+                            price=1.0)
+        Sale.objects.create(member=self.alan,
+                            product=self.flan,
+                            timestamp=self.now - datetime.timedelta(hours=2),
+                            price=1.0)
+        Sale.objects.create(member=self.alan, product=self.flanmad,
+                            timestamp=self.now - datetime.timedelta(hours=2),
+                            price=1.0)
+        Sale.objects.create(member=self.alan,
+                            product=self.notflan,
+                            timestamp=self.now - datetime.timedelta(hours=1),
+                            price=1.0)
+
+    def test_sales_to_user_in_period(self):
+        res = views._sales_to_user_in_period(
+            self.alan.username,
+            self.now - datetime.timedelta(hours=10),
+            self.now,
+            [self.flan.id, self.flanmad.id],
+            {self.flan.name: 0, self.flanmad.name: 0},
+        )
+
+        self.assertEqual(res[self.flan.name], 2)
+        self.assertEqual(res[self.flanmad.name], 1)
