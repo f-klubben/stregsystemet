@@ -8,7 +8,6 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 import stregsystem.parser as parser
-from stregsystem import admin
 from stregsystem.admin import (
     CategoryAdmin,
     ProductAdmin,

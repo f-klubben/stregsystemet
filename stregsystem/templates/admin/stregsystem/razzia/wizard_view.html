@@ -1,0 +1,62 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}{{ razzia_title }}{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a>Razzia</a>&nbsp;&rsaquo;&nbsp;Wizard View</div>{% endblock %}
+
+{% block content %}
+{% load admin_static %}
+<link rel="stylesheet" type="text/css" href="{% static '/stregsystem/razzia.css' %}" />
+
+<script src="https://use.fontawesome.com/fd7e4e00a3.js"></script>
+
+<div id="content-main">
+    <div class="grouped-vertical">
+        <div class="searcher">
+            <div class="titlebar">
+                <h1>{{ razzia_title }}</h1>
+            </div>
+            <form action="./" method="get" class="content">
+                <div class="grouped">
+                    <span class="group-label fa fa-search">
+                    </span>
+                    <input id="usernamesearcher" type="text" autofocus name="username" maxlength="40" value="{{username}}" autocomplete="off" placeholder="Brugernavn" />
+                    <input type="hidden" name="start" value="{{ start }}">
+                    <input type="hidden" name="end" value="{{ end }}">
+                    <input type="hidden" name="products" value="{{ products }}">
+                    <input type="hidden" name="razzia_title" value="{{ razzia_title }}">
+                    <input type="submit" class="" value="Search">
+                </div>
+            </form>
+        </div>
+        {% if username %}
+            {% if member_name %}
+                {% if items_bought %}
+                    <div id="result" class="result">
+                        <div class="status"><div class="fa fa-user sucess fa-fw" aria-hidden="true"></div></div>
+                        Bruger: {{ member_name }}
+                    </div>
+                    {% for item, count in items_bought %}
+                        <div id="result" class="result">
+                            {% if count > 0 %}
+                                <div class="status"><div class="fa fa-check-circle sucess fa-fw" aria-hidden="true"></div></div>
+                            {% else %}
+                                <div class="status"><div class="fa fa-times-circle failure fa-fw" aria-hidden="true"></div></div>
+                            {% endif %}
+                            {{ item }}: {{ count }}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="status"><div class="fa fa-times-circle failure fa-fw" aria-hidden="true"></div></div>
+                    {{ member_name }} has not bought any products in the list
+                {% endif %}
+            {% else %}
+                <div id="result" class="result">
+                    <div class="status"><div class="fa fa-times-circle failure fa-fw" aria-hidden="true"></div></div>
+                    "{{ username }}" not found
+                </div>
+            {% endif %}
+
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -4,8 +4,10 @@ from functools import reduce
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count, Q, Sum, F
 from django.db.models.functions import TruncDay
+from django.forms import extras, fields
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.utils import timezone
 
 from stregsystem.models import (
@@ -57,6 +59,97 @@ def bread_view(request, queryname):
             member = result[0]
 
     return render(request, 'admin/stregsystem/razzia/bread.html', locals())
+
+
+def _sales_to_user_in_period(username, start, end, product_list, product_dict):
+    start_date = datetime.datetime.strptime(start, "%Y-%m-%d").date()
+    end_date = datetime.datetime.strptime(end, "%Y-%m-%d").date()
+    result = Sale.objects.prefetch_related('member').filter(
+        member__username__iexact=username,
+        product__in=product_list,
+        timestamp__gte=start_date,
+        timestamp__lte=end_date)
+    for res in result:
+        product_dict[res.product.name] += 1
+
+    return product_dict
+
+
+def razzia_view(request):
+    default_start = datetime.datetime.now() - datetime.timedelta(days=-180)
+    default_end = datetime.datetime.now()
+    start = request.GET.get('start', "{}-{}-{}".format(default_start.year, default_start.month, default_start.day))
+    end = request.GET.get('end', "{}-{}-{}".format(default_end.year, default_end.month, default_end.day))
+    products = request.GET.get('products')
+    username = request.GET.get('username')
+    title = request.GET.get('razzia_title', "Razzia!")
+
+    try:
+        product_list = [int(p) for p in products.split(",")]
+    except:
+        return render(request, 'admin/stregsystem/razzia/error_wizarderror.html', {})
+
+    product_dict = {k.name: 0 for k in Product.objects.filter(id__in=product_list)}
+    if len(product_list) != len(products):
+        return render(request, 'admin/stregsystem/razzia/error_wizarderror.html', {})
+
+    try:
+        user = Member.objects.get(username__iexact=username)
+    except:
+        return render(request, 'admin/stregsystem/razzia/wizard_view.html',
+                      {
+                          'start': start,
+                          'end': end,
+                          'products': products,
+                          'username': username,
+                          'razzia_title': title}
+                      )
+
+    sales_to_user = _sales_to_user_in_period(username, start, end, product_list, product_dict)
+
+    return render(request, 'admin/stregsystem/razzia/wizard_view.html',
+                  {
+                      'razzia_title': title,
+                      'username': username,
+                      'start': start,
+                      'end': end,
+                      'products': products,
+                      'member_name': user.firstname + " " + user.lastname,
+                      'items_bought': sales_to_user.items(),
+                  })
+
+
+razzia_view = staff_member_required(razzia_view)
+
+
+def razzia_wizard(request):
+    if request.method == 'POST':
+        return redirect(
+            reverse("razzia_view") + "?start={0}-{1}-{2}&end={3}-{4}-{5}&products={6}&username=&razzia_title={7}"
+            .format(int(request.POST['start_year']),
+                    int(request.POST['start_month']),
+                    int(request.POST['start_day']),
+                    int(request.POST['end_year']), int(request.POST['end_month']),
+                    int(request.POST['end_day']),
+                    request.POST.get('products'),
+                    request.POST.get('razzia_title')))
+
+    suggested_start_date = datetime.datetime.now() - datetime.timedelta(days=-180)
+    suggested_end_date = datetime.datetime.now()
+
+    start_date_picker = fields.DateField(
+        widget=extras.SelectDateWidget(years=[x for x in range(2000, datetime.datetime.now().year + 1)]))
+    end_date_picker = fields.DateField(
+        widget=extras.SelectDateWidget(years=[x for x in range(2000, datetime.datetime.now().year + 1)]))
+
+    return render(request, 'admin/stregsystem/razzia/wizard.html',
+                  {
+                      'start_date_picker': start_date_picker.widget.render("start", suggested_start_date),
+                      'end_date_picker': end_date_picker.widget.render("end", suggested_end_date)},
+                  )
+
+
+razzia_wizard = staff_member_required(razzia_wizard)
 
 
 def ranks(request, year=None):
