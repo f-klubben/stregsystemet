@@ -1,9 +1,16 @@
 from django.contrib import admin
 from django.db.models import Q
 from django.utils import timezone
-from stregsystem.models import (Member, News, Payment, PayTransaction, Product,
-                                Room, Sale)
-import datetime
+from stregsystem.utils import make_active_productlist_query
+from stregsystem.models import (
+    Member,
+    News,
+    Payment,
+    PayTransaction,
+    Product,
+    Room,
+    Sale,
+)
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
@@ -83,9 +90,9 @@ class ProductActivatedListFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'Yes':
-            return queryset.filter(Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
+            return queryset.filter(make_active_productlist_query())
         elif self.value() == 'No':
-            return queryset.filter(Q(active=False) | Q(deactivate_date__lt=datetime.datetime.now()))
+            return queryset.exclude(make_active_productlist_query())
         else:
             return queryset
 
