@@ -5,6 +5,7 @@ from functools import reduce
 from django.db.models import Count, Q, Sum
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
+from stregsystem.utils import make_active_productlist_query
 from stregsystem.models import (Member, News, PayTransaction, Product, Room,
                                 Sale, StregForbudError)
 
@@ -17,11 +18,9 @@ def __get_news():
 
 
 def __get_productlist():
-    l = Product.objects.filter(Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(
-        deactivate_date__isnull=True)).order_by('id')
-    # Magic to make the list sorted in two columns (A, B, C, D) =>
-    # A C
-    # B D
+    l = (
+        Product.objects.filter(make_active_productlist_query())
+    )
     return l
 
 
