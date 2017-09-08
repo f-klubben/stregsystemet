@@ -72,7 +72,7 @@ def quicksale(request, room, member, bought_ids):
     news = __get_news()
     product_list = __get_productlist()
 
-    products = {}
+    products = list()
 
     # TODO: Make atomic
     transaction = PayTransaction()
@@ -82,7 +82,7 @@ def quicksale(request, room, member, bought_ids):
         for i in bought_ids:
             product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(
                 deactivate_date__isnull=True))
-            products[i] = product
+            products.append(product)
             transaction.add(product.price)
     except Product.DoesNotExist:
         return usermenu(request, room, member, None)
@@ -92,8 +92,7 @@ def quicksale(request, room, member, bought_ids):
 
     member.fulfill(transaction)
 
-    for i in bought_ids:
-        product = products[i]
+    for product in products:
         s = Sale(
             member=member,
             product=product,

@@ -1,3 +1,4 @@
+# -*- coding: utf8 -*-
 import datetime
 
 from django.test import TestCase
@@ -88,6 +89,13 @@ class SaleViewTests(TestCase):
         (last_trans,) = args
         self.assertEqual(last_trans, PayTransaction(900))
 
+    def test_quicksale_has_status_line(self):
+        response = self.client.post(
+            reverse('quickbuy', args=(1,)),
+            {"quickbuy": "jokke 1"}
+        )
+
+        self.assertContains(response, "<b>jokke har lige købt Limfjordsporter for tilsammen 9.00 kr.</b>", html=True)
 
 class TransactionTests(TestCase):
     def test_pay_transaction_change_neg(self):

@@ -8,11 +8,11 @@
 <b>
 {% autoescape off %}
 {{member.username}} har lige købt
-{% for bought in bought_list %}{% if forloop.last and not forloop.first %}
+{% for product in products %}{% if forloop.last and not forloop.first %}
  og 
 {% else %}{% if not forloop.first %},
 {% endif %}{% endif %}
-{{bought.count}} {{bought.product.name}}{% endfor %}
+{{product.name}}{% endfor %}
 for tilsammen {{cost|money}} kr.
 </b>
 </blink>
