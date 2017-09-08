@@ -112,11 +112,21 @@ class ProductAdmin(admin.ModelAdmin):
     get_price_display.admin_order_field = "price"
 
     def activated(self, obj):
-        active = obj.active
-        if active and obj.deactivate_date is not None:
-            active = (obj.deactivate_date > timezone.now())
-        return active
-    activated.boolean = True
+        if (
+            obj.active
+            and (
+                obj.deactivate_date is None
+                or obj.deactivate_date > timezone.now()
+            ) and (
+                obj.remaining is None
+                or obj.remaining > 0
+            )
+        ):
+            return True
+        else:
+            return False
+
+    activated.allow_tags = True
 
 
 class MemberAdmin(admin.ModelAdmin):

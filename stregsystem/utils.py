@@ -7,4 +7,5 @@ def make_active_productlist_query():
     return (
         Q(active=True)
         & (Q(deactivate_date=None) | Q(deactivate_date__gte=now))
+        & (Q(remaining=None) | Q(remaining__gt=0))
     )
