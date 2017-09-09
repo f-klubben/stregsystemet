@@ -6,8 +6,15 @@ from django.db.models import Count, Q, Sum
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
 from stregsystem.utils import make_active_productlist_query
-from stregsystem.models import (Member, News, PayTransaction, Product, Room,
-                                Sale, StregForbudError)
+from stregsystem.models import (
+    Member,
+    News,
+    Product,
+    Room,
+    StregForbudError,
+    NoMoreInventoryError,
+    Order
+)
 
 
 def __get_news():
@@ -73,37 +80,32 @@ def quicksale(request, room, member, bought_ids):
 
     products = list()
 
-    # TODO: Make atomic
-    transaction = PayTransaction()
-
     # Retrieve products and construct transaction
     try:
         for i in bought_ids:
             product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(
                 deactivate_date__isnull=True))
             products.append(product)
-            transaction.add(product.price)
     except Product.DoesNotExist:
         return usermenu(request, room, member, None)
 
-    if not member.can_fulfill(transaction):
+    order = Order.from_products(
+        member=member,
+        products=products,
+        room=room
+    )
+
+    try:
+        order.execute()
+    except StregForbudError:
         return render(request, 'stregsystem/error_stregforbud.html', locals())
-
-    member.fulfill(transaction)
-
-    for product in products:
-        s = Sale(
-            member=member,
-            product=product,
-            room=room,
-            price=product.price
-        )
-        s.save()
-    member.save()
+    except NoMoreInventoryError:
+        # @INCOMPLETE this should render with a different template
+        return render(request, 'stregsystem/error_stregforbud.html', locals())
 
     promille = member.calculate_alcohol_promille()
 
-    cost = transaction.amount
+    cost = order.total
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
@@ -162,23 +164,20 @@ def menu_sale(request, room_id, member_id, product_id=None):
         product = Product.objects.get(Q(pk=product_id), Q(active=True),
                                       Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
 
-        transaction = PayTransaction(product.price)
-        if not member.can_fulfill(transaction):
-            return render(request, 'stregsystem/error_stregforbud.html', locals())
-
-        member.fulfill(transaction)
-
-        s = Sale(
+        order = Order.from_products(
             member=member,
-            product=product,
             room=room,
-            price=product.price
+            products=(product, )
         )
-        s.save()
-        member.save()
+
+        order.execute()
+
     except Product.DoesNotExist:
         pass
     except StregForbudError:
+        return render(request, 'stregsystem/error_stregforbud.html', locals())
+    except NoMoreInventoryError:
+        # @INCOMPLETE this should render with a different template
         return render(request, 'stregsystem/error_stregforbud.html', locals())
     # Refresh member, to get new amount
     member = Member.objects.get(pk=member_id, active=True)

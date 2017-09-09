@@ -53,13 +53,11 @@ class SaleViewTests(TestCase):
     def test_make_sale_quickbuy_fail(self, fulfill, can_fulfill):
         can_fulfill.return_value = False
 
-        response = self.client.post(
-            reverse('quickbuy', args=(1,)),
-            {"quickbuy": "jan 1"}
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "stregsystem/error_stregforbud.html")
+        with self.assertRaises(StregForbudError):
+            self.client.post(
+                reverse('quickbuy', args=(1,)),
+                {"quickbuy": "jan 1"}
+            )
 
         fulfill.assert_not_called()
 

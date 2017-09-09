@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils import timezone
 
+from collections import Counter
+
 
 # treo.stregsystem.templatetags stregsystem_extras : money
 def money(value):
@@ -22,6 +24,10 @@ def active_str(a):
 
 # Errors
 class StregForbudError(Exception):
+    pass
+
+
+class NoMoreInventoryError(Exception):
     pass
 
 
@@ -62,6 +68,75 @@ class PayTransaction(MoneyTransaction):
         caused by fulfilling this transaction
         """
         return -self.amount
+
+
+class OrderItem(object):
+    def __init__(self, product, order, count):
+        self.product = product
+        self.order = order
+        self.count = count
+
+    def price(self):
+        return self.product.price * self.count
+
+
+class Order(object):
+    def __init__(self, member, room, items=None):
+        self.member = member
+        self.room = room
+        self.created_on = timezone.now()
+        self.items = items or set()  # Set to none because we don't persist
+
+    def from_products(member, room, products):
+        counts = Counter(products)
+        order = Order(member, room)
+        for (product, count) in counts.items():
+            item = OrderItem(
+                product=product,
+                order=order,
+                count=count
+            )
+            order.items.add(item)
+        return order
+
+    # @HACK In reality calculating the total for old products is way harder and
+    # more complicated than this. While it's not in the database this is
+    # acceptable
+    def total(self):
+        return sum((x.price() for x in self.items))
+
+    def execute(self):
+        transaction = PayTransaction(amount=self.total())
+
+        # Check if we have enough inventory to fulfill the order
+        for item in self.items:
+            if (item.product.remaining is not None
+                    and item.product.remaining < item.count):
+                raise NoMoreInventoryError()
+
+        if not self.member.can_fulfill(transaction):
+            raise StregForbudError()
+
+        self.member.fulfill(transaction)
+
+        for item in self.items:
+            # @HACK Since we want to use the old database layout, we need to
+            # add a sale for every item and every instance of that item
+            for i in range(item.count):
+                s = Sale(
+                    member=self.member,
+                    product=item.product,
+                    room=self.room,
+                    price=item.product.price
+                )
+                s.save()
+            # We must remember to deduct from the remaining count once we've
+            # bought something. It can be None if the product is unlimited
+            if item.product.remaining is not None:
+                item.product.remaining -= item.count
+                item.product.save()
+        # We changed the user balance, so save that
+        self.member.save()
 
 
 class GetTransaction(MoneyTransaction):
