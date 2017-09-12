@@ -1,5 +1,4 @@
 import collections
-import time
 import datetime
 from django.utils import timezone
 from functools import reduce
