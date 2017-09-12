@@ -6,11 +6,9 @@ from functools import reduce
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncDay
+from django.http import JsonResponse
 from django.shortcuts import render
 from stregsystem.models import Member, Product, Sale
-
-from graphos.sources.model import SimpleDataSource
-from graphos.renderers.c3js import SplineChart
 
 
 def reports(request):
@@ -203,19 +201,6 @@ def daily(request):
                  .annotate(Count('sale'))
                  .order_by('-sale__count')[:7])
 
-    qs = (Sale.objects
-          .order_by("timestamp")
-          .annotate(day=TruncDay('timestamp'))
-          .values('day')
-          .annotate(c=Count('id'))
-          .order_by()[:30])
-    data = [["Day", "Sales"]]
-    for v in qs:
-        data.append([v["day"].strftime("%d %b"), v["c"]])
-    print(data)
-    data_source = SimpleDataSource(data=data)
-    chart = SplineChart(data_source)
-
     startTime_day = timezone.now() - datetime.timedelta(hours=24)
     revenue_day = (Sale.objects
                    .filter(timestamp__gt=startTime_day)
@@ -228,6 +213,24 @@ def daily(request):
                      ["price__sum"])
 
     return render(request, 'admin/stregsystem/report/daily.html', locals())
+
+
+def sales_api(request):
+    startTime_month = timezone.now() - datetime.timedelta(days=30)
+    qs = (Sale.objects
+          .filter(timestamp__gt=startTime_month)
+          .order_by("timestamp")
+          .annotate(day=TruncDay('timestamp'))
+          .values('day')
+          .annotate(c=Count('id'))
+          .order_by())
+    items = {
+        "items": [
+            {"day": i["day"].date().isoformat(), "count": i["c"]}
+            for i in qs
+        ]
+    }
+    return JsonResponse(items)
 
 
 daily = staff_member_required(daily)
