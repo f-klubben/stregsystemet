@@ -19,9 +19,9 @@ set_inactive_kiosk_item.short_description = "Make selected kiosk items inactive"
 
 class KioskItemAdmin(admin.ModelAdmin):
     search_fields = ('name',)
-    list_display = ('active', 'name', 'notes', 'uploaded_date')
+    list_display = ('active', 'name', 'notes', 'ordering', 'uploaded_date')
     list_filter = ('active',)
-    list_display_links = ('active', 'name', 'notes', 'uploaded_date')
+    list_display_links = ('active', 'name', 'notes', 'ordering', 'uploaded_date')
     actions = [set_active_kiosk_item, set_inactive_kiosk_item]
 
 
