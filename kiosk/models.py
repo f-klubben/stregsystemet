@@ -15,9 +15,3 @@ class KioskItem(models.Model):
     active = models.BooleanField(default=True)
     image = models.ImageField(upload_to='kiosk', null=False)
     ordering = models.IntegerField(null=False, default=random_ordering, blank=False)
-
-    def __str__(self):
-        try:
-            return "{}".format(self.name if self.name else "KioskItem")
-        except UnicodeEncodeError:
-            return "KioskItem"
