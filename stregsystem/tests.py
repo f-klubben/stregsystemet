@@ -122,7 +122,7 @@ class OrderTest(TestCase):
         ]
         order = Order.from_products(self.member, self.room, products)
         self.assertEqual(
-            Counter(products).items(),
+            list(Counter(products).items()),
             [(item.product, item.count) for item in order.items]
         )
 
