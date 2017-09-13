@@ -125,8 +125,7 @@ class ProductAdmin(admin.ModelAdmin):
             return True
         else:
             return False
-
-    activated.allow_tags = True
+    activated.boolean = True
 
 
 class MemberAdmin(admin.ModelAdmin):
