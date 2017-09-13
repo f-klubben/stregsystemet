@@ -47,5 +47,5 @@ def find_next_image(request):
     # and divide it by the duration of each
     next_index = int((seconds_since_epoch % complete_cycle_time) / duration)
     # Get the item at the index, trust that Django does this smartly.
-    next_item = KioskItem.objects.filter(active=True).order_by('name')[next_index]
+    next_item = KioskItem.objects.filter(active=True).order_by('ordering', 'name')[next_index]
     return HttpResponse(next_item.image.url, content_type="text/plain")
