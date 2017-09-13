@@ -224,9 +224,20 @@ def sales_api(request):
           .values('day')
           .annotate(c=Count('id'))
           .order_by())
+    db_sales = {i["day"].date(): i["c"] for i in qs}
+    base = timezone.now().date()
+    date_list = [base - datetime.timedelta(days=x) for x in range(0, 30)]
+
+    sales = []
+    for date in date_list:
+        if date in db_sales:
+            sales.append(db_sales[date])
+        else:
+            sales.append(0)
+
     items = {
-        "day": [i["day"].date().isoformat() for i in qs],
-        "sales": [i["c"] for i in qs],
+        "day": date_list,
+        "sales": sales,
     }
     return JsonResponse(items)
 
