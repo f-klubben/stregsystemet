@@ -18,7 +18,7 @@ class KioskTests(TestCase):
         response = c.get('/kiosk/next')
         self.assertEqual(404, response.status_code)
 
-    def test_kiosk_one_item(self):
+    def kiosk_one_item(self, mode):
         image_path = "media/kiosk/test_image.png"
         image = SimpleUploadedFile(name='test_image.png',
                                    content=open(image_path, 'rb').read(),
@@ -28,13 +28,19 @@ class KioskTests(TestCase):
         self.assertEqual(1, KioskItem.objects.count())
 
         c = Client()
-        response = c.get('/kiosk/next')
+        response = c.get('/kiosk/{}'.format(mode))
         self.assertEqual(200, response.status_code)
 
         # Django generates a random string to add to the filename
         self.assertIn(b'/media/kiosk/test_image_', response.content)
 
-    def test_kiosk_two_items(self):
+    def test_kiosk_one_item_mode_next(self):
+        self.kiosk_one_item("next")
+
+    def test_kiosk_one_item_mode_random(self):
+        self.kiosk_one_item("random")
+
+    def kiosk_two_items(self, mode):
         image_path = "media/kiosk/test_image.png"
         image = SimpleUploadedFile(name='test_image1.png',
                                    content=open(image_path, 'rb').read(),
@@ -50,8 +56,14 @@ class KioskTests(TestCase):
         self.assertEqual(2, KioskItem.objects.count())
 
         c = Client()
-        response = c.get('/kiosk/next')
+        response = c.get('/kiosk/{}'.format(mode))
         self.assertEqual(200, response.status_code)
 
         # Django generates a random string to add to the filename
         self.assertIn(b'/media/kiosk/test_image', response.content)
+
+    def test_kiosk_two_items_mode_next(self):
+        self.kiosk_two_items("next")
+
+    def test_kiosk_two_items_mode_random(self):
+        self.kiosk_two_items("random")
