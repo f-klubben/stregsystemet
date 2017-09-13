@@ -1,15 +1,9 @@
 # -*- coding: utf8 -*-
-import pprint
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, Client
 
 from kiosk.models import KioskItem
-
-try:
-    from unittest.mock import patch, MagicMock, Mock
-except ImportError:
-    from mock import patch, MagicMock, Mock
 
 
 class KioskTests(TestCase):
