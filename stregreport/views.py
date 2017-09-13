@@ -205,12 +205,12 @@ def daily(request):
     revenue_day = (Sale.objects
                    .filter(timestamp__gt=startTime_day)
                    .aggregate(Sum("price"))
-                   ["price__sum"])
+                   ["price__sum"]) or 0.0
     startTime_month = timezone.now() - datetime.timedelta(days=30)
     revenue_month = (Sale.objects
                      .filter(timestamp__gt=startTime_month)
                      .aggregate(Sum("price"))
-                     ["price__sum"])
+                     ["price__sum"]) or 0.0
 
     return render(request, 'admin/stregsystem/report/daily.html', locals())
 
@@ -225,10 +225,8 @@ def sales_api(request):
           .annotate(c=Count('id'))
           .order_by())
     items = {
-        "items": [
-            {"day": i["day"].date().isoformat(), "count": i["c"]}
-            for i in qs
-        ]
+        "day": [i["day"].date().isoformat() for i in qs],
+        "sales": [i["c"] for i in qs],
     }
     return JsonResponse(items)
 
