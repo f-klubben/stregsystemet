@@ -1,7 +1,5 @@
 from fabric.api import task, run, sudo, cd, env, prefix, settings
 
-env.hosts = ["fklub.dk"]
-
 
 @task
 def deploy():

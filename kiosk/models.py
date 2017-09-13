@@ -17,6 +17,7 @@ class KioskItem(models.Model):
     ordering = models.IntegerField(null=False, default=random_ordering, blank=False)
 
     def __str__(self):
-        return "{}".format(self.name if self.name else "KioskItem")
-
-
+        try:
+            return "{}".format(self.name if self.name else "KioskItem")
+        except UnicodeEncodeError:
+            return "KioskItem"
