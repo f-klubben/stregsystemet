@@ -1,9 +1,12 @@
 import collections
 import datetime
+from django.utils import timezone
 from functools import reduce
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count, Q, Sum
+from django.db.models.functions import TruncDay
+from django.http import JsonResponse
 from django.shortcuts import render
 from stregsystem.models import Member, Product, Sale
 
@@ -187,11 +190,45 @@ def late(date):
 def first_of_month(date):
     return datetime.datetime(date.year, date.month, 1, 23, 59, 59)
 
+
 def daily(request):
     current_date = datetime.datetime.now().replace(hour=0, minute=0, second=0)
-    latest_sales = Sale.objects.prefetch_related('product', 'member').order_by('-timestamp')[:7]
-    top_today = Product.objects.filter(sale__timestamp__gt=current_date).annotate(Count('sale')).order_by('-sale__count')[:7]
+    latest_sales = (Sale.objects
+                    .prefetch_related('product', 'member')
+                    .order_by('-timestamp')[:7])
+    top_today = (Product.objects
+                 .filter(sale__timestamp__gt=current_date)
+                 .annotate(Count('sale'))
+                 .order_by('-sale__count')[:7])
+
+    startTime_day = timezone.now() - datetime.timedelta(hours=24)
+    revenue_day = (Sale.objects
+                   .filter(timestamp__gt=startTime_day)
+                   .aggregate(Sum("price"))
+                   ["price__sum"]) or 0.0
+    startTime_month = timezone.now() - datetime.timedelta(days=30)
+    revenue_month = (Sale.objects
+                     .filter(timestamp__gt=startTime_month)
+                     .aggregate(Sum("price"))
+                     ["price__sum"]) or 0.0
 
     return render(request, 'admin/stregsystem/report/daily.html', locals())
+
+
+def sales_api(request):
+    startTime_month = timezone.now() - datetime.timedelta(days=30)
+    qs = (Sale.objects
+          .filter(timestamp__gt=startTime_month)
+          .order_by("timestamp")
+          .annotate(day=TruncDay('timestamp'))
+          .values('day')
+          .annotate(c=Count('id'))
+          .order_by())
+    items = {
+        "day": [i["day"].date().isoformat() for i in qs],
+        "sales": [i["c"] for i in qs],
+    }
+    return JsonResponse(items)
+
 
 daily = staff_member_required(daily)
