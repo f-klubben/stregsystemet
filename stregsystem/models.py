@@ -87,9 +87,10 @@ class Order(object):
         self.created_on = timezone.now()
         self.items = items or set()  # Set to none because we don't persist
 
-    def from_products(member, room, products):
+    @classmethod
+    def from_products(cls, member, room, products):
         counts = Counter(products)
-        order = Order(member, room)
+        order = cls(member, room)
         for (product, count) in counts.items():
             item = OrderItem(
                 product=product,
