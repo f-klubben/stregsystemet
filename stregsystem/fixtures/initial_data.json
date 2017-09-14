@@ -18,6 +18,28 @@
     },
     {
         "fields": {
+            "active": 1,
+            "name": "Flan",
+            "price": 900,
+            "bought": 1,
+            "quantity": 3
+        },
+        "model": "stregsystem.product",
+        "pk": "2"
+    },
+    {
+        "fields": {
+            "active": 1,
+            "name": "Flan but sold out",
+            "price": 900,
+            "bought": 3,
+            "quantity": 3
+        },
+        "model": "stregsystem.product",
+        "pk": "3"
+    },
+    {
+        "fields": {
             "changed_on": "2007-07-11 22:21:02",
             "price": 900,
             "product": 1

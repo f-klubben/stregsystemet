@@ -1,4 +1,5 @@
 from django.db import models, transaction
+from django.db.models import F
 from django.utils import timezone
 
 from collections import Counter
@@ -135,8 +136,10 @@ class Order(object):
                 s.save()
 
             if item.product.quantity is not None:
-                item.product.bought += item.count
-                item.product.save()
+                # We don't need to save because we use update here
+                (Product.objects
+                 .filter(id=item.product.id)
+                 .update(bought=F("bought")+item.count))
         # We changed the user balance, so save that
         self.member.save()
 
@@ -348,6 +351,15 @@ class Product(models.Model):  # id automatisk...
         if price_changed:
             OldPrice.objects.create(product=self, price=self.price)
 
+    def is_active(self):
+        expired = (self.deactivate_date is not None
+                   and self.deactivate_date <= timezone.now())
+        out_of_stock = (self.quantity is not None
+                        and self.quantity <= self.bought)
+
+        return (self.active
+                and not expired
+                and not out_of_stock)
 
 class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statistik?
     product = models.ForeignKey(Product, related_name='old_prices')

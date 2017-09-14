@@ -111,20 +111,8 @@ class ProductAdmin(admin.ModelAdmin):
     get_price_display.short_description = "Price"
     get_price_display.admin_order_field = "price"
 
-    def activated(self, obj):
-        if (
-            obj.active
-            and (
-                obj.deactivate_date is None
-                or obj.deactivate_date > timezone.now()
-            ) and (
-                obj.quantity is None
-                or obj.quantity > obj.bought
-            )
-        ):
-            return True
-        else:
-            return False
+    def activated(self, product):
+        return product.is_active()
     activated.boolean = True
 
 
