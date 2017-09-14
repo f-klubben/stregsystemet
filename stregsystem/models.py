@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 from collections import Counter
@@ -106,13 +106,15 @@ class Order(object):
     def total(self):
         return sum((x.price() for x in self.items))
 
+    @transaction.atomic
     def execute(self):
         transaction = PayTransaction(amount=self.total())
 
         # Check if we have enough inventory to fulfill the order
         for item in self.items:
-            if (item.product.remaining is not None
-                    and item.product.remaining < item.count):
+            if (item.product.quantity is not None
+                    and (item.product.bought + item.count
+                         > item.product.quantity)):
                 raise NoMoreInventoryError()
 
         if not self.member.can_fulfill(transaction):
@@ -131,10 +133,9 @@ class Order(object):
                     price=item.product.price
                 )
                 s.save()
-            # We must remember to deduct from the remaining count once we've
-            # bought something. It can be None if the product is unlimited
-            if item.product.remaining is not None:
-                item.product.remaining -= item.count
+
+            if item.product.quantity is not None:
+                item.product.bought += item.count
                 item.product.save()
         # We changed the user balance, so save that
         self.member.save()
@@ -328,7 +329,8 @@ class Product(models.Model):  # id automatisk...
     name = models.CharField(max_length=32)
     price = models.IntegerField()  # penge, oere...
     active = models.BooleanField()
-    remaining = models.IntegerField(blank=True, null=True)
+    bought = models.IntegerField(default=0)
+    quantity = models.IntegerField(blank=True, null=True)
     deactivate_date = models.DateTimeField(blank=True, null=True)
 
     def __unicode__(self):

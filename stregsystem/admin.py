@@ -118,8 +118,8 @@ class ProductAdmin(admin.ModelAdmin):
                 obj.deactivate_date is None
                 or obj.deactivate_date > timezone.now()
             ) and (
-                obj.remaining is None
-                or obj.remaining > 0
+                obj.quantity is None
+                or obj.quantity > obj.bought
             )
         ):
             return True
