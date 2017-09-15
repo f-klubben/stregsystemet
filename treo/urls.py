@@ -22,7 +22,7 @@ Including another URLconf
 urlpatterns = [
     url(r'^', include("stregsystem.urls")),
     url(r'^', include("stregreport.urls")),
-#    url(r'^kiosk/', include("kiosk.urls")),
+    url(r'^kiosk/', include("kiosk.urls")),
     url(r'^admin/', admin.site.urls),
 ]
 
