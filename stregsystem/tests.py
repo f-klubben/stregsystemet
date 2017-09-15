@@ -3,6 +3,7 @@ import datetime
 
 from django.test import TestCase
 from django.urls import reverse
+from collections import Counter
 
 from stregsystem import admin
 from stregsystem.admin import ProductAdmin
@@ -11,7 +12,11 @@ from stregsystem.models import (
     Member,
     PayTransaction,
     StregForbudError,
-    Product
+    Product,
+    Room,
+    Order,
+    OrderItem,
+    NoMoreInventoryError
 )
 
 try:
@@ -44,9 +49,7 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        (args, kwargs) = fulfill.call_args
-        (last_trans,) = args
-        self.assertEqual(last_trans, PayTransaction(900))
+        fulfill.assert_called_once_with(PayTransaction(900))
 
     @patch('stregsystem.models.Member.can_fulfill')
     @patch('stregsystem.models.Member.fulfill')
@@ -85,9 +88,7 @@ class SaleViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
-        (args, kwargs) = fulfill.call_args
-        (last_trans,) = args
-        self.assertEqual(last_trans, PayTransaction(900))
+        fulfill.assert_called_once_with(PayTransaction(900))
 
     def test_quicksale_has_status_line(self):
         response = self.client.post(
@@ -97,6 +98,66 @@ class SaleViewTests(TestCase):
 
         self.assertContains(response, "<b>jokke har lige købt Limfjordsporter for tilsammen 9.00 kr.</b>", html=True)
 
+    def test_quicksale_increases_bought(self):
+        before = Product.objects.get(id=2)
+        before_member = Member.objects.get(username="jokke")
+
+        response = self.client.post(
+            reverse('quickbuy', args=(1,)),
+            {"quickbuy": "jokke 2"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/index_sale.html")
+
+        after = Product.objects.get(id=2)
+        after_member = Member.objects.get(username="jokke")
+
+        self.assertEqual(before.bought + 1, after.bought)
+        # 900 is the product price
+        self.assertEqual(before_member.balance - 900, after_member.balance)
+
+    def test_quicksale_quanitity_none_noincrease(self):
+        before = Product.objects.get(id=1)
+        before_member = Member.objects.get(username="jokke")
+
+        response = self.client.post(
+            reverse('quickbuy', args=(1,)),
+            {"quickbuy": "jokke 1"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/index_sale.html")
+
+        after = Product.objects.get(id=1)
+        after_member = Member.objects.get(username="jokke")
+
+        self.assertEqual(before.bought, after.bought)
+        # 900 is the product price
+        self.assertEqual(before_member.balance - 900, after_member.balance)
+
+    def test_quicksale_out_of_stock(self):
+        before = Product.objects.get(id=1)
+        before_member = Member.objects.get(username="jokke")
+
+        response = self.client.post(
+            reverse('quickbuy', args=(1,)),
+            {"quickbuy": "jokke 3"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        # I don't know which template to use (I should probably make one). So
+        # for now let's just make sure that we at least don't use the one that
+        # says "correct" - Jesper 14/09-2017
+        self.assertTemplateNotUsed(response, "stregsystem/index_sale.html")
+
+        after = Product.objects.get(id=1)
+        after_member = Member.objects.get(username="jokke")
+
+        self.assertEqual(before.bought, after.bought)
+        self.assertEqual(before_member.balance, after_member.balance)
+
+
 class TransactionTests(TestCase):
     def test_pay_transaction_change_neg(self):
         transaction = PayTransaction(100)
@@ -105,6 +166,105 @@ class TransactionTests(TestCase):
     def test_pay_transaction_change_pos(self):
         transaction = GetTransaction(100)
         self.assertEqual(transaction.change(), 100)
+
+
+class OrderTest(TestCase):
+    def setUp(self):
+        self.member = Member.objects.create(balance=100)
+        self.room = Room.objects.create(name="room")
+        self.product = Product.objects.create(id=1, name="øl", price=10,
+                                              active=True)
+
+    def test_order_fromproducts(self):
+        products = [
+            self.product,
+            self.product,
+        ]
+        order = Order.from_products(self.member, self.room, products)
+        self.assertEqual(
+            list(Counter(products).items()),
+            [(item.product, item.count) for item in order.items]
+        )
+
+    def test_order_total_single_item(self):
+        order = Order(self.member, self.room)
+
+        item = OrderItem(self.product, order, 1)
+        order.items.add(item)
+
+        self.assertEqual(order.total(), 10)
+
+    def test_order_total_multi_item(self):
+        order = Order(self.member, self.room)
+
+        item = OrderItem(self.product, order, 2)
+        order.items.add(item)
+
+        self.assertEqual(order.total(), 20)
+
+    @patch('stregsystem.models.Member.fulfill')
+    def test_order_execute_single_transaction(self, fulfill):
+        order = Order(self.member, self.room)
+
+        item = OrderItem(self.product, order, 1)
+        order.items.add(item)
+
+        order.execute()
+
+        fulfill.assert_called_once_with(PayTransaction(10))
+
+    @patch('stregsystem.models.Member.fulfill')
+    def test_order_execute_multi_transaction(self, fulfill):
+        order = Order(self.member, self.room)
+
+        item = OrderItem(self.product, order, 2)
+        order.items.add(item)
+
+        order.execute()
+
+        fulfill.assert_called_once_with(PayTransaction(20))
+
+    @patch('stregsystem.models.Member.fulfill')
+    def test_order_execute_single_no_remaining(self, fulfill):
+        self.product.bought = 1
+        self.product.quantity = 1
+        order = Order(self.member, self.room)
+
+        item = OrderItem(self.product, order, 1)
+        order.items.add(item)
+
+        with self.assertRaises(NoMoreInventoryError):
+            order.execute()
+
+        fulfill.was_not_called()
+
+    @patch('stregsystem.models.Member.fulfill')
+    def test_order_execute_multi_some_remaining(self, fulfill):
+        self.product.bought = 1
+        self.product.quantity = 2
+        order = Order(self.member, self.room)
+
+        item = OrderItem(self.product, order, 2)
+        order.items.add(item)
+
+        with self.assertRaises(NoMoreInventoryError):
+            order.execute()
+
+        fulfill.was_not_called()
+
+    @patch('stregsystem.models.Member.can_fulfill')
+    @patch('stregsystem.models.Member.fulfill')
+    def test_order_execute_no_money(self, fulfill, can_fulfill):
+        can_fulfill.return_value = False
+        order = Order(self.member, self.room)
+
+        item = OrderItem(self.product, order, 2)
+        order.items.add(item)
+
+        with self.assertRaises(StregForbudError):
+            order.execute()
+
+        fulfill.was_not_called()
 
 
 class MemberTests(TestCase):
@@ -189,7 +349,22 @@ class ProductActivatedListFilterTests(TestCase):
             price=1.0,
             active=False,
             deactivate_date=(datetime.datetime.now()
-                             - datetime.timedelta(hours=1)))
+                             - datetime.timedelta(hours=1))
+        )
+        Product.objects.create(
+            name="active_none_left",
+            price=1.0,
+            active=True,
+            bought=2,
+            quantity=2,
+        )
+        Product.objects.create(
+            name="active_some_left",
+            price=1.0,
+            active=True,
+            bought=0,
+            quantity=2,
+        )
 
     def test_active_trivial(self):
         fy = admin.ProductActivatedListFilter(
@@ -307,3 +482,41 @@ class ProductActivatedListFilterTests(TestCase):
 
         self.assertNotIn(Product.objects.get(name="deactivated_dec_past"), qy)
         self.assertIn(Product.objects.get(name="deactivated_dec_past"), qn)
+
+    def test_active_none_left(self):
+        fy = admin.ProductActivatedListFilter(
+            None,
+            {'activated': 'Yes'},
+            Product,
+            ProductAdmin
+        )
+        qy = list(fy.queryset(None, Product.objects.all()))
+        fn = admin.ProductActivatedListFilter(
+            None,
+            {'activated': 'No'},
+            Product,
+            ProductAdmin
+        )
+        qn = list(fn.queryset(None, Product.objects.all()))
+
+        self.assertNotIn(Product.objects.get(name="active_none_left"), qy)
+        self.assertIn(Product.objects.get(name="active_none_left"), qn)
+
+    def test_active_some_left(self):
+        fy = admin.ProductActivatedListFilter(
+            None,
+            {'activated': 'Yes'},
+            Product,
+            ProductAdmin
+        )
+        qy = list(fy.queryset(None, Product.objects.all()))
+        fn = admin.ProductActivatedListFilter(
+            None,
+            {'activated': 'No'},
+            Product,
+            ProductAdmin
+        )
+        qn = list(fn.queryset(None, Product.objects.all()))
+
+        self.assertIn(Product.objects.get(name="active_some_left"), qy)
+        self.assertNotIn(Product.objects.get(name="active_some_left"), qn)

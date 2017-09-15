@@ -1,5 +1,8 @@
-from django.db import models
+from django.db import models, transaction
+from django.db.models import F
 from django.utils import timezone
+
+from collections import Counter
 
 
 # treo.stregsystem.templatetags stregsystem_extras : money
@@ -22,6 +25,10 @@ def active_str(a):
 
 # Errors
 class StregForbudError(Exception):
+    pass
+
+
+class NoMoreInventoryError(Exception):
     pass
 
 
@@ -62,6 +69,79 @@ class PayTransaction(MoneyTransaction):
         caused by fulfilling this transaction
         """
         return -self.amount
+
+
+class OrderItem(object):
+    def __init__(self, product, order, count):
+        self.product = product
+        self.order = order
+        self.count = count
+
+    def price(self):
+        return self.product.price * self.count
+
+
+class Order(object):
+    def __init__(self, member, room, items=None):
+        self.member = member
+        self.room = room
+        self.created_on = timezone.now()
+        self.items = items or set()  # Set to none because we don't persist
+
+    @classmethod
+    def from_products(cls, member, room, products):
+        counts = Counter(products)
+        order = cls(member, room)
+        for (product, count) in counts.items():
+            item = OrderItem(
+                product=product,
+                order=order,
+                count=count
+            )
+            order.items.add(item)
+        return order
+
+    # @HACK In reality calculating the total for old products is way harder and
+    # more complicated than this. While it's not in the database this is
+    # acceptable
+    def total(self):
+        return sum((x.price() for x in self.items))
+
+    @transaction.atomic
+    def execute(self):
+        transaction = PayTransaction(amount=self.total())
+
+        # Check if we have enough inventory to fulfill the order
+        for item in self.items:
+            if (item.product.quantity is not None
+                    and (item.product.bought + item.count
+                         > item.product.quantity)):
+                raise NoMoreInventoryError()
+
+        if not self.member.can_fulfill(transaction):
+            raise StregForbudError()
+
+        self.member.fulfill(transaction)
+
+        for item in self.items:
+            # @HACK Since we want to use the old database layout, we need to
+            # add a sale for every item and every instance of that item
+            for i in range(item.count):
+                s = Sale(
+                    member=self.member,
+                    product=item.product,
+                    room=self.room,
+                    price=item.product.price
+                )
+                s.save()
+
+            if item.product.quantity is not None:
+                # We don't need to save because we use update here
+                (Product.objects
+                 .filter(id=item.product.id)
+                 .update(bought=F("bought")+item.count))
+        # We changed the user balance, so save that
+        self.member.save()
 
 
 class GetTransaction(MoneyTransaction):
@@ -252,6 +332,8 @@ class Product(models.Model):  # id automatisk...
     name = models.CharField(max_length=32)
     price = models.IntegerField()  # penge, oere...
     active = models.BooleanField()
+    bought = models.IntegerField(default=0)
+    quantity = models.IntegerField(blank=True, null=True)
     deactivate_date = models.DateTimeField(blank=True, null=True)
 
     def __unicode__(self):
@@ -269,6 +351,15 @@ class Product(models.Model):  # id automatisk...
         if price_changed:
             OldPrice.objects.create(product=self, price=self.price)
 
+    def is_active(self):
+        expired = (self.deactivate_date is not None
+                   and self.deactivate_date <= timezone.now())
+        out_of_stock = (self.quantity is not None
+                        and self.quantity <= self.bought)
+
+        return (self.active
+                and not expired
+                and not out_of_stock)
 
 class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statistik?
     product = models.ForeignKey(Product, related_name='old_prices')
