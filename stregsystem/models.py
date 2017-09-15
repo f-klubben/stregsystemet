@@ -238,21 +238,15 @@ class Member(models.Model):  # id automatisk...
         return self.balance - buy < 0
 
     def calculate_alcohol_promille(self):
-        # Disabled:
-        # return False
         from datetime import timedelta
-        # formodet draenet vaegt paa en gennemsnitsdatalog
+        # Formodet draenet vaegt paa en gennemsnitsdatalog
         weight = 80.0
-        # Vi burde flytte det her til databasen, saa kan treoen lave noget ;)
-        drinks_in_product = {13: 1.24, 14: 1.0, 29: 1.0, 42: 1.72, 47: 1.52, 54: 1.24, 65: 1.5, 66: 1.5,
-                             1773: 1.0, 1776: 1.52, 1777: 1.52, 1779: 2.0, 1780: 2.58, 1783: 1.0, 1793: 1.0, 1794: 0.96,
-                             22: 7.0, 23: 7.0, 41: 19.14, 53: 9.22, 63: 1.0, 64: 7.0, 1767: 1.02, 1769: 1.0, 1770: 2.0,
-                             1802: 2.0, 1807: 6.6, 1808: 7.5, 1809: 8.3}
 
         now = timezone.now()
         delta = now - timedelta(hours=12)
-        alcohol_sales = Sale.objects.filter(member_id=self.id, timestamp__gt=delta,
-                                            product__in=list(drinks_in_product.keys())).order_by('timestamp')
+        alcohol_sales = Sale.objects.filter(member_id=self.id,
+                                            timestamp__gt=delta,
+                                            product__alcohol_content_ml__gt=0.0).order_by('timestamp')
         drinks = 0.0
 
         if self.gender == 'M':
@@ -263,12 +257,12 @@ class Member(models.Model):  # id automatisk...
             # tilfaeldigt gennemsnit for ukendt koen
             drinks_pr_hour = 0.01042 * weight
 
-        if (len(alcohol_sales) > 0):
+        if len(alcohol_sales) > 0:
             last_time_frame = alcohol_sales[0].timestamp
             for sale in alcohol_sales:
                 current_time_frame = sale.timestamp
                 drinks = max(0.0, drinks - (current_time_frame - last_time_frame).seconds / 3600.0 * drinks_pr_hour)
-                drinks = drinks + drinks_in_product[sale.product_id]
+                drinks += sale.product.alcohol_content_ml / 15.0
                 last_time_frame = current_time_frame
             drinks = max(0.0, drinks - (now - last_time_frame).seconds / 3600.0 * drinks_pr_hour)
 
@@ -289,7 +283,7 @@ class Member(models.Model):  # id automatisk...
             consume_percent = 0.615
 
         promille = 12.0 * drinks / (consume_percent * weight)
-        promille = promille + drunken_bastards.get(self.id, 0.0)
+        promille += drunken_bastards.get(self.id, 0.0)
         return str(round(promille, 2))
 
 
@@ -349,6 +343,7 @@ class Product(models.Model): # id automatisk...
     quantity = models.IntegerField(blank=True, null=True)
     deactivate_date = models.DateTimeField(blank=True, null=True)
     categories = models.ManyToManyField(Category, blank=True)
+    alcohol_content_ml = models.FloatField(default=0.0, null=True)
 
     @deprecated
     def __unicode__(self):

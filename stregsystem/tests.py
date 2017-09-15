@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 import datetime
-from django.utils import timezone
+from collections import Counter
 
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 from freezegun import freeze_time
-from collections import Counter
 
+import stregsystem.parser as parser
 from stregsystem import admin
 from stregsystem.admin import (
     CategoryAdmin,
@@ -16,21 +17,20 @@ from stregsystem.models import (
     Category,
     GetTransaction,
     Member,
-    NoMoreInventoryError,
-    Order,
-    OrderItem,
     Payment,
     PayTransaction,
     Product,
     Room,
+    Order,
+    OrderItem,
+    NoMoreInventoryError,
     Sale,
     StregForbudError,
 )
 from stregsystem.models import (
     price_display,
-    active_str
+    active_str,
 )
-import stregsystem.parser as parser
 
 try:
     from unittest.mock import patch
@@ -739,6 +739,51 @@ class MemberTests(TestCase):
         member.make_payment(-10)
 
         self.assertEqual(member.balance, 90)
+
+    def test_promille_no_drinks(self):
+        user = Member.objects.create(username="test", gender='M', active=True)
+        non_alcoholic = Product.objects.create(name="mælk", price=1.0, active=True)
+
+        Sale.objects.create(product=non_alcoholic, member=user, price=non_alcoholic.price)
+        self.assertEqual('0.0', user.calculate_alcohol_promille())
+
+    def test_promille_with_alcohol_male(self):
+        user = Member.objects.create(username="test", gender='M', active=True)
+        # (330 ml * 4.6%) = 15.18
+        alcoholic_drink = Product.objects.create(name="øl", price=2.0, alcohol_content_ml=15.18, active=True)
+        Sale.objects.create(product=alcoholic_drink, member=user, price=alcoholic_drink.price)
+
+        self.assertEqual('0.22', user.calculate_alcohol_promille())
+
+    def test_promille_with_alcohol_female(self):
+        user = Member.objects.create(username="test", gender='F', active=True)
+        # (330 ml * 4.6%) = 15.18
+        alcoholic_drink = Product.objects.create(name="øl", price=2.0, alcohol_content_ml=15.18, active=True)
+        Sale.objects.create(product=alcoholic_drink, member=user, price=alcoholic_drink.price)
+
+        self.assertEqual('0.28', user.calculate_alcohol_promille())
+
+    def test_promille_staggered_male(self):
+        user = Member.objects.create(username="test", gender='M', active=True)
+        # (330 ml * 4.6%) = 15.18
+        alcoholic_drink = Product.objects.create(name="øl", price=2.0, alcohol_content_ml=15.18, active=True)
+        for i in range(5):
+            with freeze_time(datetime.datetime.now() - datetime.timedelta(minutes=i * 10)):
+                Sale.objects.create(product=alcoholic_drink, member=user, price=alcoholic_drink.price)
+
+        with freeze_time(datetime.datetime.now()):
+            self.assertEqual('0.97', user.calculate_alcohol_promille())
+
+    def test_promille_staggered_female(self):
+        user = Member.objects.create(username="test", gender='F', active=True)
+        # (330 ml * 4.6%) = 15.18
+        alcoholic_drink = Product.objects.create(name="øl", price=2.0, alcohol_content_ml=15.18, active=True)
+        for i in range(5):
+            with freeze_time(datetime.datetime.now() - datetime.timedelta(minutes=i * 10)):
+                Sale.objects.create(product=alcoholic_drink, member=user, price=alcoholic_drink.price)
+
+        with freeze_time(datetime.datetime.now()):
+            self.assertEqual('1.26', user.calculate_alcohol_promille())
 
 
 class ProductActivatedListFilterTests(TestCase):
