@@ -1,11 +1,10 @@
 import datetime
-import re
 from functools import reduce
 
 from django.db.models import Count, Q, Sum
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
-from stregsystem.utils import make_active_productlist_query
+from stregsystem.utils import make_active_productlist_query, QuickbuyParser, QuickBuyError
 from stregsystem.models import (
     Member,
     News,
@@ -30,7 +29,6 @@ def __get_productlist():
     )
     return l
 
-
 def roomindex(request):
     return HttpResponsePermanentRedirect('/1/')
 
@@ -44,31 +42,32 @@ def index(request, room_id):
     news = __get_news()
     return render(request, 'stregsystem/index.html', locals())
 
-
 def sale(request, room_id):
     room = get_object_or_404(Room, pk=room_id)
     news = __get_news()
     product_list = __get_productlist()
 
-    quickbuy_list = re.split('\s+', request.POST['quickbuy'].strip())
-
-    username = quickbuy_list[0]
-    if username.strip() == "":
+    buy_string = request.POST['quickbuy'].strip()
+    # Handle empty line
+    if buy_string == "":
         return render(request, 'stregsystem/index.html', locals())
+    # Extract username and product ids
+    try:
+        username, bought_ids = QuickbuyParser.parse(buy_string)
+    except QuickBuyError as err:
+        values = {
+            'correct': err.parsed_part,
+            'incorrect': err.failed_part,
+            'error_ptr': '~' * (len(err.parsed_part)) + '^',
+            'error_msg': ' ' * (len(err.parsed_part) - 4) + 'Fejl her'}
+        return render(request, 'stregsystem/error_invalidquickbuy.html', values)
+    # Fetch member from DB
     try:
         member = Member.objects.get(username=username, active=True)
     except Member.DoesNotExist:
         return render(request, 'stregsystem/error_usernotfound.html', locals())
 
-    bought_ids = []
-    for x in quickbuy_list[1:]:
-        if not x.isdigit():
-            return render(request, 'stregsystem/error_invalidinput.html', locals())
-        else:
-            bought_ids.append(int(x))
-
-    # XXX disabled multibuy
-    if len(bought_ids) == 1:
+    if len(bought_ids):
         return quicksale(request, room, member, bought_ids)
     else:
         return usermenu(request, room, member, None)
@@ -78,9 +77,8 @@ def quicksale(request, room, member, bought_ids):
     news = __get_news()
     product_list = __get_productlist()
 
-    products = list()
-
     # Retrieve products and construct transaction
+    products = []
     try:
         for i in bought_ids:
             product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(
