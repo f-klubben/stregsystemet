@@ -1,3 +1,4 @@
+freezegun
 Django==1.10.5
 Pillow==4.1.0
 Coverage==4.4.1

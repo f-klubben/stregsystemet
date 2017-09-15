@@ -4,11 +4,14 @@ from collections import Counter
 
 from django.test import TestCase
 from django.urls import reverse
+from freezegun import freeze_time
 from django.utils import timezone
 from freezegun import freeze_time
 
 import stregsystem.parser as parser
 from stregreport import views
+from stregsystem.admin import ProductAdmin
+from stregsystem import admin
 from stregsystem.admin import (
     CategoryAdmin,
     ProductAdmin,
@@ -409,6 +412,7 @@ class UserInfoViewTests(TestCase):
     # @INCOMPLETE: Strictly speaking there are two more variables here. Are
     # they actually necessary, since we don't allow people to go negative
     # anymore anyway? - Jesper 18/09-2017
+
 
 
 class TransactionTests(TestCase):
@@ -1316,6 +1320,7 @@ class QuickbuyParserTests(TestCase):
             parser.parse(buy_string)
 
 
+
 class RazziaTests(TestCase):
     def setUp(self):
         self.flan = Product.objects.create(name="FLan", price=1.0, active=True)
@@ -1325,31 +1330,40 @@ class RazziaTests(TestCase):
         self.alan = Member.objects.create(username="tester", firstname="Alan", lastname="Alansen")
         self.bob = Member.objects.create(username="bob", firstname="bob", lastname="bob")
 
-        self.now = datetime.datetime.now()
-        Sale.objects.create(member=self.alan,
-                            product=self.flan,
-                            timestamp=self.now - datetime.timedelta(hours=1),
-                            price=1.0)
-        Sale.objects.create(member=self.alan,
-                            product=self.flan,
-                            timestamp=self.now - datetime.timedelta(hours=2),
-                            price=1.0)
-        Sale.objects.create(member=self.alan, product=self.flanmad,
-                            timestamp=self.now - datetime.timedelta(hours=2),
-                            price=1.0)
-        Sale.objects.create(member=self.alan,
-                            product=self.notflan,
-                            timestamp=self.now - datetime.timedelta(hours=1),
-                            price=1.0)
+        self.some_time = datetime.datetime(2017, 2, 2)
+
+        with freeze_time('2017-02-02'):
+            Sale.objects.create(member=self.alan, product=self.flan, price=1.0)
+
+        with freeze_time('2017-02-15'):
+            Sale.objects.create(member=self.alan, product=self.flan, price=1.0)
+
+        with freeze_time('2017-02-07'):
+            Sale.objects.create(member=self.alan, product=self.flanmad, price=1.0)
+
+        with freeze_time('2017-02-05'):
+            Sale.objects.create(member=self.alan, product=self.notflan, price=1.0)
 
     def test_sales_to_user_in_period(self):
         res = views._sales_to_user_in_period(
             self.alan.username,
-            self.now - datetime.timedelta(hours=10),
-            self.now,
+            self.some_time - datetime.timedelta(hours=10),
+            self.some_time + datetime.timedelta(days=15),
             [self.flan.id, self.flanmad.id],
             {self.flan.name: 0, self.flanmad.name: 0},
         )
 
-        self.assertEqual(res[self.flan.name], 2)
-        self.assertEqual(res[self.flanmad.name], 1)
+        self.assertEqual(2, res[self.flan.name])
+        self.assertEqual(1, res[self.flanmad.name])
+
+    def test_sales_to_user_no_results_out_of_period(self):
+        res = views._sales_to_user_in_period(
+            self.bob.username,
+            self.some_time + datetime.timedelta(days=14),
+            self.some_time + datetime.timedelta(days=15),
+            [self.flan.id, self.flanmad.id],
+            {self.flan.name: 0, self.flanmad.name: 0},
+        )
+
+        self.assertEqual(0, res[self.flan.name])
+        self.assertEqual(0, res[self.flanmad.name])
