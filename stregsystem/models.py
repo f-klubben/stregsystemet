@@ -2,14 +2,10 @@ from django.db import models, transaction
 from django.db.models import F
 from django.utils import timezone
 
+from stregsystem.templatetags.stregsystem_extras import money
+from stregsystem.deprecated import deprecated
+
 from collections import Counter
-
-
-# treo.stregsystem.templatetags stregsystem_extras : money
-def money(value):
-    if value is None:
-        value = 0
-    return "{0:.2f}".format(value / 100.0)
 
 
 def price_display(value):
@@ -174,12 +170,15 @@ class Member(models.Model):  # id automatisk...
 
     stregforbud_override = False
 
+    # I don't know if this is actually used anywhere - Jesper 17/09-2017
+    @deprecated
     def balance_display(self):
         return money(self.balance) + " kr."
 
     balance_display.short_description = "Balance"
     balance_display.admin_order_field = 'balance'
 
+    @deprecated
     def __unicode__(self):
         return self.username + active_str(self.active) + ": " + self.email + " " + money(self.balance)
 
@@ -299,6 +298,7 @@ class Payment(models.Model):  # id automatisk...
     timestamp = models.DateTimeField(auto_now_add=True)
     amount = models.IntegerField()  # penge, oere...
 
+    @deprecated
     def amount_display(self):
         return money(self.amount) + " kr."
 
@@ -306,6 +306,7 @@ class Payment(models.Model):  # id automatisk...
     # XXX - django bug - kan ikke vaelge mellem desc og asc i admin, som ved normalt felt
     amount_display.admin_order_field = '-amount'
 
+    @deprecated
     def __unicode__(self):
         return self.member.username + " " + str(self.timestamp) + ": " + money(self.amount)
 
@@ -336,6 +337,7 @@ class Product(models.Model):  # id automatisk...
     quantity = models.IntegerField(blank=True, null=True)
     deactivate_date = models.DateTimeField(blank=True, null=True)
 
+    @deprecated
     def __unicode__(self):
         return active_str(self.active) + " " + self.name + " (" + money(self.price) + ")"
 
@@ -366,6 +368,7 @@ class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statist
     price = models.IntegerField()  # penge, oere...
     changed_on = models.DateTimeField(auto_now_add=True)
 
+    @deprecated
     def __unicode__(self):
         return self.product.name + ": " + money(self.price) + " (" + str(self.changed_on) + ")"
 
@@ -375,6 +378,7 @@ class Room(models.Model):
     name = models.CharField(max_length=20)
     description = models.CharField(max_length=20)
 
+    @deprecated
     def __unicode__(self):
         return self.name
 
@@ -393,6 +397,7 @@ class Sale(models.Model):
     # XXX - django bug - kan ikke vaelge mellem desc og asc i admin, som ved normalt felt
     price_display.admin_order_field = 'price'
 
+    @deprecated
     def __unicode__(self):
         return self.member.username + " " + self.product.name + " (" + money(self.price) + ") " + str(self.timestamp)
 
@@ -418,5 +423,6 @@ class News(models.Model):
     class Meta:
         verbose_name_plural = "News"
 
+    @deprecated
     def __unicode__(self):
         return self.title + " -- " + str(self.pub_date)

@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 import datetime
+from django.utils import timezone
 
 from django.test import TestCase
 from django.urls import reverse
@@ -13,10 +14,16 @@ from stregsystem.models import (
     PayTransaction,
     StregForbudError,
     Product,
+    Sale,
     Room,
     Order,
     OrderItem,
-    NoMoreInventoryError
+    Payment,
+    NoMoreInventoryError,
+)
+from stregsystem.models import (
+    price_display,
+    active_str
 )
 import stregsystem.parser as parser
 
@@ -24,6 +31,39 @@ try:
     from unittest.mock import patch
 except ImportError:
     from mock import patch
+
+
+def assertCountEqual(case, *args, **kwargs):
+    try:
+        case.assertCountEqual(*args, **kwargs)
+    except AttributeError:
+        case.assertItemsEqual(*args, **kwargs)
+
+
+class ModelMiscTests(TestCase):
+    def test_price_display_none(self):
+        v = price_display(None)
+        self.assertEqual(v, "0.00 kr.")
+
+    def test_price_display_zero(self):
+        v = price_display(0)
+        self.assertEqual(v, "0.00 kr.")
+
+    def test_price_display_one(self):
+        v = price_display(1)
+        self.assertEqual(v, "0.01 kr.")
+
+    def test_price_display_hundred(self):
+        v = price_display(100)
+        self.assertEqual(v, "1.00 kr.")
+
+    def test_active_str_true(self):
+        v = active_str(True)
+        self.assertEqual(v, "+")
+
+    def test_active_str_false(self):
+        v = active_str(False)
+        self.assertEqual(v, "-")
 
 
 class SaleViewTests(TestCase):
@@ -95,7 +135,12 @@ class SaleViewTests(TestCase):
             {"quickbuy": "jokke 1"}
         )
 
-        self.assertContains(response, "<b>jokke har lige købt Limfjordsporter for tilsammen 9.00 kr.</b>", html=True)
+        self.assertContains(
+            response,
+            "<b>jokke har lige købt Limfjordsporter for tilsammen "
+            "9.00 kr.</b>",
+            html=True
+        )
 
     def test_usermenu(self):
         response = self.client.post(
@@ -105,13 +150,44 @@ class SaleViewTests(TestCase):
 
         self.assertTemplateUsed(response, "stregsystem/menu.html")
 
-    def test_index(self):
+    def test_quickbuy_empty(self):
         response = self.client.post(
             reverse('quickbuy', args=(1,)),
             {"quickbuy": ""}
         )
 
         self.assertTemplateUsed(response, "stregsystem/index.html")
+
+    def test_index(self):
+        response = self.client.post(
+            reverse('index')
+        )
+
+        # Assert permanent redirect
+        self.assertEqual(response.status_code, 301)
+
+    def test_menu_index(self):
+        response = self.client.post(
+            reverse('menu_index', args=(1, ))
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/index.html")
+        # Assert that the index screen at least contains one of the products in
+        # the database. Technically this doesn't check everything exhaustively,
+        # but it's better than nothing -Jesper 18/09-2017
+        self.assertContains(response, "<td>Limfjordsporter</td>", html=True)
+
+    def test_quickbuy_no_known_member(self):
+        response = self.client.post(
+            reverse('quickbuy', args=(1,)),
+            {"quickbuy": "notinthere"}
+        )
+
+        self.assertTemplateUsed(
+            response,
+            "stregsystem/error_usernotfound.html"
+        )
 
     def test_quicksale_increases_bought(self):
         before = Product.objects.get(id=2)
@@ -178,8 +254,18 @@ class TransactionTests(TestCase):
         transaction = PayTransaction(100)
         self.assertEqual(transaction.change(), -100)
 
-    def test_pay_transaction_change_pos(self):
+    def test_pay_transaction_add(self):
+        transaction = PayTransaction(90)
+        transaction.add(10)
+        self.assertEqual(transaction.change(), -100)
+
+    def test_get_transaction_change_pos(self):
         transaction = GetTransaction(100)
+        self.assertEqual(transaction.change(), 100)
+
+    def test_get_transaction_change_add(self):
+        transaction = GetTransaction(90)
+        transaction.add(10)
         self.assertEqual(transaction.change(), 100)
 
 
@@ -282,6 +368,197 @@ class OrderTest(TestCase):
         fulfill.was_not_called()
 
 
+class PaymentTests(TestCase):
+    def setUp(self):
+        self.member = Member.objects.create(
+            username="jon",
+            balance=100
+        )
+
+    @patch("stregsystem.models.Member.make_payment")
+    def test_payment_save_not_saved(self, make_payment):
+        payment = Payment(
+            member=self.member,
+            amount=100
+        )
+
+        payment.save()
+
+        make_payment.assert_called_once_with(100)
+
+    @patch("stregsystem.models.Member.make_payment")
+    def test_payment_save_already_saved(self, make_payment):
+        payment = Payment(
+            member=self.member,
+            amount=100
+        )
+        payment.save()
+        make_payment.reset_mock()
+
+        payment.save()
+
+        make_payment.assert_not_called()
+
+    @patch("stregsystem.models.Member.make_payment")
+    def test_payment_delete_already_saved(self, make_payment):
+        payment = Payment(
+            member=self.member,
+            amount=100
+        )
+        payment.save()
+        make_payment.reset_mock()
+
+        payment.delete()
+
+        make_payment.assert_called_once_with(-100)
+
+    @patch("stregsystem.models.Member.make_payment")
+    def test_payment_delete_not_saved(self, make_payment):
+        payment = Payment(
+            member=self.member,
+            amount=100
+        )
+
+        with self.assertRaises(AssertionError):
+            payment.delete()
+
+
+class ProductTests(TestCase):
+    def test_is_active_active(self):
+        product = Product(
+            active=True,
+        )
+
+        self.assertTrue(product.is_active())
+
+    def test_is_active_active_not_expired(self):
+        product = Product(
+            active=True,
+            deactivate_date=(timezone.now()
+                             + datetime.timedelta(hours=1))
+        )
+
+        self.assertTrue(product.is_active())
+
+    def test_is_active_active_expired(self):
+        product = Product(
+            active=True,
+            deactivate_date=(timezone.now()
+                             - datetime.timedelta(hours=1))
+        )
+
+        self.assertFalse(product.is_active())
+
+    def test_is_active_active_out_of_stock(self):
+        product = Product(
+            active=True,
+            quantity=1,
+            bought=1
+        )
+
+        self.assertFalse(product.is_active())
+
+    def test_is_active_active_in_stock(self):
+        product = Product(
+            active=True,
+            quantity=2,
+            bought=1
+        )
+
+        self.assertTrue(product.is_active())
+
+    def test_is_active_deactive(self):
+        product = Product(
+            active=False,
+        )
+
+        self.assertFalse(product.is_active())
+
+    def test_is_active_deactive_expired(self):
+        product = Product(
+            active=False,
+            deactivate_date=(timezone.now()
+                             - datetime.timedelta(hours=1))
+        )
+
+        self.assertFalse(product.is_active())
+
+    def test_is_active_deactive_out_of_stock(self):
+        product = Product(
+            active=False,
+            quantity=1,
+            bought=1
+        )
+
+        self.assertFalse(product.is_active())
+
+    def test_is_active_deactive_in_stock(self):
+        product = Product(
+            active=False,
+            quantity=2,
+            bought=1
+        )
+
+        self.assertFalse(product.is_active())
+
+
+class SaleTests(TestCase):
+    def setUp(self):
+        self.member = Member.objects.create(
+            username="jon",
+            balance=100
+        )
+        self.product = Product.objects.create(
+            name="beer",
+            price=1.0,
+            active=True,
+        )
+
+    def test_sale_save_not_saved(self):
+        sale = Sale(
+            member=self.member,
+            product=self.product,
+            price=100
+        )
+
+        sale.save()
+
+        self.assertIsNotNone(sale.id)
+
+    def test_sale_save_already_saved(self):
+        sale = Sale(
+            member=self.member,
+            product=self.product,
+            price=100
+        )
+        sale.save()
+
+        with self.assertRaises(RuntimeError):
+            sale.save()
+
+    def test_sale_delete_not_saved(self):
+        sale = Sale(
+            member=self.member,
+            product=self.product,
+            price=100
+        )
+
+        with self.assertRaises(RuntimeError):
+            sale.delete()
+
+    def test_sale_delete_already_saved(self):
+        sale = Sale(
+            member=self.member,
+            product=self.product,
+            price=100
+        )
+        sale.save()
+
+        sale.delete()
+
+        self.assertIsNone(sale.id)
+
+
 class MemberTests(TestCase):
     def test_fulfill_pay_transaction(self):
         member = Member(
@@ -303,6 +580,15 @@ class MemberTests(TestCase):
         self.assertTrue(c.exception)
         self.assertEqual(member.balance, 2)
 
+    def test_fulfill_pay_transaction_rollback(self):
+        member = Member(
+            balance=2
+        )
+        transaction = PayTransaction(10)
+        member.rollback(transaction)
+
+        self.assertEqual(member.balance, 12)
+
     def test_fulfill_check_transaction_has_money(self):
         member = Member(
             balance=10
@@ -322,6 +608,24 @@ class MemberTests(TestCase):
         has_money = member.can_fulfill(transaction)
 
         self.assertFalse(has_money)
+
+    def test_make_payment_positive(self):
+        member = Member(
+            balance=100
+        )
+
+        member.make_payment(10)
+
+        self.assertEqual(member.balance, 110)
+
+    def test_make_payment_negative(self):
+        member = Member(
+            balance=100
+        )
+
+        member.make_payment(-10)
+
+        self.assertEqual(member.balance, 90)
 
 
 class ProductActivatedListFilterTests(TestCase):
@@ -540,10 +844,6 @@ class ProductActivatedListFilterTests(TestCase):
 class QuickbuyParserTests(TestCase):
     def setUp(self):
         self.test_username = 'test'
-        try:
-            self.assertCountEqual = self.assertCountEqual
-        except AttributeError:
-            self.assertCountEqual = self.assertItemsEqual
 
     def test_username_only(self):
         buy_string = self.test_username
@@ -561,7 +861,7 @@ class QuickbuyParserTests(TestCase):
 
         self.assertEqual(username, self.test_username)
         self.assertEqual(len(products), 1)
-        self.assertCountEqual(product_ids, products)
+        assertCountEqual(self, product_ids, products)
 
     def test_multi_buy(self):
         product_ids = [42, 1337]
@@ -571,7 +871,7 @@ class QuickbuyParserTests(TestCase):
 
         self.assertEqual(username, self.test_username)
         self.assertEqual(len(products), len(product_ids))
-        self.assertCountEqual(product_ids, products)
+        assertCountEqual(self, product_ids, products)
 
     def test_multi_buy_repeated(self):
         product_ids = [42, 42]
@@ -581,7 +881,7 @@ class QuickbuyParserTests(TestCase):
 
         self.assertEqual(username, self.test_username)
         self.assertEqual(len(products), len(product_ids))
-        self.assertCountEqual(product_ids, products)
+        assertCountEqual(self, product_ids, products)
 
     def test_multi_buy_quantifier(self):
         product_ids = [42, 42, 1337, 1337, 1337]
@@ -591,7 +891,7 @@ class QuickbuyParserTests(TestCase):
 
         self.assertEqual(username, self.test_username)
         self.assertEqual(len(products), len(product_ids))
-        self.assertCountEqual(product_ids, products)
+        assertCountEqual(self, product_ids, products)
 
     def test_zero_quantifier(self):
         buy_string = self.test_username + " 42:0"
