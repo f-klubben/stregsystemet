@@ -90,6 +90,12 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
+        assertCountEqual(self, response.context["products"], {
+            Product.objects.get(id=1)
+        })
+        self.assertEqual(response.context["member"],
+                         Member.objects.get(username="jokke"))
+
         fulfill.assert_called_once_with(PayTransaction(900))
 
     def test_make_sale_quickbuy_fail(self):
@@ -105,6 +111,9 @@ class SaleViewTests(TestCase):
         self.assertTemplateUsed(response, "stregsystem/error_stregforbud.html")
         self.assertEqual(member_before.balance, member_after.balance)
 
+        self.assertEqual(response.context["member"],
+                         Member.objects.get(username=member_username))
+
     @patch('stregsystem.models.Member.can_fulfill')
     @patch('stregsystem.models.Member.fulfill')
     def test_make_sale_menusale_fail(self, fulfill, can_fulfill):
@@ -114,6 +123,8 @@ class SaleViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/error_stregforbud.html")
+
+        self.assertEqual(response.context["member"], Member.objects.get(id=1))
 
         fulfill.assert_not_called()
 
@@ -126,6 +137,9 @@ class SaleViewTests(TestCase):
         self.assertTemplateUsed(response, "stregsystem/menu.html")
 
         self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(response.context["bought"], Product.objects.get(id=1))
+        self.assertEqual(response.context["member"], Member.objects.get(id=1))
 
         fulfill.assert_called_once_with(PayTransaction(900))
 
