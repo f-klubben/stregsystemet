@@ -328,14 +328,27 @@ class Payment(models.Model):  # id automatisk...
         else:
             super(Payment, self).delete(*args, **kwargs)
 
+class Category(models.Model):
+    name = models.CharField(max_length=32)
 
-class Product(models.Model):  # id automatisk...
+    def __unicode__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = 'Categories'
+
+
+class Product(models.Model): # id automatisk...
     name = models.CharField(max_length=32)
     price = models.IntegerField()  # penge, oere...
     active = models.BooleanField()
     bought = models.IntegerField(default=0)
     quantity = models.IntegerField(blank=True, null=True)
     deactivate_date = models.DateTimeField(blank=True, null=True)
+    categories = models.ManyToManyField(Category)
 
     @deprecated
     def __unicode__(self):

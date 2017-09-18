@@ -1,0 +1,36 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Salgsrapporteringer{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Reports</a>&nbsp;&rsaquo;&nbsp;Salgsraporteringer</div>{% endblock %}
+
+{% block content %}
+{% load admin_static %}
+<form method="post">
+  {% csrf_token %}
+  {{ form }}
+  <input type="submit" value="Search" />
+</form>
+{% if result %}
+<div id="statscontainer" style="margin-top: 12px; width: 1200px; float: left;">
+  <div id="stats" style="width: 200px; float: left;">
+    <table border="1" cellspacing="2" cellpadding="2">
+      <tr>
+        <th valign="top" colspan="3">{{ categories }}</th>
+      </tr>
+      <tr>
+        <th>#</th>
+        <th>Bruger</th>
+        <th>Antal</th>
+      </tr>
+      {% for stat in result %}
+      <tr>
+        <td>{{forloop.counter}}</td>
+        <td>{{stat.username}}</td>
+        <td>{{stat.sale__count}}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

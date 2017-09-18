@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*-
+# -*- coding: utf-8 -*-
 import datetime
 from django.utils import timezone
 
@@ -8,19 +8,23 @@ from freezegun import freeze_time
 from collections import Counter
 
 from stregsystem import admin
-from stregsystem.admin import ProductAdmin
+from stregsystem.admin import (
+    CategoryAdmin,
+    ProductAdmin,
+)
 from stregsystem.models import (
+    Category,
     GetTransaction,
     Member,
-    PayTransaction,
-    StregForbudError,
-    Product,
-    Sale,
-    Room,
+    NoMoreInventoryError,
     Order,
     OrderItem,
     Payment,
-    NoMoreInventoryError,
+    PayTransaction,
+    Product,
+    Room,
+    Sale,
+    StregForbudError,
 )
 from stregsystem.models import (
     price_display,
@@ -948,6 +952,42 @@ class ProductActivatedListFilterTests(TestCase):
 
         self.assertIn(Product.objects.get(name="active_some_left"), qy)
         self.assertNotIn(Product.objects.get(name="active_some_left"), qn)
+
+
+class CategoryAdminTests(TestCase):
+    fixtures = ["test_category"]
+
+    def test_category_counter_empty(self):
+        testCategory = Category.objects.get(pk=1)
+        admin = CategoryAdmin(Category, testCategory)
+        self.assertEquals(0, admin.items_in_category(testCategory))
+
+    def test_category_counter_single_product(self):
+        testCategory = Category.objects.get(pk=2)
+        admin = CategoryAdmin(Category, testCategory)
+        self.assertEquals(1, admin.items_in_category(testCategory))
+
+    def test_category_display_none(self):
+        expected = ""
+        testProduct = Product.objects.get(pk=2)
+        admin = ProductAdmin(Product, testProduct)
+        actual = admin.categories_display(testProduct)
+        self.assertEquals(expected, actual)
+
+    def test_category_display_single(self):
+        expected = "test 2"
+        testProduct = Product.objects.get(pk=1)
+        admin = ProductAdmin(Product, testProduct)
+        actual = admin.categories_display(testProduct)
+        self.assertEquals(expected, actual)
+
+    def test_category_display_multiple(self):
+        expected_list = ["test 3", "test 4"]
+        testProduct = Product.objects.get(pk=3)
+        admin = ProductAdmin(Product, testProduct)
+        actual = admin.categories_display(testProduct)
+        for expected in expected_list:
+            self.assertIn(expected, actual)
 
 
 class QuickbuyParserTests(TestCase):
