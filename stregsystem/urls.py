@@ -23,5 +23,5 @@ urlpatterns = [
     url(r'^(?P<room_id>\d+)/sale/$', views.sale, name="quickbuy"),
     url(r'^(?P<room_id>\d+)/sale/(?P<member_id>\d+)/$', views.menu_sale, name="menu"),
     url(r'^(?P<room_id>\d+)/sale/(?P<member_id>\d+)/(?P<product_id>\d+)/$', views.menu_sale, name="menu_sale"),
-    url(r'^(?P<room_id>\d+)/user/(?P<member_id>\d+)/$', views.menu_userinfo),
+    url(r'^(?P<room_id>\d+)/user/(?P<member_id>\d+)/$', views.menu_userinfo, name="userinfo"),
 ]

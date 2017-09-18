@@ -274,6 +274,95 @@ class SaleViewTests(TestCase):
         self.assertEqual(before_member.balance, after_member.balance)
 
 
+class UserInfoViewTests(TestCase):
+    def setUp(self):
+        self.room = Room.objects.create(
+            name="test"
+        )
+        self.jokke = Member.objects.create(
+            username="jokke"
+        )
+        self.coke = Product.objects.create(
+            name="coke",
+            price=100,
+            active=True
+        )
+        self.flan = Product.objects.create(
+            name="flan",
+            price=200,
+            active=True
+        )
+        self.sales = [
+            Sale.objects.create(
+                member=self.jokke,
+                product=self.coke,
+                price=100,
+            ),
+            Sale.objects.create(
+                member=self.jokke,
+                product=self.coke,
+                price=100,
+            ),
+            Sale.objects.create(
+                member=self.jokke,
+                product=self.flan,
+                price=100,
+            ),
+        ]
+        self.payments = [
+            Payment.objects.create(
+                member=self.jokke,
+                amount=100,
+            ),
+            Payment.objects.create(
+                member=self.jokke,
+                amount=100,
+            )
+        ]
+
+    def test_renders(self):
+        response = self.client.post(
+            reverse('userinfo', args=(self.room.id, self.jokke.id)),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/menu_userinfo.html")
+
+    def test_last_sale(self):
+        response = self.client.post(
+            reverse('userinfo', args=(self.room.id, self.jokke.id)),
+        )
+
+        self.assertSequenceEqual(
+            response.context["last_sale_list"],
+            self.sales[::-1]
+        )
+
+    def test_last_payment(self):
+        response = self.client.post(
+            reverse('userinfo', args=(self.room.id, self.jokke.id)),
+        )
+
+        self.assertEqual(
+            response.context["last_payment"],
+            self.payments[1]
+        )
+
+    def test_total_sales(self):
+        response = self.client.post(
+            reverse('userinfo', args=(self.room.id, self.jokke.id)),
+        )
+
+        self.assertEqual(
+            response.context["total_sales"],
+            300
+        )
+
+    # @INCOMPLETE: Strictly speaking there are two more variables here. Are
+    # they actually necessary, since we don't allow people to go negative
+    # anymore anyway? - Jesper 18/09-2017
+
+
 class TransactionTests(TestCase):
     def test_pay_transaction_change_neg(self):
         transaction = PayTransaction(100)
