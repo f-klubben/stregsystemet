@@ -114,6 +114,17 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.context["member"],
                          Member.objects.get(username=member_username))
 
+    def test_make_sale_quickbuy_wrong_product(self):
+        response = self.client.post(
+            reverse('quickbuy', args=(1,)),
+            {"quickbuy": "jokke 99"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/menu.html")
+        self.assertEqual(response.context["member"],
+                         Member.objects.get(username="jokke"))
+
     @patch('stregsystem.models.Member.can_fulfill')
     @patch('stregsystem.models.Member.fulfill')
     def test_make_sale_menusale_fail(self, fulfill, can_fulfill):
