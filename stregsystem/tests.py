@@ -6,7 +6,6 @@ from django.urls import reverse
 from collections import Counter
 
 from stregsystem import admin
-from stregsystem.utils import QuickbuyParser, QuickBuyError
 from stregsystem.admin import ProductAdmin
 from stregsystem.models import (
     GetTransaction,
@@ -19,6 +18,7 @@ from stregsystem.models import (
     OrderItem,
     NoMoreInventoryError
 )
+import stregsystem.parser as parser
 
 try:
     from unittest.mock import patch
@@ -548,7 +548,7 @@ class QuickbuyParserTests(TestCase):
     def test_username_only(self):
         buy_string = self.test_username
 
-        username, products = QuickbuyParser.parse(buy_string)
+        username, products = parser.parse(buy_string)
 
         self.assertEqual(self.test_username, username)
         self.assertEqual(len(products), 0)
@@ -557,7 +557,7 @@ class QuickbuyParserTests(TestCase):
         product_ids = [42]
         buy_string = self.test_username + ' 42'
 
-        username, products = QuickbuyParser.parse(buy_string)
+        username, products = parser.parse(buy_string)
 
         self.assertEqual(username, self.test_username)
         self.assertEqual(len(products), 1)
@@ -567,7 +567,7 @@ class QuickbuyParserTests(TestCase):
         product_ids = [42, 1337]
         buy_string = self.test_username + " 42 1337"
 
-        username, products = QuickbuyParser.parse(buy_string)
+        username, products = parser.parse(buy_string)
 
         self.assertEqual(username, self.test_username)
         self.assertEqual(len(products), len(product_ids))
@@ -577,7 +577,7 @@ class QuickbuyParserTests(TestCase):
         product_ids = [42, 42]
         buy_string = self.test_username + " 42 42"
 
-        username, products = QuickbuyParser.parse(buy_string)
+        username, products = parser.parse(buy_string)
 
         self.assertEqual(username, self.test_username)
         self.assertEqual(len(products), len(product_ids))
@@ -587,7 +587,7 @@ class QuickbuyParserTests(TestCase):
         product_ids = [42, 42, 1337, 1337, 1337]
         buy_string = self.test_username + " 42:2 1337:3"
 
-        username, products = QuickbuyParser.parse(buy_string)
+        username, products = parser.parse(buy_string)
 
         self.assertEqual(username, self.test_username)
         self.assertEqual(len(products), len(product_ids))
@@ -596,27 +596,27 @@ class QuickbuyParserTests(TestCase):
     def test_zero_quantifier(self):
         buy_string = self.test_username + " 42:0"
 
-        username, products = QuickbuyParser.parse(buy_string)
+        username, products = parser.parse(buy_string)
 
         self.assertEqual(username, self.test_username)
         self.assertEqual(len(products), 0)
 
     def test_negative_quantifier(self):
         buy_string = self.test_username + ' 42:-1 1337:3'
-        with self.assertRaises(QuickBuyError):
-            QuickbuyParser.parse(buy_string)
+        with self.assertRaises(parser.QuickBuyError):
+            parser.parse(buy_string)
 
     def test_missing_quantifier(self):
         buy_string = self.test_username + ' 42: 1337:3'
-        with self.assertRaises(QuickBuyError):
-            QuickbuyParser.parse(buy_string)
+        with self.assertRaises(parser.QuickBuyError):
+            parser.parse(buy_string)
 
     def test_invalid_quantifier(self):
         buy_string = self.test_username + ' 42:a 1337:3'
-        with self.assertRaises(QuickBuyError):
-            QuickbuyParser.parse(buy_string)
+        with self.assertRaises(parser.QuickBuyError):
+            parser.parse(buy_string)
 
     def test_invalid_productId(self):
         buy_string = self.test_username + ' a:2 1337:3'
-        with self.assertRaises(QuickBuyError):
-            QuickbuyParser.parse(buy_string)
+        with self.assertRaises(parser.QuickBuyError):
+            parser.parse(buy_string)

@@ -4,7 +4,7 @@ from functools import reduce
 from django.db.models import Count, Q, Sum
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
-from stregsystem.utils import make_active_productlist_query, QuickbuyParser, QuickBuyError
+from stregsystem.utils import make_active_productlist_query
 from stregsystem.models import (
     Member,
     News,
@@ -14,6 +14,7 @@ from stregsystem.models import (
     NoMoreInventoryError,
     Order
 )
+import stregsystem.parser as parser
 
 
 def __get_news():
@@ -53,8 +54,8 @@ def sale(request, room_id):
         return render(request, 'stregsystem/index.html', locals())
     # Extract username and product ids
     try:
-        username, bought_ids = QuickbuyParser.parse(buy_string)
-    except QuickBuyError as err:
+        username, bought_ids = parser.parse(buy_string)
+    except parser.QuickBuyError as err:
         values = {
             'correct': err.parsed_part,
             'incorrect': err.failed_part,
