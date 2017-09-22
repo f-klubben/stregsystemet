@@ -1,10 +1,12 @@
 import datetime
 from functools import reduce
 
-from django.db.models import Count, Q, Sum
+from django.db.models import Q
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
-from stregsystem.utils import make_active_productlist_query
+from stregsystem.utils import (
+    make_active_productlist_query
+)
 from stregsystem.models import (
     Member,
     News,
@@ -145,8 +147,8 @@ def menu_userinfo(request, room_id, member_id):
     except IndexError:
         last_payment = None
 
-    total_by_product = __get_total_by_product(member)
-    total_sales = reduce(lambda s, i: s + i[1], total_by_product, 0)
+    _total_by_product = __get_total_by_product(member)
+    total_sales = reduce(lambda s, i: s + i[1], _total_by_product, 0)
 
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()
@@ -181,95 +183,3 @@ def menu_sale(request, room_id, member_id, product_id=None):
     # Refresh member, to get new amount
     member = Member.objects.get(pk=member_id, active=True)
     return usermenu(request, room, member, product)
-
-
-def ranks(request, year=None):
-    if (year):
-        return ranks_for_year(request, int(year))
-    else:
-        return ranks_for_year(request, next_fjule_party_year())
-
-
-# renders stats for the year starting at first friday in december (year - 1) to the first friday in december (year)
-# both at 10 o'clock
-def ranks_for_year(request, year):
-    if (year <= 1900 or year > 9999):
-        return render(request, 'stregsystem/error_ranksnotfound.html', locals())
-    milk = [2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 17, 18, 19, 20, 24, 25, 43, 44, 45]
-    caffeine = [11, 12, 30, 32, 34, 35, 36, 37, 39, 1787, 1790, 1791, 1795, 1799, 1800, 1803]
-    beer = [13, 14, 29, 42, 47, 54, 65, 66, 1773, 1776, 1777, 1779, 1780, 1783, 1793, 1794]
-
-    FORMAT = '%d/%m/%Y kl. %H:%M'
-    from_time = fjule_party(year - 1)
-    to_time = fjule_party(year)
-    kr_stat_list = sale_money_rank(from_time, to_time)
-    beer_stat_list = sale_product_rank(beer, from_time, to_time)
-    caffeine_stat_list = sale_product_rank(caffeine, from_time, to_time)
-    milk_stat_list = sale_product_rank(milk, from_time, to_time)
-    if not len(kr_stat_list) and not len(beer_stat_list) and not len(caffeine_stat_list) and not len(milk_stat_list):
-        return render(request, 'stregsystem/error_ranksnotfound.html', locals())
-    from_time_string = from_time.strftime(FORMAT)
-    to_time_string = to_time.strftime(FORMAT)
-    current_date = datetime.datetime.now()
-    is_ongoing = current_date > from_time and current_date <= to_time
-    return render(request, 'stregsystem/ranks.html', locals())
-
-
-# gives a list of tuples (int_rank, string_username, int_value) of rankings of money spent between from_time and to_time.
-# Limit is the maximum size of the returned list.
-def sale_money_rank(from_time, to_time, rank_limit=10):
-    try:
-        stat_list = list(map(lambda x, y: (y, x.username, money(x.sale__price__sum)),
-                             Member.objects.filter(active=True, sale__timestamp__gt=from_time,
-                                                   sale__timestamp__lte=to_time).annotate(Sum('sale__price')).order_by(
-                                 '-sale__price__sum', 'username')[:rank_limit], range(1, rank_limit + 1)))
-    except:
-        stat_list = {}
-    return stat_list
-
-
-# gives a list of tuples (int_rank, string_username, int_value) of rankings of sales of the specified products done between from_time and to_time.
-# Limit is the maximum size of the returned list.
-def sale_product_rank(ids, from_time, to_time, rank_limit=10):
-    try:
-        query = reduce(lambda x, y: x | y, [Q(sale__product__id=z) for z in ids])
-        # query &= Q(active=True)
-        query &= Q(sale__timestamp__gt=from_time)
-        query &= Q(sale__timestamp__lte=to_time)
-        stat_list = list(map(lambda x, y: (y, x.username, x.sale__count),
-                             Member.objects.filter(query).annotate(Count('sale')).order_by('-sale__count', 'username')[
-                             :rank_limit], range(1, rank_limit + 1)))
-    except:
-        stat_list = {}
-    return stat_list
-
-
-# year of the last fjuleparty
-def last_fjule_party_year():
-    current_date = datetime.datetime.now()
-    fjule_party_this_year = fjule_party(current_date.year)
-    if current_date > fjule_party_this_year:
-        return current_date.year
-    return current_date.year - 1
-
-
-# year of the next fjuleparty
-def next_fjule_party_year():
-    current_date = datetime.datetime.now()
-    fjule_party_this_year = fjule_party(current_date.year)
-    if current_date <= fjule_party_this_year:
-        return current_date.year
-    return current_date.year + 1
-
-
-# date of fjuleparty (first friday of december) for the given year at 10 o'clock
-def fjule_party(year):
-    first_december = datetime.datetime(year, 12, 1, 22)
-    days_to_add = (11 - first_december.weekday()) % 7
-    return first_december + datetime.timedelta(days=days_to_add)
-
-
-def money(value):
-    if value is None:
-        value = 0
-    return "{0:.2f}".format(value / 100.0)
