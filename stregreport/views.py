@@ -1,6 +1,4 @@
-import collections
 import datetime
-from django.utils import timezone
 from functools import reduce
 
 from django.contrib.admin.views.decorators import staff_member_required
@@ -8,6 +6,8 @@ from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncDay
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.utils import timezone
+
 from stregsystem.models import Member, Product, Sale
 
 
@@ -20,8 +20,13 @@ reports = staff_member_required(reports)
 
 def sales(request):
     if request.method == 'POST':
-        return sales_product(request, strings_to_whole(request.POST['products'].split()), request.POST['from_date'],
-                             request.POST['to_date'])
+        try:
+            return sales_product(request,
+                                 parse_id_string(request.POST['products']),
+                                 request.POST['from_date'],
+                                 request.POST['to_date'])
+        except RuntimeError as ex:
+            return sales_product(request, None, None, None, error=ex.__str__())
     else:
         return sales_product(request, None, None, None)
 
@@ -58,39 +63,40 @@ def ranks(request, year=None):
 ranks = staff_member_required(ranks)
 
 
-def sales_product(request, ids, from_time, to_time):
+def sales_product(request, ids, from_time, to_time, error=None):
     date_format = '%Y-%m-%d'
 
+    if error is not None:
+        return render(request, 'admin/stregsystem/report/error_invalidsalefetch.html', {'error': error})
+
     try:
-        try:
-            from_date_time = datetime.datetime.strptime(from_time, date_format)
-        except:
-            from_date_time = first_of_month(datetime.datetime.now())
-        from_time = from_date_time.strftime(date_format)
+        from_date_time = datetime.datetime.strptime(from_time, date_format)
+    except (ValueError, TypeError):
+        from_date_time = first_of_month(datetime.datetime.now())
+    from_time = from_date_time.strftime(date_format)
 
-        try:
-            to_date_time = late(datetime.datetime.strptime(to_time, date_format))
-        except:
-            to_date_time = datetime.datetime.now()
-        to_time = to_date_time.strftime(date_format)
-        sales = []
-        if ids and len(ids) > 0:
-            products = reduce(lambda a, b: a + str(b) + ' ', ids, '')
-            query = reduce(lambda x, y: x | y, [Q(id=z) for z in ids])
-            query &= Q(sale__timestamp__gt=from_date_time)
-            query &= Q(sale__timestamp__lte=to_date_time)
-            result = Product.objects.filter(query).annotate(Count('sale'), Sum('sale__price'))
+    try:
+        to_date_time = late(datetime.datetime.strptime(to_time, date_format))
+    except (ValueError, TypeError):
+        to_date_time = datetime.datetime.now()
+    to_time = to_date_time.strftime(date_format)
+    sales = []
+    if ids is not None and len(ids) > 0:
+        products = reduce(lambda a, b: a + str(b) + ' ', ids, '')
+        query = reduce(lambda x, y: x | y, [Q(id=z) for z in ids])
+        query &= Q(sale__timestamp__gt=from_date_time)
+        query &= Q(sale__timestamp__lte=to_date_time)
+        result = Product.objects.filter(query).annotate(Count('sale'), Sum('sale__price'))
 
-            count = 0
-            sum = 0
-            for r in result:
-                sales.append((r.pk, r.name, r.sale__count, money(r.sale__price__sum)))
-                count = count + r.sale__count
-                sum = sum + r.sale__price__sum
+        count = 0
+        sum = 0
+        for r in result:
+            sales.append((r.pk, r.name, r.sale__count, money(r.sale__price__sum)))
+            count = count + r.sale__count
+            sum = sum + r.sale__price__sum
 
-            sales.append(('', 'TOTAL', count, money(sum)))
-    except:
-        return render(request, 'admin/stregsystem/report/error_invalidsalefetch.html', locals())
+        sales.append(('', 'TOTAL', count, money(sum)))
+
     return render(request, 'admin/stregsystem/report/sales.html', locals())
 
 
@@ -172,15 +178,11 @@ def money(value):
     return "{0:.2f}".format(value / 100.0)
 
 
-def strings_to_whole(strings):
-    def append_if_digit(list, digit):
-        if isinstance(digit, str) and digit.isdigit():
-            list.append(int(digit))
-        return list
-
-    if not isinstance(strings, collections.Iterable):
-        return []
-    return reduce(append_if_digit, strings, [])
+def parse_id_string(id_string):
+    try:
+        return list(map(int, id_string.split(' ')))
+    except ValueError as ex:
+        raise RuntimeError("The list contained an invalid id: {}".format(ex.__str__()))
 
 
 def late(date):
