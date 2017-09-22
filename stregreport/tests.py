@@ -47,6 +47,7 @@ class SalesReportTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed("admin/stregsystem/report/sales.html")
+        self.assertSequenceEqual(response.context["sales"], [('', 'TOTAL', 0, '0.00')])
 
     def test_sales_report_invalid_products(self):
         self.client.login(username="tester", password="treotreo")
