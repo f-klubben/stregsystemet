@@ -70,35 +70,32 @@ def sales_product(request, ids, from_time, to_time, error=None):
         return render(request, 'admin/stregsystem/report/error_invalidsalefetch.html', {'error': error})
 
     try:
-        try:
-            from_date_time = datetime.datetime.strptime(from_time, date_format)
-        except:
-            from_date_time = first_of_month(datetime.datetime.now())
-        from_time = from_date_time.strftime(date_format)
+        from_date_time = datetime.datetime.strptime(from_time, date_format)
+    except ValueError:
+        from_date_time = first_of_month(datetime.datetime.now())
+    from_time = from_date_time.strftime(date_format)
 
-        try:
-            to_date_time = late(datetime.datetime.strptime(to_time, date_format))
-        except:
-            to_date_time = datetime.datetime.now()
-        to_time = to_date_time.strftime(date_format)
-        sales = []
-        if ids and len(ids) > 0:
-            products = reduce(lambda a, b: a + str(b) + ' ', ids, '')
-            query = reduce(lambda x, y: x | y, [Q(id=z) for z in ids])
-            query &= Q(sale__timestamp__gt=from_date_time)
-            query &= Q(sale__timestamp__lte=to_date_time)
-            result = Product.objects.filter(query).annotate(Count('sale'), Sum('sale__price'))
+    try:
+        to_date_time = late(datetime.datetime.strptime(to_time, date_format))
+    except ValueError:
+        to_date_time = datetime.datetime.now()
+    to_time = to_date_time.strftime(date_format)
+    sales = []
+    if ids and len(ids) > 0:
+        products = reduce(lambda a, b: a + str(b) + ' ', ids, '')
+        query = reduce(lambda x, y: x | y, [Q(id=z) for z in ids])
+        query &= Q(sale__timestamp__gt=from_date_time)
+        query &= Q(sale__timestamp__lte=to_date_time)
+        result = Product.objects.filter(query).annotate(Count('sale'), Sum('sale__price'))
 
-            count = 0
-            sum = 0
-            for r in result:
-                sales.append((r.pk, r.name, r.sale__count, money(r.sale__price__sum)))
-                count = count + r.sale__count
-                sum = sum + r.sale__price__sum
+        count = 0
+        sum = 0
+        for r in result:
+            sales.append((r.pk, r.name, r.sale__count, money(r.sale__price__sum)))
+            count = count + r.sale__count
+            sum = sum + r.sale__price__sum
 
-            sales.append(('', 'TOTAL', count, money(sum)))
-    except Exception as e:
-        return render(request, 'admin/stregsystem/report/error_invalidsalefetch.html', {'error': e.__str__()})
+        sales.append(('', 'TOTAL', count, money(sum)))
     return render(request, 'admin/stregsystem/report/sales.html', locals())
 
 
