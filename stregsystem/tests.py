@@ -4,6 +4,7 @@ from django.utils import timezone
 
 from django.test import TestCase
 from django.urls import reverse
+from freezegun import freeze_time
 from collections import Counter
 
 from stregsystem import admin
@@ -292,33 +293,27 @@ class UserInfoViewTests(TestCase):
             price=200,
             active=True
         )
-        self.sales = [
-            Sale.objects.create(
-                member=self.jokke,
-                product=self.coke,
-                price=100,
-            ),
-            Sale.objects.create(
-                member=self.jokke,
-                product=self.coke,
-                price=100,
-            ),
-            Sale.objects.create(
-                member=self.jokke,
-                product=self.flan,
-                price=100,
-            ),
-        ]
-        self.payments = [
-            Payment.objects.create(
-                member=self.jokke,
-                amount=100,
-            ),
-            Payment.objects.create(
-                member=self.jokke,
-                amount=100,
-            )
-        ]
+        self.sales = []
+        with freeze_time(datetime.datetime(2000, 1, 1)) as frozen_time:
+            for i in range(1,4):
+                self.sales.append(
+                    Sale.objects.create(
+                        member=self.jokke,
+                        product=self.coke,
+                        price=100,
+                    )
+                )
+                frozen_time.tick()
+        self.payments = []
+        with freeze_time(datetime.datetime(2000, 1, 1)) as frozen_time:
+            for i in range(1, 3):
+                self.payments.append(
+                    Payment.objects.create(
+                        member=self.jokke,
+                        amount=100,
+                    )
+                )
+                frozen_time.tick()
 
     def test_renders(self):
         response = self.client.post(
@@ -345,7 +340,7 @@ class UserInfoViewTests(TestCase):
 
         self.assertEqual(
             response.context["last_payment"],
-            self.payments[1]
+            self.payments[-1]
         )
 
     def test_total_sales(self):
