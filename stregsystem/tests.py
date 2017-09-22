@@ -18,6 +18,7 @@ from stregsystem.models import (
     OrderItem,
     NoMoreInventoryError
 )
+import stregsystem.parser as parser
 
 try:
     from unittest.mock import patch
@@ -34,7 +35,7 @@ class SaleViewTests(TestCase):
             {"quickbuy": "jokke a"}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed("stregsystem/error_invalidinput.html")
+        self.assertTemplateUsed("stregsystem/error_invalidquickbuy.html")
 
     @patch('stregsystem.models.Member.can_fulfill')
     @patch('stregsystem.models.Member.fulfill')
@@ -51,20 +52,18 @@ class SaleViewTests(TestCase):
 
         fulfill.assert_called_once_with(PayTransaction(900))
 
-    @patch('stregsystem.models.Member.can_fulfill')
-    @patch('stregsystem.models.Member.fulfill')
-    def test_make_sale_quickbuy_fail(self, fulfill, can_fulfill):
-        can_fulfill.return_value = False
-
+    def test_make_sale_quickbuy_fail(self):
+        member_username = 'jan'
+        member_before = Member.objects.get(username=member_username)
         response = self.client.post(
             reverse('quickbuy', args=(1,)),
-            {"quickbuy": "jan 1"}
+            {"quickbuy": member_username + " 1"}
         )
+        member_after = Member.objects.get(username=member_username)
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/error_stregforbud.html")
-
-        fulfill.assert_not_called()
+        self.assertEqual(member_before.balance, member_after.balance)
 
     @patch('stregsystem.models.Member.can_fulfill')
     @patch('stregsystem.models.Member.fulfill')
@@ -97,6 +96,22 @@ class SaleViewTests(TestCase):
         )
 
         self.assertContains(response, "<b>jokke har lige købt Limfjordsporter for tilsammen 9.00 kr.</b>", html=True)
+
+    def test_usermenu(self):
+        response = self.client.post(
+            reverse('quickbuy', args=(1,)),
+            {"quickbuy": "jokke"}
+        )
+
+        self.assertTemplateUsed(response, "stregsystem/menu.html")
+
+    def test_index(self):
+        response = self.client.post(
+            reverse('quickbuy', args=(1,)),
+            {"quickbuy": ""}
+        )
+
+        self.assertTemplateUsed(response, "stregsystem/index.html")
 
     def test_quicksale_increases_bought(self):
         before = Product.objects.get(id=2)
@@ -520,3 +535,88 @@ class ProductActivatedListFilterTests(TestCase):
 
         self.assertIn(Product.objects.get(name="active_some_left"), qy)
         self.assertNotIn(Product.objects.get(name="active_some_left"), qn)
+
+
+class QuickbuyParserTests(TestCase):
+    def setUp(self):
+        self.test_username = 'test'
+        try:
+            self.assertCountEqual = self.assertCountEqual
+        except AttributeError:
+            self.assertCountEqual = self.assertItemsEqual
+
+    def test_username_only(self):
+        buy_string = self.test_username
+
+        username, products = parser.parse(buy_string)
+
+        self.assertEqual(self.test_username, username)
+        self.assertEqual(len(products), 0)
+
+    def test_single_buy(self):
+        product_ids = [42]
+        buy_string = self.test_username + ' 42'
+
+        username, products = parser.parse(buy_string)
+
+        self.assertEqual(username, self.test_username)
+        self.assertEqual(len(products), 1)
+        self.assertCountEqual(product_ids, products)
+
+    def test_multi_buy(self):
+        product_ids = [42, 1337]
+        buy_string = self.test_username + " 42 1337"
+
+        username, products = parser.parse(buy_string)
+
+        self.assertEqual(username, self.test_username)
+        self.assertEqual(len(products), len(product_ids))
+        self.assertCountEqual(product_ids, products)
+
+    def test_multi_buy_repeated(self):
+        product_ids = [42, 42]
+        buy_string = self.test_username + " 42 42"
+
+        username, products = parser.parse(buy_string)
+
+        self.assertEqual(username, self.test_username)
+        self.assertEqual(len(products), len(product_ids))
+        self.assertCountEqual(product_ids, products)
+
+    def test_multi_buy_quantifier(self):
+        product_ids = [42, 42, 1337, 1337, 1337]
+        buy_string = self.test_username + " 42:2 1337:3"
+
+        username, products = parser.parse(buy_string)
+
+        self.assertEqual(username, self.test_username)
+        self.assertEqual(len(products), len(product_ids))
+        self.assertCountEqual(product_ids, products)
+
+    def test_zero_quantifier(self):
+        buy_string = self.test_username + " 42:0"
+
+        username, products = parser.parse(buy_string)
+
+        self.assertEqual(username, self.test_username)
+        self.assertEqual(len(products), 0)
+
+    def test_negative_quantifier(self):
+        buy_string = self.test_username + ' 42:-1 1337:3'
+        with self.assertRaises(parser.QuickBuyError):
+            parser.parse(buy_string)
+
+    def test_missing_quantifier(self):
+        buy_string = self.test_username + ' 42: 1337:3'
+        with self.assertRaises(parser.QuickBuyError):
+            parser.parse(buy_string)
+
+    def test_invalid_quantifier(self):
+        buy_string = self.test_username + ' 42:a 1337:3'
+        with self.assertRaises(parser.QuickBuyError):
+            parser.parse(buy_string)
+
+    def test_invalid_productId(self):
+        buy_string = self.test_username + ' a:2 1337:3'
+        with self.assertRaises(parser.QuickBuyError):
+            parser.parse(buy_string)
