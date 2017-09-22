@@ -3,6 +3,7 @@ from django.db.models import Q
 from django.utils import timezone
 from stregsystem.utils import make_active_productlist_query
 from stregsystem.models import (
+    Category,
     Member,
     News,
     Payment,
@@ -11,6 +12,7 @@ from stregsystem.models import (
     Room,
     Sale,
 )
+
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
@@ -100,8 +102,9 @@ class ProductActivatedListFilter(admin.SimpleListFilter):
 class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'price', 'id')
     list_filter = (ProductActivatedListFilter, 'deactivate_date', 'price')
-    list_display = ('activated', 'id', 'name', 'get_price_display')
+    list_display = ('activated', 'id', 'name', 'get_price_display', 'categories_display')
     actions = [toggle_active_selected_products]
+    filter_horizontal = ('categories', )
 
     def get_price_display(self, obj):
         if obj.price is None:
@@ -116,8 +119,21 @@ class ProductAdmin(admin.ModelAdmin):
     activated.boolean = True
 
 
+    def categories_display(self, obj):
+        # TODO Add a link to the category.
+        return ', '.join((cat.name for cat in obj.categories.all()))
+    categories_display.short_description = "Categories"
+
+
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'items_in_category')
+
+    def items_in_category(self, obj):
+        return obj.product_set.count()
+
+
 class MemberAdmin(admin.ModelAdmin):
-    list_filter = ('want_spam',)
+    list_filter = ('want_spam', )
     search_fields = ('username', 'firstname', 'lastname', 'email')
     list_display = ('username', 'firstname', 'lastname', 'balance', 'email', 'notes')
 
@@ -153,4 +169,5 @@ admin.site.register(Member, MemberAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(News)
 admin.site.register(Product, ProductAdmin)
+admin.site.register(Category, CategoryAdmin)
 admin.site.register(Room)

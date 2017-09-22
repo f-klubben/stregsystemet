@@ -1,0 +1,59 @@
+[
+    {
+        "fields": {
+            "name": "test 1"
+        },
+        "model": "stregsystem.category",
+        "pk": "1"
+    },
+    {
+        "fields": {
+            "name": "test 2"
+        },
+        "model": "stregsystem.category",
+        "pk": "2"
+    },
+    {
+        "fields": {
+            "name": "test 3"
+        },
+        "model": "stregsystem.category",
+        "pk": "3"
+    },
+    {
+        "fields": {
+            "name": "test 4"
+        },
+        "model": "stregsystem.category",
+        "pk": "4"
+    },
+    {
+        "fields": {
+            "active": 1,
+            "name": "test 1",
+            "price": 0,
+            "categories": [2]
+        },
+        "model": "stregsystem.product",
+        "pk": "1"
+    },
+    {
+        "fields": {
+            "active": 1,
+            "name": "test 2",
+            "price": 0
+        },
+        "model": "stregsystem.product",
+        "pk": "2"
+    },
+    {
+        "fields": {
+            "active": 1,
+            "name": "test 2",
+            "price": 0,
+            "categories": [3,4]
+        },
+        "model": "stregsystem.product",
+        "pk": "3"
+    }
+]

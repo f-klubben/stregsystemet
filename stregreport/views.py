@@ -1,3 +1,4 @@
+import collections
 import datetime
 from functools import reduce
 
@@ -8,7 +9,13 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 
-from stregsystem.models import Member, Product, Sale
+from stregsystem.models import (
+    Category,
+    Member,
+    Product,
+    Sale,
+)
+from stregreport.forms import CategoryReportForm
 
 
 def reports(request):
@@ -245,3 +252,23 @@ def sales_api(request):
 
 
 daily = staff_member_required(daily)
+
+def user_purchases_in_categories(request):
+    model = {}
+    form = CategoryReportForm()
+    if request.method == 'POST':
+        form = CategoryReportForm(request.POST)
+        if form.is_valid():
+            categories = form.cleaned_data['categories']
+            products = set()
+            display_categories = []
+            for cat in Category.objects.all().filter(pk__in=categories):
+                display_categories.append(cat.name)
+                products |= set(cat.product_set.all())
+
+                result = sale_product_rank(products, datetime.datetime.min, datetime.datetime.max)
+            model['result'] = result
+            model['categories'] = ', '.join(display_categories)
+
+    model['form'] =  form
+    return render(request, 'admin/stregsystem/report/user_purchases_in_categories.html', model)
