@@ -14,3 +14,9 @@ class ViewTests(TestCase):
         wrong_id_string = "0x10 abe 10"
         with self.assertRaises(RuntimeError):
             views.parse_id_string(wrong_id_string)
+
+    def test_parse_id_string_unicode(self):
+        id_string_unicode = u"11 13"
+        res = views.parse_id_string(id_string_unicode)
+
+        self.assertSequenceEqual([11, 13], res)
