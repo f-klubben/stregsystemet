@@ -71,17 +71,17 @@ def sales_product(request, ids, from_time, to_time, error=None):
 
     try:
         from_date_time = datetime.datetime.strptime(from_time, date_format)
-    except ValueError:
+    except (ValueError, TypeError):
         from_date_time = first_of_month(datetime.datetime.now())
     from_time = from_date_time.strftime(date_format)
 
     try:
         to_date_time = late(datetime.datetime.strptime(to_time, date_format))
-    except ValueError:
+    except (ValueError, TypeError):
         to_date_time = datetime.datetime.now()
     to_time = to_date_time.strftime(date_format)
     sales = []
-    if ids and len(ids) > 0:
+    if ids is not None and len(ids) > 0:
         products = reduce(lambda a, b: a + str(b) + ' ', ids, '')
         query = reduce(lambda x, y: x | y, [Q(id=z) for z in ids])
         query &= Q(sale__timestamp__gt=from_date_time)
@@ -96,6 +96,7 @@ def sales_product(request, ids, from_time, to_time, error=None):
             sum = sum + r.sale__price__sum
 
         sales.append(('', 'TOTAL', count, money(sum)))
+
     return render(request, 'admin/stregsystem/report/sales.html', locals())
 
 

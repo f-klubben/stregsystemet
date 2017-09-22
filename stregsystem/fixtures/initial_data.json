@@ -85,5 +85,23 @@
         },
         "model": "stregsystem.member",
         "pk": "2"
+    },
+    {
+        "model": "auth.user",
+        "pk": 1,
+        "fields": {
+            "password": "pbkdf2_sha256$30000$ivRA8qABWClG$pxi2R4uyotlGpwa66RQuDOXFaO9JElQutMFJqXmnOdI=",
+            "last_login": "2017-09-22T09:26:03.388Z",
+            "is_superuser": true,
+            "username": "tester",
+            "first_name": "test",
+            "last_name": "testsen",
+            "email": "",
+            "is_staff": true,
+            "is_active": true,
+            "date_joined": "2017-03-06T10:53:54Z",
+            "groups": [],
+            "user_permissions": []
+        }
     }
 ]
