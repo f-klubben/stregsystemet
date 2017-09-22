@@ -19,7 +19,11 @@ If you want to contribute code you should fork the project.
 The project strives to be Python 2 and 3 compliant, if you are writing a feature which will only work in Python 3 please note this clearly and explain why.
 
 ### Coding standards
-Travis runs `flake8` on every pull request, so adhere to what flake8 tells you.
+We try to adhere to `flake8` whenever possible. Mostly to avoid any
+discussions about coding style.
+
+You can run install `flake8` and run `flake8 --install-hook` to install
+a pre-commit hook.
 
 ### Branches
  - `master`: The running code on the live system.
@@ -34,13 +38,13 @@ To use it do the following:
 4. Profit
 
 Admin panel: `http://127.0.0.1:8000/admin/`
-Login: tester:treotreo
+Login: tester: treotreo
 
 Stregsystem: `http://127.0.0.1:8000/1/`
 User: tester
 
 If you want your actions to be persisted when running in test mode you can run:
 
-`python manage.py loaddata stregsystem/fixtures/testdata.json`
+`python manage.py loaddata testdata`
 
 and use `python manage runserver` for running your test server.
