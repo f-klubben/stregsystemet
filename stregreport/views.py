@@ -1,6 +1,4 @@
-import collections
 import datetime
-from django.utils import timezone
 from functools import reduce
 
 from django.contrib.admin.views.decorators import staff_member_required
@@ -8,6 +6,8 @@ from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncDay
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.utils import timezone
+
 from stregsystem.models import Member, Product, Sale
 
 
@@ -20,8 +20,13 @@ reports = staff_member_required(reports)
 
 def sales(request):
     if request.method == 'POST':
-        return sales_product(request, strings_to_whole(request.POST['products'].split()), request.POST['from_date'],
-                             request.POST['to_date'])
+        try:
+            return sales_product(request,
+                                 parse_id_string(request.POST['products']),
+                                 request.POST['from_date'],
+                                 request.POST['to_date'])
+        except RuntimeError as ex:
+            return sales_product(request, None, None, None, error=ex.__str__())
     else:
         return sales_product(request, None, None, None)
 
@@ -58,8 +63,11 @@ def ranks(request, year=None):
 ranks = staff_member_required(ranks)
 
 
-def sales_product(request, ids, from_time, to_time):
+def sales_product(request, ids, from_time, to_time, error=None):
     date_format = '%Y-%m-%d'
+
+    if error is not None:
+        return render(request, 'admin/stregsystem/report/error_invalidsalefetch.html', {'error': error})
 
     try:
         try:
@@ -89,8 +97,8 @@ def sales_product(request, ids, from_time, to_time):
                 sum = sum + r.sale__price__sum
 
             sales.append(('', 'TOTAL', count, money(sum)))
-    except:
-        return render(request, 'admin/stregsystem/report/error_invalidsalefetch.html', locals())
+    except Exception as e:
+        return render(request, 'admin/stregsystem/report/error_invalidsalefetch.html', {'error': e.__str__()})
     return render(request, 'admin/stregsystem/report/sales.html', locals())
 
 
@@ -172,15 +180,11 @@ def money(value):
     return "{0:.2f}".format(value / 100.0)
 
 
-def strings_to_whole(strings):
-    def append_if_digit(list, digit):
-        if isinstance(digit, str) and digit.isdigit():
-            list.append(int(digit))
-        return list
-
-    if not isinstance(strings, collections.Iterable):
-        return []
-    return reduce(append_if_digit, strings, [])
+def parse_id_string(id_string):
+    try:
+        return list(map(int, id_string.split(' ')))
+    except ValueError as ex:
+        raise RuntimeError("The list contained an invalid id: {}".format(ex.__str__()))
 
 
 def late(date):
