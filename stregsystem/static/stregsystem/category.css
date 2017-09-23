@@ -1,0 +1,19 @@
+select {
+	width: 400px;
+}
+
+#content {
+}
+
+#content-container {
+	max-width: 820px;
+	margin: auto;
+}
+
+form {
+	margin-bottom: 20px;
+}
+
+table {
+	width: 100%;
+}
