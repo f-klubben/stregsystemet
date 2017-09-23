@@ -1,6 +1,11 @@
 {% extends "stregsystem/base.html" %}
 
 {% load stregsystem_extras %}
+{% load autofocus %}
+
+{% block extrahead %}
+	{% autofocus_js %}
+{% endblock %}
 
 {% block title %}Treoens stregsystem : Brugerinfo {% endblock %}
 

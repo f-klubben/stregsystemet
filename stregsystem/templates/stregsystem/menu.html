@@ -2,6 +2,11 @@
 
 {% load stregsystem_extras %}
 {% load listutil %}
+{% load autofocus %}
+
+{% block extrahead %}
+	{% autofocus_js %}
+{% endblock %}
 
 {% block title %}Treoens stregsystem : Menu {% endblock %}
 
@@ -21,7 +26,7 @@ har {{member.balance|money}} kroner til gode!
 <table width="90%">
    <tr>
       <th>
-         <a href="/{{room.id}}/user/{{member.id}}">Bruger Info</a>
+         <a id="autofocus" href="/{{room.id}}/user/{{member.id}}">Bruger Info</a>
       </th>
 {% comment %}
       <th>
