@@ -220,6 +220,11 @@ def daily(request):
                      .filter(timestamp__gt=startTime_month)
                      .aggregate(Sum("price"))
                      ["price__sum"]) or 0.0
+    top_today_category = (Category.objects
+                          .filter(product__sale__timestamp__gt=startTime_month)
+                          .annotate(sale=Count("product__sale"))
+                          .order_by("-sale")[:7])
+    print(top_today_category)
 
     return render(request, 'admin/stregsystem/report/daily.html', locals())
 
