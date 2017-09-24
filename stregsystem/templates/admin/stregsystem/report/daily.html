@@ -28,22 +28,28 @@
 		<div id="topline" class="clearfix column-container">
 			<div class="col-2">
 				<div class="panel">
-					<span class="stat">{{revenue_day|money}} kr<span>
-					<i class="fa fa-credit-card-alt icon" aria-hidden="true"></i>
+					<span class="stat">{{revenue_day|money}} kr</span>
+					<div class="icon-container icon-color-1">
+						<i class="fa fa-credit-card-alt icon" aria-hidden="true"></i>
+					</div>
 					<h2>Revenue past 24 hours</h2>
 				</div>
 			</div>
 			<div class="col-2">
 				<div class="panel">
-					<span class="stat">{{revenue_month|money}} kr<span>
-					<i class="fa fa-credit-card-alt icon" aria-hidden="true"></i>
+					<span class="stat">{{revenue_month|money}} kr</span>
+					<div class="icon-container icon-color-2">
+						<i class="fa fa-calendar-o icon" aria-hidden="true"></i>
+					</div>
 					<h2>Revenue past 30 days</h2>
 				</div>
 			</div>
 			<div class="col-2">
 				<div class="panel">
-					<span class="stat">{{top_month_category.0.name}}<span>
-					<i class="fa fa-list icon" aria-hidden="true"></i>
+					<span class="stat">{{top_month_category.0.name}}</span>
+					<div class="icon-container icon-color-3">
+						<i class="fa fa-list icon" aria-hidden="true"></i>
+					</div>
 					<h2>Most popular category past 30 days</h2>
 				</div>
 			</div>

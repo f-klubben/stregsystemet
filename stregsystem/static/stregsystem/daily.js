@@ -8,7 +8,11 @@ var chart = c3.generate({
 		axes: {
 			sales: "y",
 			revenue: "y2",
-		}
+		},
+		colors: {
+			revenue: "#E74C3C",
+			sales: "#1ABC9C",
+		},
     },
 	axis: {
 		x: {
