@@ -220,6 +220,10 @@ def daily(request):
                      .filter(timestamp__gt=startTime_month)
                      .aggregate(Sum("price"))
                      ["price__sum"]) or 0.0
+    top_month_category = (Category.objects
+                          .filter(product__sale__timestamp__gt=startTime_month)
+                          .annotate(sale=Count("product__sale"))
+                          .order_by("-sale")[:7])
 
     return render(request, 'admin/stregsystem/report/daily.html', locals())
 
@@ -230,28 +234,35 @@ def sales_api(request):
           .filter(timestamp__gt=startTime_month)
           .order_by("timestamp")
           .annotate(day=TruncDay('timestamp'))
-          .values('day')
+          .values('day', 'product')
           .annotate(c=Count('id'))
+          .annotate(r=Sum('price'))
           .order_by())
-    db_sales = {i["day"].date(): i["c"] for i in qs}
+    db_sales = {i["day"].date(): (i["c"], money(i["r"])) for i in qs}
     base = timezone.now().date()
     date_list = [base - datetime.timedelta(days=x) for x in range(0, 30)]
 
-    sales = []
+    sales_list = []
+    revenue_list = []
     for date in date_list:
         if date in db_sales:
-            sales.append(db_sales[date])
+            sales, revenue = db_sales[date]
+            sales_list.append(sales)
+            revenue_list.append(revenue)
         else:
-            sales.append(0)
+            sales_list.append(0)
+            revenue_list.append(0)
 
     items = {
         "day": date_list,
-        "sales": sales,
+        "sales": sales_list,
+        "revenue": revenue_list,
     }
     return JsonResponse(items)
 
 
 daily = staff_member_required(daily)
+
 
 def user_purchases_in_categories(request):
     model = {}
