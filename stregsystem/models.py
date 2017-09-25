@@ -266,7 +266,7 @@ class Member(models.Model):  # id automatisk...
                 last_time_frame = current_time_frame
 
             burnt = ((now - last_time_frame).total_seconds() / 3600.0) * drinks_pr_hour
-            # Du kan ikke forbrænde en negativ mængde alkohol
+            # Du kan ikke forbraende en negativ maengde alkohol
             if burnt < 0:
                 burnt = 0.0
 
