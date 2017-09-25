@@ -17,7 +17,7 @@ from stregsystem.models import (
     Order
 )
 import stregsystem.parser as parser
-from .booze import BALLMER_PEAK_LOWER_LIMIT, BALLMER_PEAK_UPPER_LIMIT, time_to_ballmer_peak_expiry
+from .booze import ballmer_peak
 
 
 def __get_news():
@@ -106,11 +106,7 @@ def quicksale(request, room, member, bought_ids):
         return render(request, 'stregsystem/error_stregforbud.html', locals())
 
     promille = member.calculate_alcohol_promille()
-    is_ballmer_peaking = BALLMER_PEAK_LOWER_LIMIT < promille < BALLMER_PEAK_UPPER_LIMIT
-    if is_ballmer_peaking:
-        bp = time_to_ballmer_peak_expiry(promille).total_seconds()
-        bp_minutes = bp // 60
-        bp_seconds = bp % 60
+    is_ballmer_peaking, bp_minutes, bp_seconds = ballmer_peak(promille)
 
     cost = order.total
 
@@ -122,11 +118,7 @@ def usermenu(request, room, member, bought):
     product_list = __get_productlist()
     news = __get_news()
     promille = member.calculate_alcohol_promille()
-    is_ballmer_peaking = BALLMER_PEAK_LOWER_LIMIT < promille < BALLMER_PEAK_UPPER_LIMIT
-    if is_ballmer_peaking:
-        bp = time_to_ballmer_peak_expiry(promille).total_seconds()
-        bp_minutes = bp // 60
-        bp_seconds = bp % 60
+    is_ballmer_peaking, bp_minutes, bp_seconds, = ballmer_peak(promille)
 
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())

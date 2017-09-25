@@ -31,7 +31,7 @@ from stregsystem.models import (
     price_display,
     active_str,
 )
-from stregsystem.booze import time_to_ballmer_peak_expiry
+from stregsystem.booze import ballmer_peak
 
 try:
     from unittest.mock import patch
@@ -863,16 +863,36 @@ class BallmerPeakTests(TestCase):
     def test_close_to_maximum(self):
         bac = 1.337 + 0.049
 
-        time_to_inferior_coding_ability = time_to_ballmer_peak_expiry(bac).total_seconds()
+        is_balmer_peaking, minutes, seconds = ballmer_peak(bac)
 
-        self.assertEqual(time_to_inferior_coding_ability, 2376.0)
+        self.assertTrue(is_balmer_peaking)
+        self.assertEqual(minutes, 39)
+        self.assertEqual(seconds, 35)
 
     def test_close_to_minimum(self):
         bac = 1.337 - 0.049
 
-        time_to_inferior_coding_ability = time_to_ballmer_peak_expiry(bac).total_seconds()
+        is_balmer_peaking, minutes, seconds = ballmer_peak(bac)
 
-        self.assertEqual(time_to_inferior_coding_ability, 24.0)
+        self.assertTrue(is_balmer_peaking)
+        self.assertEqual(minutes, 0)
+        self.assertEqual(seconds, 24)
+
+    def test_over_peaking(self):
+        bac = 1.337 + 0.1
+
+        is_balmer_peaking, minutes, seconds = ballmer_peak(bac)
+
+        self.assertFalse(is_balmer_peaking)
+        self.assertEqual(minutes, 20)
+        self.assertEqual(seconds, 0)
+
+    def test_under_peaking(self):
+        bac = 1.337 - 0.1
+
+        is_balmer_peaking, _, _ = ballmer_peak(bac)
+
+        self.assertFalse(is_balmer_peaking)
 
 
 class ProductActivatedListFilterTests(TestCase):

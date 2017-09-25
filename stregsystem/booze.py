@@ -2,6 +2,9 @@ from enum import Enum
 import datetime
 
 
+BAC_DEGRADATION_PR_HOUR = 0.15
+
+
 def _alcohol_ml_to_gram(ml):
     return ml * 0.789
 
@@ -37,7 +40,7 @@ def alcohol_bac_increase(gender, weight, alcohol_ml):
 
 def alcohol_bac_degradation(time):
     time_hours = time.total_seconds() / 3600
-    return 0.15 * time_hours
+    return BAC_DEGRADATION_PR_HOUR * time_hours
 
 
 def alcohol_bac_timeline(gender, weight, now, alcohol_timeline):
@@ -66,10 +69,10 @@ def alcohol_bac_timeline(gender, weight, now, alcohol_timeline):
         current += alcohol_bac_increase(gender, weight, ml)
 
         # last_time can never be None after the first iteration
-        assert (last_time is not None)
+        assert(last_time is not None)
 
     # Since we return if the list is empty we must have some last time
-    assert (last_time is not None)
+    assert(last_time is not None)
 
     # We also need to remove the degredation from the last drink till now
     time_diff = now - last_time
@@ -87,10 +90,21 @@ BALLMER_PEAK_LOWER_LIMIT = BALLMER_PEAK_MEAN - 0.05
 BALLMER_PEAK_UPPER_LIMIT = BALLMER_PEAK_MEAN + 0.05
 
 
-def time_to_ballmer_peak_expiry(bac):
-    # First get the distance in bac till we leave the ballmer peak
-    difference = bac - BALLMER_PEAK_LOWER_LIMIT
+def ballmer_peak(bac):
+    def bac_delta_to_time(bac_delta):
+        minutes, seconds = divmod(bac_delta / BAC_DEGRADATION_PR_HOUR * 3600, 60)
+        return int(minutes), int(seconds)
 
-    # We leave Ballmer peak once we drop below the lower limit. To find the distance in time.
-    # We do the reverse of the alcohol_bac_degradation, i.e. given a BAC delta, get the timedelta.
-    return datetime.timedelta(seconds=(difference / 0.15) * 3600)
+    if BALLMER_PEAK_LOWER_LIMIT < bac < BALLMER_PEAK_UPPER_LIMIT:
+        # First get the distance in bac till we leave the Ballmer peak
+        difference_to_exit = bac - BALLMER_PEAK_LOWER_LIMIT
+
+        # We leave Ballmer peak once we drop below the lower limit. To find the distance in time.
+        # We do the reverse of the alcohol_bac_degradation, i.e. given a BAC delta, get the timedelta.
+        return True, (*bac_delta_to_time(difference_to_exit))
+    elif bac > BALLMER_PEAK_UPPER_LIMIT:
+        # We're above the limit, find the bac delta until  we reach Ballmer peak
+        difference_to_enter = bac - BALLMER_PEAK_UPPER_LIMIT
+        return False, (*bac_delta_to_time(difference_to_enter))
+    else:
+        return False, None, None
