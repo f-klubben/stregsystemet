@@ -237,40 +237,31 @@ class Member(models.Model):  # id automatisk...
 
         return self.balance - buy < 0
 
+    # BAC in this method stands for "Blood alcohol content"
     def calculate_alcohol_promille(self):
+        from stregsystem.booze import alcohol_bac_timeline, Gender
         from datetime import timedelta
-        # Formodet draenet vaegt paa en gennemsnitsdatalog
-        weight = 80.0
 
         now = timezone.now()
-        delta = now - timedelta(hours=12)
-        alcohol_sales = Sale.objects.filter(member_id=self.id,
-                                            timestamp__gt=delta,
-                                            product__alcohol_content_ml__gt=0.0).order_by('timestamp')
-        drinks = 0.0
+        # Lets assume noone is drinking 12 hours straight
+        calculation_start = now - timedelta(hours=12)
 
-        if self.gender == 'M':
-            drinks_pr_hour = 0.01250 * weight
-        elif self.gender == 'F':
-            drinks_pr_hour = 0.00833 * weight
-        else:
-            # tilfaeldigt gennemsnit for ukendt koen
-            drinks_pr_hour = 0.01042 * weight
+        alcohol_sales = (
+            self.sale_set
+            .filter(timestamp__gt=calculation_start,
+                    product__alcohol_content_ml__gt=0.0)
+            .order_by('timestamp')
+        )
+        alcohol_timeline = [(s.timestamp, s.product.alcohol_content_ml)
+                            for s in alcohol_sales]
 
-        if len(alcohol_sales) > 0:
-            last_time_frame = now
-            for sale in alcohol_sales:
-                current_time_frame = sale.timestamp
-                drinks = max(0.0, drinks - (current_time_frame - last_time_frame).seconds / 3600.0 * drinks_pr_hour)
-                drinks += sale.product.alcohol_content_ml / 15.0
-                last_time_frame = current_time_frame
+        gender = Gender.UNKNOWN
+        if self.gender == "M":
+            gender = Gender.MALE
+        elif self.gender == "F":
+            gender = Gender.FEMALE
 
-            burnt = ((now - last_time_frame).total_seconds() / 3600.0) * drinks_pr_hour
-            # Du kan ikke forbraende en negativ maengde alkohol
-            if burnt < 0:
-                burnt = 0.0
-
-            drinks = max(0.0, drinks - burnt)
+        bac = alcohol_bac_timeline(gender, 80, now, alcohol_timeline)
 
         # Tihi:
         drunken_bastards = {
@@ -280,17 +271,9 @@ class Member(models.Model):  # id automatisk...
             2024: 31.5,  # jbr
             2414: 5440,  # kkkas
         }
+        bac += drunken_bastards.get(self.id, 0.0)
 
-        if self.gender == 'M':
-            consume_percent = 0.68
-        elif self.gender == 'F':
-            consume_percent = 0.55
-        else:
-            consume_percent = 0.615
-
-        promille = 12.0 * drinks / (consume_percent * weight)
-        promille += drunken_bastards.get(self.id, 0.0)
-        return str(round(promille, 2))
+        return bac
 
 
 class Payment(models.Model):  # id automatisk...

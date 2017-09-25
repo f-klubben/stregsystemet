@@ -741,49 +741,121 @@ class MemberTests(TestCase):
         self.assertEqual(member.balance, 90)
 
     def test_promille_no_drinks(self):
-        user = Member.objects.create(username="test", gender='M', active=True)
-        non_alcoholic = Product.objects.create(name="mælk", price=1.0, active=True)
+        user = Member.objects.create(username="test", gender='M')
+        non_alcoholic = (
+            Product.objects.create(
+                name="mælk",
+                price=1.0,
+                active=True))
 
-        Sale.objects.create(product=non_alcoholic, member=user, price=non_alcoholic.price)
-        self.assertEqual('0.0', user.calculate_alcohol_promille())
+        user.sale_set.create(
+            product=non_alcoholic,
+            member=user,
+            price=non_alcoholic.price)
+
+        self.assertEqual(
+            0.0,
+            user.calculate_alcohol_promille())
 
     def test_promille_with_alcohol_male(self):
-        user = Member.objects.create(username="test", gender='M', active=True)
-        # (330 ml * 4.6%) = 15.18
-        alcoholic_drink = Product.objects.create(name="øl", price=2.0, alcohol_content_ml=15.18, active=True)
-        Sale.objects.create(product=alcoholic_drink, member=user, price=alcoholic_drink.price)
+        user = Member.objects.create(username="test", gender='M')
 
-        self.assertEqual('0.22', user.calculate_alcohol_promille())
+        # (330 ml * 4.6%) = 15.18
+        alcoholic_drink = (
+            Product.objects
+            .create(
+                name="øl",
+                price=2.0,
+                alcohol_content_ml=15.18,
+                active=True))
+
+        user.sale_set.create(
+            product=alcoholic_drink,
+            price=alcoholic_drink.price)
+
+        self.assertAlmostEqual(
+            0.21,
+            user.calculate_alcohol_promille(),
+            places=2)
 
     def test_promille_with_alcohol_female(self):
-        user = Member.objects.create(username="test", gender='F', active=True)
-        # (330 ml * 4.6%) = 15.18
-        alcoholic_drink = Product.objects.create(name="øl", price=2.0, alcohol_content_ml=15.18, active=True)
-        Sale.objects.create(product=alcoholic_drink, member=user, price=alcoholic_drink.price)
+        user = Member.objects.create(username="test", gender='F')
 
-        self.assertEqual('0.28', user.calculate_alcohol_promille())
+        # (330 ml * 4.6%) = 15.18
+        alcoholic_drink = (
+            Product.objects.create(
+                name="øl",
+                price=2.0,
+                alcohol_content_ml=15.18,
+                active=True))
+
+        user.sale_set.create(
+            product=alcoholic_drink,
+            price=alcoholic_drink.price)
+
+        self.assertAlmostEqual(
+            0.25,
+            user.calculate_alcohol_promille(),
+            places=2
+        )
 
     def test_promille_staggered_male(self):
-        user = Member.objects.create(username="test", gender='M', active=True)
-        # (330 ml * 4.6%) = 15.18
-        alcoholic_drink = Product.objects.create(name="øl", price=2.0, alcohol_content_ml=15.18, active=True)
-        for i in range(5):
-            with freeze_time(datetime.datetime.now() - datetime.timedelta(minutes=i * 10)):
-                Sale.objects.create(product=alcoholic_drink, member=user, price=alcoholic_drink.price)
+        user = Member.objects.create(username="test", gender='M')
 
-        with freeze_time(datetime.datetime.now()):
-            self.assertEqual('0.97', user.calculate_alcohol_promille())
+        # (330 ml * 4.6%) = 15.18
+        alcoholic_drink = (
+            Product.objects.create(
+                name="øl",
+                price=2.0,
+                alcohol_content_ml=15.18,
+                active=True))
+
+        with freeze_time(datetime.datetime(year=2000, month=1, day=1, hour=0,
+                                           minute=0)) as ft:
+            for i in range(5):
+                ft.tick(delta=datetime.timedelta(minutes=10))
+                user.sale_set.create(
+                    product=alcoholic_drink,
+                    price=alcoholic_drink.price)
+
+        # The last drink was at 2000/01/01 00:50:00
+
+        with freeze_time(datetime.datetime(year=2000, month=1, day=1, hour=0,
+                                           minute=50)) as ft:
+            self.assertAlmostEqual(
+                0.97,
+                user.calculate_alcohol_promille(),
+                places=2
+            )
 
     def test_promille_staggered_female(self):
-        user = Member.objects.create(username="test", gender='F', active=True)
-        # (330 ml * 4.6%) = 15.18
-        alcoholic_drink = Product.objects.create(name="øl", price=2.0, alcohol_content_ml=15.18, active=True)
-        for i in range(5):
-            with freeze_time(datetime.datetime.now() - datetime.timedelta(minutes=i * 10)):
-                Sale.objects.create(product=alcoholic_drink, member=user, price=alcoholic_drink.price)
+        user = Member.objects.create(username="test", gender='F')
 
-        with freeze_time(datetime.datetime.now()):
-            self.assertEqual('1.26', user.calculate_alcohol_promille())
+        # (330 ml * 4.6%) = 15.18
+        alcoholic_drink = (
+            Product.objects.create(
+                name="øl",
+                price=2.0,
+                alcohol_content_ml=15.18,
+                active=True))
+
+        with freeze_time(datetime.datetime(year=2000, month=1, day=1, hour=0,
+                                           minute=0)) as ft:
+            for i in range(5):
+                ft.tick(delta=datetime.timedelta(minutes=10))
+                user.sale_set.create(
+                    product=alcoholic_drink,
+                    price=alcoholic_drink.price)
+
+        # The last drink was at 2000/01/01 00:50:00
+
+        with freeze_time(datetime.datetime(year=2000, month=1, day=1, hour=0,
+                                           minute=50)) as ft:
+            self.assertAlmostEqual(
+                1.15,
+                user.calculate_alcohol_promille(),
+                places=2
+            )
 
 
 class ProductActivatedListFilterTests(TestCase):

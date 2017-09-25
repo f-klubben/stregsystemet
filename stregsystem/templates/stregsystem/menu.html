@@ -50,7 +50,7 @@ har {{member.balance|money}} kroner til gode!
 <blink><b>Du har lige købt en {{bought.name}} til {{bought.price|money}} kr.</b></blink>
 {% endif %}
 {% if promille %}
-<br />Din alkohol promille er ca. <b>{{promille}}</b>
+<br />Din alkohol promille er ca. <b>{{promille|floatformat:2}}‰</b>
 {% endif %}
 <br />
 <br />
