@@ -1,11 +1,11 @@
+from collections import Counter
+
 from django.db import models, transaction
 from django.db.models import F
 from django.utils import timezone
 
-from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.deprecated import deprecated
-
-from collections import Counter
+from stregsystem.templatetags.stregsystem_extras import money
 
 
 def price_display(value):
@@ -258,13 +258,19 @@ class Member(models.Model):  # id automatisk...
             drinks_pr_hour = 0.01042 * weight
 
         if len(alcohol_sales) > 0:
-            last_time_frame = alcohol_sales[0].timestamp
+            last_time_frame = now
             for sale in alcohol_sales:
                 current_time_frame = sale.timestamp
                 drinks = max(0.0, drinks - (current_time_frame - last_time_frame).seconds / 3600.0 * drinks_pr_hour)
                 drinks += sale.product.alcohol_content_ml / 15.0
                 last_time_frame = current_time_frame
-            drinks = max(0.0, drinks - (now - last_time_frame).seconds / 3600.0 * drinks_pr_hour)
+
+            burnt = ((now - last_time_frame).total_seconds() / 3600.0) * drinks_pr_hour
+            # Du kan ikke forbrænde en negativ mængde alkohol
+            if burnt < 0:
+                burnt = 0.0
+
+            drinks = max(0.0, drinks - burnt)
 
         # Tihi:
         drunken_bastards = {
