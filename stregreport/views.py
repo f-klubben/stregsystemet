@@ -1,16 +1,14 @@
-import collections
 import datetime
 from functools import reduce
 
 from django.contrib.admin.views.decorators import staff_member_required
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Q, Sum, F
 from django.db.models.functions import TruncDay
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 
 from stregsystem.models import (
-    Category,
     Member,
     Product,
     Sale,
@@ -265,21 +263,59 @@ daily = staff_member_required(daily)
 
 
 def user_purchases_in_categories(request):
-    model = {}
     form = CategoryReportForm()
+    categories = []
+    data = None
+    header = None
     if request.method == 'POST':
         form = CategoryReportForm(request.POST)
         if form.is_valid():
             categories = form.cleaned_data['categories']
-            products = set()
-            display_categories = []
-            for cat in Category.objects.all().filter(pk__in=categories):
-                display_categories.append(cat.name)
-                products |= set(cat.product_set.all())
 
-                result = sale_product_rank(products, datetime.datetime.min, datetime.datetime.max)
-            model['result'] = result
-            model['categories'] = ', '.join(display_categories)
+            user_sales_per_category_q = (
+                Member.objects
+                .filter(sale__product__categories__in=categories)
+                .annotate(sales=Count("sale__product__categories"))
+                .annotate(category=F("sale__product__categories__name"))
+                .values(
+                    "id",
+                    "sales",
+                    "category",
+                )
+            )
+            user_sales_per_category = {}
+            for q in user_sales_per_category_q:
+                if q["id"] not in user_sales_per_category:
+                    user_sales_per_category[q["id"]] = {}
+                user_sales_per_category[q["id"]][q["category"]] = q["sales"]
 
-    model['form'] =  form
-    return render(request, 'admin/stregsystem/report/user_purchases_in_categories.html', model)
+            users = (
+                Member.objects
+                .filter(sale__product__categories__in=categories)
+                .annotate(sales=Count("sale", distinct=True))
+            )
+
+            header = categories.values_list("name", flat=True)
+
+            data = []
+            for user in users:
+                category_assoc = []
+                for h in header:
+                    this_sales = user_sales_per_category[user.id]
+                    if h in this_sales:
+                        category_assoc.append(
+                            this_sales[h]
+                        )
+                    else:
+                        category_assoc.append(0)
+                data.append((user, category_assoc))
+
+    return render(
+        request,
+        'admin/stregsystem/report/user_purchases_in_categories.html',
+        {
+            "form": form,
+            "data": data,
+            "header": header,
+        }
+    )
