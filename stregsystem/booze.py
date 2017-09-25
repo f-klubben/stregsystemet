@@ -92,8 +92,7 @@ BALLMER_PEAK_UPPER_LIMIT = BALLMER_PEAK_MEAN + 0.05
 
 def ballmer_peak(bac):
     def bac_delta_to_time(bac_delta):
-        minutes, seconds = divmod(bac_delta / BAC_DEGRADATION_PR_HOUR * 3600, 60)
-        return int(minutes), int(seconds)
+        return divmod(bac_delta / BAC_DEGRADATION_PR_HOUR * 3600, 60)
 
     if BALLMER_PEAK_LOWER_LIMIT < bac < BALLMER_PEAK_UPPER_LIMIT:
         # First get the distance in bac till we leave the Ballmer peak
@@ -101,10 +100,12 @@ def ballmer_peak(bac):
 
         # We leave Ballmer peak once we drop below the lower limit. To find the distance in time.
         # We do the reverse of the alcohol_bac_degradation, i.e. given a BAC delta, get the timedelta.
-        return True, (*bac_delta_to_time(difference_to_exit))
+        minutes, seconds = bac_delta_to_time(difference_to_exit)
+        return True, int(minutes), int(seconds)
     elif bac > BALLMER_PEAK_UPPER_LIMIT:
         # We're above the limit, find the bac delta until  we reach Ballmer peak
         difference_to_enter = bac - BALLMER_PEAK_UPPER_LIMIT
-        return False, (*bac_delta_to_time(difference_to_enter))
+        minutes, seconds = bac_delta_to_time(difference_to_enter)
+        return False, int(minutes), int(seconds)
     else:
         return False, None, None
