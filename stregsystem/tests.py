@@ -31,6 +31,7 @@ from stregsystem.models import (
     price_display,
     active_str,
 )
+from stregsystem.booze import time_to_ballmer_peak_expiry
 
 try:
     from unittest.mock import patch
@@ -856,6 +857,22 @@ class MemberTests(TestCase):
                 user.calculate_alcohol_promille(),
                 places=2
             )
+
+
+class BallmerPeakTests(TestCase):
+    def test_close_to_maximum(self):
+        bac = 1.337 + 0.049
+
+        time_to_inferior_coding_ability = time_to_ballmer_peak_expiry(bac).total_seconds()
+
+        self.assertEqual(time_to_inferior_coding_ability, 2376.0)
+
+    def test_close_to_minimum(self):
+        bac = 1.337 - 0.049
+
+        time_to_inferior_coding_ability = time_to_ballmer_peak_expiry(bac).total_seconds()
+
+        self.assertEqual(time_to_inferior_coding_ability, 24.0)
 
 
 class ProductActivatedListFilterTests(TestCase):
