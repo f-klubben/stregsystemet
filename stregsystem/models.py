@@ -348,7 +348,7 @@ class Product(models.Model): # id automatisk...
     bought = models.IntegerField(default=0)
     quantity = models.IntegerField(blank=True, null=True)
     deactivate_date = models.DateTimeField(blank=True, null=True)
-    categories = models.ManyToManyField(Category)
+    categories = models.ManyToManyField(Category, blank=True)
 
     @deprecated
     def __unicode__(self):
