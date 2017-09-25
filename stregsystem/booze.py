@@ -35,8 +35,8 @@ def alcohol_bac_increase(gender, weight, alcohol_ml):
         / _water_weight(gender, weight))
 
 
-def alcohol_bac_degredation(time):
-    time_hours = time.total_seconds()/3600
+def alcohol_bac_degradation(time):
+    time_hours = time.total_seconds() / 3600
     return 0.15 * time_hours
 
 
@@ -55,7 +55,7 @@ def alcohol_bac_timeline(gender, weight, now, alcohol_timeline):
         # iteration doesn't need degredation
         if last_time is not None:
             time_diff = time - last_time
-            current -= alcohol_bac_degredation(time_diff)
+            current -= alcohol_bac_degradation(time_diff)
 
         last_time = time
 
@@ -66,16 +66,31 @@ def alcohol_bac_timeline(gender, weight, now, alcohol_timeline):
         current += alcohol_bac_increase(gender, weight, ml)
 
         # last_time can never be None after the first iteration
-        assert(last_time is not None)
+        assert (last_time is not None)
 
     # Since we return if the list is empty we must have some last time
-    assert(last_time is not None)
+    assert (last_time is not None)
 
     # We also need to remove the degredation from the last drink till now
     time_diff = now - last_time
-    current -= alcohol_bac_degredation(time_diff)
+    current -= alcohol_bac_degradation(time_diff)
 
     if current < 0:
         current = 0
 
     return current
+
+
+# Ballmer peak: 1.337 +/- 0.05
+BALLMER_PEAK_MEAN = 1.337
+BALLMER_PEAK_LOWER_LIMIT = BALLMER_PEAK_MEAN - 0.05
+BALLMER_PEAK_UPPER_LIMIT = BALLMER_PEAK_MEAN + 0.05
+
+
+def time_to_ballmer_peak_expiry(bac):
+    # First get the distance in bac till we leave the ballmer peak
+    difference = bac - BALLMER_PEAK_LOWER_LIMIT
+
+    # We leave Ballmer peak once we drop below the lower limit. To find the distance in time.
+    # We do the reverse of the alcohol_bac_degradation, i.e. given a BAC delta, get the timedelta.
+    return datetime.timedelta(seconds=(difference / 0.15) * 3600)

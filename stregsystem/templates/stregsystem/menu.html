@@ -50,7 +50,11 @@ har {{member.balance|money}} kroner til gode!
 <blink><b>Du har lige købt en {{bought.name}} til {{bought.price|money}} kr.</b></blink>
 {% endif %}
 {% if promille %}
-<br />Din alkohol promille er ca. <b>{{promille|floatformat:2}}‰</b>
+    {% if is_ballmer_peaking %}
+        <br />Du Ballmer-peaker!! Du kan producere god kode de næste: {{ bp_minutes|floatformat:0 }} minuter og {{ bp_seconds|floatformat:0 }} sekunder!
+    {% else %}
+        <br />Din alkohol promille er ca. <b>{{promille|floatformat:2}}‰</b>
+    {% endif %}
 {% endif %}
 <br />
 <br />
