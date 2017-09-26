@@ -1,11 +1,11 @@
+from collections import Counter
+
 from django.db import models, transaction
 from django.db.models import F
 from django.utils import timezone
 
-from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.deprecated import deprecated
-
-from collections import Counter
+from stregsystem.templatetags.stregsystem_extras import money
 
 
 def price_display(value):
@@ -237,40 +237,31 @@ class Member(models.Model):  # id automatisk...
 
         return self.balance - buy < 0
 
+    # BAC in this method stands for "Blood alcohol content"
     def calculate_alcohol_promille(self):
-        # Disabled:
-        # return False
+        from stregsystem.booze import alcohol_bac_timeline, Gender
         from datetime import timedelta
-        # formodet draenet vaegt paa en gennemsnitsdatalog
-        weight = 80.0
-        # Vi burde flytte det her til databasen, saa kan treoen lave noget ;)
-        drinks_in_product = {13: 1.24, 14: 1.0, 29: 1.0, 42: 1.72, 47: 1.52, 54: 1.24, 65: 1.5, 66: 1.5,
-                             1773: 1.0, 1776: 1.52, 1777: 1.52, 1779: 2.0, 1780: 2.58, 1783: 1.0, 1793: 1.0, 1794: 0.96,
-                             22: 7.0, 23: 7.0, 41: 19.14, 53: 9.22, 63: 1.0, 64: 7.0, 1767: 1.02, 1769: 1.0, 1770: 2.0,
-                             1802: 2.0, 1807: 6.6, 1808: 7.5, 1809: 8.3}
 
         now = timezone.now()
-        delta = now - timedelta(hours=12)
-        alcohol_sales = Sale.objects.filter(member_id=self.id, timestamp__gt=delta,
-                                            product__in=list(drinks_in_product.keys())).order_by('timestamp')
-        drinks = 0.0
+        # Lets assume noone is drinking 12 hours straight
+        calculation_start = now - timedelta(hours=12)
 
-        if self.gender == 'M':
-            drinks_pr_hour = 0.01250 * weight
-        elif self.gender == 'F':
-            drinks_pr_hour = 0.00833 * weight
-        else:
-            # tilfaeldigt gennemsnit for ukendt koen
-            drinks_pr_hour = 0.01042 * weight
+        alcohol_sales = (
+            self.sale_set
+            .filter(timestamp__gt=calculation_start,
+                    product__alcohol_content_ml__gt=0.0)
+            .order_by('timestamp')
+        )
+        alcohol_timeline = [(s.timestamp, s.product.alcohol_content_ml)
+                            for s in alcohol_sales]
 
-        if (len(alcohol_sales) > 0):
-            last_time_frame = alcohol_sales[0].timestamp
-            for sale in alcohol_sales:
-                current_time_frame = sale.timestamp
-                drinks = max(0.0, drinks - (current_time_frame - last_time_frame).seconds / 3600.0 * drinks_pr_hour)
-                drinks = drinks + drinks_in_product[sale.product_id]
-                last_time_frame = current_time_frame
-            drinks = max(0.0, drinks - (now - last_time_frame).seconds / 3600.0 * drinks_pr_hour)
+        gender = Gender.UNKNOWN
+        if self.gender == "M":
+            gender = Gender.MALE
+        elif self.gender == "F":
+            gender = Gender.FEMALE
+
+        bac = alcohol_bac_timeline(gender, 80, now, alcohol_timeline)
 
         # Tihi:
         drunken_bastards = {
@@ -280,17 +271,9 @@ class Member(models.Model):  # id automatisk...
             2024: 31.5,  # jbr
             2414: 5440,  # kkkas
         }
+        bac += drunken_bastards.get(self.id, 0.0)
 
-        if self.gender == 'M':
-            consume_percent = 0.68
-        elif self.gender == 'F':
-            consume_percent = 0.55
-        else:
-            consume_percent = 0.615
-
-        promille = 12.0 * drinks / (consume_percent * weight)
-        promille = promille + drunken_bastards.get(self.id, 0.0)
-        return str(round(promille, 2))
+        return bac
 
 
 class Payment(models.Model):  # id automatisk...
@@ -349,6 +332,7 @@ class Product(models.Model): # id automatisk...
     quantity = models.IntegerField(blank=True, null=True)
     deactivate_date = models.DateTimeField(blank=True, null=True)
     categories = models.ManyToManyField(Category, blank=True)
+    alcohol_content_ml = models.FloatField(default=0.0, null=True)
 
     @deprecated
     def __unicode__(self):

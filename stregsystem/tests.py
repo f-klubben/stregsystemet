@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 import datetime
-from django.utils import timezone
+from collections import Counter
 
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 from freezegun import freeze_time
-from collections import Counter
 
+import stregsystem.parser as parser
 from stregsystem import admin
 from stregsystem.admin import (
     CategoryAdmin,
@@ -16,21 +17,21 @@ from stregsystem.models import (
     Category,
     GetTransaction,
     Member,
-    NoMoreInventoryError,
-    Order,
-    OrderItem,
     Payment,
     PayTransaction,
     Product,
     Room,
+    Order,
+    OrderItem,
+    NoMoreInventoryError,
     Sale,
     StregForbudError,
 )
 from stregsystem.models import (
     price_display,
-    active_str
+    active_str,
 )
-import stregsystem.parser as parser
+from stregsystem.booze import ballmer_peak
 
 try:
     from unittest.mock import patch
@@ -739,6 +740,159 @@ class MemberTests(TestCase):
         member.make_payment(-10)
 
         self.assertEqual(member.balance, 90)
+
+    def test_promille_no_drinks(self):
+        user = Member.objects.create(username="test", gender='M')
+        non_alcoholic = (
+            Product.objects.create(
+                name="mælk",
+                price=1.0,
+                active=True))
+
+        user.sale_set.create(
+            product=non_alcoholic,
+            member=user,
+            price=non_alcoholic.price)
+
+        self.assertEqual(
+            0.0,
+            user.calculate_alcohol_promille())
+
+    def test_promille_with_alcohol_male(self):
+        user = Member.objects.create(username="test", gender='M')
+
+        # (330 ml * 4.6%) = 15.18
+        alcoholic_drink = (
+            Product.objects
+            .create(
+                name="øl",
+                price=2.0,
+                alcohol_content_ml=15.18,
+                active=True))
+
+        user.sale_set.create(
+            product=alcoholic_drink,
+            price=alcoholic_drink.price)
+
+        self.assertAlmostEqual(
+            0.21,
+            user.calculate_alcohol_promille(),
+            places=2)
+
+    def test_promille_with_alcohol_female(self):
+        user = Member.objects.create(username="test", gender='F')
+
+        # (330 ml * 4.6%) = 15.18
+        alcoholic_drink = (
+            Product.objects.create(
+                name="øl",
+                price=2.0,
+                alcohol_content_ml=15.18,
+                active=True))
+
+        user.sale_set.create(
+            product=alcoholic_drink,
+            price=alcoholic_drink.price)
+
+        self.assertAlmostEqual(
+            0.25,
+            user.calculate_alcohol_promille(),
+            places=2
+        )
+
+    def test_promille_staggered_male(self):
+        user = Member.objects.create(username="test", gender='M')
+
+        # (330 ml * 4.6%) = 15.18
+        alcoholic_drink = (
+            Product.objects.create(
+                name="øl",
+                price=2.0,
+                alcohol_content_ml=15.18,
+                active=True))
+
+        with freeze_time(datetime.datetime(year=2000, month=1, day=1, hour=0,
+                                           minute=0)) as ft:
+            for i in range(5):
+                ft.tick(delta=datetime.timedelta(minutes=10))
+                user.sale_set.create(
+                    product=alcoholic_drink,
+                    price=alcoholic_drink.price)
+
+        # The last drink was at 2000/01/01 00:50:00
+
+        with freeze_time(datetime.datetime(year=2000, month=1, day=1, hour=0,
+                                           minute=50)) as ft:
+            self.assertAlmostEqual(
+                0.97,
+                user.calculate_alcohol_promille(),
+                places=2
+            )
+
+    def test_promille_staggered_female(self):
+        user = Member.objects.create(username="test", gender='F')
+
+        # (330 ml * 4.6%) = 15.18
+        alcoholic_drink = (
+            Product.objects.create(
+                name="øl",
+                price=2.0,
+                alcohol_content_ml=15.18,
+                active=True))
+
+        with freeze_time(datetime.datetime(year=2000, month=1, day=1, hour=0,
+                                           minute=0)) as ft:
+            for i in range(5):
+                ft.tick(delta=datetime.timedelta(minutes=10))
+                user.sale_set.create(
+                    product=alcoholic_drink,
+                    price=alcoholic_drink.price)
+
+        # The last drink was at 2000/01/01 00:50:00
+
+        with freeze_time(datetime.datetime(year=2000, month=1, day=1, hour=0,
+                                           minute=50)) as ft:
+            self.assertAlmostEqual(
+                1.15,
+                user.calculate_alcohol_promille(),
+                places=2
+            )
+
+
+class BallmerPeakTests(TestCase):
+    def test_close_to_maximum(self):
+        bac = 1.337 + 0.049
+
+        is_balmer_peaking, minutes, seconds = ballmer_peak(bac)
+
+        self.assertTrue(is_balmer_peaking)
+        self.assertEqual(minutes, 39)
+        self.assertEqual(seconds, 35)
+
+    def test_close_to_minimum(self):
+        bac = 1.337 - 0.049
+
+        is_balmer_peaking, minutes, seconds = ballmer_peak(bac)
+
+        self.assertTrue(is_balmer_peaking)
+        self.assertEqual(minutes, 0)
+        self.assertEqual(seconds, 24)
+
+    def test_over_peaking(self):
+        bac = 1.337 + 0.1
+
+        is_balmer_peaking, minutes, seconds = ballmer_peak(bac)
+
+        self.assertFalse(is_balmer_peaking)
+        self.assertEqual(minutes, 20)
+        self.assertEqual(seconds, 0)
+
+    def test_under_peaking(self):
+        bac = 1.337 - 0.1
+
+        is_balmer_peaking, _, _ = ballmer_peak(bac)
+
+        self.assertFalse(is_balmer_peaking)
 
 
 class ProductActivatedListFilterTests(TestCase):

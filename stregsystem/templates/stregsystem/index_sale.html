@@ -17,7 +17,11 @@ for tilsammen {{cost|money}} kr.
 </b>
 </blink>
 {% if promille %}
-<br />Din alkohol promille er ca. <b>{{promille}}</b>
+    {% if is_ballmer_peaking %}
+        <br />Du Ballmer-peaker!! Du kan producere god kode de næste: {{ bp_minutes|floatformat:0 }} minuter og {{ bp_seconds|floatformat:0 }} sekunder!
+    {% else %}
+        <br />Din alkohol promille er ca. <b>{{promille|floatformat:2}}‰</b>
+    {% endif %}
 {% endif %}
 {% endautoescape %}
 <br />
