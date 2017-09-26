@@ -12,6 +12,7 @@ from stregsystem.models import (
     Member,
     Product,
     Sale,
+    Category,
 )
 from stregreport.forms import CategoryReportForm
 
