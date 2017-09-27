@@ -102,9 +102,10 @@ class ProductActivatedListFilter(admin.SimpleListFilter):
 class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'price', 'id')
     list_filter = (ProductActivatedListFilter, 'deactivate_date', 'price')
-    list_display = ('activated', 'id', 'name', 'get_price_display', 'categories_display')
+    list_display = ('activated', 'id', 'name', 'get_price_display', 'categories_display', 'rooms_display')
     actions = [toggle_active_selected_products]
     filter_horizontal = ('categories', )
+
 
     def get_price_display(self, obj):
         if obj.price is None:
@@ -123,6 +124,13 @@ class ProductAdmin(admin.ModelAdmin):
         # TODO Add a link to the category.
         return ', '.join((cat.name for cat in obj.categories.all()))
     categories_display.short_description = "Categories"
+
+    def rooms_display(self, obj):
+        if len(obj.rooms.all()) == 0:
+            return 'All'
+        else:
+            return ', '.join(room.name for room in obj.rooms.all())
+    rooms_display.short_description = "Rooms"
 
 
 class CategoryAdmin(admin.ModelAdmin):

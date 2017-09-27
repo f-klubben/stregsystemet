@@ -1,0 +1,68 @@
+[
+    {
+        "fields": {
+            "description": "No special items",
+            "name": "default_room"
+        },
+        "model": "stregsystem.room",
+        "pk": "1"
+    },
+    {
+        "fields": {
+            "description": "Room that have special items",
+            "name": "room_special_drinks"
+        },
+        "model": "stregsystem.room",
+        "pk": "2"
+    },
+    {
+        "fields": {
+            "description": "Another room with special drinks",
+            "name": "room_special_drinks_2"
+        },
+        "model": "stregsystem.room",
+        "pk": "3"
+    },
+    {
+        "fields": {
+            "active": 1,
+            "name": "general_drink_1",
+            "price": 1
+        },
+        "model": "stregsystem.product",
+        "pk": "1"
+    },
+    {
+        "fields": {
+            "active": 1,
+            "name": "general_drink_2",
+            "price": 2
+        },
+        "model": "stregsystem.product",
+        "pk": "2"
+    },
+    {
+        "fields": {
+            "active": 1,
+            "name": "special_drink",
+            "price": 3,
+            "rooms": [
+                2
+            ]
+        },
+        "model": "stregsystem.product",
+        "pk": "3"
+    },
+    {
+        "fields": {
+            "active": 1,
+            "name": "special_drink_multiple_rooms",
+            "price": 3,
+            "rooms": [
+                2, 3
+            ]
+        },
+        "model": "stregsystem.product",
+        "pk": "4"
+    }
+]

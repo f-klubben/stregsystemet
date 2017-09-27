@@ -279,6 +279,41 @@ class SaleViewTests(TestCase):
         self.assertEqual(before.bought, after.bought)
         self.assertEqual(before_member.balance, after_member.balance)
 
+    def test_quicksale_product_not_in_room(self):
+        before_product = Product.objects.get(id=4)
+        before_member = Member.objects.get(username="jokke")
+
+        response = self.client.post(
+            reverse('quickbuy', args=(1,)),
+                {"quickbuy": "jokke 4"}
+            )
+
+        after_product = Product.objects.get(id=4)
+        after_member = Member.objects.get(username="jokke")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/menu.html")
+
+        self.assertEqual(before_product.bought, after_product.bought)
+        self.assertEqual(before_member.balance, after_member.balance)
+
+    def test_quicksale_product_available_all_rooms(self):
+        before_product = Product.objects.get(id=1)
+        before_member = Member.objects.get(username="jokke")
+
+        response = self.client.post(
+            reverse('quickbuy', args=(1,)),
+                {"quickbuy": "jokke 1"}
+            )
+
+        after_product = Product.objects.get(id=1)
+        after_member = Member.objects.get(username="jokke")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/index_sale.html")
+
+        self.assertEqual(before_member.balance - 900, after_member.balance)
+
 
 class UserInfoViewTests(TestCase):
     def setUp(self):
@@ -1106,6 +1141,49 @@ class ProductActivatedListFilterTests(TestCase):
 
         self.assertIn(Product.objects.get(name="active_some_left"), qy)
         self.assertNotIn(Product.objects.get(name="active_some_left"), qn)
+
+class ProductRoomFilterTests(TestCase):
+    fixtures = ["test_room_products"]
+
+    def test_general_room_dont_get_special_items(self):
+        numberOfSpecialItems = 2
+        response = self.client.get(reverse('menu_index', args=(1, )))
+        products = response.context['product_list']
+        specialProduct = Product.objects.get(pk=3)
+
+        self.assertFalse(specialProduct in products)
+        self.assertEqual(len(products), len(Product.objects.all()) - numberOfSpecialItems)
+
+    def test_special_room_get_special_items(self):
+        response = self.client.get(reverse('menu_index', args=(2, )))
+        products = response.context['product_list']
+        specialProduct = Product.objects.get(pk=3)
+
+        self.assertTrue(specialProduct in products)
+        self.assertEqual(len(products), len(Product.objects.all()))
+
+
+class ProductAdminTests(TestCase):
+    fixtures = ["test_room_products"]
+
+    def test_no_room_shows_all(self):
+        genProduct = Product.objects.get(pk=1)
+        admin = ProductAdmin(Product, genProduct)
+        self.assertEquals(admin.rooms_display(genProduct), "All")
+
+    def test_specific_room_shows_room(self):
+        specialProduct = Product.objects.get(pk=3)
+        admin = ProductAdmin(Product, specialProduct)
+        room = Room.objects.get(pk=2)
+
+        self.assertEquals(room.name, admin.rooms_display(specialProduct))
+
+    def test_specific_rooms_shows_multiple_rooms(self):
+        specialProduct = Product.objects.get(pk=4)
+        admin = ProductAdmin(Product, specialProduct)
+        room = [Room.objects.get(pk=2), Room.objects.get(pk=3)]
+
+        self.assertEquals(room[0].name + ", " + room[1].name, admin.rooms_display(specialProduct))
 
 
 class CategoryAdminTests(TestCase):
