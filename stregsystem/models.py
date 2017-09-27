@@ -1,7 +1,7 @@
 from collections import Counter
 
 from django.db import models, transaction
-from django.db.models import F
+from django.db.models import Count
 from django.utils import timezone
 
 from stregsystem.deprecated import deprecated
@@ -109,7 +109,7 @@ class Order(object):
 
         # Check if we have enough inventory to fulfill the order
         for item in self.items:
-            if (item.product.quantity is not None
+            if (item.product.start_date is not None
                     and (item.product.bought + item.count
                          > item.product.quantity)):
                 raise NoMoreInventoryError()
@@ -131,11 +131,8 @@ class Order(object):
                 )
                 s.save()
 
-            if item.product.quantity is not None:
-                # We don't need to save because we use update here
-                (Product.objects
-                 .filter(id=item.product.id)
-                 .update(bought=F("bought")+item.count))
+            # Bought (used above) is automatically calculated, so we don't need
+            # to update it
         # We changed the user balance, so save that
         self.member.save()
 
@@ -336,8 +333,8 @@ class Product(models.Model): # id automatisk...
     name = models.CharField(max_length=64)
     price = models.IntegerField()  # penge, oere...
     active = models.BooleanField()
-    bought = models.IntegerField(default=0)
-    quantity = models.IntegerField(blank=True, null=True)
+    start_date = models.DateField(blank=True, null=True)
+    quantity = models.IntegerField(default=0)
     deactivate_date = models.DateTimeField(blank=True, null=True)
     categories = models.ManyToManyField(Category, blank=True)
     rooms = models.ManyToManyField(Room, blank=True)
@@ -359,11 +356,26 @@ class Product(models.Model): # id automatisk...
         if price_changed:
             OldPrice.objects.create(product=self, price=self.price)
 
+    @property
+    def bought(self):
+        # @INCOMPLETE: If it's an unlimited item we just don't care about the
+        # bought count - Jesper 27/09-2017
+        if self.start_date is None:
+            return 0
+        return (
+            self.sale_set
+            .filter(timestamp__gt=self.start_date)
+            .aggregate(bought=Count("id"))["bought"])
+
     def is_active(self):
         expired = (self.deactivate_date is not None
                    and self.deactivate_date <= timezone.now())
-        out_of_stock = (self.quantity is not None
-                        and self.quantity <= self.bought)
+
+        if self.start_date is not None:
+            out_of_stock = self.quantity <= self.bought
+        else:
+            # Items without a startdate is never out of stock
+            out_of_stock = False
 
         return (self.active
                 and not expired

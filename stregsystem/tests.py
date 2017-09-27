@@ -222,6 +222,7 @@ class SaleViewTests(TestCase):
 
     def test_quicksale_increases_bought(self):
         before = Product.objects.get(id=2)
+        before_bought = before.bought
         before_member = Member.objects.get(username="jokke")
 
         response = self.client.post(
@@ -235,7 +236,7 @@ class SaleViewTests(TestCase):
         after = Product.objects.get(id=2)
         after_member = Member.objects.get(username="jokke")
 
-        self.assertEqual(before.bought + 1, after.bought)
+        self.assertEqual(before_bought + 1, after.bought)
         # 900 is the product price
         self.assertEqual(before_member.balance - 900, after_member.balance)
 
@@ -350,7 +351,7 @@ class UserInfoViewTests(TestCase):
         )
         self.sales = []
         with freeze_time(datetime.datetime(2000, 1, 1)) as frozen_time:
-            for i in range(1,4):
+            for i in range(1, 4):
                 self.sales.append(
                     Sale.objects.create(
                         member=self.jokke,
@@ -437,8 +438,12 @@ class OrderTest(TestCase):
     def setUp(self):
         self.member = Member.objects.create(balance=100)
         self.room = Room.objects.create(name="room")
-        self.product = Product.objects.create(id=1, name="øl", price=10,
-                                              active=True)
+        self.product = Product.objects.create(
+            id=1,
+            name="øl",
+            price=10,
+            active=True,
+        )
 
     def test_order_fromproducts(self):
         products = [
@@ -491,7 +496,11 @@ class OrderTest(TestCase):
 
     @patch('stregsystem.models.Member.fulfill')
     def test_order_execute_single_no_remaining(self, fulfill):
-        self.product.bought = 1
+        self.product.sale_set.create(
+            price=100,
+            member=self.member
+        )
+        self.product.start_date = datetime.date(year=2017, month=1, day=1)
         self.product.quantity = 1
         order = Order(self.member, self.room)
 
@@ -505,7 +514,11 @@ class OrderTest(TestCase):
 
     @patch('stregsystem.models.Member.fulfill')
     def test_order_execute_multi_some_remaining(self, fulfill):
-        self.product.bought = 1
+        self.product.sale_set.create(
+            price=100,
+            member=self.member
+        )
+        self.product.start_date = datetime.date(year=2017, month=1, day=1)
         self.product.quantity = 2
         order = Order(self.member, self.room)
 
@@ -588,16 +601,23 @@ class PaymentTests(TestCase):
 
 
 class ProductTests(TestCase):
+    def setUp(self):
+        self.jeff = Member.objects.create(
+            username="Jeff",
+        )
+
     def test_is_active_active(self):
-        product = Product(
+        product = Product.objects.create(
             active=True,
+            price=100,
         )
 
         self.assertTrue(product.is_active())
 
     def test_is_active_active_not_expired(self):
-        product = Product(
+        product = Product.objects.create(
             active=True,
+            price=100,
             deactivate_date=(timezone.now()
                              + datetime.timedelta(hours=1))
         )
@@ -605,8 +625,9 @@ class ProductTests(TestCase):
         self.assertTrue(product.is_active())
 
     def test_is_active_active_expired(self):
-        product = Product(
+        product = Product.objects.create(
             active=True,
+            price=100,
             deactivate_date=(timezone.now()
                              - datetime.timedelta(hours=1))
         )
@@ -614,33 +635,45 @@ class ProductTests(TestCase):
         self.assertFalse(product.is_active())
 
     def test_is_active_active_out_of_stock(self):
-        product = Product(
+        product = Product.objects.create(
             active=True,
+            price=100,
             quantity=1,
-            bought=1
+            start_date=datetime.date(year=2017, month=1, day=1)
+        )
+        product.sale_set.create(
+            price=100,
+            member=self.jeff
         )
 
         self.assertFalse(product.is_active())
 
     def test_is_active_active_in_stock(self):
-        product = Product(
+        product = Product.objects.create(
             active=True,
+            price=100,
             quantity=2,
-            bought=1
+            start_date=datetime.date(year=2017, month=1, day=1)
+        )
+        product.sale_set.create(
+            price=100,
+            member=self.jeff
         )
 
         self.assertTrue(product.is_active())
 
     def test_is_active_deactive(self):
-        product = Product(
+        product = Product.objects.create(
             active=False,
+            price=100,
         )
 
         self.assertFalse(product.is_active())
 
     def test_is_active_deactive_expired(self):
-        product = Product(
+        product = Product.objects.create(
             active=False,
+            price=100,
             deactivate_date=(timezone.now()
                              - datetime.timedelta(hours=1))
         )
@@ -648,19 +681,29 @@ class ProductTests(TestCase):
         self.assertFalse(product.is_active())
 
     def test_is_active_deactive_out_of_stock(self):
-        product = Product(
+        product = Product.objects.create(
             active=False,
+            price=100,
             quantity=1,
-            bought=1
+            start_date=datetime.date(year=2017, month=12, day=1)
+        )
+        product.sale_set.create(
+            price=100,
+            member=self.jeff
         )
 
         self.assertFalse(product.is_active())
 
     def test_is_active_deactive_in_stock(self):
-        product = Product(
+        product = Product.objects.create(
             active=False,
+            price=100,
             quantity=2,
-            bought=1
+            start_date=datetime.date(year=2017, month=12, day=1)
+        )
+        product.sale_set.create(
+            price=100,
+            member=self.jeff
         )
 
         self.assertFalse(product.is_active())
@@ -947,6 +990,9 @@ class BallmerPeakTests(TestCase):
 
 class ProductActivatedListFilterTests(TestCase):
     def setUp(self):
+        jeff = Member.objects.create(
+            username="jeff"
+        )
         Product.objects.create(
             name="active_dec_none",
             price=1.0, active=True,
@@ -987,19 +1033,31 @@ class ProductActivatedListFilterTests(TestCase):
             deactivate_date=(datetime.datetime.now()
                              - datetime.timedelta(hours=1))
         )
-        Product.objects.create(
+        p = Product.objects.create(
             name="active_none_left",
             price=1.0,
             active=True,
-            bought=2,
+            start_date=datetime.date(year=2017, month=1, day=1),
             quantity=2,
         )
-        Product.objects.create(
+        p.sale_set.create(
+            price=100,
+            member=jeff
+        )
+        p.sale_set.create(
+            price=102,
+            member=jeff
+        )
+        p = Product.objects.create(
             name="active_some_left",
             price=1.0,
             active=True,
-            bought=0,
+            start_date=datetime.date(year=2017, month=1, day=1),
             quantity=2,
+        )
+        p.sale_set.create(
+            price=100,
+            member=jeff
         )
 
     def test_active_trivial(self):
