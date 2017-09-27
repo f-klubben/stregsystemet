@@ -168,7 +168,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
     member = Member.objects.get(pk=member_id, active=True)
     product = None
     try:
-        product = Product.objects.get(Q(pk=product_id), Q(active=True),
+        product = Product.objects.get(Q(pk=product_id), Q(active=True), Q(rooms__id=room_id) | Q(rooms=None),
                                       Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
 
         order = Order.from_products(

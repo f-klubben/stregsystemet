@@ -314,6 +314,21 @@ class SaleViewTests(TestCase):
 
         self.assertEqual(before_member.balance - 900, after_member.balance)
 
+    def test_menusale_product_not_in_room(self):
+        before_product = Product.objects.get(id=4)
+        before_member = Member.objects.get(username="jokke")
+
+        response = self.client.get(reverse('menu_sale', args=(1, before_member.id, 4)))
+
+        after_product = Product.objects.get(id=4)
+        after_member = Member.objects.get(username="jokke")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/menu.html")
+
+        self.assertEqual(before_product.bought, after_product.bought)
+        self.assertEqual(before_member.balance, after_member.balance)
+
 
 class UserInfoViewTests(TestCase):
     def setUp(self):
