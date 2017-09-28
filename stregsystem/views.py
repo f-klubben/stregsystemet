@@ -5,7 +5,8 @@ from django.db.models import Q
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
 from stregsystem.utils import (
-    make_active_productlist_query
+    make_active_productlist_query,
+    make_room_specific_query
 )
 from stregsystem.models import (
     Member,
@@ -27,9 +28,10 @@ def __get_news():
         return None
 
 
-def __get_productlist():
+def __get_productlist(room_id):
     l = (
         Product.objects.filter(make_active_productlist_query())
+                       .filter(make_room_specific_query(room_id))
     )
     return l
 
@@ -42,14 +44,14 @@ def roomindex(request):
 
 def index(request, room_id):
     room = get_object_or_404(Room, pk=int(room_id))
-    product_list = __get_productlist()
+    product_list = __get_productlist(room_id)
     news = __get_news()
     return render(request, 'stregsystem/index.html', locals())
 
 def sale(request, room_id):
     room = get_object_or_404(Room, pk=room_id)
     news = __get_news()
-    product_list = __get_productlist()
+    product_list = __get_productlist(room_id)
 
     buy_string = request.POST['quickbuy'].strip()
     # Handle empty line
@@ -79,14 +81,14 @@ def sale(request, room_id):
 
 def quicksale(request, room, member, bought_ids):
     news = __get_news()
-    product_list = __get_productlist()
+    product_list = __get_productlist(room.id)
 
     # Retrieve products and construct transaction
     products = []
     try:
         for i in bought_ids:
             product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(
-                deactivate_date__isnull=True))
+                deactivate_date__isnull=True), Q(rooms__id=room.id) | Q(rooms=None))
             products.append(product)
     except Product.DoesNotExist:
         return usermenu(request, room, member, None)
@@ -115,7 +117,7 @@ def quicksale(request, room, member, bought_ids):
 
 def usermenu(request, room, member, bought):
     negative_balance = member.balance < 0
-    product_list = __get_productlist()
+    product_list = __get_productlist(room.id)
     news = __get_news()
     promille = member.calculate_alcohol_promille()
     is_ballmer_peaking, bp_minutes, bp_seconds, = ballmer_peak(promille)
@@ -166,7 +168,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
     member = Member.objects.get(pk=member_id, active=True)
     product = None
     try:
-        product = Product.objects.get(Q(pk=product_id), Q(active=True),
+        product = Product.objects.get(Q(pk=product_id), Q(active=True), Q(rooms__id=room_id) | Q(rooms=None),
                                       Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
 
         order = Order.from_products(

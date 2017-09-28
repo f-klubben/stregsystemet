@@ -323,6 +323,14 @@ class Category(models.Model):
     class Meta:
         verbose_name_plural = 'Categories'
 
+# XXX
+class Room(models.Model):
+    name = models.CharField(max_length=20)
+    description = models.CharField(max_length=20)
+
+    @deprecated
+    def __unicode__(self):
+        return self.name
 
 class Product(models.Model): # id automatisk...
     name = models.CharField(max_length=32)
@@ -332,6 +340,7 @@ class Product(models.Model): # id automatisk...
     quantity = models.IntegerField(blank=True, null=True)
     deactivate_date = models.DateTimeField(blank=True, null=True)
     categories = models.ManyToManyField(Category, blank=True)
+    rooms = models.ManyToManyField(Room, blank=True)
     alcohol_content_ml = models.FloatField(default=0.0, null=True)
 
     @deprecated
@@ -368,17 +377,6 @@ class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statist
     @deprecated
     def __unicode__(self):
         return self.product.name + ": " + money(self.price) + " (" + str(self.changed_on) + ")"
-
-
-# XXX
-class Room(models.Model):
-    name = models.CharField(max_length=20)
-    description = models.CharField(max_length=20)
-
-    @deprecated
-    def __unicode__(self):
-        return self.name
-
 
 class Sale(models.Model):
     member = models.ForeignKey(Member)

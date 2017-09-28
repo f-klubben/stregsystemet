@@ -38,6 +38,19 @@
   },
   {
     "model": "stregsystem.product",
+    "pk": 3,
+    "fields": {
+      "name": "Fadøl",
+      "price": 1500,
+      "active": true,
+      "deactivate_date": null,
+      "rooms": [
+        1
+      ]
+    }
+  },
+  {
+    "model": "stregsystem.product",
     "pk": 13,
     "fields": {
       "name": "Fake ØL",

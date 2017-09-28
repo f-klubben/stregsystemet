@@ -9,6 +9,14 @@
     },
     {
         "fields": {
+            "description": "Fytteturens Grill",
+            "name": "Fyttetur"
+        },
+        "model": "stregsystem.room",
+        "pk": "2"
+    },
+    {
+        "fields": {
             "active": 1,
             "name": "Limfjordsporter",
             "price": 900
@@ -37,6 +45,18 @@
         },
         "model": "stregsystem.product",
         "pk": "3"
+    },
+    {
+        "fields": {
+            "active": 1,
+            "name": "Smoker",
+            "price": 100,
+            "rooms": [
+                2
+            ]
+        },
+        "model": "stregsystem.product",
+        "pk": "4"
     },
     {
         "fields": {
