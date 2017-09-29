@@ -312,7 +312,7 @@ class Payment(models.Model):  # id automatisk...
             super(Payment, self).delete(*args, **kwargs)
 
 class Category(models.Model):
-    name = models.CharField(max_length=32)
+    name = models.CharField(max_length=64)
 
     def __unicode__(self):
         return self.__str__()
@@ -325,15 +325,15 @@ class Category(models.Model):
 
 # XXX
 class Room(models.Model):
-    name = models.CharField(max_length=20)
-    description = models.CharField(max_length=20)
+    name = models.CharField(max_length=64)
+    description = models.CharField(max_length=64)
 
     @deprecated
     def __unicode__(self):
         return self.name
 
 class Product(models.Model): # id automatisk...
-    name = models.CharField(max_length=32)
+    name = models.CharField(max_length=64)
     price = models.IntegerField()  # penge, oere...
     active = models.BooleanField()
     bought = models.IntegerField(default=0)
@@ -410,7 +410,7 @@ class Sale(models.Model):
 
 # XXX
 class News(models.Model):
-    title = models.CharField(max_length=40)
+    title = models.CharField(max_length=64)
     text = models.TextField()
     pub_date = models.DateTimeField()
     stop_date = models.DateTimeField()
