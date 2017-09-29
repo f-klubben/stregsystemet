@@ -1,0 +1,11 @@
+[run]
+branch = True
+omit =
+        .tox/*
+        fabfile.py
+        manage.py
+        setup.py
+        */migrations/*
+        treo/wsgi.py
+        */apps.py
+source = .
