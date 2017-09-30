@@ -1,35 +1,58 @@
 import datetime
-from django.db.models import Q, F, Count, Case, When
+from django.db.models import Q, F, Count
 
 
 def make_active_productlist_query(queryset):
     now = datetime.datetime.now()
-    a = (
-        queryset.annotate(b=Count(Case(
-            When(start_date=None, then=1),
-            When(sale__timestamp__gt=F("start_date"), then=1),
-            default=None
-        ))).filter(
+    # Create a query for the set of products that MIGHT be active. Might
+    # because they can be out of stock. Which we compute later
+    active_candidates = (
+        queryset
+        .filter(
             Q(active=True)
-            & ((Q(deactivate_date=None) | Q(deactivate_date__gte=now)))
-            & (Q(start_date=None) | Q(quantity__gt=F("b"))))
+            & (Q(deactivate_date=None) | Q(deactivate_date__gte=now)))
     )
-    return a
+    # This query selects all the candidates that are out of stock.
+    candidates_out_of_stock = (
+        active_candidates
+        .filter(sale__timestamp__gt=F("start_date"))
+        .annotate(c=Count("sale__id"))
+        .filter(c__gte=F("quantity"))
+        .values("id")
+    )
+    # We can now create a query that selects all the candidates which are not
+    # out of stock.
+    return (
+        active_candidates
+        .exclude(
+            Q(start_date__isnull=False)
+            & Q(id__in=candidates_out_of_stock)))
 
 
 def make_inactive_productlist_query(queryset):
     now = datetime.datetime.now()
-    a = (
-        queryset.annotate(b=Count(Case(
-            When(start_date=None, then=1),
-            When(sale__timestamp__gt=F("start_date"), then=1),
-            default=None
-        ))).exclude(
+    # Create a query of things are definitively inactive. Some of the ones
+    # filtered here might be out of stock, but we include that later.
+    inactive_candidates = (
+        queryset
+        .exclude(
             Q(active=True)
-            & ((Q(deactivate_date=None) | Q(deactivate_date__gte=now)))
-            & (Q(start_date=None) | Q(quantity__gt=F("b"))))
+            & (Q(deactivate_date=None) | Q(deactivate_date__gte=now)))
+        .values("id")
     )
-    return a
+    inactive_out_of_stock = (
+        queryset
+        .filter(sale__timestamp__gt=F("start_date"))
+        .annotate(c=Count("sale__id"))
+        .filter(c__gte=F("quantity"))
+        .values("id")
+    )
+    return (
+        queryset
+        .filter(
+            Q(id__in=inactive_candidates)
+            | Q(id__in=inactive_out_of_stock))
+    )
 
 
 def make_room_specific_query(room):
