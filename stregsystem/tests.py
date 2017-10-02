@@ -132,18 +132,19 @@ class SaleViewTests(TestCase):
                          Member.objects.get(username="jokke"))
 
     @patch('stregsystem.models.Member.can_fulfill')
-    @patch('stregsystem.models.Member.fulfill')
-    def test_make_sale_menusale_fail(self, fulfill, can_fulfill):
+    def test_make_sale_menusale_fail(self, can_fulfill):
         can_fulfill.return_value = False
+        member_id = 1
+        member_before = Member.objects.get(id=member_id)
 
-        response = self.client.get(reverse('menu_sale', args=(1, 1, 1)))
+        response = self.client.get(reverse('menu_sale', args=(1, member_id, 1)))
 
+        member_after = Member.objects.get(id=member_id)
+
+        self.assertEqual(member_before.balance, member_after.balance)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/error_stregforbud.html")
-
         self.assertEqual(response.context["member"], Member.objects.get(id=1))
-
-        fulfill.assert_not_called()
 
     @patch('stregsystem.models.Member.can_fulfill')
     @patch('stregsystem.models.Member.fulfill')
@@ -518,9 +519,9 @@ class OrderTest(TestCase):
         fulfill.was_not_called()
 
     @patch('stregsystem.models.Member.can_fulfill')
-    @patch('stregsystem.models.Member.fulfill')
-    def test_order_execute_no_money(self, fulfill, can_fulfill):
+    def test_order_execute_no_money(self, can_fulfill):
         can_fulfill.return_value = False
+        balance_before = self.member.balance
         order = Order(self.member, self.room)
 
         item = OrderItem(self.product, order, 2)
@@ -529,7 +530,9 @@ class OrderTest(TestCase):
         with self.assertRaises(StregForbudError):
             order.execute()
 
-        fulfill.was_not_called()
+        balance_after = self.member.balance
+        self.assertEqual(balance_before, balance_after)
+
 
 
 class PaymentTests(TestCase):
