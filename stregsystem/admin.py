@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db.models import Q
 from django.utils import timezone
-from stregsystem.utils import make_active_productlist_query
+from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
 from stregsystem.models import (
     Category,
     Member,
@@ -92,9 +92,9 @@ class ProductActivatedListFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'Yes':
-            return queryset.filter(make_active_productlist_query())
+            return make_active_productlist_query(queryset)
         elif self.value() == 'No':
-            return queryset.exclude(make_active_productlist_query())
+            return make_inactive_productlist_query(queryset)
         else:
             return queryset
 
@@ -102,35 +102,42 @@ class ProductActivatedListFilter(admin.SimpleListFilter):
 class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'price', 'id')
     list_filter = (ProductActivatedListFilter, 'deactivate_date', 'price')
-    list_display = ('activated', 'id', 'name', 'get_price_display', 'categories_display', 'rooms_display')
+    list_display = (
+        'activated',
+        'id',
+        'name',
+        'get_price_display',
+    )
+    fields = (
+        "name",
+        "price",
+        ("active", "deactivate_date"),
+        ("start_date", "quantity", "get_bought"),
+        "categories",
+        "alcohol_content_ml"
+    )
+    readonly_fields = (
+        "get_bought",
+    )
+
     actions = [toggle_active_selected_products]
     filter_horizontal = ('categories', )
-
 
     def get_price_display(self, obj):
         if obj.price is None:
             obj.price = 0
         return "{0:.2f} kr.".format(obj.price / 100.0)
-
     get_price_display.short_description = "Price"
     get_price_display.admin_order_field = "price"
+
+    def get_bought(self, obj):
+        return obj.bought
+    get_bought.short_description = "Bought"
+    get_bought.admin_order_field = "bought"
 
     def activated(self, product):
         return product.is_active()
     activated.boolean = True
-
-
-    def categories_display(self, obj):
-        # TODO Add a link to the category.
-        return ', '.join((cat.name for cat in obj.categories.all()))
-    categories_display.short_description = "Categories"
-
-    def rooms_display(self, obj):
-        if len(obj.rooms.all()) == 0:
-            return 'All'
-        else:
-            return ', '.join(room.name for room in obj.rooms.all())
-    rooms_display.short_description = "Rooms"
 
 
 class CategoryAdmin(admin.ModelAdmin):

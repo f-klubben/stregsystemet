@@ -29,7 +29,7 @@
             "active": 1,
             "name": "Flan",
             "price": 900,
-            "bought": 1,
+            "start_date": "2017-03-06",
             "quantity": 3
         },
         "model": "stregsystem.product",
@@ -40,11 +40,55 @@
             "active": 1,
             "name": "Flan but sold out",
             "price": 900,
-            "bought": 3,
+            "start_date": "2017-03-06",
             "quantity": 3
         },
         "model": "stregsystem.product",
         "pk": "3"
+    },
+    {
+        "model": "stregsystem.sale",
+        "pk": 1,
+        "fields": {
+            "member": 1,
+            "product": 2,
+            "room": 1,
+            "timestamp": "2017-03-13T12:52:52.142Z",
+            "price": 100
+        }
+    },
+    {
+        "model": "stregsystem.sale",
+        "pk": 2,
+        "fields": {
+            "member": 1,
+            "product": 3,
+            "room": 1,
+            "timestamp": "2017-03-13T12:52:52.142Z",
+            "price": 100
+        }
+    },
+    {
+        "model": "stregsystem.sale",
+        "pk": 3,
+        "fields": {
+            "member": 1,
+            "product": 3,
+            "room": 1,
+            "timestamp": "2017-03-13T12:52:52.142Z",
+            "price": 100
+        }
+    },
+    {
+        "model": "stregsystem.sale",
+        "pk": 4,
+        "fields": {
+            "member": 1,
+            "product": 3,
+            "room": 1,
+            "timestamp": "2017-03-13T12:52:52.142Z",
+            "price": 100
+        }
     },
     {
         "fields": {
