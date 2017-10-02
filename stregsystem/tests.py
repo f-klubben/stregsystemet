@@ -1236,29 +1236,6 @@ class ProductRoomFilterTests(TestCase):
         self.assertEqual(len(products), len(Product.objects.all()))
 
 
-class ProductAdminTests(TestCase):
-    fixtures = ["test_room_products"]
-
-    def test_no_room_shows_all(self):
-        genProduct = Product.objects.get(pk=1)
-        admin = ProductAdmin(Product, genProduct)
-        self.assertEquals(admin.rooms_display(genProduct), "All")
-
-    def test_specific_room_shows_room(self):
-        specialProduct = Product.objects.get(pk=3)
-        admin = ProductAdmin(Product, specialProduct)
-        room = Room.objects.get(pk=2)
-
-        self.assertEquals(room.name, admin.rooms_display(specialProduct))
-
-    def test_specific_rooms_shows_multiple_rooms(self):
-        specialProduct = Product.objects.get(pk=4)
-        admin = ProductAdmin(Product, specialProduct)
-        room = [Room.objects.get(pk=2), Room.objects.get(pk=3)]
-
-        self.assertEquals(room[0].name + ", " + room[1].name, admin.rooms_display(specialProduct))
-
-
 class CategoryAdminTests(TestCase):
     fixtures = ["test_category"]
 
@@ -1271,28 +1248,6 @@ class CategoryAdminTests(TestCase):
         testCategory = Category.objects.get(pk=2)
         admin = CategoryAdmin(Category, testCategory)
         self.assertEquals(1, admin.items_in_category(testCategory))
-
-    def test_category_display_none(self):
-        expected = ""
-        testProduct = Product.objects.get(pk=2)
-        admin = ProductAdmin(Product, testProduct)
-        actual = admin.categories_display(testProduct)
-        self.assertEquals(expected, actual)
-
-    def test_category_display_single(self):
-        expected = "test 2"
-        testProduct = Product.objects.get(pk=1)
-        admin = ProductAdmin(Product, testProduct)
-        actual = admin.categories_display(testProduct)
-        self.assertEquals(expected, actual)
-
-    def test_category_display_multiple(self):
-        expected_list = ["test 3", "test 4"]
-        testProduct = Product.objects.get(pk=3)
-        admin = ProductAdmin(Product, testProduct)
-        actual = admin.categories_display(testProduct)
-        for expected in expected_list:
-            self.assertIn(expected, actual)
 
 
 class QuickbuyParserTests(TestCase):
