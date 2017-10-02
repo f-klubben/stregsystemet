@@ -19,6 +19,8 @@ from . import views
 
 urlpatterns = [
     url(r'^admin/stregsystem/razzia/bread/$', views.bread),
+    url(r'^admin/stregsystem/razzia/wizard_guide/$', views.razzia_wizard),
+    url(r'^admin/stregsystem/razzia/wizard/$', views.razzia_view, name="razzia_view"),
     url(r'^admin/stregsystem/report/sales/$', views.sales, name="salesreporting"),
     url(r'^admin/stregsystem/report/ranks/$', views.ranks),
     url(r'^admin/stregsystem/report/daily/$', views.daily),

@@ -4,9 +4,11 @@ from functools import reduce
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count, Q, Sum, F
 from django.db.models.functions import TruncDay
+from django.forms import extras, fields
 from django.http import JsonResponse
-from django.shortcuts import render
-from django.utils import timezone
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.utils import timezone, dateparse
 
 from stregsystem.models import (
     Member,
@@ -57,6 +59,102 @@ def bread_view(request, queryname):
             member = result[0]
 
     return render(request, 'admin/stregsystem/razzia/bread.html', locals())
+
+
+def _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict):
+    result = (
+        Product.objects
+            .filter(
+                sale__member__username__iexact=username,
+                id__in=product_list,
+                sale__timestamp__gte=start_date,
+                sale__timestamp__lte=end_date)
+            .annotate(cnt=Count("id"))
+            .values_list("name", "cnt")
+    )
+
+    products_bought = {product: count for product, count in result}
+
+    return {product: products_bought.get(product, 0) for product in product_dict}
+
+
+def razzia_view(request):
+    default_start = datetime.date.today() - datetime.timedelta(days=-180)
+    default_end = datetime.date.today()
+    start = request.GET.get('start', default_start.isoformat())
+    end = request.GET.get('end', default_end.isoformat())
+    products = request.GET.get('products', "")
+    username = request.GET.get('username', "")
+    title = request.GET.get('razzia_title', "Razzia!")
+
+    try:
+        product_list = [int(p) for p in products.split(",")]
+    except ValueError:
+        return render(request, 'admin/stregsystem/razzia/error_wizarderror.html', {})
+
+    product_dict = {k.name: 0 for k in Product.objects.filter(id__in=product_list)}
+    if len(product_list) != len(product_dict.items()):
+        return render(request, 'admin/stregsystem/razzia/error_wizarderror.html', {})
+
+    try:
+        user = Member.objects.get(username__iexact=username)
+    except (Member.DoesNotExist, Member.MultipleObjectsReturned):
+        return render(request, 'admin/stregsystem/razzia/wizard_view.html',
+                      {
+                          'start': start,
+                          'end': end,
+                          'products': products,
+                          'username': username,
+                          'razzia_title': title}
+                      )
+
+    start_date = dateparse.parse_date(start)
+    end_date = dateparse.parse_date(end)
+    sales_to_user = _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict)
+
+    return render(request, 'admin/stregsystem/razzia/wizard_view.html',
+                  {
+                      'razzia_title': title,
+                      'username': username,
+                      'start': start,
+                      'end': end,
+                      'products': products,
+                      'member_name': user.firstname + " " + user.lastname,
+                      'items_bought': sales_to_user.items(),
+                  })
+
+
+razzia_view = staff_member_required(razzia_view)
+
+
+def razzia_wizard(request):
+    if request.method == 'POST':
+        return redirect(
+            reverse("razzia_view") + "?start={0}-{1}-{2}&end={3}-{4}-{5}&products={6}&username=&razzia_title={7}"
+            .format(int(request.POST['start_year']),
+                    int(request.POST['start_month']),
+                    int(request.POST['start_day']),
+                    int(request.POST['end_year']), int(request.POST['end_month']),
+                    int(request.POST['end_day']),
+                    request.POST.get('products'),
+                    request.POST.get('razzia_title')))
+
+    suggested_start_date = datetime.datetime.now() - datetime.timedelta(days=-180)
+    suggested_end_date = datetime.datetime.now()
+
+    start_date_picker = fields.DateField(
+        widget=extras.SelectDateWidget(years=[x for x in range(2000, datetime.datetime.now().year + 1)]))
+    end_date_picker = fields.DateField(
+        widget=extras.SelectDateWidget(years=[x for x in range(2000, datetime.datetime.now().year + 1)]))
+
+    return render(request, 'admin/stregsystem/razzia/wizard.html',
+                  {
+                      'start_date_picker': start_date_picker.widget.render("start", suggested_start_date),
+                      'end_date_picker': end_date_picker.widget.render("end", suggested_end_date)},
+                  )
+
+
+razzia_wizard = staff_member_required(razzia_wizard)
 
 
 def ranks(request, year=None):
@@ -275,10 +373,10 @@ def user_purchases_in_categories(request):
 
             user_sales_per_category_q = (
                 Member.objects
-                .filter(sale__product__categories__in=categories)
-                .annotate(sales=Count("sale__product__categories"))
-                .annotate(category=F("sale__product__categories__name"))
-                .values(
+                    .filter(sale__product__categories__in=categories)
+                    .annotate(sales=Count("sale__product__categories"))
+                    .annotate(category=F("sale__product__categories__name"))
+                    .values(
                     "id",
                     "sales",
                     "category",
@@ -292,8 +390,8 @@ def user_purchases_in_categories(request):
 
             users = (
                 Member.objects
-                .filter(sale__product__categories__in=categories)
-                .annotate(sales=Count("sale", distinct=True))
+                    .filter(sale__product__categories__in=categories)
+                    .annotate(sales=Count("sale", distinct=True))
             )
 
             header = categories.values_list("name", flat=True)
