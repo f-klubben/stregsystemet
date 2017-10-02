@@ -62,15 +62,20 @@ def bread_view(request, queryname):
 
 
 def _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict):
-    result = Sale.objects.prefetch_related('member').filter(
-        member__username__iexact=username,
-        product__in=product_list,
-        timestamp__gte=start_date,
-        timestamp__lte=end_date)
-    for res in result:
-        product_dict[res.product.name] += 1
+    result = (
+        Product.objects
+            .filter(
+                sale__member__username__iexact=username,
+                id__in=product_list,
+                sale__timestamp__gte=start_date,
+                sale__timestamp__lte=end_date)
+            .annotate(cnt=Count("id"))
+            .values_list("name", "cnt")
+    )
 
-    return product_dict
+    products_bought = {product: count for product, count in result}
+
+    return {product: products_bought.get(product, 0) for product in product_dict}
 
 
 def razzia_view(request):
@@ -368,10 +373,10 @@ def user_purchases_in_categories(request):
 
             user_sales_per_category_q = (
                 Member.objects
-                .filter(sale__product__categories__in=categories)
-                .annotate(sales=Count("sale__product__categories"))
-                .annotate(category=F("sale__product__categories__name"))
-                .values(
+                    .filter(sale__product__categories__in=categories)
+                    .annotate(sales=Count("sale__product__categories"))
+                    .annotate(category=F("sale__product__categories__name"))
+                    .values(
                     "id",
                     "sales",
                     "category",
@@ -385,8 +390,8 @@ def user_purchases_in_categories(request):
 
             users = (
                 Member.objects
-                .filter(sale__product__categories__in=categories)
-                .annotate(sales=Count("sale", distinct=True))
+                    .filter(sale__product__categories__in=categories)
+                    .annotate(sales=Count("sale", distinct=True))
             )
 
             header = categories.values_list("name", flat=True)
