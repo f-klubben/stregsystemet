@@ -107,23 +107,21 @@ class ProductAdmin(admin.ModelAdmin):
         'id',
         'name',
         'get_price_display',
-        'categories_display',
-        "get_bought",
-        'rooms_display')
+    )
     fields = (
         "name",
         "price",
         ("active", "deactivate_date"),
         ("start_date", "quantity", "get_bought"),
         "categories",
-        "alcohol_content_ml")
+        "alcohol_content_ml"
+    )
     readonly_fields = (
         "get_bought",
     )
 
     actions = [toggle_active_selected_products]
     filter_horizontal = ('categories', )
-
 
     def get_price_display(self, obj):
         if obj.price is None:
@@ -140,19 +138,6 @@ class ProductAdmin(admin.ModelAdmin):
     def activated(self, product):
         return product.is_active()
     activated.boolean = True
-
-
-    def categories_display(self, obj):
-        # TODO Add a link to the category.
-        return ', '.join((cat.name for cat in obj.categories.all()))
-    categories_display.short_description = "Categories"
-
-    def rooms_display(self, obj):
-        if len(obj.rooms.all()) == 0:
-            return 'All'
-        else:
-            return ', '.join(room.name for room in obj.rooms.all())
-    rooms_display.short_description = "Rooms"
 
 
 class CategoryAdmin(admin.ModelAdmin):
