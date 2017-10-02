@@ -8,7 +8,7 @@ from django.forms import extras, fields
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import timezone, dateparse
 
 from stregsystem.models import (
     Member,
@@ -74,17 +74,17 @@ def _sales_to_user_in_period(username, start_date, end_date, product_list, produ
 
 
 def razzia_view(request):
-    default_start = datetime.datetime.now() - datetime.timedelta(days=-180)
-    default_end = datetime.datetime.now()
-    start = request.GET.get('start', "{}-{}-{}".format(default_start.year, default_start.month, default_start.day))
-    end = request.GET.get('end', "{}-{}-{}".format(default_end.year, default_end.month, default_end.day))
-    products = request.GET.get('products')
-    username = request.GET.get('username')
+    default_start = datetime.date.today() - datetime.timedelta(days=-180)
+    default_end = datetime.date.today()
+    start = request.GET.get('start', default_start.isoformat())
+    end = request.GET.get('end', default_end.isoformat())
+    products = request.GET.get('products', "")
+    username = request.GET.get('username', "")
     title = request.GET.get('razzia_title', "Razzia!")
 
     try:
         product_list = [int(p) for p in products.split(",")]
-    except:
+    except ValueError:
         return render(request, 'admin/stregsystem/razzia/error_wizarderror.html', {})
 
     product_dict = {k.name: 0 for k in Product.objects.filter(id__in=product_list)}
@@ -93,7 +93,7 @@ def razzia_view(request):
 
     try:
         user = Member.objects.get(username__iexact=username)
-    except:
+    except (Member.DoesNotExist, Member.MultipleObjectsReturned):
         return render(request, 'admin/stregsystem/razzia/wizard_view.html',
                       {
                           'start': start,
@@ -103,8 +103,8 @@ def razzia_view(request):
                           'razzia_title': title}
                       )
 
-    start_date = datetime.datetime.strptime(start, "%Y-%m-%d").date()
-    end_date = datetime.datetime.strptime(end, "%Y-%m-%d").date()
+    start_date = dateparse.parse_date(start)
+    end_date = dateparse.parse_date(end)
     sales_to_user = _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict)
 
     return render(request, 'admin/stregsystem/razzia/wizard_view.html',
