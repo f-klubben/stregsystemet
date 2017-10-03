@@ -9,12 +9,98 @@
     },
     {
         "fields": {
+            "description": "Fytteturens Grill",
+            "name": "Fyttetur"
+        },
+        "model": "stregsystem.room",
+        "pk": "2"
+    },
+    {
+        "fields": {
             "active": 1,
             "name": "Limfjordsporter",
             "price": 900
         },
         "model": "stregsystem.product",
         "pk": "1"
+    },
+    {
+        "fields": {
+            "active": 1,
+            "name": "Flan",
+            "price": 900,
+            "start_date": "2017-03-06",
+            "quantity": 3
+        },
+        "model": "stregsystem.product",
+        "pk": "2"
+    },
+    {
+        "fields": {
+            "active": 1,
+            "name": "Flan but sold out",
+            "price": 900,
+            "start_date": "2017-03-06",
+            "quantity": 3
+        },
+        "model": "stregsystem.product",
+        "pk": "3"
+    },
+    {
+        "model": "stregsystem.sale",
+        "pk": 1,
+        "fields": {
+            "member": 1,
+            "product": 2,
+            "room": 1,
+            "timestamp": "2017-03-13T12:52:52.142Z",
+            "price": 100
+        }
+    },
+    {
+        "model": "stregsystem.sale",
+        "pk": 2,
+        "fields": {
+            "member": 1,
+            "product": 3,
+            "room": 1,
+            "timestamp": "2017-03-13T12:52:52.142Z",
+            "price": 100
+        }
+    },
+    {
+        "model": "stregsystem.sale",
+        "pk": 3,
+        "fields": {
+            "member": 1,
+            "product": 3,
+            "room": 1,
+            "timestamp": "2017-03-13T12:52:52.142Z",
+            "price": 100
+        }
+    },
+    {
+        "model": "stregsystem.sale",
+        "pk": 4,
+        "fields": {
+            "member": 1,
+            "product": 3,
+            "room": 1,
+            "timestamp": "2017-03-13T12:52:52.142Z",
+            "price": 100
+        }
+    },
+    {
+        "fields": {
+            "active": 1,
+            "name": "Smoker",
+            "price": 100,
+            "rooms": [
+                2
+            ]
+        },
+        "model": "stregsystem.product",
+        "pk": "4"
     },
     {
         "fields": {
@@ -63,5 +149,23 @@
         },
         "model": "stregsystem.member",
         "pk": "2"
+    },
+    {
+        "model": "auth.user",
+        "pk": 1,
+        "fields": {
+            "password": "pbkdf2_sha256$30000$ivRA8qABWClG$pxi2R4uyotlGpwa66RQuDOXFaO9JElQutMFJqXmnOdI=",
+            "last_login": "2017-09-22T09:26:03.388Z",
+            "is_superuser": true,
+            "username": "tester",
+            "first_name": "test",
+            "last_name": "testsen",
+            "email": "",
+            "is_staff": true,
+            "is_active": true,
+            "date_joined": "2017-03-06T10:53:54Z",
+            "groups": [],
+            "user_permissions": []
+        }
     }
 ]

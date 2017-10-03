@@ -5,6 +5,14 @@ var chart = c3.generate({
         url: '../sales_api',
 		mimeType: 'json',
 		type: "area-spline",
+		axes: {
+			sales: "y",
+			revenue: "y2",
+		},
+		colors: {
+			revenue: "#E74C3C",
+			sales: "#1ABC9C",
+		},
     },
 	axis: {
 		x: {
@@ -13,5 +21,12 @@ var chart = c3.generate({
 				format: '%Y-%m-%d',
 			},
 		},
+		y: {
+			label: "Sales",
+		},
+		y2: {
+			show: true,
+			label: "Revenue",
+		}
 	}
 });

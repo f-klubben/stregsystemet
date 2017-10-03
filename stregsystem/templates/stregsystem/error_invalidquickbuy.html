@@ -1,0 +1,33 @@
+{% extends "stregsystem/error.html" %}
+
+{% load stregsystem_extras %}
+
+{% block headline %}
+<div>Du forsøgte at bruge quickbuy men fejlede.</div>
+<div>This incident will be reported.</div>
+{% endblock %}
+{% block message %}
+<div class="center error-container">
+<pre class="the-pre-error">{{ correct }}</pre><pre class="the-error">{{ incorrect }}</pre>
+<pre class="the-error-pointer">
+{{ error_ptr }}
+{{ error_msg }}
+</pre>
+</div>
+<div class="ebnf-container">
+<div class="center">HINT! Se følgende EBNF:</div>
+<div class="center-around">
+<pre><span>quickbuy</span> = <span>username, {item}- ;</span></pre>
+<pre><span>item</span> = <span>number(*productId*) | quantified_item ;</span></pre>
+<pre><span>quantified_item</span> = <span>number(*productId*), ':', number(*quantifier*) ;</span></pre>
+<pre><span>number</span> = <span>digit | number, digit ;</span></pre>
+<pre><span>digit</span> = <span>[[:digit:]] ;</span></pre>
+<pre><span>username</span> = <span>16 * [^[:space:]] ;</span></pre>
+</div>
+
+<div class="footer center-around">
+<pre><span>ISO/IEC 14977</span> - <span>http://www.cl.cam.ac.uk/~mgk25/iso-14977-paper.pdf</span></pre>
+<pre><span>With the addition of PCRE character classes</span> - <span>http://www.pcre.org/original/doc/html/pcrepattern.html</span></pre>
+</div>
+</div>
+{% endblock %}

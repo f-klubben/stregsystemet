@@ -46,9 +46,10 @@
     <p>{% trans "You don't have permission to edit anything." %}</p>
 {% endif %}
 
-	<div class="module">
+  <div class="module">
         <table>
-        <caption><a href="/admin/stregsystem/report/" class="section">{% blocktrans with app.name as name %}Rapporter{% endblocktrans %}</a></caption>
+          <caption><a href="/admin/stregsystem/report/" class="section">{% blocktrans with app.name as name %}Rapporter{% endblocktrans %}</a></caption>
+
             <tr>
                 <th scope="row"><a href = "/admin/stregsystem/report/ranks/">Købs- og forbrugsrangeringer</a></th>
                 <td>&nbsp;</td>
@@ -64,6 +65,11 @@
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
             </tr>
+            <tr>
+              <th scope="row"><a href = "/admin/stregsystem/report/categories/">Bruger køb i kategorier</a></th>
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+            </tr>
         </table>
     </div>
 
@@ -72,6 +78,11 @@
         <caption><a class="section">{% blocktrans with app.name as name %}Razzia{% endblocktrans %}</a></caption>
             <tr>
                 <th scope="row"><a href = "/admin/stregsystem/razzia/bread/">Brødrazzia (Tjek om Fember)</a></th>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <th scope="row"><a href = "/admin/stregsystem/razzia/wizard_guide/">Razzia wizard!</a></th>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
             </tr>

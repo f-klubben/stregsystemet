@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.db.models import Q
 from django.utils import timezone
-from stregsystem.utils import make_active_productlist_query
+from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
 from stregsystem.models import (
+    Category,
     Member,
     News,
     Payment,
@@ -11,6 +12,7 @@ from stregsystem.models import (
     Room,
     Sale,
 )
+
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
@@ -90,9 +92,9 @@ class ProductActivatedListFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'Yes':
-            return queryset.filter(make_active_productlist_query())
+            return make_active_productlist_query(queryset)
         elif self.value() == 'No':
-            return queryset.exclude(make_active_productlist_query())
+            return make_inactive_productlist_query(queryset)
         else:
             return queryset
 
@@ -100,27 +102,53 @@ class ProductActivatedListFilter(admin.SimpleListFilter):
 class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'price', 'id')
     list_filter = (ProductActivatedListFilter, 'deactivate_date', 'price')
-    list_display = ('activated', 'id', 'name', 'get_price_display')
+    list_display = (
+        'activated',
+        'id',
+        'name',
+        'get_price_display',
+    )
+    fields = (
+        "name",
+        "price",
+        ("active", "deactivate_date"),
+        ("start_date", "quantity", "get_bought"),
+        "categories",
+        "alcohol_content_ml"
+    )
+    readonly_fields = (
+        "get_bought",
+    )
+
     actions = [toggle_active_selected_products]
+    filter_horizontal = ('categories', )
 
     def get_price_display(self, obj):
         if obj.price is None:
             obj.price = 0
         return "{0:.2f} kr.".format(obj.price / 100.0)
-
     get_price_display.short_description = "Price"
     get_price_display.admin_order_field = "price"
 
-    def activated(self, obj):
-        active = obj.active
-        if active and obj.deactivate_date is not None:
-            active = (obj.deactivate_date > timezone.now())
-        return active
+    def get_bought(self, obj):
+        return obj.bought
+    get_bought.short_description = "Bought"
+    get_bought.admin_order_field = "bought"
+
+    def activated(self, product):
+        return product.is_active()
     activated.boolean = True
 
 
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'items_in_category')
+
+    def items_in_category(self, obj):
+        return obj.product_set.count()
+
+
 class MemberAdmin(admin.ModelAdmin):
-    list_filter = ('want_spam',)
+    list_filter = ('want_spam', )
     search_fields = ('username', 'firstname', 'lastname', 'email')
     list_display = ('username', 'firstname', 'lastname', 'balance', 'email', 'notes')
 
@@ -156,4 +184,5 @@ admin.site.register(Member, MemberAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(News)
 admin.site.register(Product, ProductAdmin)
+admin.site.register(Category, CategoryAdmin)
 admin.site.register(Room)

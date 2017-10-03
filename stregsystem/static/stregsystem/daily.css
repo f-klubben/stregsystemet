@@ -1,3 +1,15 @@
+br.clear {
+	display: none;
+}
+
+#content {
+	padding-bottom: 0;
+}
+
+#footer {
+	padding: 0;
+}
+
 .clearfix:after {
   content: "";
   display: table;
@@ -6,7 +18,7 @@
 
 #statscontainer {
 	padding: 10px;
-	background-color: #E5F3F9;
+	background-color: #EDF2F6;
 	box-shadow: inset 0 8px 6px -6px rgba(0, 0, 0, .2);
 }
 
@@ -87,13 +99,18 @@
 }
 
 .panel {
-	padding: 10px;
 	float: left;
-	background-color:white;
+
+	padding: 10px;
+	width: 100%;
+
+	background-color: #F5F5F5;
+
+	box-sizing: border-box;
 	border-radius: 5px;
 	box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5);
-	box-sizing: border-box;
-	width: 100%
+
+	overflow: hidden;
 }
 
 .panel table {
@@ -104,24 +121,55 @@
 	margin: 0;
 	width: 100%;
 	box-sizing: border-box;
+	position:relative;
 }
 #topline .panel .icon{
-	float: right;
-	padding-right: 20px;
-	padding-top: 7px;
-	color: #417690;
+	color: #F0F0F0;
+	font-size: 2em;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translateY(-50%) translateX(-50%);
+	display: block;
+	color: rgba(255, 255, 255, .8);
+}
+#topline .panel .icon-container{
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: 0;
+	width: 70px;
+}
+.icon-color-1 {
+	background-color: #E74C3C;
+}
+.icon-color-2 {
+	background-color: #3498DB;
+}
+.icon-color-3 {
+	background-color: #1ABC9C;
+}
+
+.panel h2:first-child {
+	margin: -10px -10px 10px -10px; /* Go to the sides */
 }
 
 .panel h2 {
-	margin-top: 8px;
-	margin-bottom: 8px;
-	margin-left: 8px;
+	color: #F0F0F0;
+	background-color: #6F7E95;
+	padding: 20px;
+	margin-bottom: 10px;
 }
+
 #topline .panel h2 {
-	margin-top: 0px;
-	margin-bottom: 8px;
-	margin-left: 8px;
+	margin-top: 0;
+	margin-bottom: 0;
+	padding: 10px;
+	padding-top: 0;
+
+	background-color: inherit;
 	color: #9D9D9D;
-	font-size: .5em;
+
+	font-size: 1.1em;
 	font-weight: normal;
 }

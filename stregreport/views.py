@@ -1,14 +1,22 @@
-import collections
 import datetime
-from django.utils import timezone
 from functools import reduce
 
 from django.contrib.admin.views.decorators import staff_member_required
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Q, Sum, F
 from django.db.models.functions import TruncDay
+from django.forms import extras, fields
 from django.http import JsonResponse
-from django.shortcuts import render
-from stregsystem.models import Member, Product, Sale
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.utils import timezone, dateparse
+
+from stregsystem.models import (
+    Member,
+    Product,
+    Sale,
+    Category,
+)
+from stregreport.forms import CategoryReportForm
 
 
 def reports(request):
@@ -20,8 +28,13 @@ reports = staff_member_required(reports)
 
 def sales(request):
     if request.method == 'POST':
-        return sales_product(request, strings_to_whole(request.POST['products'].split()), request.POST['from_date'],
-                             request.POST['to_date'])
+        try:
+            return sales_product(request,
+                                 parse_id_string(request.POST['products']),
+                                 request.POST['from_date'],
+                                 request.POST['to_date'])
+        except RuntimeError as ex:
+            return sales_product(request, None, None, None, error=ex.__str__())
     else:
         return sales_product(request, None, None, None)
 
@@ -48,6 +61,102 @@ def bread_view(request, queryname):
     return render(request, 'admin/stregsystem/razzia/bread.html', locals())
 
 
+def _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict):
+    result = (
+        Product.objects
+            .filter(
+                sale__member__username__iexact=username,
+                id__in=product_list,
+                sale__timestamp__gte=start_date,
+                sale__timestamp__lte=end_date)
+            .annotate(cnt=Count("id"))
+            .values_list("name", "cnt")
+    )
+
+    products_bought = {product: count for product, count in result}
+
+    return {product: products_bought.get(product, 0) for product in product_dict}
+
+
+def razzia_view(request):
+    default_start = datetime.date.today() - datetime.timedelta(days=-180)
+    default_end = datetime.date.today()
+    start = request.GET.get('start', default_start.isoformat())
+    end = request.GET.get('end', default_end.isoformat())
+    products = request.GET.get('products', "")
+    username = request.GET.get('username', "")
+    title = request.GET.get('razzia_title', "Razzia!")
+
+    try:
+        product_list = [int(p) for p in products.split(",")]
+    except ValueError:
+        return render(request, 'admin/stregsystem/razzia/error_wizarderror.html', {})
+
+    product_dict = {k.name: 0 for k in Product.objects.filter(id__in=product_list)}
+    if len(product_list) != len(product_dict.items()):
+        return render(request, 'admin/stregsystem/razzia/error_wizarderror.html', {})
+
+    try:
+        user = Member.objects.get(username__iexact=username)
+    except (Member.DoesNotExist, Member.MultipleObjectsReturned):
+        return render(request, 'admin/stregsystem/razzia/wizard_view.html',
+                      {
+                          'start': start,
+                          'end': end,
+                          'products': products,
+                          'username': username,
+                          'razzia_title': title}
+                      )
+
+    start_date = dateparse.parse_date(start)
+    end_date = dateparse.parse_date(end)
+    sales_to_user = _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict)
+
+    return render(request, 'admin/stregsystem/razzia/wizard_view.html',
+                  {
+                      'razzia_title': title,
+                      'username': username,
+                      'start': start,
+                      'end': end,
+                      'products': products,
+                      'member_name': user.firstname + " " + user.lastname,
+                      'items_bought': sales_to_user.items(),
+                  })
+
+
+razzia_view = staff_member_required(razzia_view)
+
+
+def razzia_wizard(request):
+    if request.method == 'POST':
+        return redirect(
+            reverse("razzia_view") + "?start={0}-{1}-{2}&end={3}-{4}-{5}&products={6}&username=&razzia_title={7}"
+            .format(int(request.POST['start_year']),
+                    int(request.POST['start_month']),
+                    int(request.POST['start_day']),
+                    int(request.POST['end_year']), int(request.POST['end_month']),
+                    int(request.POST['end_day']),
+                    request.POST.get('products'),
+                    request.POST.get('razzia_title')))
+
+    suggested_start_date = datetime.datetime.now() - datetime.timedelta(days=-180)
+    suggested_end_date = datetime.datetime.now()
+
+    start_date_picker = fields.DateField(
+        widget=extras.SelectDateWidget(years=[x for x in range(2000, datetime.datetime.now().year + 1)]))
+    end_date_picker = fields.DateField(
+        widget=extras.SelectDateWidget(years=[x for x in range(2000, datetime.datetime.now().year + 1)]))
+
+    return render(request, 'admin/stregsystem/razzia/wizard.html',
+                  {
+                      'start_date_picker': start_date_picker.widget.render("start", suggested_start_date),
+                      'end_date_picker': end_date_picker.widget.render("end", suggested_end_date)},
+                  )
+
+
+razzia_wizard = staff_member_required(razzia_wizard)
+
+
 def ranks(request, year=None):
     if year:
         return ranks_for_year(request, int(year))
@@ -58,39 +167,40 @@ def ranks(request, year=None):
 ranks = staff_member_required(ranks)
 
 
-def sales_product(request, ids, from_time, to_time):
+def sales_product(request, ids, from_time, to_time, error=None):
     date_format = '%Y-%m-%d'
 
+    if error is not None:
+        return render(request, 'admin/stregsystem/report/error_invalidsalefetch.html', {'error': error})
+
     try:
-        try:
-            from_date_time = datetime.datetime.strptime(from_time, date_format)
-        except:
-            from_date_time = first_of_month(datetime.datetime.now())
-        from_time = from_date_time.strftime(date_format)
+        from_date_time = datetime.datetime.strptime(from_time, date_format)
+    except (ValueError, TypeError):
+        from_date_time = first_of_month(datetime.datetime.now())
+    from_time = from_date_time.strftime(date_format)
 
-        try:
-            to_date_time = late(datetime.datetime.strptime(to_time, date_format))
-        except:
-            to_date_time = datetime.datetime.now()
-        to_time = to_date_time.strftime(date_format)
-        sales = []
-        if ids and len(ids) > 0:
-            products = reduce(lambda a, b: a + str(b) + ' ', ids, '')
-            query = reduce(lambda x, y: x | y, [Q(id=z) for z in ids])
-            query &= Q(sale__timestamp__gt=from_date_time)
-            query &= Q(sale__timestamp__lte=to_date_time)
-            result = Product.objects.filter(query).annotate(Count('sale'), Sum('sale__price'))
+    try:
+        to_date_time = late(datetime.datetime.strptime(to_time, date_format))
+    except (ValueError, TypeError):
+        to_date_time = datetime.datetime.now()
+    to_time = to_date_time.strftime(date_format)
+    sales = []
+    if ids is not None and len(ids) > 0:
+        products = reduce(lambda a, b: a + str(b) + ' ', ids, '')
+        query = reduce(lambda x, y: x | y, [Q(id=z) for z in ids])
+        query &= Q(sale__timestamp__gt=from_date_time)
+        query &= Q(sale__timestamp__lte=to_date_time)
+        result = Product.objects.filter(query).annotate(Count('sale'), Sum('sale__price'))
 
-            count = 0
-            sum = 0
-            for r in result:
-                sales.append((r.pk, r.name, r.sale__count, money(r.sale__price__sum)))
-                count = count + r.sale__count
-                sum = sum + r.sale__price__sum
+        count = 0
+        sum = 0
+        for r in result:
+            sales.append((r.pk, r.name, r.sale__count, money(r.sale__price__sum)))
+            count = count + r.sale__count
+            sum = sum + r.sale__price__sum
 
-            sales.append(('', 'TOTAL', count, money(sum)))
-    except:
-        return render(request, 'admin/stregsystem/report/error_invalidsalefetch.html', locals())
+        sales.append(('', 'TOTAL', count, money(sum)))
+
     return render(request, 'admin/stregsystem/report/sales.html', locals())
 
 
@@ -172,15 +282,11 @@ def money(value):
     return "{0:.2f}".format(value / 100.0)
 
 
-def strings_to_whole(strings):
-    def append_if_digit(list, digit):
-        if isinstance(digit, str) and digit.isdigit():
-            list.append(int(digit))
-        return list
-
-    if not isinstance(strings, collections.Iterable):
-        return []
-    return reduce(append_if_digit, strings, [])
+def parse_id_string(id_string):
+    try:
+        return list(map(int, id_string.split(' ')))
+    except ValueError as ex:
+        raise RuntimeError("The list contained an invalid id: {}".format(ex.__str__()))
 
 
 def late(date):
@@ -211,6 +317,10 @@ def daily(request):
                      .filter(timestamp__gt=startTime_month)
                      .aggregate(Sum("price"))
                      ["price__sum"]) or 0.0
+    top_month_category = (Category.objects
+                          .filter(product__sale__timestamp__gt=startTime_month)
+                          .annotate(sale=Count("product__sale"))
+                          .order_by("-sale")[:7])
 
     return render(request, 'admin/stregsystem/report/daily.html', locals())
 
@@ -221,25 +331,90 @@ def sales_api(request):
           .filter(timestamp__gt=startTime_month)
           .order_by("timestamp")
           .annotate(day=TruncDay('timestamp'))
-          .values('day')
+          .values('day', 'product')
           .annotate(c=Count('id'))
+          .annotate(r=Sum('price'))
           .order_by())
-    db_sales = {i["day"].date(): i["c"] for i in qs}
+    db_sales = {i["day"].date(): (i["c"], money(i["r"])) for i in qs}
     base = timezone.now().date()
     date_list = [base - datetime.timedelta(days=x) for x in range(0, 30)]
 
-    sales = []
+    sales_list = []
+    revenue_list = []
     for date in date_list:
         if date in db_sales:
-            sales.append(db_sales[date])
+            sales, revenue = db_sales[date]
+            sales_list.append(sales)
+            revenue_list.append(revenue)
         else:
-            sales.append(0)
+            sales_list.append(0)
+            revenue_list.append(0)
 
     items = {
         "day": date_list,
-        "sales": sales,
+        "sales": sales_list,
+        "revenue": revenue_list,
     }
     return JsonResponse(items)
 
 
 daily = staff_member_required(daily)
+
+
+def user_purchases_in_categories(request):
+    form = CategoryReportForm()
+    categories = []
+    data = None
+    header = None
+    if request.method == 'POST':
+        form = CategoryReportForm(request.POST)
+        if form.is_valid():
+            categories = form.cleaned_data['categories']
+
+            user_sales_per_category_q = (
+                Member.objects
+                    .filter(sale__product__categories__in=categories)
+                    .annotate(sales=Count("sale__product__categories"))
+                    .annotate(category=F("sale__product__categories__name"))
+                    .values(
+                    "id",
+                    "sales",
+                    "category",
+                )
+            )
+            user_sales_per_category = {}
+            for q in user_sales_per_category_q:
+                if q["id"] not in user_sales_per_category:
+                    user_sales_per_category[q["id"]] = {}
+                user_sales_per_category[q["id"]][q["category"]] = q["sales"]
+
+            users = (
+                Member.objects
+                    .filter(sale__product__categories__in=categories)
+                    .annotate(sales=Count("sale", distinct=True))
+            )
+
+            header = categories.values_list("name", flat=True)
+
+            data = []
+            for user in users:
+                category_assoc = []
+                for h in header:
+                    this_sales = user_sales_per_category[user.id]
+                    if h in this_sales:
+                        category_assoc.append(
+                            this_sales[h]
+                        )
+                    else:
+                        category_assoc.append(0)
+                data.append((user, category_assoc))
+
+    return render(
+        request,
+        'admin/stregsystem/report/user_purchases_in_categories.html',
+        {
+            "form": form,
+            "data": data,
+            "header": header,
+        }
+    )

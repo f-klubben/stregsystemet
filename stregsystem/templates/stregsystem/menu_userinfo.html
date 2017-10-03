@@ -54,32 +54,6 @@ Ingen indbetalinger!
 
 <br />
 
-
-{% comment %}
-<center><b>Total forbrug fordelt på produkt</b></center>
-<table border=1 width="100%">
-   <tr>
-      <th align=left>Produkt</th>
-      <th align=left>Total</th>
-   </tr>
-
-{% for pr in total_by_product %}
-   <tr>
-      <td>{{pr.0}}</td>
-      <td align=right>{{pr.1|money}}</td>
-   </tr>
-{% endfor %}
-
-   <tr>
-      <td align=left><b>Totalt forbrug</b></td>
-      <td align=right><b>{{total_sales|money}}</b></td>
-   </tr>
-</table>
-
-<br />
-
-{% endcomment %}
-
 <center><b>I databasen ligger desuden følgende informationer om dig</b></center>
 <table border=1 width="100%">
    <tr>

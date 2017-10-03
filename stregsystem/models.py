@@ -1,12 +1,11 @@
-from django.db import models
+from collections import Counter
+
+from django.db import models, transaction
+from django.db.models import Count
 from django.utils import timezone
 
-
-# treo.stregsystem.templatetags stregsystem_extras : money
-def money(value):
-    if value is None:
-        value = 0
-    return "{0:.2f}".format(value / 100.0)
+from stregsystem.deprecated import deprecated
+from stregsystem.templatetags.stregsystem_extras import money
 
 
 def price_display(value):
@@ -22,6 +21,10 @@ def active_str(a):
 
 # Errors
 class StregForbudError(Exception):
+    pass
+
+
+class NoMoreInventoryError(Exception):
     pass
 
 
@@ -64,6 +67,76 @@ class PayTransaction(MoneyTransaction):
         return -self.amount
 
 
+class OrderItem(object):
+    def __init__(self, product, order, count):
+        self.product = product
+        self.order = order
+        self.count = count
+
+    def price(self):
+        return self.product.price * self.count
+
+
+class Order(object):
+    def __init__(self, member, room, items=None):
+        self.member = member
+        self.room = room
+        self.created_on = timezone.now()
+        self.items = items or set()  # Set to none because we don't persist
+
+    @classmethod
+    def from_products(cls, member, room, products):
+        counts = Counter(products)
+        order = cls(member, room)
+        for (product, count) in counts.items():
+            item = OrderItem(
+                product=product,
+                order=order,
+                count=count
+            )
+            order.items.add(item)
+        return order
+
+    # @HACK In reality calculating the total for old products is way harder and
+    # more complicated than this. While it's not in the database this is
+    # acceptable
+    def total(self):
+        return sum((x.price() for x in self.items))
+
+    @transaction.atomic
+    def execute(self):
+        transaction = PayTransaction(amount=self.total())
+
+        # Check if we have enough inventory to fulfill the order
+        for item in self.items:
+            if (item.product.start_date is not None
+                    and (item.product.bought + item.count
+                         > item.product.quantity)):
+                raise NoMoreInventoryError()
+
+        if not self.member.can_fulfill(transaction):
+            raise StregForbudError()
+
+        self.member.fulfill(transaction)
+
+        for item in self.items:
+            # @HACK Since we want to use the old database layout, we need to
+            # add a sale for every item and every instance of that item
+            for i in range(item.count):
+                s = Sale(
+                    member=self.member,
+                    product=item.product,
+                    room=self.room,
+                    price=item.product.price
+                )
+                s.save()
+
+            # Bought (used above) is automatically calculated, so we don't need
+            # to update it
+        # We changed the user balance, so save that
+        self.member.save()
+
+
 class GetTransaction(MoneyTransaction):
     # The change to the users account
     def change(self):
@@ -94,12 +167,15 @@ class Member(models.Model):  # id automatisk...
 
     stregforbud_override = False
 
+    # I don't know if this is actually used anywhere - Jesper 17/09-2017
+    @deprecated
     def balance_display(self):
         return money(self.balance) + " kr."
 
     balance_display.short_description = "Balance"
     balance_display.admin_order_field = 'balance'
 
+    @deprecated
     def __unicode__(self):
         return self.username + active_str(self.active) + ": " + self.email + " " + money(self.balance)
 
@@ -158,40 +234,31 @@ class Member(models.Model):  # id automatisk...
 
         return self.balance - buy < 0
 
+    # BAC in this method stands for "Blood alcohol content"
     def calculate_alcohol_promille(self):
-        # Disabled:
-        # return False
+        from stregsystem.booze import alcohol_bac_timeline, Gender
         from datetime import timedelta
-        # formodet draenet vaegt paa en gennemsnitsdatalog
-        weight = 80.0
-        # Vi burde flytte det her til databasen, saa kan treoen lave noget ;)
-        drinks_in_product = {13: 1.24, 14: 1.0, 29: 1.0, 42: 1.72, 47: 1.52, 54: 1.24, 65: 1.5, 66: 1.5,
-                             1773: 1.0, 1776: 1.52, 1777: 1.52, 1779: 2.0, 1780: 2.58, 1783: 1.0, 1793: 1.0, 1794: 0.96,
-                             22: 7.0, 23: 7.0, 41: 19.14, 53: 9.22, 63: 1.0, 64: 7.0, 1767: 1.02, 1769: 1.0, 1770: 2.0,
-                             1802: 2.0, 1807: 6.6, 1808: 7.5, 1809: 8.3}
 
         now = timezone.now()
-        delta = now - timedelta(hours=12)
-        alcohol_sales = Sale.objects.filter(member_id=self.id, timestamp__gt=delta,
-                                            product__in=list(drinks_in_product.keys())).order_by('timestamp')
-        drinks = 0.0
+        # Lets assume noone is drinking 12 hours straight
+        calculation_start = now - timedelta(hours=12)
 
-        if self.gender == 'M':
-            drinks_pr_hour = 0.01250 * weight
-        elif self.gender == 'F':
-            drinks_pr_hour = 0.00833 * weight
-        else:
-            # tilfaeldigt gennemsnit for ukendt koen
-            drinks_pr_hour = 0.01042 * weight
+        alcohol_sales = (
+            self.sale_set
+            .filter(timestamp__gt=calculation_start,
+                    product__alcohol_content_ml__gt=0.0)
+            .order_by('timestamp')
+        )
+        alcohol_timeline = [(s.timestamp, s.product.alcohol_content_ml)
+                            for s in alcohol_sales]
 
-        if (len(alcohol_sales) > 0):
-            last_time_frame = alcohol_sales[0].timestamp
-            for sale in alcohol_sales:
-                current_time_frame = sale.timestamp
-                drinks = max(0.0, drinks - (current_time_frame - last_time_frame).seconds / 3600.0 * drinks_pr_hour)
-                drinks = drinks + drinks_in_product[sale.product_id]
-                last_time_frame = current_time_frame
-            drinks = max(0.0, drinks - (now - last_time_frame).seconds / 3600.0 * drinks_pr_hour)
+        gender = Gender.UNKNOWN
+        if self.gender == "M":
+            gender = Gender.MALE
+        elif self.gender == "F":
+            gender = Gender.FEMALE
+
+        bac = alcohol_bac_timeline(gender, 80, now, alcohol_timeline)
 
         # Tihi:
         drunken_bastards = {
@@ -201,17 +268,9 @@ class Member(models.Model):  # id automatisk...
             2024: 31.5,  # jbr
             2414: 5440,  # kkkas
         }
+        bac += drunken_bastards.get(self.id, 0.0)
 
-        if self.gender == 'M':
-            consume_percent = 0.68
-        elif self.gender == 'F':
-            consume_percent = 0.55
-        else:
-            consume_percent = 0.615
-
-        promille = 12.0 * drinks / (consume_percent * weight)
-        promille = promille + drunken_bastards.get(self.id, 0.0)
-        return str(round(promille, 2))
+        return bac
 
 
 class Payment(models.Model):  # id automatisk...
@@ -219,6 +278,7 @@ class Payment(models.Model):  # id automatisk...
     timestamp = models.DateTimeField(auto_now_add=True)
     amount = models.IntegerField()  # penge, oere...
 
+    @deprecated
     def amount_display(self):
         return money(self.amount) + " kr."
 
@@ -226,6 +286,7 @@ class Payment(models.Model):  # id automatisk...
     # XXX - django bug - kan ikke vaelge mellem desc og asc i admin, som ved normalt felt
     amount_display.admin_order_field = '-amount'
 
+    @deprecated
     def __unicode__(self):
         return self.member.username + " " + str(self.timestamp) + ": " + money(self.amount)
 
@@ -247,13 +308,39 @@ class Payment(models.Model):  # id automatisk...
         else:
             super(Payment, self).delete(*args, **kwargs)
 
+class Category(models.Model):
+    name = models.CharField(max_length=64)
 
-class Product(models.Model):  # id automatisk...
-    name = models.CharField(max_length=32)
+    def __unicode__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = 'Categories'
+
+# XXX
+class Room(models.Model):
+    name = models.CharField(max_length=64)
+    description = models.CharField(max_length=64)
+
+    @deprecated
+    def __unicode__(self):
+        return self.name
+
+class Product(models.Model): # id automatisk...
+    name = models.CharField(max_length=64)
     price = models.IntegerField()  # penge, oere...
     active = models.BooleanField()
+    start_date = models.DateField(blank=True, null=True)
+    quantity = models.IntegerField(default=0)
     deactivate_date = models.DateTimeField(blank=True, null=True)
+    categories = models.ManyToManyField(Category, blank=True)
+    rooms = models.ManyToManyField(Room, blank=True)
+    alcohol_content_ml = models.FloatField(default=0.0, null=True)
 
+    @deprecated
     def __unicode__(self):
         return active_str(self.active) + " " + self.name + " (" + money(self.price) + ")"
 
@@ -269,24 +356,39 @@ class Product(models.Model):  # id automatisk...
         if price_changed:
             OldPrice.objects.create(product=self, price=self.price)
 
+    @property
+    def bought(self):
+        # @INCOMPLETE: If it's an unlimited item we just don't care about the
+        # bought count - Jesper 27/09-2017
+        if self.start_date is None:
+            return 0
+        return (
+            self.sale_set
+            .filter(timestamp__gt=self.start_date)
+            .aggregate(bought=Count("id"))["bought"])
+
+    def is_active(self):
+        expired = (self.deactivate_date is not None
+                   and self.deactivate_date <= timezone.now())
+
+        if self.start_date is not None:
+            out_of_stock = self.quantity <= self.bought
+        else:
+            # Items without a startdate is never out of stock
+            out_of_stock = False
+
+        return (self.active
+                and not expired
+                and not out_of_stock)
 
 class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statistik?
     product = models.ForeignKey(Product, related_name='old_prices')
     price = models.IntegerField()  # penge, oere...
     changed_on = models.DateTimeField(auto_now_add=True)
 
+    @deprecated
     def __unicode__(self):
         return self.product.name + ": " + money(self.price) + " (" + str(self.changed_on) + ")"
-
-
-# XXX
-class Room(models.Model):
-    name = models.CharField(max_length=20)
-    description = models.CharField(max_length=20)
-
-    def __unicode__(self):
-        return self.name
-
 
 class Sale(models.Model):
     member = models.ForeignKey(Member)
@@ -302,6 +404,7 @@ class Sale(models.Model):
     # XXX - django bug - kan ikke vaelge mellem desc og asc i admin, som ved normalt felt
     price_display.admin_order_field = 'price'
 
+    @deprecated
     def __unicode__(self):
         return self.member.username + " " + self.product.name + " (" + money(self.price) + ") " + str(self.timestamp)
 
@@ -319,7 +422,7 @@ class Sale(models.Model):
 
 # XXX
 class News(models.Model):
-    title = models.CharField(max_length=40)
+    title = models.CharField(max_length=64)
     text = models.TextField()
     pub_date = models.DateTimeField()
     stop_date = models.DateTimeField()
@@ -327,5 +430,6 @@ class News(models.Model):
     class Meta:
         verbose_name_plural = "News"
 
+    @deprecated
     def __unicode__(self):
         return self.title + " -- " + str(self.pub_date)
