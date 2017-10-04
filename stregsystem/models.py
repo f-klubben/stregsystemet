@@ -397,6 +397,11 @@ class Sale(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     price = models.IntegerField()
 
+    class Meta:
+        index_together = [
+            ["product", "timestamp"],
+        ]
+
     def price_display(self):
         return money(self.price) + " kr."
 
