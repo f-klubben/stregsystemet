@@ -65,7 +65,8 @@ def sale(request, room_id):
             'correct': err.parsed_part,
             'incorrect': err.failed_part,
             'error_ptr': '~' * (len(err.parsed_part)) + '^',
-            'error_msg': ' ' * (len(err.parsed_part) - 4) + 'Fejl her'}
+            'error_msg': ' ' * (len(err.parsed_part) - 4) + 'Fejl her',
+            'room': room}
         return render(request, 'stregsystem/error_invalidquickbuy.html', values)
     # Fetch member from DB
     try:
