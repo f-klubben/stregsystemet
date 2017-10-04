@@ -2,7 +2,7 @@ import datetime
 from functools import reduce
 
 from django.contrib.admin.views.decorators import staff_member_required
-from django.db.models import Count, Q, Sum, F
+from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncDay
 from django.forms import extras, fields
 from django.http import JsonResponse
@@ -10,13 +10,13 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils import timezone, dateparse
 
+from stregreport.forms import CategoryReportForm
 from stregsystem.models import (
     Member,
     Product,
     Sale,
     Category,
 )
-from stregreport.forms import CategoryReportForm
 
 
 def reports(request):
@@ -65,10 +65,10 @@ def _sales_to_user_in_period(username, start_date, end_date, product_list, produ
     result = (
         Product.objects
             .filter(
-                sale__member__username__iexact=username,
-                id__in=product_list,
-                sale__timestamp__gte=start_date,
-                sale__timestamp__lte=end_date)
+            sale__member__username__iexact=username,
+            id__in=product_list,
+            sale__timestamp__gte=start_date,
+            sale__timestamp__lte=end_date)
             .annotate(cnt=Count("id"))
             .values_list("name", "cnt")
     )
@@ -362,7 +362,6 @@ daily = staff_member_required(daily)
 
 def user_purchases_in_categories(request):
     form = CategoryReportForm()
-    categories = []
     data = None
     header = None
     if request.method == 'POST':
@@ -370,43 +369,53 @@ def user_purchases_in_categories(request):
         if form.is_valid():
             categories = form.cleaned_data['categories']
 
-            user_sales_per_category_q = (
-                Member.objects
-                    .filter(sale__product__categories__in=categories)
-                    .annotate(sales=Count("sale__product__categories"))
-                    .annotate(category=F("sale__product__categories__name"))
-                    .values(
-                    "id",
-                    "sales",
-                    "category",
-                )
-            )
+            # @SPEED: This is not a good solution for maximum speed,
+            # however neither is using MySQL. Django doesn't want to
+            # group by category_id correctly.
+            # -- Troels 2017-10-04
+
             user_sales_per_category = {}
-            for q in user_sales_per_category_q:
-                if q["id"] not in user_sales_per_category:
-                    user_sales_per_category[q["id"]] = {}
-                user_sales_per_category[q["id"]][q["category"]] = q["sales"]
+            for c in categories:
+                user_sales_per_category_q = (
+                    Member.objects
+                    .filter(sale__product__categories=c)
+                    .annotate(sales=Count("*"))
+                    .order_by("sale__product__categories")
+                    .values_list(
+                        "id",
+                        "sales",
+                        "sale__product__categories__name",
+                    )
+                )
+
+                for user_id, sale_count, category_name in user_sales_per_category_q:
+                    if user_id not in user_sales_per_category:
+                        user_sales_per_category[user_id] = {}
+                    user_sales_per_category[user_id][category_name] = sale_count
 
             users = (
                 Member.objects
-                    .filter(sale__product__categories__in=categories)
-                    .annotate(sales=Count("sale", distinct=True))
+                .filter(sale__product__categories__in=categories)
+                .annotate(total_sales=Count("*"))
+                .order_by("-total_sales")
+                .values_list(
+                    "id",
+                    "username",
+                    "total_sales",
+                )
             )
 
             header = categories.values_list("name", flat=True)
-
             data = []
-            for user in users:
+            for user_id, username, total_sales in users:
                 category_assoc = []
                 for h in header:
-                    this_sales = user_sales_per_category[user.id]
+                    this_sales = user_sales_per_category[user_id]
                     if h in this_sales:
-                        category_assoc.append(
-                            this_sales[h]
-                        )
+                        category_assoc.append(this_sales[h])
                     else:
                         category_assoc.append(0)
-                data.append((user, category_assoc))
+                data.append((username, total_sales, category_assoc))
 
     return render(
         request,
