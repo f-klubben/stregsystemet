@@ -329,12 +329,11 @@ def sales_api(request):
     startTime_month = timezone.now() - datetime.timedelta(days=30)
     qs = (Sale.objects
           .filter(timestamp__gt=startTime_month)
-          .order_by("timestamp")
           .annotate(day=TruncDay('timestamp'))
-          .values('day', 'product')
-          .annotate(c=Count('id'))
+          .values('day')
+          .annotate(c=Count('*'))
           .annotate(r=Sum('price'))
-          .order_by())
+          )
     db_sales = {i["day"].date(): (i["c"], money(i["r"])) for i in qs}
     base = timezone.now().date()
     date_list = [base - datetime.timedelta(days=x) for x in range(0, 30)]
