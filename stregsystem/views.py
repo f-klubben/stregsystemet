@@ -129,20 +129,6 @@ def usermenu(request, room, member, bought):
         return render(request, 'stregsystem/menu.html', locals())
 
 
-def __get_total_by_product(member):
-    from django.db import connection
-    cursor = connection.cursor()
-    cursor.execute("""SELECT name, SUM(sale.price)
-                    FROM `stregsystem_sale` as `sale`, `stregsystem_product` as `product`
-                    WHERE `member_id` = %s AND product.id = sale.product_id GROUP BY `product_id`""", [member.id])
-    l = cursor.fetchall()
-    l2 = []
-    for a in l:
-        l2.append((a[0], int(a[1])))
-
-    return l2
-
-
 def menu_userinfo(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
@@ -153,9 +139,6 @@ def menu_userinfo(request, room_id, member_id):
         last_payment = member.payment_set.order_by('-timestamp')[0]
     except IndexError:
         last_payment = None
-
-    _total_by_product = __get_total_by_product(member)
-    total_sales = reduce(lambda s, i: s + i[1], _total_by_product, 0)
 
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()

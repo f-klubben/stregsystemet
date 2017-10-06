@@ -400,20 +400,9 @@ class UserInfoViewTests(TestCase):
             self.payments[-1]
         )
 
-    def test_total_sales(self):
-        response = self.client.post(
-            reverse('userinfo', args=(self.room.id, self.jokke.id)),
-        )
-
-        self.assertEqual(
-            response.context["total_sales"],
-            300
-        )
-
     # @INCOMPLETE: Strictly speaking there are two more variables here. Are
     # they actually necessary, since we don't allow people to go negative
     # anymore anyway? - Jesper 18/09-2017
-
 
 
 class TransactionTests(TestCase):
