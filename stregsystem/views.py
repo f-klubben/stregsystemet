@@ -86,6 +86,21 @@ def sale(request, room_id):
         return usermenu(request, room, member, None)
 
 
+def _multibuy_hint(now, member):
+    # Get a timestamp to fetch sales for the member since.
+    earliest_recent_purchase = now - datetime.timedelta(seconds=60)
+    # Count the sales since
+    number_of_recent_distinct_purchases = (
+        Sale.objects
+            .filter(member=member, timestamp__gt=earliest_recent_purchase)
+            .values("timestamp")
+            .distinct()
+            .count()
+    )
+    # Only give hint if the user did not just do a multibuy
+    return number_of_recent_distinct_purchases > 1
+
+
 def quicksale(request, room, member, bought_ids):
     news = __get_news()
     product_list = __get_productlist(room.id)
@@ -120,22 +135,19 @@ def quicksale(request, room, member, bought_ids):
 
     cost = order.total
 
-    # Get a timestamp to fetch sales for the member since.
-    earliest_recent_purchase = now - datetime.timedelta(seconds=60)
-    # Count the sales since
-    number_of_recent_purchases = Sale.objects.filter(member=member, timestamp__gt=earliest_recent_purchase).count() - 1
-    # Only give hint if the user did not just do a multibuy
-    give_multibuy_hint = number_of_recent_purchases > 0 and len(bought_ids) == 1
+    give_multibuy_hint = _multibuy_hint(now, member) and len(bought_ids) == 1
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
 
-def usermenu(request, room, member, bought):
+def usermenu(request, room, member, bought, from_sale=False):
     negative_balance = member.balance < 0
     product_list = __get_productlist(room.id)
     news = __get_news()
     promille = member.calculate_alcohol_promille()
     is_ballmer_peaking, bp_minutes, bp_seconds, = ballmer_peak(promille)
+
+    give_multibuy_hint = _multibuy_hint(timezone.now(), member) and from_sale
 
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())
@@ -186,4 +198,4 @@ def menu_sale(request, room_id, member_id, product_id=None):
         return render(request, 'stregsystem/error_stregforbud.html', locals())
     # Refresh member, to get new amount
     member = Member.objects.get(pk=member_id, active=True)
-    return usermenu(request, room, member, product)
+    return usermenu(request, room, member, product, from_sale=True)
