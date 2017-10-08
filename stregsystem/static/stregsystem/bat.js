@@ -27,6 +27,10 @@ spawn_bat = function () {
     };setTimeout(A,r()*3e3);
 }
 
-for(n_bats=0; n_bats < (new Date().getDate()); n_bats++){
-    spawn_bat();
+d = new Date()
+
+if(d.getMonth() === 9){
+    for(n_bats=0; n_bats < (d.getDate()); n_bats++){
+        spawn_bat();
+    }
 }
