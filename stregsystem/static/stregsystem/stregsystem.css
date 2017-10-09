@@ -69,3 +69,16 @@ table h2, table h3 {
 .ebnf-container {
     margin-top: 20px;
 }
+
+.day_hidden {
+  display: none !important;
+  fill: none !important;
+}
+
+#advent_candle {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  max-height: 75%;
+  max-width: 400px;
+}
