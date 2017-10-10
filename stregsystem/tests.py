@@ -4,34 +4,29 @@ from collections import Counter
 
 from django.test import TestCase
 from django.urls import reverse
-from freezegun import freeze_time
 from django.utils import timezone
 from freezegun import freeze_time
 
 import stregsystem.parser as parser
 from stregreport import views
-from stregsystem.admin import ProductAdmin
 from stregsystem import admin
-from stregsystem.admin import (
-    CategoryAdmin,
-    ProductAdmin,
-)
+from stregsystem.admin import CategoryAdmin, ProductAdmin
 from stregsystem.booze import ballmer_peak
 from stregsystem.models import (
     Category,
     GetTransaction,
     Member,
+    NoMoreInventoryError,
+    Order,
+    OrderItem,
     Payment,
     PayTransaction,
     Product,
     Room,
-    Order,
-    OrderItem,
-    NoMoreInventoryError,
     Sale,
     StregForbudError,
-    price_display,
     active_str,
+    price_display
 )
 
 try:

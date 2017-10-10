@@ -1,6 +1,5 @@
-from enum import Enum
 import datetime
-
+from enum import Enum
 
 BAC_DEGRADATION_PR_HOUR = 0.15
 

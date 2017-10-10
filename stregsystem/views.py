@@ -4,20 +4,22 @@ from functools import reduce
 from django.db.models import Q
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
+
+import stregsystem.parser as parser
+from stregsystem.models import (
+    Member,
+    News,
+    NoMoreInventoryError,
+    Order,
+    Product,
+    Room,
+    StregForbudError
+)
 from stregsystem.utils import (
     make_active_productlist_query,
     make_room_specific_query
 )
-from stregsystem.models import (
-    Member,
-    News,
-    Product,
-    Room,
-    StregForbudError,
-    NoMoreInventoryError,
-    Order
-)
-import stregsystem.parser as parser
+
 from .booze import ballmer_peak
 
 
