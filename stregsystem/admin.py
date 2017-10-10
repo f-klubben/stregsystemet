@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db.models import Q
 from django.utils import timezone
-from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
+
 from stregsystem.models import (
     Category,
     Member,
@@ -10,7 +10,11 @@ from stregsystem.models import (
     PayTransaction,
     Product,
     Room,
-    Sale,
+    Sale
+)
+from stregsystem.utils import (
+    make_active_productlist_query,
+    make_inactive_productlist_query
 )
 
 

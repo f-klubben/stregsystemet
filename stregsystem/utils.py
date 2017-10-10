@@ -1,5 +1,6 @@
 import datetime
-from django.db.models import Q, F, Count
+
+from django.db.models import Count, F, Q
 
 
 def make_active_productlist_query(queryset):
