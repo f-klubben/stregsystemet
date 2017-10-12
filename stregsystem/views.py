@@ -4,16 +4,20 @@ from functools import reduce
 from django.db.models import Q
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
+
+import stregsystem.parser as parser
 
 import stregsystem.parser as parser
 from stregsystem.models import (
     Member,
     News,
-    NoMoreInventoryError,
-    Order,
     Product,
     Room,
-    StregForbudError
+    StregForbudError,
+    NoMoreInventoryError,
+    Order,
+    Sale,
 )
 from stregsystem.utils import (
     make_active_productlist_query,
@@ -82,15 +86,31 @@ def sale(request, room_id):
         return usermenu(request, room, member, None)
 
 
+def _multibuy_hint(now, member):
+    # Get a timestamp to fetch sales for the member since.
+    earliest_recent_purchase = now - datetime.timedelta(seconds=60)
+    # Count the sales since
+    number_of_recent_distinct_purchases = (
+        Sale.objects
+            .filter(member=member, timestamp__gt=earliest_recent_purchase)
+            .values("timestamp")
+            .distinct()
+            .count()
+    )
+    # Only give hint if the user did not just do a multibuy
+    return number_of_recent_distinct_purchases > 1
+
+
 def quicksale(request, room, member, bought_ids):
     news = __get_news()
     product_list = __get_productlist(room.id)
+    now = timezone.now()
 
     # Retrieve products and construct transaction
     products = []
     try:
         for i in bought_ids:
-            product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=datetime.datetime.now()) | Q(
+            product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=now) | Q(
                 deactivate_date__isnull=True), Q(rooms__id=room.id) | Q(rooms=None))
             products.append(product)
     except Product.DoesNotExist:
@@ -115,15 +135,19 @@ def quicksale(request, room, member, bought_ids):
 
     cost = order.total
 
+    give_multibuy_hint = _multibuy_hint(now, member) and len(bought_ids) == 1
+
     return render(request, 'stregsystem/index_sale.html', locals())
 
 
-def usermenu(request, room, member, bought):
+def usermenu(request, room, member, bought, from_sale=False):
     negative_balance = member.balance < 0
     product_list = __get_productlist(room.id)
     news = __get_news()
     promille = member.calculate_alcohol_promille()
     is_ballmer_peaking, bp_minutes, bp_seconds, = ballmer_peak(promille)
+
+    give_multibuy_hint = _multibuy_hint(timezone.now(), member) and from_sale
 
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())
@@ -174,4 +198,4 @@ def menu_sale(request, room_id, member_id, product_id=None):
         return render(request, 'stregsystem/error_stregforbud.html', locals())
     # Refresh member, to get new amount
     member = Member.objects.get(pk=member_id, active=True)
-    return usermenu(request, room, member, product)
+    return usermenu(request, room, member, product, from_sale=True)

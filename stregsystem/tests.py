@@ -10,6 +10,7 @@ from freezegun import freeze_time
 import stregsystem.parser as parser
 from stregreport import views
 from stregsystem import admin
+from stregsystem import views as stregsystem_views
 from stregsystem.admin import CategoryAdmin, ProductAdmin
 from stregsystem.booze import ballmer_peak
 from stregsystem.models import (
@@ -325,6 +326,41 @@ class SaleViewTests(TestCase):
 
         self.assertEqual(before_product.bought, after_product.bought)
         self.assertEqual(before_member.balance, after_member.balance)
+
+    def test_multibuy_hint_not_applicable(self):
+        member = Member.objects.get(username="jokke")
+        self.assertFalse(stregsystem_views._multibuy_hint(timezone.now(), member))
+
+    def test_multibuy_hint_one_buy_not_applicable(self):
+        member = Member.objects.get(username="jokke")
+        coke = Product.objects.create(
+            name="coke",
+            price=100,
+            active=True
+        )
+        Sale.objects.create(
+            member=member,
+            product=coke,
+            price=100,
+        )
+        self.assertFalse(stregsystem_views._multibuy_hint(timezone.now(), member))
+
+    def test_multibuy_hint_two_buys_applicable(self):
+        member = Member.objects.get(username="jokke")
+        coke = Product.objects.create(
+            name="coke",
+            price=100,
+            active=True
+        )
+        with freeze_time(datetime.datetime(2000, 1, 1)) as frozen_time:
+            for i in range(1, 2):
+                Sale.objects.create(
+                    member=member,
+                    product=coke,
+                    price=100,
+                )
+                frozen_time.tick()
+        self.assertTrue(stregsystem_views._multibuy_hint(datetime.datetime(2000, 1, 1), member))
 
 
 class UserInfoViewTests(TestCase):

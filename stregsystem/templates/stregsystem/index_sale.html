@@ -9,12 +9,16 @@
 {% autoescape off %}
 {{member.username}} har lige købt
 {% for product in products %}{% if forloop.last and not forloop.first %}
- og 
+ og
 {% else %}{% if not forloop.first %},
 {% endif %}{% endif %}
 {{product.name}}{% endfor %}
 for tilsammen {{cost|money}} kr.
 </b>
+{% if give_multibuy_hint %}
+    <br />
+    <h1>psssst. multibuy er enabled.</h1>
+{% endif %}
 </blink>
 {% if promille %}
     {% if is_ballmer_peaking %}
