@@ -28,7 +28,7 @@
 
 
 <center>
-    <form action="/{{room.id}}/sale/" method="post" id="focusform" name="focusform" onsubmit="document.getElementById('buybutton').disabled = true">{% csrf_token %}
+    <form autocomplete="off" action="/{{room.id}}/sale/" method="post" id="focusform" name="focusform" onsubmit="document.getElementById('buybutton').disabled = true">{% csrf_token %}
 {% block saleform %}
 <p>
 <label for="quickbuy">Quickbuy</label>
