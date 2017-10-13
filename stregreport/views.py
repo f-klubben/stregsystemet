@@ -6,17 +6,12 @@ from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncDay
 from django.forms import extras, fields
 from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
-from django.utils import timezone, dateparse
+from django.utils import dateparse, timezone
 
 from stregreport.forms import CategoryReportForm
-from stregsystem.models import (
-    Member,
-    Product,
-    Sale,
-    Category,
-)
+from stregsystem.models import Category, Member, Product, Sale
 
 
 def reports(request):

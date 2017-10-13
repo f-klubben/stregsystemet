@@ -9,7 +9,7 @@
 
 <center><h3>{{member.firstname}} {{member.lastname}} ({{member.email}})</h3></center>
 
-<center><h4>Du 
+<center><h4>Du
 {% if negative_balance %}
 skylder <span style="color: red;">{{member.balance|money|cut:"-"}}</span> kroner
 {% else %}
@@ -57,6 +57,9 @@ har {{member.balance|money}} kroner til gode!
     {% endif %}
 {% endif %}
 <br />
+{% if give_multibuy_hint %}
+    <h1>psssst. multibuy er enabled.</h1>
+{% endif %}
 <br />
 {% endblock %}
 </div>

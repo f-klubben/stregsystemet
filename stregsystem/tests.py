@@ -4,34 +4,30 @@ from collections import Counter
 
 from django.test import TestCase
 from django.urls import reverse
-from freezegun import freeze_time
 from django.utils import timezone
 from freezegun import freeze_time
 
 import stregsystem.parser as parser
 from stregreport import views
-from stregsystem.admin import ProductAdmin
 from stregsystem import admin
-from stregsystem.admin import (
-    CategoryAdmin,
-    ProductAdmin,
-)
+from stregsystem import views as stregsystem_views
+from stregsystem.admin import CategoryAdmin, ProductAdmin
 from stregsystem.booze import ballmer_peak
 from stregsystem.models import (
     Category,
     GetTransaction,
     Member,
+    NoMoreInventoryError,
+    Order,
+    OrderItem,
     Payment,
     PayTransaction,
     Product,
     Room,
-    Order,
-    OrderItem,
-    NoMoreInventoryError,
     Sale,
     StregForbudError,
-    price_display,
     active_str,
+    price_display
 )
 
 try:
@@ -331,6 +327,41 @@ class SaleViewTests(TestCase):
         self.assertEqual(before_product.bought, after_product.bought)
         self.assertEqual(before_member.balance, after_member.balance)
 
+    def test_multibuy_hint_not_applicable(self):
+        member = Member.objects.get(username="jokke")
+        self.assertFalse(stregsystem_views._multibuy_hint(timezone.now(), member))
+
+    def test_multibuy_hint_one_buy_not_applicable(self):
+        member = Member.objects.get(username="jokke")
+        coke = Product.objects.create(
+            name="coke",
+            price=100,
+            active=True
+        )
+        Sale.objects.create(
+            member=member,
+            product=coke,
+            price=100,
+        )
+        self.assertFalse(stregsystem_views._multibuy_hint(timezone.now(), member))
+
+    def test_multibuy_hint_two_buys_applicable(self):
+        member = Member.objects.get(username="jokke")
+        coke = Product.objects.create(
+            name="coke",
+            price=100,
+            active=True
+        )
+        with freeze_time(datetime.datetime(2000, 1, 1)) as frozen_time:
+            for i in range(1, 2):
+                Sale.objects.create(
+                    member=member,
+                    product=coke,
+                    price=100,
+                )
+                frozen_time.tick()
+        self.assertTrue(stregsystem_views._multibuy_hint(datetime.datetime(2000, 1, 1), member))
+
 
 class UserInfoViewTests(TestCase):
     def setUp(self):
@@ -400,20 +431,9 @@ class UserInfoViewTests(TestCase):
             self.payments[-1]
         )
 
-    def test_total_sales(self):
-        response = self.client.post(
-            reverse('userinfo', args=(self.room.id, self.jokke.id)),
-        )
-
-        self.assertEqual(
-            response.context["total_sales"],
-            300
-        )
-
     # @INCOMPLETE: Strictly speaking there are two more variables here. Are
     # they actually necessary, since we don't allow people to go negative
     # anymore anyway? - Jesper 18/09-2017
-
 
 
 class TransactionTests(TestCase):
