@@ -1,10 +1,11 @@
 import datetime
 
 from django.db.models import Count, F, Q
+from django.utils import timezone
 
 
 def make_active_productlist_query(queryset):
-    now = datetime.datetime.now()
+    now = timezone.now()
     # Create a query for the set of products that MIGHT be active. Might
     # because they can be out of stock. Which we compute later
     active_candidates = (
@@ -31,7 +32,7 @@ def make_active_productlist_query(queryset):
 
 
 def make_inactive_productlist_query(queryset):
-    now = datetime.datetime.now()
+    now = timezone.now()
     # Create a query of things are definitively inactive. Some of the ones
     # filtered here might be out of stock, but we include that later.
     inactive_candidates = (

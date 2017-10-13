@@ -74,8 +74,8 @@ def _sales_to_user_in_period(username, start_date, end_date, product_list, produ
 
 
 def razzia_view(request):
-    default_start = datetime.date.today() - datetime.timedelta(days=-180)
-    default_end = datetime.date.today()
+    default_start = timezone.now().today() - datetime.timedelta(days=-180)
+    default_end = timezone.now().today()
     start = request.GET.get('start', default_start.isoformat())
     end = request.GET.get('end', default_end.isoformat())
     products = request.GET.get('products', "")
@@ -134,13 +134,13 @@ def razzia_wizard(request):
                     request.POST.get('products'),
                     request.POST.get('razzia_title')))
 
-    suggested_start_date = datetime.datetime.now() - datetime.timedelta(days=-180)
-    suggested_end_date = datetime.datetime.now()
+    suggested_start_date = timezone.now() - datetime.timedelta(days=-180)
+    suggested_end_date = timezone.now()
 
     start_date_picker = fields.DateField(
-        widget=extras.SelectDateWidget(years=[x for x in range(2000, datetime.datetime.now().year + 1)]))
+        widget=extras.SelectDateWidget(years=[x for x in range(2000, timezone.now().year + 1)]))
     end_date_picker = fields.DateField(
-        widget=extras.SelectDateWidget(years=[x for x in range(2000, datetime.datetime.now().year + 1)]))
+        widget=extras.SelectDateWidget(years=[x for x in range(2000, timezone.now().year + 1)]))
 
     return render(request, 'admin/stregsystem/razzia/wizard.html',
                   {
@@ -169,15 +169,15 @@ def sales_product(request, ids, from_time, to_time, error=None):
         return render(request, 'admin/stregsystem/report/error_invalidsalefetch.html', {'error': error})
 
     try:
-        from_date_time = datetime.datetime.strptime(from_time, date_format)
+        from_date_time = timezone.datetime.strptime(from_time, date_format)
     except (ValueError, TypeError):
-        from_date_time = first_of_month(datetime.datetime.now())
+        from_date_time = first_of_month(timezone.now())
     from_time = from_date_time.strftime(date_format)
 
     try:
-        to_date_time = late(datetime.datetime.strptime(to_time, date_format))
+        to_date_time = late(timezone.datetime.strptime(to_time, date_format))
     except (ValueError, TypeError):
-        to_date_time = datetime.datetime.now()
+        to_date_time = timezone.now()
     to_time = to_date_time.strftime(date_format)
     sales = []
     if ids is not None and len(ids) > 0:
@@ -223,7 +223,7 @@ def ranks_for_year(request, year):
     vitamin_stat_list = sale_product_rank(vitamin, from_time, to_time)
     from_time_string = from_time.strftime(FORMAT)
     to_time_string = to_time.strftime(FORMAT)
-    current_date = datetime.datetime.now()
+    current_date = timezone.now()
     is_ongoing = current_date > from_time and current_date <= to_time
     return render(request, 'admin/stregsystem/report/ranks.html', locals())
 
@@ -248,7 +248,7 @@ def sale_money_rank(from_time, to_time, rank_limit=10):
 
 # year of the last fjuleparty
 def last_fjule_party_year():
-    current_date = datetime.datetime.now()
+    current_date = timezone.now()
     fjule_party_this_year = fjule_party(current_date.year)
     if current_date > fjule_party_this_year:
         return current_date.year
@@ -257,7 +257,7 @@ def last_fjule_party_year():
 
 # year of the next fjuleparty
 def next_fjule_party_year():
-    current_date = datetime.datetime.now()
+    current_date = timezone.now()
     fjule_party_this_year = fjule_party(current_date.year)
     if current_date <= fjule_party_this_year:
         return current_date.year
@@ -266,7 +266,7 @@ def next_fjule_party_year():
 
 # date of fjuleparty (first friday of december) for the given year at 10 o'clock
 def fjule_party(year):
-    first_december = datetime.datetime(year, 12, 1, 22)
+    first_december = timezone.datetime(year, 12, 1, 22)
     days_to_add = (11 - first_december.weekday()) % 7
     return first_december + datetime.timedelta(days=days_to_add)
 
@@ -285,15 +285,15 @@ def parse_id_string(id_string):
 
 
 def late(date):
-    return datetime.datetime(date.year, date.month, date.day, 23, 59, 59)
+    return timezone.datetime(date.year, date.month, date.day, 23, 59, 59)
 
 
 def first_of_month(date):
-    return datetime.datetime(date.year, date.month, 1, 23, 59, 59)
+    return timezone.datetime(date.year, date.month, 1, 23, 59, 59)
 
 
 def daily(request):
-    current_date = datetime.datetime.now().replace(hour=0, minute=0, second=0)
+    current_date = timezone.now().replace(hour=0, minute=0, second=0)
     latest_sales = (Sale.objects
                     .prefetch_related('product', 'member')
                     .order_by('-timestamp')[:7])

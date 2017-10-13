@@ -1,12 +1,9 @@
 import datetime
-from functools import reduce
 
 from django.db.models import Q
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
-
-import stregsystem.parser as parser
 
 import stregsystem.parser as parser
 from stregsystem.models import (
@@ -23,13 +20,12 @@ from stregsystem.utils import (
     make_active_productlist_query,
     make_room_specific_query
 )
-
 from .booze import ballmer_peak
 
 
 def __get_news():
     try:
-        return News.objects.filter(stop_date__gte=datetime.datetime.now(), pub_date__lte=datetime.datetime.now()).get()
+        return News.objects.filter(stop_date__gte=timezone.now(), pub_date__lte=timezone.now()).get()
     except News.DoesNotExist:
         return None
 
@@ -194,7 +190,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
     product = None
     try:
         product = Product.objects.get(Q(pk=product_id), Q(active=True), Q(rooms__id=room_id) | Q(rooms=None),
-                                      Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
+                                      Q(deactivate_date__gte=timezone.now()) | Q(deactivate_date__isnull=True))
 
         order = Order.from_products(
             member=member,
