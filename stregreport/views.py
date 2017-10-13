@@ -1,4 +1,5 @@
 import datetime
+import pytz
 from functools import reduce
 
 from django.contrib.admin.views.decorators import staff_member_required
@@ -169,13 +170,25 @@ def sales_product(request, ids, from_time, to_time, error=None):
         return render(request, 'admin/stregsystem/report/error_invalidsalefetch.html', {'error': error})
 
     try:
-        from_date_time = timezone.datetime.strptime(from_time, date_format)
+        from_time_date = datetime.datetime.strptime(from_time, date_format)
+        from_date_time_tz_aware = timezone.datetime(
+            from_time_date.year,
+            from_time_date.month,
+            from_time_date.day,
+            tzinfo=pytz.UTC
+        )
     except (ValueError, TypeError):
-        from_date_time = first_of_month(timezone.now())
-    from_time = from_date_time.strftime(date_format)
+        from_date_time_tz_aware = first_of_month(timezone.now())
+    from_time = from_date_time_tz_aware.strftime(date_format)
 
     try:
         to_date_time = late(timezone.datetime.strptime(to_time, date_format))
+        to_date_time_tz_aware = timezone.datetime(
+            to_date_time.year,
+            to_date_time.month,
+            to_date_time.day,
+            tzinfo=pytz.UTC
+        )
     except (ValueError, TypeError):
         to_date_time = timezone.now()
     to_time = to_date_time.strftime(date_format)
@@ -183,8 +196,8 @@ def sales_product(request, ids, from_time, to_time, error=None):
     if ids is not None and len(ids) > 0:
         products = reduce(lambda a, b: a + str(b) + ' ', ids, '')
         query = reduce(lambda x, y: x | y, [Q(id=z) for z in ids])
-        query &= Q(sale__timestamp__gt=from_date_time)
-        query &= Q(sale__timestamp__lte=to_date_time)
+        query &= Q(sale__timestamp__gt=from_date_time_tz_aware)
+        query &= Q(sale__timestamp__lte=to_date_time_tz_aware)
         result = Product.objects.filter(query).annotate(Count('sale'), Sum('sale__price'))
 
         count = 0

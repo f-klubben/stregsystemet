@@ -65,7 +65,7 @@
     "fields": {
       "product": 1,
       "price": 100,
-      "changed_on": "2017-03-13T12:43:28.044Z"
+      "changed_on": "2017-03-13T12:43:28.044+00:00"
     }
   },
   {
@@ -74,7 +74,7 @@
     "fields": {
       "product": 2,
       "price": 200,
-      "changed_on": "2017-03-13T12:43:40.784Z"
+      "changed_on": "2017-03-13T12:43:40.784+00:00"
     }
   },
   {
@@ -83,7 +83,7 @@
     "fields": {
       "product": 2,
       "price": 200,
-      "changed_on": "2017-03-13T12:43:42.151Z"
+      "changed_on": "2017-03-13T12:43:42.151+00:00"
     }
   },
   {
@@ -109,7 +109,7 @@
       "member": 1,
       "product": 1,
       "room": 1,
-      "timestamp": "2017-03-13T12:52:52.142Z",
+      "timestamp": "2017-03-13T12:52:52.142+00:00",
       "price": 100
     }
   },
@@ -120,7 +120,7 @@
       "member": 1,
       "product": 2,
       "room": 1,
-      "timestamp": "2017-03-13T12:54:12.423Z",
+      "timestamp": "2017-03-13T12:54:12.423+00:00",
       "price": 200
     }
   },
@@ -131,7 +131,7 @@
       "member": 1,
       "product": 13,
       "room": 1,
-      "timestamp": "2017-03-13T13:38:10.573Z",
+      "timestamp": "2017-03-13T13:38:10.573+00:00",
       "price": 300
     }
   },
@@ -140,7 +140,7 @@
     "pk": 1,
     "fields": {
       "password": "pbkdf2_sha256$30000$ivRA8qABWClG$pxi2R4uyotlGpwa66RQuDOXFaO9JElQutMFJqXmnOdI=",
-      "last_login": "2017-03-13T12:41:13.546Z",
+      "last_login": "2017-03-13T12:41:13.546+00:00",
       "is_superuser": true,
       "username": "tester",
       "first_name": "test",
@@ -148,7 +148,7 @@
       "email": "",
       "is_staff": true,
       "is_active": true,
-      "date_joined": "2017-03-06T10:53:54Z",
+      "date_joined": "2017-03-06T10:53:54+00:00",
       "groups": [],
       "user_permissions": []
     }

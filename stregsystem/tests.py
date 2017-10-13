@@ -1033,14 +1033,14 @@ class ProductActivatedListFilterTests(TestCase):
             name="active_dec_future",
             price=1.0,
             active=True,
-            deactivate_date=(datetime.datetime.now()
+            deactivate_date=(timezone.now()
                              + datetime.timedelta(hours=1))
         )
         Product.objects.create(
             name="active_dec_past",
             price=1.0,
             active=True,
-            deactivate_date=(datetime.datetime.now()
+            deactivate_date=(timezone.now()
                              - datetime.timedelta(hours=1))
         )
 
@@ -1054,14 +1054,14 @@ class ProductActivatedListFilterTests(TestCase):
             name="deactivated_dec_future",
             price=1.0,
             active=False,
-            deactivate_date=(datetime.datetime.now()
+            deactivate_date=(timezone.now()
                              + datetime.timedelta(hours=1))
         )
         Product.objects.create(
             name="deactivated_dec_past",
             price=1.0,
             active=False,
-            deactivate_date=(datetime.datetime.now()
+            deactivate_date=(timezone.now()
                              - datetime.timedelta(hours=1))
         )
         p = Product.objects.create(
