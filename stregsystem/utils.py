@@ -1,5 +1,6 @@
 import datetime
 
+import pytz
 from django.db.models import Count, F, Q
 from django.utils import timezone
 
@@ -61,3 +62,7 @@ def make_room_specific_query(room):
     return (
         Q(rooms__id=room) | Q(rooms=None)
     )
+
+
+def date_to_timezone_aware(date):
+    return timezone.datetime(date.year, date.month, date.day, tzinfo=pytz.UTC)
