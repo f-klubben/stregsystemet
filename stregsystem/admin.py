@@ -118,6 +118,7 @@ class ProductAdmin(admin.ModelAdmin):
         ("active", "deactivate_date"),
         ("start_date", "quantity", "get_bought"),
         "categories",
+        "rooms",
         "alcohol_content_ml"
     )
     readonly_fields = (
@@ -125,7 +126,7 @@ class ProductAdmin(admin.ModelAdmin):
     )
 
     actions = [toggle_active_selected_products]
-    filter_horizontal = ('categories', )
+    filter_horizontal = ('categories', 'rooms')
 
     def get_price_display(self, obj):
         if obj.price is None:
