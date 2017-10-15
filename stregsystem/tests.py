@@ -329,7 +329,9 @@ class SaleViewTests(TestCase):
 
     def test_multibuy_hint_not_applicable(self):
         member = Member.objects.get(username="jokke")
-        self.assertFalse(stregsystem_views._multibuy_hint(timezone.now(), member))
+        give_multibuy_hint, sale_hints = stregsystem_views._multibuy_hint(timezone.now(), member)
+        self.assertFalse(give_multibuy_hint)
+        self.assertIsNone(sale_hints)
 
     def test_multibuy_hint_one_buy_not_applicable(self):
         member = Member.objects.get(username="jokke")
@@ -343,7 +345,9 @@ class SaleViewTests(TestCase):
             product=coke,
             price=100,
         )
-        self.assertFalse(stregsystem_views._multibuy_hint(timezone.now(), member))
+        give_multibuy_hint, sale_hints = stregsystem_views._multibuy_hint(timezone.now(), member)
+        self.assertFalse(give_multibuy_hint)
+        self.assertIsNone(sale_hints)
 
     def test_multibuy_hint_two_buys_applicable(self):
         member = Member.objects.get(username="jokke")
@@ -352,15 +356,17 @@ class SaleViewTests(TestCase):
             price=100,
             active=True
         )
-        with freeze_time(datetime.datetime(2000, 1, 1)) as frozen_time:
-            for i in range(1, 2):
+        with freeze_time(datetime.datetime(2018, 1, 1)) as frozen_time:
+            for i in range(1, 3):
                 Sale.objects.create(
                     member=member,
                     product=coke,
                     price=100,
                 )
                 frozen_time.tick()
-        self.assertTrue(stregsystem_views._multibuy_hint(datetime.datetime(2000, 1, 1), member))
+        give_multibuy_hint, sale_hints = stregsystem_views._multibuy_hint(datetime.datetime(2018, 1, 1), member)
+        self.assertTrue(give_multibuy_hint)
+        self.assertEqual(sale_hints, "{} {}:{}".format("jokke", coke.id, 2))
 
 
 class UserInfoViewTests(TestCase):
