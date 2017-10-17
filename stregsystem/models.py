@@ -177,6 +177,9 @@ class Member(models.Model):  # id automatisk...
 
     @deprecated
     def __unicode__(self):
+        return self.__str__()
+
+    def __str__(self):
         return self.username + active_str(self.active) + ": " + self.email + " " + money(self.balance)
 
     # XXX - virker ikke
@@ -288,6 +291,9 @@ class Payment(models.Model):  # id automatisk...
 
     @deprecated
     def __unicode__(self):
+        return self.__str__()
+
+    def __str__(self):
         return self.member.username + " " + str(self.timestamp) + ": " + money(self.amount)
 
     def save(self, *args, **kwargs):
@@ -327,6 +333,9 @@ class Room(models.Model):
 
     @deprecated
     def __unicode__(self):
+        return self.__str__()
+
+    def __str__(self):
         return self.name
 
 class Product(models.Model): # id automatisk...
@@ -342,6 +351,9 @@ class Product(models.Model): # id automatisk...
 
     @deprecated
     def __unicode__(self):
+        return self.__str__()
+
+    def __str__(self):
         return active_str(self.active) + " " + self.name + " (" + money(self.price) + ")"
 
     def save(self, *args, **kwargs):
@@ -388,6 +400,9 @@ class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statist
 
     @deprecated
     def __unicode__(self):
+        return self.__str__()
+
+    def __str__(self):
         return self.product.name + ": " + money(self.price) + " (" + str(self.changed_on) + ")"
 
 class Sale(models.Model):
@@ -411,6 +426,9 @@ class Sale(models.Model):
 
     @deprecated
     def __unicode__(self):
+        return self.__str__()
+
+    def __str__(self):
         return self.member.username + " " + self.product.name + " (" + money(self.price) + ") " + str(self.timestamp)
 
     def save(self, *args, **kwargs):
@@ -437,4 +455,7 @@ class News(models.Model):
 
     @deprecated
     def __unicode__(self):
+        return self.__str__()
+
+    def __str__(self):
         return self.title + " -- " + str(self.pub_date)
