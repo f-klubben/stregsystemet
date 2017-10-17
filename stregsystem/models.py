@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from stregsystem.deprecated import deprecated
 from stregsystem.templatetags.stregsystem_extras import money
-from stregsystem.utils import date_to_timezone_aware
+from stregsystem.utils import date_to_midnight
 
 
 def price_display(value):
@@ -376,7 +376,7 @@ class Product(models.Model): # id automatisk...
             return 0
         return (
             self.sale_set
-            .filter(timestamp__gt=date_to_timezone_aware(self.start_date))
+            .filter(timestamp__gt=date_to_midnight(self.start_date))
             .aggregate(bought=Count("id"))["bought"])
 
     def is_active(self):

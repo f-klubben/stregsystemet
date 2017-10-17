@@ -64,5 +64,11 @@ def make_room_specific_query(room):
     )
 
 
-def date_to_timezone_aware(date):
-    return timezone.datetime(date.year, date.month, date.day, tzinfo=pytz.UTC)
+def date_to_midnight(date):
+    """
+    Converts a datetime.date to a datetime of the same date at midnight.
+
+    :param date: date to convert
+    :return: the date as a timezone aware datetime at midnight
+    """
+    return timezone.make_aware(timezone.datetime(date.year, date.month, date.day, 0, 0))
