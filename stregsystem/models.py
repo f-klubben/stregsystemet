@@ -114,9 +114,8 @@ class Order(object):
                          > item.product.quantity)):
                 raise NoMoreInventoryError()
 
-        if not self.member.can_fulfill(transaction):
-            raise StregForbudError()
-
+        # Take update lock on member row
+        self.member = Member.objects.select_for_update().get(id=self.member.id)
         self.member.fulfill(transaction)
 
         for item in self.items:
