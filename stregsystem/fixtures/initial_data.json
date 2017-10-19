@@ -53,7 +53,7 @@
             "member": 1,
             "product": 2,
             "room": 1,
-            "timestamp": "2017-03-13T12:52:52.142Z",
+            "timestamp": "2017-03-13T12:52+00:00",
             "price": 100
         }
     },
@@ -64,7 +64,7 @@
             "member": 1,
             "product": 3,
             "room": 1,
-            "timestamp": "2017-03-13T12:52:52.142Z",
+            "timestamp": "2017-03-13T12:52:52+00:00",
             "price": 100
         }
     },
@@ -75,7 +75,7 @@
             "member": 1,
             "product": 3,
             "room": 1,
-            "timestamp": "2017-03-13T12:52:52.142Z",
+            "timestamp": "2017-03-13T12:52:52+00:00",
             "price": 100
         }
     },
@@ -86,7 +86,7 @@
             "member": 1,
             "product": 3,
             "room": 1,
-            "timestamp": "2017-03-13T12:52:52.142Z",
+            "timestamp": "2017-03-13T12:52:52+00:00",
             "price": 100
         }
     },
@@ -104,7 +104,7 @@
     },
     {
         "fields": {
-            "changed_on": "2007-07-11 22:21:02",
+            "changed_on": "2007-07-11 22:21:02+00:00",
             "price": 900,
             "product": 1
         },
@@ -113,7 +113,7 @@
     },
     {
         "fields": {
-            "changed_on": "2007-07-11 22:32:06",
+            "changed_on": "2007-07-11 22:32:06+00:00",
             "price": 900,
             "product": 1
         },
@@ -155,7 +155,7 @@
         "pk": 1,
         "fields": {
             "password": "pbkdf2_sha256$30000$ivRA8qABWClG$pxi2R4uyotlGpwa66RQuDOXFaO9JElQutMFJqXmnOdI=",
-            "last_login": "2017-09-22T09:26:03.388Z",
+            "last_login": "2017-09-22T09:26:03+00:00",
             "is_superuser": true,
             "username": "tester",
             "first_name": "test",
@@ -163,7 +163,7 @@
             "email": "",
             "is_staff": true,
             "is_active": true,
-            "date_joined": "2017-03-06T10:53:54Z",
+            "date_joined": "2017-03-06T10:53:54+00:00",
             "groups": [],
             "user_permissions": []
         }
