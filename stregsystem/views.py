@@ -87,18 +87,32 @@ def sale(request, room_id):
 
 
 def _multibuy_hint(now, member):
-    # Get a timestamp to fetch sales for the member since.
+    # Get a timestamp to fetch sales for the member for the last 60 sec
     earliest_recent_purchase = now - datetime.timedelta(seconds=60)
-    # Count the sales since
-    number_of_recent_distinct_purchases = (
+    # get the sales with this timestamp
+    recent_purchases = (
         Sale.objects
             .filter(member=member, timestamp__gt=earliest_recent_purchase)
-            .values("timestamp")
-            .distinct()
-            .count()
     )
-    # Only give hint if the user did not just do a multibuy
-    return number_of_recent_distinct_purchases > 1
+    number_of_recent_distinct_purchases = recent_purchases.values('timestamp').distinct().count()
+
+    # add hint for multibuy
+    if number_of_recent_distinct_purchases > 1:
+        sale_dict = {}
+        for sale in recent_purchases:
+            if not str(sale.product.id) in sale_dict:
+                sale_dict[str(sale.product.id)] = 1
+            else:
+                sale_dict[str(sale.product.id)] = sale_dict[str(sale.product.id)] + 1
+        sale_hints = [member.username]
+        for key in sale_dict:
+            if sale_dict[key] > 1:
+                sale_hints.append("{}:{}".format(key, sale_dict[key]))
+            else:
+                sale_hints.append(key)
+        return (True, ' '.join(sale_hints))
+
+    return (False, None)
 
 
 def quicksale(request, room, member, bought_ids):
@@ -135,7 +149,7 @@ def quicksale(request, room, member, bought_ids):
 
     cost = order.total
 
-    give_multibuy_hint = _multibuy_hint(now, member) and len(bought_ids) == 1
+    give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
@@ -147,7 +161,8 @@ def usermenu(request, room, member, bought, from_sale=False):
     promille = member.calculate_alcohol_promille()
     is_ballmer_peaking, bp_minutes, bp_seconds, = ballmer_peak(promille)
 
-    give_multibuy_hint = _multibuy_hint(timezone.now(), member) and from_sale
+    give_multibuy_hint, sale_hints = _multibuy_hint(timezone.now(), member)
+    give_multibuy_hint = give_multibuy_hint and from_sale
 
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())
