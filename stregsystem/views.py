@@ -124,7 +124,7 @@ def quicksale(request, room, member, bought_ids):
                 deactivate_date__isnull=True), Q(rooms__id=room.id) | Q(rooms=None))
             products.append(product)
     except Product.DoesNotExist:
-        return usermenu(request, room, member, None)
+        return render(request, 'stregsystem/error_productdoesntexist.html', {'failedProduct': i})
 
     order = Order.from_products(
         member=member,
