@@ -1,0 +1,19 @@
+{% extends "stregsystem/error.html" %}
+
+{% load stregsystem_extras %}
+
+{% block headline %}
+    <div>Du forsøgte at bruge quickbuy men fejlede.</div>
+    <div>This incident will be reported.</div>
+{% endblock %}
+{% block message %}
+    <div>
+        <center>
+            <b>Du forsøgte at købe id: {{ failedProduct }}, men dette product blev ikke fundet ¯\_(ツ)_/¯.</b>
+        </center>
+    </div>
+    <br />
+    Hvis du mener at <i>det er for galt</i>, anbefaler F-Klubbens IT, at du venter, indtil nogen g&oslash;r noget ved problemet.
+    <br />
+    Mens du venter kan du lave pull-requests til open source projekter, faktisk læse for en gangs skyld, eller lære COBOL.
+{% endblock %}

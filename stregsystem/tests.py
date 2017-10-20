@@ -125,9 +125,7 @@ class SaleViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "stregsystem/menu.html")
-        self.assertEqual(response.context["member"],
-                         Member.objects.get(username="jokke"))
+        self.assertTemplateUsed(response, "stregsystem/error_productdoesntexist.html")
 
     @patch('stregsystem.models.Member.can_fulfill')
     def test_make_sale_menusale_fail(self, can_fulfill):
@@ -292,7 +290,7 @@ class SaleViewTests(TestCase):
         after_member = Member.objects.get(username="jokke")
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "stregsystem/menu.html")
+        self.assertTemplateUsed(response, "stregsystem/error_productdoesntexist.html")
 
         self.assertEqual(before_product.bought, after_product.bought)
         self.assertEqual(before_member.balance, after_member.balance)

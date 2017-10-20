@@ -118,13 +118,14 @@ def quicksale(request, room, member, bought_ids):
 
     # Retrieve products and construct transaction
     products = []
+    i = 0
     try:
         for i in bought_ids:
             product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=now) | Q(
                 deactivate_date__isnull=True), Q(rooms__id=room.id) | Q(rooms=None))
             products.append(product)
     except Product.DoesNotExist:
-        return usermenu(request, room, member, None)
+        return render(request, 'stregsystem/error_productdoesntexist.html', {'failedProduct': i})
 
     order = Order.from_products(
         member=member,
