@@ -118,7 +118,6 @@ def quicksale(request, room, member, bought_ids):
 
     # Retrieve products and construct transaction
     products = []
-    i = 0
     try:
         for i in bought_ids:
             product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=now) | Q(
