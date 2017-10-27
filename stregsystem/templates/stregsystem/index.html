@@ -2,6 +2,11 @@
 
 {% load stregsystem_extras %}
 {% load listutil %}
+{% load hitmarker %}
+
+{% block extrahead %}
+    {% hitmarker_js %}
+{% endblock %}
 
 {% block title %}TREOENs STREGSYSTEM
 {% ifnotequal room.id 1 %}
@@ -15,7 +20,7 @@
 <div id="instructions">
 {% block instructions %}
 <b>Du kan "sætte streger" på to forskellige måder:</b>
-<ol>  
+<ol>
   <li><span>Indtast dit brugernavn nedenfor.
   Du vil så blive præsenteret for en interaktiv menu.</span></li>
   <li><span>Indtast dit brugernavn <em>og</em> et eller flere produkt

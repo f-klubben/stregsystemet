@@ -88,6 +88,7 @@ for e in cfg.items("hostnames"):
 INSTALLED_APPS = [
     'stregsystem',
     'kiosk',
+    'hitmarker',
     'django_select2',
     'django.contrib.admin',
     'django.contrib.auth',
