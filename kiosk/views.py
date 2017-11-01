@@ -1,8 +1,7 @@
-import time
-from datetime import datetime
+import json
 
-from django.http import Http404
-from django.http import HttpResponse
+from django.db.models import Q
+from django.http import Http404, HttpResponse
 from django.shortcuts import render
 
 from .models import KioskItem
@@ -20,32 +19,45 @@ def find_random_image(request):
     if item is None:
         raise Http404("No active kiosk items found")
 
-    return HttpResponse(item.image.url, content_type="text/plain")
+    response_data = {
+        "id": item.id,
+        "url": item.image.url,
+    }
+    return HttpResponse(
+        json.dumps(response_data),
+        content_type="application/json"
+    )
 
 
-def find_next_image(request):
-    """
-    Deterministically return an image for the kiosk screen.
-    This ensures that each kiosk item will be displayed an equal amount of time,
-    assuming the screen call this method semi-frequently.
+def find_next_image_real(request, item_id):
+    item = KioskItem.objects.get(pk=item_id)
 
-    :param request: Django request obj
-    :return: The request or 404 if no active kiosk items was found.
-    """
     item_count = KioskItem.objects.filter(active=True).count()
     if item_count == 0:
         raise Http404("No active kiosk items found")
 
-    # The duration for each item
-    # TODO: Make this a variable for someone to adjust (Where?)
-    duration = 10
-    # The total cycle time
-    complete_cycle_time = duration * item_count
-    # Get a unit timestamp
-    seconds_since_epoch = time.mktime(datetime.now().timetuple())
-    # Find the next index, by getting a number in the range [0;complete_cycle_time[
-    # and divide it by the duration of each
-    next_index = int((seconds_since_epoch % complete_cycle_time) / duration)
     # Get the item at the index, trust that Django does this smartly.
-    next_item = KioskItem.objects.filter(active=True).order_by('ordering', 'name')[next_index]
-    return HttpResponse(next_item.image.url, content_type="text/plain")
+    try:
+        next_item = (
+            KioskItem.objects
+            .filter(active=True)
+            .order_by('ordering', 'id')
+            .filter(
+                Q(ordering__gt=item.ordering)
+                | (Q(ordering=item.ordering) & Q(id__gt=item.id))
+            )[0]
+        )
+    except IndexError:
+        next_item = (
+            KioskItem.objects
+            .filter(active=True)
+            .order_by('ordering', 'id')[0]
+        )
+    response_data = {
+        "id": next_item.id,
+        "url": next_item.image.url,
+    }
+    return HttpResponse(
+        json.dumps(response_data),
+        content_type="application/json"
+    )
