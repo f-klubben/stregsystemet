@@ -2,6 +2,7 @@
 import datetime
 from collections import Counter
 
+import pytz
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -124,23 +125,22 @@ class SaleViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "stregsystem/menu.html")
-        self.assertEqual(response.context["member"],
-                         Member.objects.get(username="jokke"))
+        self.assertTemplateUsed(response, "stregsystem/error_productdoesntexist.html")
 
     @patch('stregsystem.models.Member.can_fulfill')
-    @patch('stregsystem.models.Member.fulfill')
-    def test_make_sale_menusale_fail(self, fulfill, can_fulfill):
+    def test_make_sale_menusale_fail(self, can_fulfill):
         can_fulfill.return_value = False
+        member_id = 1
+        member_before = Member.objects.get(id=member_id)
 
-        response = self.client.get(reverse('menu_sale', args=(1, 1, 1)))
+        response = self.client.get(reverse('menu_sale', args=(1, member_id, 1)))
 
+        member_after = Member.objects.get(id=member_id)
+
+        self.assertEqual(member_before.balance, member_after.balance)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/error_stregforbud.html")
-
         self.assertEqual(response.context["member"], Member.objects.get(id=1))
-
-        fulfill.assert_not_called()
 
     @patch('stregsystem.models.Member.can_fulfill')
     @patch('stregsystem.models.Member.fulfill')
@@ -290,7 +290,7 @@ class SaleViewTests(TestCase):
         after_member = Member.objects.get(username="jokke")
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "stregsystem/menu.html")
+        self.assertTemplateUsed(response, "stregsystem/error_productdoesntexist.html")
 
         self.assertEqual(before_product.bought, after_product.bought)
         self.assertEqual(before_member.balance, after_member.balance)
@@ -329,7 +329,9 @@ class SaleViewTests(TestCase):
 
     def test_multibuy_hint_not_applicable(self):
         member = Member.objects.get(username="jokke")
-        self.assertFalse(stregsystem_views._multibuy_hint(timezone.now(), member))
+        give_multibuy_hint, sale_hints = stregsystem_views._multibuy_hint(timezone.now(), member)
+        self.assertFalse(give_multibuy_hint)
+        self.assertIsNone(sale_hints)
 
     def test_multibuy_hint_one_buy_not_applicable(self):
         member = Member.objects.get(username="jokke")
@@ -343,7 +345,9 @@ class SaleViewTests(TestCase):
             product=coke,
             price=100,
         )
-        self.assertFalse(stregsystem_views._multibuy_hint(timezone.now(), member))
+        give_multibuy_hint, sale_hints = stregsystem_views._multibuy_hint(timezone.now(), member)
+        self.assertFalse(give_multibuy_hint)
+        self.assertIsNone(sale_hints)
 
     def test_multibuy_hint_two_buys_applicable(self):
         member = Member.objects.get(username="jokke")
@@ -352,15 +356,17 @@ class SaleViewTests(TestCase):
             price=100,
             active=True
         )
-        with freeze_time(datetime.datetime(2000, 1, 1)) as frozen_time:
-            for i in range(1, 2):
+        with freeze_time(timezone.datetime(2018, 1, 1)) as frozen_time:
+            for i in range(1, 3):
                 Sale.objects.create(
                     member=member,
                     product=coke,
                     price=100,
                 )
                 frozen_time.tick()
-        self.assertTrue(stregsystem_views._multibuy_hint(datetime.datetime(2000, 1, 1), member))
+        give_multibuy_hint, sale_hints = stregsystem_views._multibuy_hint(timezone.datetime(2018, 1, 1, tzinfo=pytz.UTC), member)
+        self.assertTrue(give_multibuy_hint)
+        self.assertEqual(sale_hints, "{} {}:{}".format("jokke", coke.id, 2))
 
 
 class UserInfoViewTests(TestCase):
@@ -382,7 +388,7 @@ class UserInfoViewTests(TestCase):
             active=True
         )
         self.sales = []
-        with freeze_time(datetime.datetime(2000, 1, 1)) as frozen_time:
+        with freeze_time(timezone.datetime(2000, 1, 1)) as frozen_time:
             for i in range(1, 4):
                 self.sales.append(
                     Sale.objects.create(
@@ -393,7 +399,7 @@ class UserInfoViewTests(TestCase):
                 )
                 frozen_time.tick()
         self.payments = []
-        with freeze_time(datetime.datetime(2000, 1, 1)) as frozen_time:
+        with freeze_time(timezone.datetime(2000, 1, 1)) as frozen_time:
             for i in range(1, 3):
                 self.payments.append(
                     Payment.objects.create(
@@ -553,9 +559,9 @@ class OrderTest(TestCase):
         fulfill.was_not_called()
 
     @patch('stregsystem.models.Member.can_fulfill')
-    @patch('stregsystem.models.Member.fulfill')
-    def test_order_execute_no_money(self, fulfill, can_fulfill):
+    def test_order_execute_no_money(self, can_fulfill):
         can_fulfill.return_value = False
+        balance_before = self.member.balance
         order = Order(self.member, self.room)
 
         item = OrderItem(self.product, order, 2)
@@ -564,7 +570,9 @@ class OrderTest(TestCase):
         with self.assertRaises(StregForbudError):
             order.execute()
 
-        fulfill.was_not_called()
+        balance_after = self.member.balance
+        self.assertEqual(balance_before, balance_after)
+
 
 
 class PaymentTests(TestCase):
@@ -926,7 +934,7 @@ class MemberTests(TestCase):
                 alcohol_content_ml=15.18,
                 active=True))
 
-        with freeze_time(datetime.datetime(year=2000, month=1, day=1, hour=0,
+        with freeze_time(timezone.datetime(year=2000, month=1, day=1, hour=0,
                                            minute=0)) as ft:
             for i in range(5):
                 ft.tick(delta=datetime.timedelta(minutes=10))
@@ -936,7 +944,7 @@ class MemberTests(TestCase):
 
         # The last drink was at 2000/01/01 00:50:00
 
-        with freeze_time(datetime.datetime(year=2000, month=1, day=1, hour=0,
+        with freeze_time(timezone.datetime(year=2000, month=1, day=1, hour=0,
                                            minute=50)) as ft:
             self.assertAlmostEqual(
                 0.97,
@@ -955,7 +963,7 @@ class MemberTests(TestCase):
                 alcohol_content_ml=15.18,
                 active=True))
 
-        with freeze_time(datetime.datetime(year=2000, month=1, day=1, hour=0,
+        with freeze_time(timezone.datetime(year=2000, month=1, day=1, hour=0,
                                            minute=0)) as ft:
             for i in range(5):
                 ft.tick(delta=datetime.timedelta(minutes=10))
@@ -965,7 +973,7 @@ class MemberTests(TestCase):
 
         # The last drink was at 2000/01/01 00:50:00
 
-        with freeze_time(datetime.datetime(year=2000, month=1, day=1, hour=0,
+        with freeze_time(timezone.datetime(year=2000, month=1, day=1, hour=0,
                                            minute=50)) as ft:
             self.assertAlmostEqual(
                 1.15,
@@ -1024,14 +1032,14 @@ class ProductActivatedListFilterTests(TestCase):
             name="active_dec_future",
             price=1.0,
             active=True,
-            deactivate_date=(datetime.datetime.now()
+            deactivate_date=(timezone.now()
                              + datetime.timedelta(hours=1))
         )
         Product.objects.create(
             name="active_dec_past",
             price=1.0,
             active=True,
-            deactivate_date=(datetime.datetime.now()
+            deactivate_date=(timezone.now()
                              - datetime.timedelta(hours=1))
         )
 
@@ -1045,14 +1053,14 @@ class ProductActivatedListFilterTests(TestCase):
             name="deactivated_dec_future",
             price=1.0,
             active=False,
-            deactivate_date=(datetime.datetime.now()
+            deactivate_date=(timezone.now()
                              + datetime.timedelta(hours=1))
         )
         Product.objects.create(
             name="deactivated_dec_past",
             price=1.0,
             active=False,
-            deactivate_date=(datetime.datetime.now()
+            deactivate_date=(timezone.now()
                              - datetime.timedelta(hours=1))
         )
         p = Product.objects.create(
@@ -1353,7 +1361,6 @@ class QuickbuyParserTests(TestCase):
             parser.parse(buy_string)
 
 
-
 class RazziaTests(TestCase):
     def setUp(self):
         self.flan = Product.objects.create(name="FLan", price=1.0, active=True)
@@ -1362,8 +1369,6 @@ class RazziaTests(TestCase):
 
         self.alan = Member.objects.create(username="tester", firstname="Alan", lastname="Alansen")
         self.bob = Member.objects.create(username="bob", firstname="bob", lastname="bob")
-
-        self.some_time = datetime.datetime(2017, 2, 2)
 
         with freeze_time('2017-02-02'):
             Sale.objects.create(member=self.alan, product=self.flan, price=1.0)
@@ -1380,8 +1385,8 @@ class RazziaTests(TestCase):
     def test_sales_to_user_in_period(self):
         res = views._sales_to_user_in_period(
             self.alan.username,
-            self.some_time - datetime.timedelta(hours=10),
-            self.some_time + datetime.timedelta(days=15),
+            timezone.datetime(2017, 2, 1, 0, 0, tzinfo=pytz.UTC),
+            timezone.datetime(2017, 2, 17, 0, 0, tzinfo=pytz.UTC),
             [self.flan.id, self.flanmad.id],
             {self.flan.name: 0, self.flanmad.name: 0},
         )
@@ -1392,8 +1397,8 @@ class RazziaTests(TestCase):
     def test_sales_to_user_no_results_out_of_period(self):
         res = views._sales_to_user_in_period(
             self.bob.username,
-            self.some_time + datetime.timedelta(days=14),
-            self.some_time + datetime.timedelta(days=15),
+            timezone.datetime(2017, 2, 1, 0, 0, tzinfo=pytz.UTC),
+            timezone.datetime(2017, 2, 17, 0, 0, tzinfo=pytz.UTC),
             [self.flan.id, self.flanmad.id],
             {self.flan.name: 0, self.flanmad.name: 0},
         )

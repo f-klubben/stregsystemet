@@ -1,12 +1,9 @@
 import datetime
-from functools import reduce
 
 from django.db.models import Q
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
-
-import stregsystem.parser as parser
 
 import stregsystem.parser as parser
 from stregsystem.models import (
@@ -23,13 +20,12 @@ from stregsystem.utils import (
     make_active_productlist_query,
     make_room_specific_query
 )
-
 from .booze import ballmer_peak
 
 
 def __get_news():
     try:
-        return News.objects.filter(stop_date__gte=datetime.datetime.now(), pub_date__lte=datetime.datetime.now()).get()
+        return News.objects.filter(stop_date__gte=timezone.now(), pub_date__lte=timezone.now()).get()
     except News.DoesNotExist:
         return None
 
@@ -87,18 +83,32 @@ def sale(request, room_id):
 
 
 def _multibuy_hint(now, member):
-    # Get a timestamp to fetch sales for the member since.
+    # Get a timestamp to fetch sales for the member for the last 60 sec
     earliest_recent_purchase = now - datetime.timedelta(seconds=60)
-    # Count the sales since
-    number_of_recent_distinct_purchases = (
+    # get the sales with this timestamp
+    recent_purchases = (
         Sale.objects
             .filter(member=member, timestamp__gt=earliest_recent_purchase)
-            .values("timestamp")
-            .distinct()
-            .count()
     )
-    # Only give hint if the user did not just do a multibuy
-    return number_of_recent_distinct_purchases > 1
+    number_of_recent_distinct_purchases = recent_purchases.values('timestamp').distinct().count()
+
+    # add hint for multibuy
+    if number_of_recent_distinct_purchases > 1:
+        sale_dict = {}
+        for sale in recent_purchases:
+            if not str(sale.product.id) in sale_dict:
+                sale_dict[str(sale.product.id)] = 1
+            else:
+                sale_dict[str(sale.product.id)] = sale_dict[str(sale.product.id)] + 1
+        sale_hints = [member.username]
+        for key in sale_dict:
+            if sale_dict[key] > 1:
+                sale_hints.append("{}:{}".format(key, sale_dict[key]))
+            else:
+                sale_hints.append(key)
+        return (True, ' '.join(sale_hints))
+
+    return (False, None)
 
 
 def quicksale(request, room, member, bought_ids):
@@ -114,7 +124,7 @@ def quicksale(request, room, member, bought_ids):
                 deactivate_date__isnull=True), Q(rooms__id=room.id) | Q(rooms=None))
             products.append(product)
     except Product.DoesNotExist:
-        return usermenu(request, room, member, None)
+        return render(request, 'stregsystem/error_productdoesntexist.html', {'failedProduct': i})
 
     order = Order.from_products(
         member=member,
@@ -135,7 +145,7 @@ def quicksale(request, room, member, bought_ids):
 
     cost = order.total
 
-    give_multibuy_hint = _multibuy_hint(now, member) and len(bought_ids) == 1
+    give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
@@ -147,7 +157,8 @@ def usermenu(request, room, member, bought, from_sale=False):
     promille = member.calculate_alcohol_promille()
     is_ballmer_peaking, bp_minutes, bp_seconds, = ballmer_peak(promille)
 
-    give_multibuy_hint = _multibuy_hint(timezone.now(), member) and from_sale
+    give_multibuy_hint, sale_hints = _multibuy_hint(timezone.now(), member)
+    give_multibuy_hint = give_multibuy_hint and from_sale
 
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())
@@ -179,7 +190,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
     product = None
     try:
         product = Product.objects.get(Q(pk=product_id), Q(active=True), Q(rooms__id=room_id) | Q(rooms=None),
-                                      Q(deactivate_date__gte=datetime.datetime.now()) | Q(deactivate_date__isnull=True))
+                                      Q(deactivate_date__gte=timezone.now()) | Q(deactivate_date__isnull=True))
 
         order = Order.from_products(
             member=member,

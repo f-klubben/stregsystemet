@@ -69,3 +69,48 @@ table h2, table h3 {
 .ebnf-container {
     margin-top: 20px;
 }
+
+.day_hidden {
+  display: none !important;
+  fill: none !important;
+}
+
+#advent_candle {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  max-height: 75%;
+  max-width: 400px;
+}
+
+.flame-main {
+  /*animation-name: flameWobble;*/
+  animation-duration: 1.5s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.flame-main.one {
+  animation-duration: 2s;
+  animation-delay: .5s;
+}
+.flame-main.two {
+  animation-duration: 1.5s;
+  animation-delay: 1s;
+}
+.flame-main.three {
+  animation-duration: 1.05s;
+  animation-delay: 1.5s;
+}
+.flame-main.four {
+  animation-duration: 1.6s;
+  animation-delay: 2s;
+}
+.flame-main.five {
+  animation-duration: 1.25s;
+  animation-delay: 2.5s;
+}
+@keyframes flameWobble {
+  50% {
+    transform: scale(1,1) translate(0, -2px) rotate(.2deg);
+  }
+}

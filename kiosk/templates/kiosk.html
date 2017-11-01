@@ -9,29 +9,53 @@
     <title>F-Klubben</title>
 
     <link href="{% static "kiosk/kiosk.css" %}" rel="stylesheet">
+</head>
+
+<body>
+    <img class="dummy front" />
+    <img class="dummy" />
 
     <script>
-    function updateKiosk(){
-        var xmlHttp = new XMLHttpRequest();
-        xmlHttp.onreadystatechange = function() {
-            if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-                var element = document.querySelector("#dummy");
-                element.style.backgroundImage = 'url(' + xmlHttp.responseText + ')';
+    var queue = [].slice.call(document.querySelectorAll(".dummy"));
+    var front = queue.shift();
+    var this_id = -1;
+
+    function swap(tag) {
+        //Flip in the DOM
+        front.classList.remove("front");
+
+        queue.push(front);
+        front = queue.shift();
+
+        front.classList.add("front");
+    }
+
+    function updateKiosk() {
+        var t = front
+        t.addEventListener("transitionend", function loadnext(tag) {
+            t.removeEventListener("transitionend", loadnext);
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.onreadystatechange = function() {
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                    obj = JSON.parse(xmlHttp.responseText);
+                    this_id = obj.id;
+                    t.src = obj.url;
+                }
             }
-        }
-        xmlHttp.open("GET", "/kiosk/next", true);
-        xmlHttp.send(null);
+            //Start by asking random for the first image
+            if(this_id === -1) {
+                xmlHttp.open("GET", "/kiosk/random", true);
+            } else {
+                xmlHttp.open("GET", "/kiosk/next_real/" + this_id + "/", true);
+            }
+            xmlHttp.send(null);
+        });
+        swap();
     }
 
     setInterval("updateKiosk()", 10000);
     updateKiosk();
     </script>
-</head>
-
-<body>
-    <div id="dummy">
-
-    </div>
 </body>
 
 </html>
