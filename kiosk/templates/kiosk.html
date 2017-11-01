@@ -9,29 +9,45 @@
     <title>F-Klubben</title>
 
     <link href="{% static "kiosk/kiosk.css" %}" rel="stylesheet">
+</head>
+
+<body>
+    <img id="dummy1" class="dummy front" />
+    <img id="dummy2" class="dummy" />
 
     <script>
-    function updateKiosk(){
+    var current = document.querySelector("#dummy1");
+    var next = document.querySelector("#dummy2");
+
+    function swap(tag) {
+        console.log("swap");
+        //Flip in the DOM
+        current.classList.add("front");
+        next.classList.remove("front");
+
+        //Do the swap in js
+        temp = current;
+        current = next;
+        next = temp;
+    }
+
+    function updateKiosk() {
         var xmlHttp = new XMLHttpRequest();
         xmlHttp.onreadystatechange = function() {
             if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-                var element = document.querySelector("#dummy");
-                element.style.backgroundImage = 'url(' + xmlHttp.responseText + ')';
+                next.src = xmlHttp.responseText;
+                swap();
             }
         }
         xmlHttp.open("GET", "/kiosk/next", true);
         xmlHttp.send(null);
     }
 
+    swap();
     setInterval("updateKiosk()", 10000);
     updateKiosk();
     </script>
-</head>
 
-<body>
-    <div id="dummy">
-
-    </div>
 </body>
 
 </html>

@@ -1,11 +1,24 @@
 html, body {
 	height: 100%;
 	margin: 0;
+	overflow:hidden;
 }
 
-#dummy {
+.dummy.front {
+	visibility: visible;
+}
+
+.dummy {
+	position:absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	visibility: hidden;
+
+	object-fit: cover;
+	max-width: 100%;
+	max-height: 100%;
+	min-width: 100%;
 	min-height: 100%;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center center;
 }
