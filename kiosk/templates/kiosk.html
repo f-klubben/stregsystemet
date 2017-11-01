@@ -12,42 +12,43 @@
 </head>
 
 <body>
-    <img id="dummy1" class="dummy front" />
-    <img id="dummy2" class="dummy" />
+    <img class="dummy front" />
+    <img class="dummy" />
 
     <script>
-    var current = document.querySelector("#dummy1");
-    var next = document.querySelector("#dummy2");
+    var queue = [].slice.call(document.querySelectorAll(".dummy"));
+    var front = queue.shift();
 
     function swap(tag) {
-        console.log("swap");
         //Flip in the DOM
-        current.classList.add("front");
-        next.classList.remove("front");
 
-        //Do the swap in js
-        temp = current;
-        current = next;
-        next = temp;
+        front.classList.remove("front");
+
+        queue.push(front);
+        front = queue.shift();
+
+        front.classList.add("front");
     }
 
     function updateKiosk() {
-        var xmlHttp = new XMLHttpRequest();
-        xmlHttp.onreadystatechange = function() {
-            if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-                next.src = xmlHttp.responseText;
-                swap();
+        var t = front
+        t.addEventListener("transitionend", function loadnext(tag) {
+            t.removeEventListener("transitionend", loadnext);
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.onreadystatechange = function() {
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                    t.src = xmlHttp.responseText;
+                }
             }
-        }
-        xmlHttp.open("GET", "/kiosk/next", true);
-        xmlHttp.send(null);
+            xmlHttp.open("GET", "/kiosk/next", true);
+            xmlHttp.send(null);
+        });
+        swap();
     }
 
-    swap();
     setInterval("updateKiosk()", 10000);
     updateKiosk();
     </script>
-
 </body>
 
 </html>
