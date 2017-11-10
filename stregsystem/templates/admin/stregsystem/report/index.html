@@ -1,4 +1,4 @@
-﻿{% extends "admin/base_site.html" %}
+{% extends "admin/base_site.html" %}
 {% load i18n %}
 {% load admin_static %}
 
@@ -13,31 +13,7 @@
 {% block content %}
 
 <div id="content-main">
-  <div class="module">
-    <table>
-      <caption><a href="/admin/stregsystem/report/" class="section">{% blocktrans with app.name as name %}Rapporter{% endblocktrans %}</a></caption>
-      <tr>
-        <th scope="row"><a href = "/admin/stregsystem/report/ranks/">Købs- og forbrugsrangeringer</a></th>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-      </tr>
-      <tr>
-        <th scope="row"><a href = "/admin/stregsystem/report/sales/">Salgsrapporteringer</a></th>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-      </tr>
-      <tr>
-        <th scope="row"><a href = "/admin/stregsystem/report/daily/">Daglig rapportering</a></th>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-      </tr>
-      <tr>
-        <th scope="row"><a href = "/admin/stregsystem/report/categories/">Bruger køb i kategorier</a></th>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-      </tr>
-    </table>
-  </div>
+  {% include "shared_report_lists.html" %}
 </div>
 
 {% endblock %}
