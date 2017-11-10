@@ -12,8 +12,8 @@
 </head>
 
 <body>
-    <img class="dummy front" />
-    <img class="dummy" />
+    <div class="dummy front"></div>
+    <div class="dummy"></div>
 
     <script>
     var queue = [].slice.call(document.querySelectorAll(".dummy"));
@@ -39,7 +39,7 @@
                 if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
                     obj = JSON.parse(xmlHttp.responseText);
                     this_id = obj.id;
-                    t.src = obj.url;
+                    t.style.backgroundImage = 'url("' + obj.url +'")';
                 }
             }
             //Start by asking random for the first image
