@@ -1,7 +1,6 @@
-from django.conf import settings
-from django.conf.urls import include, url
-from django.conf.urls.static import static
-from django.contrib import admin
+from django.conf.urls import url
+
+from . import views
 
 """stregsystem URL Configuration
 
@@ -18,21 +17,6 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-
 urlpatterns = [
-    url(r'^', include("stregsystem.urls")),
-    url(r'^', include("stregreport.urls")),
-    url(r'^kiosk/', include("kiosk.urls")),
-    url(r'^registration/', include('registration.urls')),
-    url(r'^admin/', admin.site.urls),
-
-    url(r'^select2/', include('django_select2.urls')),
+    url(r'^$', views.index, name="index"),
 ]
-
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-if settings.DEBUG:
-    import debug_toolbar
-    urlpatterns = [
-        url(r'^__debug__/', include(debug_toolbar.urls)),
-    ] + urlpatterns
