@@ -21,7 +21,8 @@ def find_random_image(request):
 
     response_data = {
         "id": item.id,
-        "url": item.image.url,
+        "content": item.getContent(),
+        "type": item.__class__.__name__
     }
     return HttpResponse(
         json.dumps(response_data),
@@ -55,7 +56,8 @@ def find_next_image_real(request, item_id):
         )
     response_data = {
         "id": next_item.id,
-        "url": next_item.image.url,
+        "content": next_item.getContent(),
+        "type": next_item.__class__.__name__
     }
     return HttpResponse(
         json.dumps(response_data),

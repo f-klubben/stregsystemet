@@ -12,9 +12,6 @@ html, body {
 .dummy {
     background-color: black;
     position:absolute;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
     top: 0;
     left: 0;
     right: 0;
@@ -26,4 +23,13 @@ html, body {
     max-height: 100%;
     min-width: 100%;
     min-height: 100%;
+}
+
+.fullscreen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
 }

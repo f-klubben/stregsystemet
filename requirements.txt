@@ -7,3 +7,4 @@ git+https://github.com/spulec/freezegun.git@385a78d004b0566c6cbf98c304fb89a57bad
 Django-Select2==5.11.1
 enum34==1.1.6;python_version<"3.4"
 django-debug-toolbar==1.8
+django-polymorphic==1.3

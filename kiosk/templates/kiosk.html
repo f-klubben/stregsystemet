@@ -39,7 +39,9 @@
                 if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
                     obj = JSON.parse(xmlHttp.responseText);
                     this_id = obj.id;
-                    t.style.backgroundImage = 'url("' + obj.url +'")';
+                    domElement = createDomObject(obj);
+                    t.innerHTML = "";
+                    t.appendChild(domElement);
                 }
             }
             //Start by asking random for the first image
@@ -53,7 +55,27 @@
         swap();
     }
 
-    setInterval("updateKiosk()", 10000);
+    function createDomObject(obj) {
+        var element;
+        switch(obj.type) {
+            case "KioskImageItem":
+                element = document.createElement("DIV");
+                element.style.backgroundImage = 'url("' + obj.content +'")';
+                break;
+            case "WebsiteKioskItem":
+                element = document.createElement("IFRAME");
+                element.src = obj.content;
+                break;
+            default:
+                element = document.createElement("DIV");
+                element.appendChild(document.createTextNode("Error"));
+        }
+
+        element.classList.add("fullscreen");
+        return element;
+    }
+
+    setInterval(updateKiosk, 10000);
     updateKiosk();
     </script>
 </body>
