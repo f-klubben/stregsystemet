@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import KioskItem, KioskImageItem, WebsiteKioskItem
+from .models import KioskItem, KioskImageItem, KioskWebsiteItem
 from polymorphic.admin import PolymorphicParentModelAdmin, PolymorphicChildModelAdmin, PolymorphicChildModelFilter
 
 
@@ -21,15 +21,15 @@ set_inactive_kiosk_item.short_description = "Make selected kiosk items inactive"
 class KioskImageItemAdmin(PolymorphicChildModelAdmin):
     base_model = KioskImageItem
 
-@admin.register(WebsiteKioskItem)
-class WebsiteKioskItemAdmin(PolymorphicChildModelAdmin):
-    base_model = WebsiteKioskItem
+@admin.register(KioskWebsiteItem)
+class KioskWebsiteItemAdmin(PolymorphicChildModelAdmin):
+    base_model = KioskWebsiteItem
 
 
 @admin.register(KioskItem)
 class ModelAParentAdmin(PolymorphicParentModelAdmin):
     base_model = KioskImageItem
-    child_models = (KioskImageItem, WebsiteKioskItem)
+    child_models = (KioskImageItem, KioskWebsiteItem)
     search_fields = ('name',)
     list_display = ('active', 'name', 'notes', 'ordering', 'uploaded_date')
     list_filter = ('active',PolymorphicChildModelFilter)

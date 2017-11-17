@@ -62,11 +62,12 @@
                 element = document.createElement("DIV");
                 element.style.backgroundImage = 'url("' + obj.content +'")';
                 break;
-            case "WebsiteKioskItem":
+            case "KioskWebsiteItem":
                 element = document.createElement("IFRAME");
                 element.src = obj.content;
                 break;
             default:
+                console.log(obj);
                 element = document.createElement("DIV");
                 element.appendChild(document.createTextNode("Error"));
         }

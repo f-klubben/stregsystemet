@@ -31,7 +31,7 @@ class KioskImageItem(KioskItem):
     def getContent(self):
         return self.image.url
 
-class WebsiteKioskItem(KioskItem):
+class KioskWebsiteItem(KioskItem):
     url = models.CharField(max_length=2048, blank=False, null=False, unique=False)
 
     def getContent(self):
