@@ -14,6 +14,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RemoveField(
+            model_name='kioskitem',
+            name='image',
+        ),
         migrations.CreateModel(
             name='KioskImageItem',
             fields=[
@@ -35,10 +39,6 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
             bases=('kiosk.kioskitem',),
-        ),
-        migrations.RemoveField(
-            model_name='kioskitem',
-            name='image',
         ),
         migrations.AddField(
             model_name='kioskitem',
