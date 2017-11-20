@@ -12,8 +12,8 @@
 </head>
 
 <body>
-    <div class="dummy front"></div>
-    <div class="dummy"></div>
+    <iframe src="" class="dummy front"></iframe>
+    <iframe src="" class="dummy"></iframe>
 
     <script>
     var queue = [].slice.call(document.querySelectorAll(".dummy"));
@@ -31,7 +31,8 @@
     }
 
     function updateKiosk() {
-        var t = front
+        var t = front;
+
         t.addEventListener("transitionend", function loadnext(tag) {
             t.removeEventListener("transitionend", loadnext);
             var xmlHttp = new XMLHttpRequest();
@@ -39,9 +40,7 @@
                 if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
                     obj = JSON.parse(xmlHttp.responseText);
                     this_id = obj.id;
-                    domElement = createDomObject(obj);
-                    t.innerHTML = "";
-                    t.appendChild(domElement);
+                    t.src = obj.url;
                 }
             }
             //Start by asking random for the first image
@@ -53,27 +52,6 @@
             xmlHttp.send(null);
         });
         swap();
-    }
-
-    function createDomObject(obj) {
-        var element;
-        switch(obj.type) {
-            case "KioskImageItem":
-                element = document.createElement("DIV");
-                element.style.backgroundImage = 'url("' + obj.content +'")';
-                break;
-            case "KioskWebsiteItem":
-                element = document.createElement("IFRAME");
-                element.src = obj.content;
-                break;
-            default:
-                console.log(obj);
-                element = document.createElement("DIV");
-                element.appendChild(document.createTextNode("Error"));
-        }
-
-        element.classList.add("fullscreen");
-        return element;
     }
 
     setInterval(updateKiosk, 10000);

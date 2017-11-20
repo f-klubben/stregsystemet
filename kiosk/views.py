@@ -21,8 +21,7 @@ def find_random_image(request):
 
     response_data = {
         "id": item.id,
-        "content": item.getContent(),
-        "type": item.__class__.__name__
+        "url": '/kiosk/item/' + str(item.id),
     }
     return HttpResponse(
         json.dumps(response_data),
@@ -56,10 +55,18 @@ def find_next_image_real(request, item_id):
         )
     response_data = {
         "id": next_item.id,
-        "content": next_item.getContent(),
-        "type": next_item.__class__.__name__
+        "url": '/kiosk/item/' + str(next_item.id),
     }
     return HttpResponse(
         json.dumps(response_data),
         content_type="application/json"
     )
+
+def renderItem(request, item_id):
+    item = KioskItem.objects.get(pk=item_id)
+
+    item_count = KioskItem.objects.filter(active=True).count()
+    if item_count == 0:
+        raise Http404("Kiosk item was not found")
+
+    return render(request, item.getTemplateUrl(), {'item': item})

@@ -1,0 +1,24 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>F-Klubbens Kiosk</title>
+
+    <link href="{% static "kiosk/kiosk.css" %}" rel="stylesheet">
+    <style type="text/css">
+
+        .image {
+            background-size: contain;
+            background-image: url("{{item.image.url}}");
+        }
+    </style>
+</head>
+
+<body>
+    <div class="image fullscreen"></div>
+</body>
+
+</html>

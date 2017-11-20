@@ -16,7 +16,7 @@ class KioskItem(PolymorphicModel):
     active = models.BooleanField(default=True)
     ordering = models.IntegerField(null=False, default=random_ordering, blank=False)
 
-    def getContent(self):
+    def getTemplateUrl(self):
         pass
 
     def __str__(self):
@@ -28,11 +28,11 @@ class KioskItem(PolymorphicModel):
 class KioskImageItem(KioskItem):
     image = models.ImageField(upload_to='kiosk', null=False)
 
-    def getContent(self):
-        return self.image.url
+    def getTemplateUrl(self):
+        return 'image.html'
 
 class KioskWebsiteItem(KioskItem):
     url = models.CharField(max_length=2048, blank=False, null=False, unique=False)
 
-    def getContent(self):
-        return self.url
+    def getTemplateUrl(self):
+        return 'website.html'
