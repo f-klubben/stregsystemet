@@ -86,21 +86,23 @@ har {{member.balance|money}} kroner til gode!
 			  {% endfor %}
 			</table>
 		</td>
-		<td width="30">&nbsp;</td>
-		<td valign="top">
-			<table border="1" cellspacing="2" cellpadding="2">
-			  <tr>
-			    <th>Produkt</th>
-			    <th>Pris</th>
-			  </tr>
-			  {% for product in product_list|partition:"2"|last %}
-			  <tr>
-			    <td><a href="/{{room.id}}/sale/{{member.id}}/{{product.id}}">{{product.name}}</a></td>
-			    <td align="right">{{product.price|money}} kr</td>
-			  </tr>
-			  {% endfor %}
-			</table>
-		</td>
+        {% if product_list|partition:"2"|last %}
+            <td width="30">&nbsp;</td>
+            <td valign="top">
+                <table border="1" cellspacing="2" cellpadding="2">
+                  <tr>
+                    <th>Produkt</th>
+                    <th>Pris</th>
+                  </tr>
+                  {% for product in product_list|partition:"2"|last %}
+                  <tr>
+                    <td><a href="/{{room.id}}/sale/{{member.id}}/{{product.id}}">{{product.name}}</a></td>
+                    <td align="right">{{product.price|money}} kr</td>
+                  </tr>
+                  {% endfor %}
+                </table>
+            </td>
+        {% endif %}
 	</tr>
 </table>
 {% else %}

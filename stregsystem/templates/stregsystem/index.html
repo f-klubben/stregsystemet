@@ -48,41 +48,43 @@
 {% if product_list %}
 {% autoescape off %}
 <table cellpadding="0" cellspacing="0" border="0">
-	<tr>
-		<td valign="top">
-			<table border="1" cellspacing="2" cellpadding="2">
-			  <tr>
-  			  <th>ID</th>
-    			<th>Produkt</th>
-		    	<th>Pris</th>
-	  		</tr>
-		  	{% for product in product_list|partition:"2"|first %}
-	  		<tr>
-	  	  	<td>{{product.id}}</td>
-		  	  <td>{{product.name}}</td>
-  		  	<td align="right">{{product.price|money}} kr</td>
-			  </tr>
-  			{% endfor %}
-			</table>
-		</td>
-		<td width="30">&nbsp;</td>
-		<td valign="top">
-			<table border="1" cellspacing="2" cellpadding="2">
-			  <tr>
-			    <th>ID</th>
-			    <th>Produkt</th>
-			    <th>Pris</th>
-			  </tr>
-			  {% for product in product_list|partition:"2"|last %}
-			  <tr>
-			    <td>{{product.id}}</td>
-			    <td>{{product.name}}</td>
-			    <td align="right">{{product.price|money}} kr</td>
-			  </tr>
-			  {% endfor %}
-			</table>
-		</td>
-	</tr>
+    <tr>
+        <td valign="top">
+            <table border="1" cellspacing="2" cellpadding="2">
+              <tr>
+              <th>ID</th>
+                <th>Produkt</th>
+                <th>Pris</th>
+            </tr>
+            {% for product in product_list|partition:"2"|first %}
+            <tr>
+            <td>{{product.id}}</td>
+              <td>{{product.name}}</td>
+            <td align="right">{{product.price|money}} kr</td>
+              </tr>
+            {% endfor %}
+            </table>
+        </td>
+        {% if product_list|partition:"2"|last %}
+        <td width="30">&nbsp;</td>
+            <td valign="top">
+                <table border="1" cellspacing="2" cellpadding="2">
+                  <tr>
+                    <th>ID</th>
+                    <th>Produkt</th>
+                    <th>Pris</th>
+                  </tr>
+                  {% for product in product_list|partition:"2"|last %}
+                  <tr>
+                    <td>{{product.id}}</td>
+                    <td>{{product.name}}</td>
+                    <td align="right">{{product.price|money}} kr</td>
+                  </tr>
+                  {% endfor %}
+                </table>
+            </td>
+        {% endif %}
+    </tr>
 </table>
 {% endautoescape %}
 {% else %}
