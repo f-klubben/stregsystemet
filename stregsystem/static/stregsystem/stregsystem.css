@@ -125,7 +125,12 @@ table h2, table h3 {
 }
 @keyframes flameWobble {
   50% {
-      -webkit-transform: scale(1,1) translate(0, -2px) rotate(.2deg);
       transform: scale(1,1) translate(0, -2px) rotate(.2deg);
+  }
+}
+
+@-webkit-keyframes flameWobble {
+  50% {
+      -webkit-transform: scale(1,1) translate(0, -2px) rotate(.2deg);
   }
 }
