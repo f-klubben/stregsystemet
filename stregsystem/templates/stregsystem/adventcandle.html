@@ -466,7 +466,7 @@
       topOfCandle.setAttribute('transform', "translate(0, " + missingHeight + ")");
     }
 
-    setInterval(() => {
+    setInterval(function(){
       modifyCandle(new Date());
     }, 600000); //Runs every 10th minute
     modifyCandle(new Date());
