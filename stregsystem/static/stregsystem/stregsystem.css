@@ -84,7 +84,7 @@ table h2, table h3 {
 }
 
 .flame-main {
-  /*animation-name: flameWobble;*/
+  animation-name: flameWobble;
   animation-duration: 1.5s;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
