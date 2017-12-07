@@ -440,7 +440,7 @@
 
       for (var i = 1; i < dayOfMonth; i++) {
         var dateLabel = document.getElementById("day_" + i);
-        dateLabel.className += " day_hidden";
+        dateLabel.textContent = "";
       }
 
       var hour = new Date().getHours();
