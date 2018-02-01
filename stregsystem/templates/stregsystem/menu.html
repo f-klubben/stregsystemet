@@ -56,11 +56,7 @@ har {{member.balance|money}} kroner til gode!
         <br />Din alkohol promille er ca. <b>{{promille|floatformat:2}}‰</b>
     {% endif %}
 {% endif %}
-<br />
-{% if give_multibuy_hint %}
-    <h1>psssst. multibuy er enabled.</h1> 
-    <b> Du kunne have skrevet: {{sale_hints}} </b>
-{% endif %}
+
 <br />
 {% endblock %}
 </div>
@@ -111,7 +107,13 @@ har {{member.balance|money}} kroner til gode!
 {% endautoescape %}
 {% endblock %}
 </center>
-
+<br />
+{% if give_multibuy_hint %}
+    <center>
+        <h1>psssst. multibuy er enabled.</h1>
+        <b> Du kunne have skrevet: {{sale_hints}} </b>
+    </center>
+{% endif %}
 <div style="clear: both;">&nbsp;</div>
 
 {% endblock %}
