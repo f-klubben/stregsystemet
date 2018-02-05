@@ -19,8 +19,8 @@
 		{{ formset.management_form }}
 		<table>
 			<tbody>
-				{% for form in formset %}
-				<tr>
+				{% with formset.empty_form as form %}
+				<tr id="formTemplate" style="display: none">
 					{{ form.id }}
 					<td>{{ form.member }}{{ form.member.errors }}</td>
 					<td>{{ form.amount }}{{ form.amount.errors }}</td>
@@ -28,7 +28,7 @@
 						<td>{{ form.DELETE }}</td>
 					{% endif %}
 				</tr>
-				{% endfor %}
+				{% endwith %}
 			</tbody>
 		</table>
 		<input type="submit" value="Submit" />
@@ -37,12 +37,19 @@
 
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
 <script src="{% static "stregsystem/jquery.formset.js" %}"></script>
+<script src="{{ select2_js }}"></script>
+<link rel="stylesheet" type="text/css" href="{{ select2_css }}" />
 
 <script type="text/javascript">
     $(function() {
-        $('#paymentform tbody tr').formset();
+		$('#paymentform tbody tr').formset({
+			formTemplate: $("#formTemplate"),
+			added: function(row) {
+				row.find('.select2').select2();
+			},
+		});
     })
 </script>
-{{ formset.media.js }}
 
+{{ formset.media.js }}
 {% endblock %}

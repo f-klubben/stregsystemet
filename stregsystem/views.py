@@ -2,6 +2,7 @@ import datetime
 
 import stregsystem.parser as parser
 from django.contrib.admin.views.decorators import staff_member_required
+from django.conf import settings
 from django.db.models import Q
 from django import forms
 from django.http import HttpResponsePermanentRedirect
@@ -226,7 +227,7 @@ def batch_payment(request):
         Payment,
         fields=("member", "amount"),
         can_delete=True,
-        widgets={"member": s2forms.Select2Widget}
+        widgets={"member": forms.Select(attrs={"class": "select2"})}
     )
     if request.method == "POST":
         formset = PaymentFormSet(request.POST, request.FILES)
@@ -241,4 +242,6 @@ def batch_payment(request):
         formset = PaymentFormSet(queryset=Payment.objects.none())
     return render(request, "admin/stregsystem/batch_payment.html", {
         "formset": formset,
+        "select2_js": settings.SELECT2_JS,
+        "select2_css": settings.SELECT2_CSS,
     })
