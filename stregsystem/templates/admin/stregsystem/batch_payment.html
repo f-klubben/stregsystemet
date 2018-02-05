@@ -1,0 +1,48 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Brødrazzia{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a>Razzia</a>&nbsp;&rsaquo;&nbsp;Bread</div>{% endblock %}
+
+{% block extrahead %}
+{{ formset.media.css }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+{% endblock %}
+
+{% block content %}
+{% load admin_static %}
+<link rel="stylesheet" type="text/css" href="{% static '/stregsystem/razzia.css' %}" />
+
+<div id="content-main">
+	<form method="post" action="" id="paymentform">{% csrf_token %}
+		{{ formset.management_form }}
+		<table>
+			<tbody>
+				{% for form in formset %}
+				<tr>
+					{{ form.id }}
+					<td>{{ form.member }}{{ form.member.errors }}</td>
+					<td>{{ form.amount }}{{ form.amount.errors }}</td>
+					{% if formset.can_delete %}
+						<td>{{ form.DELETE }}</td>
+					{% endif %}
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		<input type="submit" value="Submit" />
+	</form>
+</div>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script src="{% static "stregsystem/jquery.formset.js" %}"></script>
+
+<script type="text/javascript">
+    $(function() {
+        $('#paymentform tbody tr').formset();
+    })
+</script>
+{{ formset.media.js }}
+
+{% endblock %}

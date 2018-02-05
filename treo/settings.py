@@ -194,3 +194,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+
+SELECT2_JS = '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/js/select2.min.js'
+SELECT2_CSS = (
+    '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/css/select2.min.css'
+)

@@ -1,12 +1,20 @@
 import datetime
 
 import stregsystem.parser as parser
+from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q
+from django import forms
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
+import stregsystem.parser as parser
+from django_select2 import forms as s2forms
+
+
+from stregsystem import parser
 from stregsystem.models import (
     Member,
+    Payment,
     News,
     NoMoreInventoryError,
     Order,
@@ -210,3 +218,27 @@ def menu_sale(request, room_id, member_id, product_id=None):
     # Refresh member, to get new amount
     member = Member.objects.get(pk=member_id, active=True)
     return usermenu(request, room, member, product, from_sale=True)
+
+
+@staff_member_required()
+def batch_payment(request):
+    PaymentFormSet = forms.modelformset_factory(
+        Payment,
+        fields=("member", "amount"),
+        can_delete=True,
+        widgets={"member": s2forms.Select2Widget}
+    )
+    if request.method == "POST":
+        formset = PaymentFormSet(request.POST, request.FILES)
+        if formset.is_valid():
+            formset.save()
+            return render(
+                request,
+                "admin/stregsystem/batch_payment_done.html",
+                {}
+            )
+    else:
+        formset = PaymentFormSet(queryset=Payment.objects.none())
+    return render(request, "admin/stregsystem/batch_payment.html", {
+        "formset": formset,
+    })
