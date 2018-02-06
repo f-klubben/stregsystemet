@@ -17,6 +17,8 @@
 		var maxForms = $('#id_' + options.prefix + '-MAX_NUM_FORMS');
 		var minForms = $('#id_' + options.prefix + '-MIN_NUM_FORMS');
 		var childElementSelector = 'input,select,textarea,label,div';
+		var delCssSelector = $.trim(options.deleteCssClass).replace(/\s+/g, '.');
+		var addCssSelector = $.trim(options.addCssClass).replace(/\s+/g, '.');
 		var $$ = $(this);
 
 		var updateElementIndex = function(elem, prefix, ndx) {
@@ -31,22 +33,55 @@
 			return row.find(childElementSelector).length > 0;
 		};
 
-		var showAddButton = function() {
-			return maxForms.length == 0 ||   // For Django versions pre 1.2
+		var canAddRow = function() {
+			return maxForms.length == 0 ||
 				(maxForms.val() == '' || (maxForms.val() - totalForms.val() > 0));
 		};
 
 		/**
 		 * Indicates whether delete link(s) can be displayed - when total forms > min forms
 		 */
-		var showDeleteLinks = function() {
-				return minForms.length == 0 ||   // For Django versions pre 1.7
-					(minForms.val() == '' || (totalForms.val() - minForms.val() > 0));
-			};
+		var canDeleteRow = function() {
+			return minForms.length == 0 ||   // For Django versions pre 1.7
+				(minForms.val() == '' || (totalForms.val() - minForms.val() > 0));
+		};
+
+		var removeForm = function() {
+			var row = $(this).parents('.' + options.formCssClass);
+			var del = row.find('input:hidden[id $= "-DELETE"]');
+			var buttonRow = row.siblings("a." + addCssSelector + ', .' + options.formCssClass + '-add');
+			var forms;
+			if (del.length) {
+				// We're dealing with an inline formset.
+				// Rather than remove this form from the DOM, we'll mark it as deleted
+				// and hide it, then let Django handle the deleting:
+				del.val('on');
+				row.hide();
+				forms = $('.' + options.formCssClass).not(':hidden');
+			} else {
+				row.remove();
+				// Update the TOTAL_FORMS count:
+				forms = $('.' + options.formCssClass).not('.formset-custom-template');
+				totalForms.val(forms.length);
+
+				for (var i=0, formCount=forms.length; i<formCount; i++) {
+					// Also update names and IDs for all child controls (if this isn't
+					// a delete-able inline formset) so they remain in sequence:
+					forms.eq(i).find(childElementSelector).each(function() {
+						updateElementIndex($(this), options.prefix, i);
+					});
+				}
+			}
+			// Check if we've reached the minimum number of forms - hide all delete link(s)
+			if (!canDeleteRow()){
+				$('a.' + delCssSelector).each(function(){$(this).hide();});
+			}
+			// If a post-delete callback was provided, call it with the deleted form:
+			if (options.removed) options.removed(row);
+			return false;
+		};
 
 		var insertDeleteLink = function(row) {
-			var delCssSelector = $.trim(options.deleteCssClass).replace(/\s+/g, '.');
-			var addCssSelector = $.trim(options.addCssClass).replace(/\s+/g, '.');
 			if (row.is('TR')) {
 				// If the forms are laid out in table rows, insert
 				// the remove button into the last table cell:
@@ -61,47 +96,11 @@
 				row.append('<a class="' + options.deleteCssClass + '" href="javascript:void(0)">' + options.deleteText +'</a>');
 			}
 			// Check if we're under the minimum number of forms - not to display delete link at rendering
-			if (!showDeleteLinks()){
+			if (!canDeleteRow()){
 				row.find('a.' + delCssSelector).hide();
 			}
 
-			row.find('a.' + delCssSelector).click(function() {
-				var row = $(this).parents('.' + options.formCssClass);
-				var del = row.find('input:hidden[id $= "-DELETE"]');
-				var buttonRow = row.siblings("a." + addCssSelector + ', .' + options.formCssClass + '-add');
-				var forms;
-				if (del.length) {
-					// We're dealing with an inline formset.
-					// Rather than remove this form from the DOM, we'll mark it as deleted
-					// and hide it, then let Django handle the deleting:
-					del.val('on');
-					row.hide();
-					forms = $('.' + options.formCssClass).not(':hidden');
-				} else {
-					row.remove();
-					// Update the TOTAL_FORMS count:
-					forms = $('.' + options.formCssClass).not('.formset-custom-template');
-					totalForms.val(forms.length);
-				}
-				for (var i=0, formCount=forms.length; i<formCount; i++) {
-					if (!del.length) {
-						// Also update names and IDs for all child controls (if this isn't
-						// a delete-able inline formset) so they remain in sequence:
-						forms.eq(i).find(childElementSelector).each(function() {
-							updateElementIndex($(this), options.prefix, i);
-						});
-					}
-				}
-				// Check if we've reached the minimum number of forms - hide all delete link(s)
-				if (!showDeleteLinks()){
-					$('a.' + delCssSelector).each(function(){$(this).hide();});
-				}
-				// Check if we need to show the add button:
-				if (buttonRow.is(':hidden') && showAddButton()) buttonRow.show();
-				// If a post-delete callback was provided, call it with the deleted form:
-				if (options.removed) options.removed(row);
-				return false;
-			});
+			row.find('a.' + delCssSelector).click(removeForm);
 		};
 
 		$$.each(function(i) {
@@ -133,7 +132,6 @@
 		});
 
 		if ($$.length) {
-			var hideAddButton = !showAddButton();
 			var addButton;
 			var template;
 
@@ -155,7 +153,6 @@
 				var buttonRow = $('<tr><td colspan="' + numCols + '"><a class="' + options.addCssClass + '" href="javascript:void(0)">' + options.addText + '</a></tr>').addClass(options.formCssClass + '-add');
 
 				$$.parent().append(buttonRow);
-				if (hideAddButton) buttonRow.hide();
 				addButton = buttonRow.find('a');
 			} else {
 				// Otherwise, insert it immediately after the last form:
@@ -166,6 +163,8 @@
 
 			var lastForm;
 			var addForm = function() {
+				if(!canAddRow())
+					return;
 				if(lastForm)
 					lastForm.find(childElementSelector).off("change.formset");
 				var formCount = parseInt(totalForms.val());
@@ -182,16 +181,14 @@
 				});
 				totalForms.val(formCount + 1);
 				// Check if we're above the minimum allowed number of forms -> show all delete link(s)
-				if (showDeleteLinks()){
+				if (canDeleteRow()){
 					$('a.' + delCssSelector).each(function(){$(this).show();});
 				}
-				// Check if we've exceeded the maximum allowed number of forms:
-				if (!showAddButton()) buttonRow.hide();
 				// If a post-add callback was supplied, call it with the added form:
 				if (options.added) options.added(row);
 				lastForm = row
 				return false;
-			}
+			};
 
 			addButton.click(addForm);
 			addForm();
