@@ -164,7 +164,10 @@
 				if (hideAddButton) addButton.hide();
 			}
 
+			var lastForm;
 			var addForm = function() {
+				if(lastForm)
+					lastForm.find(childElementSelector).off("change.formset");
 				var formCount = parseInt(totalForms.val());
 				var row = options.formTemplate.clone(true).removeClass('formset-custom-template');
 				var buttonRow = $(addButton.parents('tr.' + options.formCssClass + '-add').get(0) || this);
@@ -173,8 +176,7 @@
 				var inputs = row.find(childElementSelector);
 				inputs.each(function() {
 					updateElementIndex($(this), options.prefix, formCount);
-					$(this).one("change.formset", function() {
-						inputs.off("change.formset");
+					$(this).on("change.formset", function() {
 						addForm();
 					});
 				});
@@ -187,6 +189,7 @@
 				if (!showAddButton()) buttonRow.hide();
 				// If a post-add callback was supplied, call it with the added form:
 				if (options.added) options.added(row);
+				lastForm = row
 				return false;
 			}
 
