@@ -1,0 +1,34 @@
+#content-main {
+	width: 800px;
+	margin: auto;
+	float: none;
+}
+
+#paymentform {
+	width: 100%;
+}
+#paymentform table {
+	width: 100%;
+}
+
+#paymentform table input {
+	width: 100%;
+}
+#paymentform table select {
+	width: 100%;
+}
+
+#paymentform col.member {
+	width: 60%;
+}
+#paymentform col.amount {
+	width: 30%;
+}
+#paymentform col.delete {
+	width: 10%;
+}
+
+#paymentform td.delete {
+	text-align: center;
+	font-size: 1.5em;
+}

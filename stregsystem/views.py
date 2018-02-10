@@ -226,7 +226,6 @@ def batch_payment(request):
     PaymentFormSet = forms.modelformset_factory(
         Payment,
         fields=("member", "amount"),
-        can_delete=True,
         widgets={"member": forms.Select(attrs={"class": "select2"})}
     )
     if request.method == "POST":
