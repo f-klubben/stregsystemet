@@ -1272,12 +1272,12 @@ class CategoryAdminTests(TestCase):
     def test_category_counter_empty(self):
         testCategory = Category.objects.get(pk=1)
         admin = CategoryAdmin(Category, testCategory)
-        self.assertEquals(0, admin.items_in_category(testCategory))
+        self.assertEqual(0, admin.items_in_category(testCategory))
 
     def test_category_counter_single_product(self):
         testCategory = Category.objects.get(pk=2)
         admin = CategoryAdmin(Category, testCategory)
-        self.assertEquals(1, admin.items_in_category(testCategory))
+        self.assertEqual(1, admin.items_in_category(testCategory))
 
 
 class QuickbuyParserTests(TestCase):

@@ -1,11 +1,12 @@
 import datetime
-import pytz
 from functools import reduce
 
+import pytz
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncDay
-from django.forms import extras, fields
+from django.forms import fields
+from django.forms.widgets import SelectDateWidget
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -139,9 +140,9 @@ def razzia_wizard(request):
     suggested_end_date = timezone.now()
 
     start_date_picker = fields.DateField(
-        widget=extras.SelectDateWidget(years=[x for x in range(2000, timezone.now().year + 1)]))
+        widget=SelectDateWidget(years=[x for x in range(2000, timezone.now().year + 1)]))
     end_date_picker = fields.DateField(
-        widget=extras.SelectDateWidget(years=[x for x in range(2000, timezone.now().year + 1)]))
+        widget=SelectDateWidget(years=[x for x in range(2000, timezone.now().year + 1)]))
 
     return render(request, 'admin/stregsystem/razzia/wizard.html',
                   {
