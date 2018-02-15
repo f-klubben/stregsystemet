@@ -10,6 +10,7 @@ html, body {
 }
 
 .dummy {
+    background-image: url("/static/kiosk/kioskbg.png");
     background-color: black;
     position:absolute;
     background-size: contain;
