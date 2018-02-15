@@ -2,7 +2,6 @@ import datetime
 from functools import reduce
 
 import pytz
-
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncDay
