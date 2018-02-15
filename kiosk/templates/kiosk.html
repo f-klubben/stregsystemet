@@ -40,7 +40,12 @@
                     obj = JSON.parse(xmlHttp.responseText);
                     this_id = obj.id;
                     t.style.backgroundImage = 'url("' + obj.url +'")';
+                } else if (xmlHttp.readyState == 4) {
+                    // Response received, but no image was sent from server
+                    t.style.backgroundImage = 'url("{% static "kiosk/kioskbg.png" %}")';
+                    this_id = -1;
                 }
+
             }
             //Start by asking random for the first image
             if(this_id === -1) {
