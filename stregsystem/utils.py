@@ -1,6 +1,3 @@
-import datetime
-
-import pytz
 from django.db.models import Count, F, Q
 from django.utils import timezone
 

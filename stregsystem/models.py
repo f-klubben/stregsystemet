@@ -3,7 +3,6 @@ from collections import Counter
 from django.db import models, transaction
 from django.db.models import Count
 from django.utils import timezone
-
 from stregsystem.deprecated import deprecated
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import date_to_midnight

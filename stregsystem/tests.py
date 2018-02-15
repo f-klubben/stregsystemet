@@ -3,15 +3,15 @@ import datetime
 from collections import Counter
 
 import pytz
+
+import stregsystem.parser as parser
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from freezegun import freeze_time
-
-import stregsystem.parser as parser
 from stregreport import views
-from stregsystem import admin
 from stregsystem import views as stregsystem_views
+from stregsystem import admin
 from stregsystem.admin import CategoryAdmin, ProductAdmin
 from stregsystem.booze import ballmer_peak
 from stregsystem.models import (

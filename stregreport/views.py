@@ -2,6 +2,7 @@ import datetime
 from functools import reduce
 
 import pytz
+
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncDay
@@ -11,7 +12,6 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import dateparse, timezone
-
 from stregreport.forms import CategoryReportForm
 from stregsystem.models import Category, Member, Product, Sale
 

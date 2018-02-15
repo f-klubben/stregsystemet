@@ -1,9 +1,6 @@
 # -*- coding: utf8 -*-
 
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, Client
-
-from kiosk.models import KioskItem
 
 
 class KioskTests(TestCase):
