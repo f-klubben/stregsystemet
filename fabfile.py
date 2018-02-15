@@ -1,4 +1,4 @@
-from fabric.api import task, run, sudo, cd, env, prefix, settings
+from fabric.api import task, sudo, cd, prefix, settings
 
 
 @task
