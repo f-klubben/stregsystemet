@@ -231,7 +231,28 @@ def batch_payment(request):
     if request.method == "POST":
         formset = PaymentFormSet(request.POST, request.FILES)
         if formset.is_valid():
-            formset.save()
+            # @HACK For some reason django formsets get different member
+            # instances with the same values instead of the same instance. This
+            # means that if we update the member balance and save it, then
+            # repeat, the second write will overwrite the first. In case you
+            # don't know, that's not good.
+            # To work around this we have to set all the member instances to be
+            # the same if they have the same id. This is very, although
+            # slightly less, bad - Jesper Jensen 16/02-2017
+            payments = formset.save(commit=False)
+
+            # @HACK: We need to consolidate all the member so they are the same
+            # instances. We do this by just saving the first one and setting
+            # all the remaining with the same id to be that instance aswell.
+            members = {}
+            for payment in payments:
+                if payment.member.id not in members:
+                    members[payment.member.id] = payment.member
+                payment.member = members[payment.member.id]
+
+            for payment in payments:
+                payment.save()
+
             return render(
                 request,
                 "admin/stregsystem/batch_payment_done.html",
