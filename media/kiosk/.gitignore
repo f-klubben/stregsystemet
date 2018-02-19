@@ -1,3 +1,7 @@
 *.png
+*.PNG
 *.jpg
+*.JPG
+*.gif
+*.GIF
 !test_image.png
