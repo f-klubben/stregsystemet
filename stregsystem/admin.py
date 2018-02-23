@@ -1,7 +1,4 @@
 from django.contrib import admin
-from django.db.models import Q
-from django.utils import timezone
-
 from stregsystem.models import (
     Category,
     Member,

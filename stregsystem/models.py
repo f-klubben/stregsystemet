@@ -3,7 +3,6 @@ from collections import Counter
 from django.db import models, transaction
 from django.db.models import Count
 from django.utils import timezone
-
 from stregsystem.deprecated import deprecated
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import date_to_midnight
@@ -277,7 +276,7 @@ class Member(models.Model):  # id automatisk...
 
 
 class Payment(models.Model):  # id automatisk...
-    member = models.ForeignKey(Member)
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     amount = models.IntegerField()  # penge, oere...
 
@@ -394,7 +393,7 @@ class Product(models.Model): # id automatisk...
                 and not out_of_stock)
 
 class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statistik?
-    product = models.ForeignKey(Product, related_name='old_prices')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='old_prices')
     price = models.IntegerField()  # penge, oere...
     changed_on = models.DateTimeField(auto_now_add=True)
 
@@ -406,9 +405,9 @@ class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statist
         return self.product.name + ": " + money(self.price) + " (" + str(self.changed_on) + ")"
 
 class Sale(models.Model):
-    member = models.ForeignKey(Member)
-    product = models.ForeignKey(Product)
-    room = models.ForeignKey(Room, null=True)
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     price = models.IntegerField()
 

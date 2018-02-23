@@ -1,7 +1,6 @@
-from __future__ import unicode_literals
+import random
 
 from django.db import models
-import random
 
 
 def random_ordering():

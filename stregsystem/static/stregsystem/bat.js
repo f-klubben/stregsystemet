@@ -24,10 +24,11 @@ spawn_bat = function () {
         i.style.transform=i.style.webkitTransform=(a>x)?'':'scaleX(-1)';
         a=x;b=y;
         setTimeout(A,d);
-    };setTimeout(A,r()*3e3);
-}
+    }
+    setTimeout(A, r() * 3e3);
+};
 
-d = new Date()
+d = new Date();
 
 if(d.getMonth() === 9){
     for(n_bats=0; n_bats < (d.getDate()); n_bats++){

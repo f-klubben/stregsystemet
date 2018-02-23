@@ -1,7 +1,7 @@
-Django==1.10.5
+Django==2.0.2
 Pillow==4.1.0
 Coverage==4.4.1
-pytz==2017.2
+pytz==2018.3
 regex==2017.07.28
 git+https://github.com/spulec/freezegun.git@385a78d004b0566c6cbf98c304fb89a57bad0005
 Django-Select2==5.11.1

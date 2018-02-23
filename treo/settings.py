@@ -12,15 +12,9 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 
-try:
-    from configparser import SafeConfigParser
-except ImportError:
-    from ConfigParser import SafeConfigParser
+from configparser import ConfigParser
+from io import StringIO
 
-try:
-    from io import StringIO
-except ImportError:
-    from StringIO import StringIO
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -53,8 +47,8 @@ PASSWORD =
 3=localhost
 """
 
-cfg = SafeConfigParser()
-cfg.readfp(StringIO(defaults))
+cfg = ConfigParser()
+cfg.read_file(StringIO(defaults))
 cfg.read(os.path.join(BASE_DIR, "local.cfg"))
 
 if cfg.getboolean("debug", "DEBUG") is True:

@@ -1,25 +1,25 @@
 import datetime
 
+import stregsystem.parser as parser
 from django.db.models import Q
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
-
-import stregsystem.parser as parser
 from stregsystem.models import (
     Member,
     News,
-    Product,
-    Room,
-    StregForbudError,
     NoMoreInventoryError,
     Order,
+    Product,
+    Room,
     Sale,
+    StregForbudError
 )
 from stregsystem.utils import (
     make_active_productlist_query,
     make_room_specific_query
 )
+
 from .booze import ballmer_peak
 
 
