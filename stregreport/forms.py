@@ -9,6 +9,7 @@ class CategoryReportForm(forms.Form):
         label="Category",
         widget=s2forms.ModelSelect2MultipleWidget(
             search_fields=["name__icontains"],
+            queryset=Category.objects.all(),
         ),
         queryset=Category.objects.all()
     )
