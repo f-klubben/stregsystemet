@@ -5,11 +5,13 @@ from stregsystem.models import Category
 
 class CategoryReportForm(forms.Form):
     categories = forms.ModelMultipleChoiceField(
+        queryset=Category.objects.all(),
         required=True,
         label="Category",
         widget=s2forms.ModelSelect2MultipleWidget(
+            model=Category,
             search_fields=["name__icontains"],
+            max_results=500,
             queryset=Category.objects.all(),
         ),
-        queryset=Category.objects.all()
     )
