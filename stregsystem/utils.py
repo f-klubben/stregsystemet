@@ -80,6 +80,6 @@ def send_mail(user_email):
     try:
        smtpObj = smtplib.SMTP('localhost')
        smtpObj.sendmail('FIT@fklub.dk', user_email, msg)
-    except SMTPException:
+    except:
        pass
 
