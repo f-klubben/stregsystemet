@@ -75,7 +75,7 @@ def date_to_midnight(date):
     return timezone.make_aware(timezone.datetime(date.year, date.month, date.day, 0, 0))
 
 
-def send_mail(user_email)
+def send_mail(user_email):
     msg = "Your money is now on your streg account"
     try:
 		     smtpObj = smtplib.SMTP('localhost')
