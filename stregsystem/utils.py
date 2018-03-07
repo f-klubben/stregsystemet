@@ -78,8 +78,8 @@ def date_to_midnight(date):
 def send_mail(user_email):
     msg = "Your money is now on your streg account"
     try:
-		     smtpObj = smtplib.SMTP('localhost')
-				 smtpObj.sendmail('FIT@fklub.dk', user_email, msg)
-		except SMTPException:
-		     pass
+       smtpObj = smtplib.SMTP('localhost')
+       smtpObj.sendmail('FIT@fklub.dk', user_email, msg)
+    except SMTPException:
+       pass
 
