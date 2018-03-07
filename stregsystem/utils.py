@@ -1,3 +1,7 @@
+import datetime
+import smtplib
+
+import pytz
 from django.db.models import Count, F, Q
 from django.utils import timezone
 
@@ -69,3 +73,13 @@ def date_to_midnight(date):
     :return: the date as a timezone aware datetime at midnight
     """
     return timezone.make_aware(timezone.datetime(date.year, date.month, date.day, 0, 0))
+
+
+def send_mail(user_email)
+    msg = "Your money is now on your streg account"
+    try:
+		     smtpObj = smtplib.SMTP('localhost')
+				 smtpObj.sendmail('FIT@fklub.dk', user_email, msg)
+		except SMTPException:
+		     pass
+
