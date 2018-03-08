@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.forms import TextInput
+from django.db import models
+
 from stregsystem.models import (
     Category,
     Member,
@@ -22,6 +25,9 @@ class SaleAdmin(admin.ModelAdmin):
     search_fields = ['^member__username', '=product__id', 'product__name']
     valid_lookups = ('member')
     autocomplete_fields = ['member', 'product']
+
+    class Media:
+        css = {'all': ('stregsystem/select2-stregsystem.css',)}
 
     def get_username(self, obj):
         return obj.member.username
@@ -167,6 +173,9 @@ class PaymentAdmin(admin.ModelAdmin):
     valid_lookups = ('member')
     search_fields = ['member__username']
     autocomplete_fields = ['member']
+
+    class Media:
+        css = {'all': ('stregsystem/select2-stregsystem.css',)}
 
     def get_username(self, obj):
         return obj.member.username
