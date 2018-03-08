@@ -79,7 +79,7 @@ def send_mail(member, amount):
     msg = f"Hey {member.firstname} we've added {amount} to your streg-account: '{member.username}'"
     try:
        smtpObj = smtplib.SMTP('localhost')
-       smtpObj.sendmail('FIT@fklub.dk', user_email, msg)
+       smtpObj.sendmail('FIT@fklub.dk', member.email, msg)
     except:
        pass
 

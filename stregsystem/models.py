@@ -1,4 +1,5 @@
 from collections import Counter
+from email.utils import parseaddr
 
 from django.db import models, transaction
 from django.db.models import Count
@@ -303,7 +304,9 @@ class Payment(models.Model):  # id automatisk...
             self.member.make_payment(self.amount)
             super(Payment, self).save(*args, **kwargs)
             self.member.save()
-            send_mail(self.member, self.amount)            
+	          if self.member.email != "":
+						    if '@' in parseaddr(self.member.email)[1]:
+								   send_mail(self.member, self.amount)            
 
     def delete(self, *args, **kwargs):
         if self.id:
