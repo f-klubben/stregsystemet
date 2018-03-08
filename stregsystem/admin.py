@@ -21,6 +21,7 @@ class SaleAdmin(admin.ModelAdmin):
     actions = ['refund']
     search_fields = ['^member__username', '=product__id', 'product__name']
     valid_lookups = ('member')
+    autocomplete_fields = ['member', 'product']
 
     def get_username(self, obj):
         return obj.member.username
@@ -165,6 +166,7 @@ class PaymentAdmin(admin.ModelAdmin):
     list_display = ('get_username', 'timestamp', 'get_amount_display')
     valid_lookups = ('member')
     search_fields = ['member__username']
+    autocomplete_fields = ['member']
 
     def get_username(self, obj):
         return obj.member.username
