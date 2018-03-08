@@ -303,8 +303,8 @@ class Payment(models.Model):  # id automatisk...
             # TODO: Make atomic
             self.member.make_payment(self.amount)
             super(Payment, self).save(*args, **kwargs)
-            self.member.save()
-	          if self.member.email != "":
+            self.member.save() 
+            if self.member.email != "":
                 if '@' in parseaddr(self.member.email)[1]:
                     send_payment_mail(self.member, self.amount)            
 
