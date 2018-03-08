@@ -7,7 +7,7 @@ from django.utils import timezone
 from stregsystem.deprecated import deprecated
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import date_to_midnight
-from stregsystem.utils import send_mail
+from stregsystem.utils import send_payment_mail
 
 def price_display(value):
     return money(value) + " kr."
@@ -305,8 +305,8 @@ class Payment(models.Model):  # id automatisk...
             super(Payment, self).save(*args, **kwargs)
             self.member.save()
 	          if self.member.email != "":
-						    if '@' in parseaddr(self.member.email)[1]:
-								   send_mail(self.member, self.amount)            
+                if '@' in parseaddr(self.member.email)[1]:
+                    send_payment_mail(self.member, self.amount)            
 
     def delete(self, *args, **kwargs):
         if self.id:

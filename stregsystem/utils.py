@@ -75,7 +75,7 @@ def date_to_midnight(date):
     return timezone.make_aware(timezone.datetime(date.year, date.month, date.day, 0, 0))
 
 
-def send_mail(member, amount):
+def send_payment_mail(member, amount):
     msg = f"Hey {member.firstname} we've added {amount} to your streg-account: '{member.username}'"
     try:
        smtpObj = smtplib.SMTP('localhost')
