@@ -303,7 +303,7 @@ class Payment(models.Model):  # id automatisk...
             self.member.make_payment(self.amount)
             super(Payment, self).save(*args, **kwargs)
             self.member.save()
-            send_mail(self.member.email)            
+            send_mail(self.member, self.amount)            
 
     def delete(self, *args, **kwargs):
         if self.id:
