@@ -20,7 +20,7 @@ from stregsystem.utils import (
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
-    list_display = ('get_username', 'get_product_name', 'get_room_name', 'timestamp', 'get_price_display')
+    list_display = ('get_username', 'get_fullname', 'get_product_name', 'get_room_name', 'timestamp', 'get_price_display')
     actions = ['refund']
     search_fields = ['^member__username', '=product__id', 'product__name']
     valid_lookups = ('member')
@@ -34,6 +34,12 @@ class SaleAdmin(admin.ModelAdmin):
 
     get_username.short_description = "Username"
     get_username.admin_order_field = "member__username"
+
+    def get_fullname(self, obj):
+        return f"{obj.member.firstname} {obj.member.lastname}"
+
+    get_fullname.short_description = "Full name"
+    get_fullname.admin_order_field = "member__firstname"
 
     def get_product_name(self, obj):
         return obj.product.name
