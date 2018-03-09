@@ -1,11 +1,12 @@
-import datetime
+import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-import pytz
 from django.db.models import Count, F, Q
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 
 def make_active_productlist_query(queryset):
@@ -98,7 +99,7 @@ def send_payment_mail(member, amount):
     msg.attach(MIMEText(html, 'html'))
 
     try:
-        smtpObj = smtplib.SMTP('smtp-external.sit.aau.dk', 25)
+        smtpObj = smtplib.SMTP('localhost', 25)
         smtpObj.sendmail('treo@fklub.dk', member.email, msg.as_string())
-    except:
-        pass
+    except Exception as e:
+        logger.error(str(e))
