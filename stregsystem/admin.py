@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from django.forms import TextInput
 from django.db import models
 
@@ -167,14 +168,22 @@ class MemberAdmin(admin.ModelAdmin):
     search_fields = ('username', 'firstname', 'lastname', 'email')
     list_display = ('username', 'firstname', 'lastname', 'balance', 'email', 'notes')
 
+    def autocomplete_view(self, request):
+        """
+        @HACK: Apply the class below.
+        """
+        return self.AutoCompleteJsonViewCorrector.as_view(model_admin=self)(request)
+
+    class AutoCompleteJsonViewCorrector(AutocompleteJsonView):
+        """
+        @HACK: We need to apply a filter to our AutoComplete (select2),
+        we do this by overwriting the default behaviour, and apply our filter.
+        """
+        def get_queryset(self):
+            qs = super().get_queryset()
+            return qs.filter(active=True).order_by('username')
 
 class PaymentAdmin(admin.ModelAdmin):
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "member":
-            kwargs["queryset"] = Member.objects.filter(active=True).order_by('username')
-            return db_field.formfield(**kwargs)
-        return super(PaymentAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
-
     list_display = ('get_username', 'timestamp', 'get_amount_display')
     valid_lookups = ('member')
     search_fields = ['member__username']
