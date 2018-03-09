@@ -305,7 +305,7 @@ class Payment(models.Model):  # id automatisk...
             super(Payment, self).save(*args, **kwargs)
             self.member.save() 
             if self.member.email != "":
-                if '@' in parseaddr(self.member.email)[1]:
+                if '@' in parseaddr(self.member.email)[1] and self.member.want_spam:
                     send_payment_mail(self.member, self.amount)            
 
     def delete(self, *args, **kwargs):
