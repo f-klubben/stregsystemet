@@ -76,10 +76,27 @@ def date_to_midnight(date):
 
 
 def send_payment_mail(member, amount):
-    msg = f"Hey {member.firstname} we've added {amount} to your streg-account: '{member.username}'"
+    msg = MIMEMultipart()
+    msg['From'] = 'FIT@fklub.dk'
+    msg['To'] = member.email
+    msg['Subject'] = 'Streg-account payment'
+    
+    html = f"
+    <html>
+        <head></head>
+        <body>
+            <p>Hey {member.firstname}<br>
+               We've added {amount}$ to your streg-account: {member.username}<br>
+               <br>
+               If you don't want to receive more spam contact: fklub@elefsennet.dk
+        </body>
+    </html>
+    "
+
+    msg.attach(MIMEText(html, 'html'))
+
     try:
-       smtpObj = smtplib.SMTP('localhost')
-       smtpObj.sendmail('FIT@fklub.dk', member.email, msg)
+       smtpObj = smtplib.SMTP('smtp-external.sit.aau.dk',25)
+       smtpObj.sendmail('FIT@fklub.dk', member.email, msg.as_string())
     except:
        pass
-
