@@ -1,5 +1,7 @@
 import datetime
 import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 import pytz
 from django.db.models import Count, F, Q
@@ -81,7 +83,7 @@ def send_payment_mail(member, amount):
     msg['To'] = member.email
     msg['Subject'] = 'Streg-account payment'
     
-    html = f"
+    html = f"""
     <html>
         <head></head>
         <body>
@@ -91,7 +93,7 @@ def send_payment_mail(member, amount):
                If you don't want to receive more spam contact: fklub@elefsennet.dk
         </body>
     </html>
-    "
+    """
 
     msg.attach(MIMEText(html, 'html'))
 
