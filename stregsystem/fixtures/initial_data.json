@@ -160,7 +160,7 @@
             "username": "tester",
             "first_name": "test",
             "last_name": "testsen",
-            "email": "",
+            "email": "test@satai.dk",
             "is_staff": true,
             "is_active": true,
             "date_joined": "2017-03-06T10:53:54+00:00",

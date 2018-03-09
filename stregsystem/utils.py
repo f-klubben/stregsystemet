@@ -1,3 +1,9 @@
+import datetime
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+import pytz
 from django.db.models import Count, F, Q
 from django.utils import timezone
 
@@ -8,23 +14,23 @@ def make_active_productlist_query(queryset):
     # because they can be out of stock. Which we compute later
     active_candidates = (
         queryset
-        .filter(
+            .filter(
             Q(active=True)
             & (Q(deactivate_date=None) | Q(deactivate_date__gte=now)))
     )
     # This query selects all the candidates that are out of stock.
     candidates_out_of_stock = (
         active_candidates
-        .filter(sale__timestamp__gt=F("start_date"))
-        .annotate(c=Count("sale__id"))
-        .filter(c__gte=F("quantity"))
-        .values("id")
+            .filter(sale__timestamp__gt=F("start_date"))
+            .annotate(c=Count("sale__id"))
+            .filter(c__gte=F("quantity"))
+            .values("id")
     )
     # We can now create a query that selects all the candidates which are not
     # out of stock.
     return (
         active_candidates
-        .exclude(
+            .exclude(
             Q(start_date__isnull=False)
             & Q(id__in=candidates_out_of_stock)))
 
@@ -35,21 +41,21 @@ def make_inactive_productlist_query(queryset):
     # filtered here might be out of stock, but we include that later.
     inactive_candidates = (
         queryset
-        .exclude(
+            .exclude(
             Q(active=True)
             & (Q(deactivate_date=None) | Q(deactivate_date__gte=now)))
-        .values("id")
+            .values("id")
     )
     inactive_out_of_stock = (
         queryset
-        .filter(sale__timestamp__gt=F("start_date"))
-        .annotate(c=Count("sale__id"))
-        .filter(c__gte=F("quantity"))
-        .values("id")
+            .filter(sale__timestamp__gt=F("start_date"))
+            .annotate(c=Count("sale__id"))
+            .filter(c__gte=F("quantity"))
+            .values("id")
     )
     return (
         queryset
-        .filter(
+            .filter(
             Q(id__in=inactive_candidates)
             | Q(id__in=inactive_out_of_stock))
     )
@@ -57,7 +63,7 @@ def make_inactive_productlist_query(queryset):
 
 def make_room_specific_query(room):
     return (
-        Q(rooms__id=room) | Q(rooms=None)
+            Q(rooms__id=room) | Q(rooms=None)
     )
 
 
@@ -69,3 +75,30 @@ def date_to_midnight(date):
     :return: the date as a timezone aware datetime at midnight
     """
     return timezone.make_aware(timezone.datetime(date.year, date.month, date.day, 0, 0))
+
+
+def send_payment_mail(member, amount):
+    msg = MIMEMultipart()
+    msg['From'] = 'treo@fklub.dk'
+    msg['To'] = member.email
+    msg['Subject'] = 'Streg-account payment'
+
+    html = f"""
+    <html>
+        <head></head>
+        <body>
+            <p>Hey {member.firstname}<br>
+               We've added {amount}$ to your streg-account: {member.username}<br>
+               <br>
+               If you don't want to receive more spam contact: fklub@elefsennet.dk
+        </body>
+    </html>
+    """
+
+    msg.attach(MIMEText(html, 'html'))
+
+    try:
+        smtpObj = smtplib.SMTP('smtp-external.sit.aau.dk', 25)
+        smtpObj.sendmail('treo@fklub.dk', member.email, msg.as_string())
+    except:
+        pass
