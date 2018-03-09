@@ -82,16 +82,23 @@ def send_payment_mail(member, amount):
     msg = MIMEMultipart()
     msg['From'] = 'treo@fklub.dk'
     msg['To'] = member.email
-    msg['Subject'] = 'Streg-account payment'
+    msg['Subject'] = 'Stregsystem payment'
 
     html = f"""
     <html>
         <head></head>
         <body>
-            <p>Hey {member.firstname}<br>
-               We've added {amount}$ to your streg-account: {member.username}<br>
-               <br>
-               If you don't want to receive more spam contact: fklub@elefsennet.dk
+            <p>Hej {member.firstname}!<br><br>
+               Vi har indsat {amount} stregdollars på din konto: "{member.username}". <br><br>
+               Hvis du ikke ønsker at modtage flere mails som denne kan du skrive en mail til: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">fklub@elefsennet.dk</a><br><br>
+               Mvh,<br>
+               TREOen<br>
+               ====================================================================<br>
+               Hello {member.firstname}!<br><br>
+               We've inserted {amount} stregdollars on your account: "{member.username}". <br><br>
+               If you do not desire to receive any more mails of this sort, please file a complaint to: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">fklub@elefsennet.dk</a><br><br>
+               Kind regards,<br>
+               TREOen
         </body>
     </html>
     """
