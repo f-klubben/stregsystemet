@@ -1,0 +1,68 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Payments{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../">Hjem</a></div>{% endblock %}
+
+{% block extrahead %}
+{{ formset.media.css }}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<link rel="stylesheet" type="text/css" href="{% static '/stregsystem/batch.css' %}" />
+<script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+{% endblock %}
+
+{% block content %}
+{% load admin_static %}
+
+<div id="content-main">
+	<form method="post" action="" id="paymentform">{% csrf_token %}
+		{{ formset.management_form }}
+		<table>
+			<colgroup>
+				<col class="member"/>
+				<col class="amount"/>
+				<col class="delete"/>
+			</colgroup>
+			<tbody>
+				{% with formset.empty_form as form %}
+				<tr id="formTemplate" style="display: none">
+					{{ form.id }}
+					<td>{{ form.member }}{{ form.member.errors }}</td>
+					<td>{{ form.amount }}{{ form.amount.errors }}</td>
+					{% if formset.can_delete %}
+						<td>{{ form.DELETE }}</td>
+					{% else %}
+						<td class="delete"></td>
+					{% endif %}
+				</tr>
+				{% endwith %}
+			</tbody>
+		</table>
+		<input type="submit" value="Submit" />
+	</form>
+</div>
+
+<script src="{% static "stregsystem/jquery.formset.js" %}"></script>
+<script src="{{ select2_js }}"></script>
+<link rel="stylesheet" type="text/css" href="{{ select2_css }}" />
+
+<script type="text/javascript">
+    $(function() {
+		$('#paymentform tbody tr').formset({
+			formTemplate: $("#formTemplate"),
+			deleteText: '<i title="delete" class="fas fa-trash"></i>',
+			added: function(row) {
+				$(document).on('focus', '.select2-selection.select2-selection--single', function(event){
+					$(this).parents('.select2-container').prev().select2('open');
+				});
+				row.find('.select2').select2({
+					width:"100%",
+				});
+			},
+		});
+    })
+</script>
+
+{{ formset.media.js }}
+{% endblock %}
