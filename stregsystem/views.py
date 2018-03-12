@@ -1,12 +1,21 @@
 import datetime
 
 import stregsystem.parser as parser
+from django.contrib.admin.views.decorators import staff_member_required
+from django.conf import settings
 from django.db.models import Q
+from django import forms
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
+import stregsystem.parser as parser
+from django_select2 import forms as s2forms
+
+
+from stregsystem import parser
 from stregsystem.models import (
     Member,
+    Payment,
     News,
     NoMoreInventoryError,
     Order,
@@ -210,3 +219,49 @@ def menu_sale(request, room_id, member_id, product_id=None):
     # Refresh member, to get new amount
     member = Member.objects.get(pk=member_id, active=True)
     return usermenu(request, room, member, product, from_sale=True)
+
+
+@staff_member_required()
+def batch_payment(request):
+    PaymentFormSet = forms.modelformset_factory(
+        Payment,
+        fields=("member", "amount"),
+        widgets={"member": forms.Select(attrs={"class": "select2"})}
+    )
+    if request.method == "POST":
+        formset = PaymentFormSet(request.POST, request.FILES)
+        if formset.is_valid():
+            # @HACK For some reason django formsets get different member
+            # instances with the same values instead of the same instance. This
+            # means that if we update the member balance and save it, then
+            # repeat, the second write will overwrite the first. In case you
+            # don't know, that's not good.
+            # To work around this we have to set all the member instances to be
+            # the same if they have the same id. This is very, although
+            # slightly less, bad - Jesper Jensen 16/02-2017
+            payments = formset.save(commit=False)
+
+            # @HACK: We need to consolidate all the member so they are the same
+            # instances. We do this by just saving the first one and setting
+            # all the remaining with the same id to be that instance aswell.
+            members = {}
+            for payment in payments:
+                if payment.member.id not in members:
+                    members[payment.member.id] = payment.member
+                payment.member = members[payment.member.id]
+
+            for payment in payments:
+                payment.save()
+
+            return render(
+                request,
+                "admin/stregsystem/batch_payment_done.html",
+                {}
+            )
+    else:
+        formset = PaymentFormSet(queryset=Payment.objects.none())
+    return render(request, "admin/stregsystem/batch_payment.html", {
+        "formset": formset,
+        "select2_js": settings.SELECT2_JS,
+        "select2_css": settings.SELECT2_CSS,
+    })
