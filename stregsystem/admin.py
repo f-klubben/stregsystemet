@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from django.forms import TextInput
 from django.db import models
+from django.utils.datetime_safe import datetime
 
 from stregsystem.models import (
     Category,
@@ -167,6 +168,22 @@ class MemberAdmin(admin.ModelAdmin):
     list_filter = ('want_spam', )
     search_fields = ('username', 'firstname', 'lastname', 'email')
     list_display = ('username', 'firstname', 'lastname', 'balance', 'email', 'notes')
+
+    # fieldsets is like fields, except that they are grouped and with descriptions
+    fieldsets = (
+        (None, {
+            'fields': ('username', 'firstname', 'lastname', 'year', 'gender', 'email'),
+            'description': "Basal information omkring fember"
+        }),
+        (None, {
+            'fields': ('notes',),
+            'description': "Studieretning + evt. andet i noter"
+        }),
+        (None, {
+            'fields': ('active', 'want_spam', 'balance', 'undo_count'),
+            'description': "Lad være med at rode med disse, med mindre du ved hvad du laver ..."
+        })
+    )
 
     def autocomplete_view(self, request):
         """

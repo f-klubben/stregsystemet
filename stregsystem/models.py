@@ -4,6 +4,8 @@ from email.utils import parseaddr
 from django.db import models, transaction
 from django.db.models import Count
 from django.utils import timezone
+from django.utils.datetime_safe import datetime
+
 from stregsystem.deprecated import deprecated
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import date_to_midnight
@@ -155,7 +157,7 @@ class Member(models.Model):  # id automatisk...
     )
     active = models.BooleanField(default=True)
     username = models.CharField(max_length=16)
-    year = models.CharField(max_length=4)  # "dato" inkluderer maaned/dag...
+    year = models.CharField(max_length=4, default="{}".format(datetime.now().year))  # Put the current year as default
     firstname = models.CharField(max_length=20)  # for 'firstname'
     lastname = models.CharField(max_length=30)  # for 'lastname'
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
