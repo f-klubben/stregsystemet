@@ -1,8 +1,5 @@
 from django.contrib import admin
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
-from django.forms import TextInput
-from django.db import models
-from django.utils.datetime_safe import datetime
 
 from stregsystem.models import (
     Category,
