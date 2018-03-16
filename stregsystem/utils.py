@@ -92,13 +92,13 @@ def send_payment_mail(member, amount):
         <body>
             <p>Hej {member.firstname}!<br><br>
                Vi har indsat {formatted_amount} stregdollars på din konto: "{member.username}". <br><br>
-               Hvis du ikke ønsker at modtage flere mails som denne kan du skrive en mail til: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">fklub@elefsennet.dk</a><br><br>
+               Hvis du ikke ønsker at modtage flere mails som denne kan du skrive en mail til: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
                Mvh,<br>
                TREOen<br>
                ====================================================================<br>
                Hello {member.firstname}!<br><br>
                We've inserted {formatted_amount} stregdollars on your account: "{member.username}". <br><br>
-               If you do not desire to receive any more mails of this sort, please file a complaint to: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">fklub@elefsennet.dk</a><br><br>
+               If you do not desire to receive any more mails of this sort, please file a complaint to: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
                Kind regards,<br>
                TREOen
         </body>
