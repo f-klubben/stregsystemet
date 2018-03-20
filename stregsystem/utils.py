@@ -101,7 +101,7 @@ def send_payment_mail(member, amount):
 
     send_mail(member.email, 'Stregsystem payment', html)
 
-def send_overcall_mail(member):
+def send_sign_mail(member):
     html = f"""
     """
     send_mail(member.email, 'Welcome to F-Klubben', html) 

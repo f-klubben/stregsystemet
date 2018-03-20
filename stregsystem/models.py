@@ -183,7 +183,7 @@ class Member(models.Model):  # id automatisk...
         return active_str(self.active) + " " + self.username + ": " + self.firstname + " " + self.lastname + " | " + self.email + " (" + money(self.balance) + ")"
 
     def save(self, *args, **kwargs):
-        send_overcall_mail(member.email)
+        send_sign_mail(member.email)
         super().save(*args, **kwargs)
         
     # XXX - virker ikke
