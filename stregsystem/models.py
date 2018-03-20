@@ -182,6 +182,10 @@ class Member(models.Model):  # id automatisk...
     def __str__(self):
         return active_str(self.active) + " " + self.username + ": " + self.firstname + " " + self.lastname + " | " + self.email + " (" + money(self.balance) + ")"
 
+    def save(self, *args, **kwargs):
+        send_overcall_mail(member.email)
+        super().save(*args, **kwargs)
+        
     # XXX - virker ikke
     #    def get_absolute_url(self):
     #        return "/stregsystem/1/user/%i/" % self.id

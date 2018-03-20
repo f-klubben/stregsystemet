@@ -77,13 +77,7 @@ def date_to_midnight(date):
     """
     return timezone.make_aware(timezone.datetime(date.year, date.month, date.day, 0, 0))
 
-
 def send_payment_mail(member, amount):
-    msg = MIMEMultipart()
-    msg['From'] = 'treo@fklub.dk'
-    msg['To'] = member.email
-    msg['Subject'] = 'Stregsystem payment'
-
     formatted_amount = "{0:.2f}".format(amount / 100.0)
 
     html = f"""
@@ -105,10 +99,24 @@ def send_payment_mail(member, amount):
     </html>
     """
 
+    send_mail(member.email, 'Stregsystem payment', html)
+
+def send_overcall_mail(member):
+    html = f"""
+    """
+    send_mail(member.email, 'Welcome to F-Klubben', html) 
+
+
+def send_mail(email_addr, subject, msg_html_body)
+    msg = MIMEMultipart()
+    msg['From'] = 'treo@fklub.dk'
+    msg['To'] = email_addr
+    msg['Subject'] = subject
+
     msg.attach(MIMEText(html, 'html'))
 
     try:
         smtpObj = smtplib.SMTP('localhost', 25)
-        smtpObj.sendmail('treo@fklub.dk', member.email, msg.as_string())
+        smtpObj.sendmail('treo@fklub.dk', email_addr, msg.as_string())
     except Exception as e:
         logger.error(str(e))
