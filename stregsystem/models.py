@@ -8,6 +8,7 @@ from stregsystem.deprecated import deprecated
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import date_to_midnight
 from stregsystem.utils import send_payment_mail
+from stregsystem.utils import send_sign_mail
 
 def price_display(value):
     return money(value) + " kr."

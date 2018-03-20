@@ -107,7 +107,7 @@ def send_sign_mail(member):
     send_mail(member.email, 'Welcome to F-Klubben', html) 
 
 
-def send_mail(email_addr, subject, msg_html_body)
+def send_mail(email_addr, subject, msg_html_body):
     msg = MIMEMultipart()
     msg['From'] = 'treo@fklub.dk'
     msg['To'] = email_addr
