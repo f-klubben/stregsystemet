@@ -113,7 +113,7 @@ def send_mail(email_addr, subject, msg_html_body):
     msg['To'] = email_addr
     msg['Subject'] = subject
 
-    msg.attach(MIMEText(html, 'html'))
+    msg.attach(MIMEText(msg_html_body, 'html'))
 
     try:
         smtpObj = smtplib.SMTP('localhost', 25)
