@@ -26,7 +26,8 @@ from stregsystem.models import (
 )
 from stregsystem.utils import (
     make_active_productlist_query,
-    make_room_specific_query
+    make_room_specific_query,
+    date_in_easter
 )
 
 from .booze import ballmer_peak
@@ -57,6 +58,7 @@ def index(request, room_id):
     room = get_object_or_404(Room, pk=int(room_id))
     product_list = __get_productlist(room_id)
     news = __get_news()
+    is_easter = date_in_easter()
     return render(request, 'stregsystem/index.html', locals())
 
 def sale(request, room_id):

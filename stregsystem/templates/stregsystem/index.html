@@ -32,7 +32,11 @@
 {% block saleform %}
 <p>
 <label for="quickbuy">Quickbuy</label>
+{% if is_easter %}
+<input tabindex="1" type="password" size="20" id="quickbuy" name="quickbuy" autofocus />
+{% else %}
 <input tabindex="1" type="text" size="20" id="quickbuy" name="quickbuy" autofocus />
+{% endif %}
 <input tabindex="3" type="submit" value="Køb!" id="buybutton" />
 </p>
 {% endblock %}

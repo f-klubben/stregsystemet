@@ -1,4 +1,5 @@
 import logging
+from datetime import date
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -77,6 +78,13 @@ def date_to_midnight(date):
     """
     return timezone.make_aware(timezone.datetime(date.year, date.month, date.day, 0, 0))
 
+def date_in_easter():
+    today = date.today()
+    startdate = date(today.year, 3, 31) 
+    enddate = date(today.year, 4, 7)
+    if (startdate < today or enddate > today):
+        return True
+    return False
 
 def send_payment_mail(member, amount):
     msg = MIMEMultipart()
