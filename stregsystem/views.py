@@ -126,6 +126,8 @@ def quicksale(request, room, member, bought_ids):
     news = __get_news()
     product_list = __get_productlist(room.id)
     now = timezone.now()
+    is_easter = date_in_easter()
+
 
     # Retrieve products and construct transaction
     products = []
