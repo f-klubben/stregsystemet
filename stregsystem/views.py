@@ -93,7 +93,7 @@ def sale(request, room_id):
         return usermenu(request, room, member, None)
 
 
-def _multibuy_hint(now, member):
+def _multibuy_hint(now, member, hide_name=False):
     # Get a timestamp to fetch sales for the member for the last 60 sec
     earliest_recent_purchase = now - datetime.timedelta(seconds=60)
     # get the sales with this timestamp
@@ -111,7 +111,7 @@ def _multibuy_hint(now, member):
                 sale_dict[str(sale.product.id)] = 1
             else:
                 sale_dict[str(sale.product.id)] = sale_dict[str(sale.product.id)] + 1
-        sale_hints = [member.username]
+        sale_hints = ["********"] if hide_name else [member.username]
         for key in sale_dict:
             if sale_dict[key] > 1:
                 sale_hints.append("{}:{}".format(key, sale_dict[key]))
@@ -158,7 +158,7 @@ def quicksale(request, room, member, bought_ids):
 
     cost = order.total
 
-    give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
+    give_multibuy_hint, sale_hints = _multibuy_hint(now, member, hide_name=is_april_fools)
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
