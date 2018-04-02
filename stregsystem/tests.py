@@ -153,17 +153,32 @@ class SaleViewTests(TestCase):
         fulfill.assert_called_once_with(PayTransaction(900))
 
     def test_quicksale_has_status_line(self):
-        response = self.client.post(
-            reverse('quickbuy', args=(1,)),
-            {"quickbuy": "jokke 1"}
-        )
+        with freeze_time(timezone.datetime(2018, 1, 1)) as frozen_time:
+            response = self.client.post(
+                reverse('quickbuy', args=(1,)),
+                {"quickbuy": "jokke 1"}
+            )
 
-        self.assertContains(
-            response,
-            "<b>jokke har lige købt Limfjordsporter for tilsammen "
-            "9.00 kr.</b>",
-            html=True
-        )
+            self.assertContains(
+                response,
+                "<b>jokke har lige købt Limfjordsporter for tilsammen "
+                "9.00 kr.</b>",
+                html=True
+            )
+
+    def test_quicksale_has_status_line_aprilfools(self):
+        with freeze_time(timezone.datetime(2018, 4, 1)) as frozen_time:
+            response = self.client.post(
+                reverse('quickbuy', args=(1,)),
+                {"quickbuy": "jokke 1"}
+            )
+
+            self.assertContains(
+                response,
+                "<b>******** har lige købt Limfjordsporter for tilsammen "
+                "9.00 kr.</b>",
+                html=True
+            )
 
     def test_usermenu(self):
         response = self.client.post(
