@@ -104,7 +104,7 @@ def send_sign_mail(member):
     html = f"""
     <html>
         <body>
-            Welcome {member.Name}<br><br>
+            Welcome {member.firstname}<br><br>
             You are now a member of F-Klubben.<br><br>
             F-Klubben will be hosting various events through out the semester.<br>
             These events include our annual events like the Christmas party (F-julefrokost)<br>
