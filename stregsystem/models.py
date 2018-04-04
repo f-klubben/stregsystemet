@@ -6,9 +6,12 @@ from django.db.models import Count
 from django.utils import timezone
 from stregsystem.deprecated import deprecated
 from stregsystem.templatetags.stregsystem_extras import money
-from stregsystem.utils import date_to_midnight
-from stregsystem.utils import send_payment_mail
-from stregsystem.utils import send_sign_mail
+
+from stregsystem.utils import (
+        date_to_midnight,
+        send_payment_mail,
+        send_sign_mail
+)
 
 def price_display(value):
     return money(value) + " kr."
@@ -184,8 +187,8 @@ class Member(models.Model):  # id automatisk...
         return active_str(self.active) + " " + self.username + ": " + self.firstname + " " + self.lastname + " | " + self.email + " (" + money(self.balance) + ")"
 
     def save(self, *args, **kwargs):
-        send_sign_mail(self)
         super().save(*args, **kwargs)
+        send_sign_mail(self)
         
     # XXX - virker ikke
     #    def get_absolute_url(self):

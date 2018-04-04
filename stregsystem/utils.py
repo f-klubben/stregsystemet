@@ -82,7 +82,6 @@ def send_payment_mail(member, amount):
 
     html = f"""
     <html>
-        <head></head>
         <body>
             <p>Hej {member.firstname}!<br><br>
                Vi har indsat {formatted_amount} stregdollars på din konto: "{member.username}". <br><br>
@@ -103,6 +102,27 @@ def send_payment_mail(member, amount):
 
 def send_sign_mail(member):
     html = f"""
+    <html>
+        <body>
+            Welcome {member.Name}<br><br>
+            You are now a member of F-Klubben.<br><br>
+            F-Klubben will be hosting various events through out the semester.<br>
+            These events include our annual events like the Christmas party (F-julefrokost)<br>
+            , the sports day (F-sportsdag), the cabin trip (Fyttetur) and so much <a href="http://www.fklub.dk/aktiviteter/start">more</a>!<br><br>
+            The perhaps most important event is the Friday bread (FredagsFranskbrød)<br>
+            each Wednesday at 10.00 o'clock in the cafeterie, where there will be 2 free<br>
+            slices of bread for each F-Klub member.<br><br>
+            F-Klubben also has some refrigerators with different beverages located in<br>
+            cluster 5. These can be bought through the <a href="http://www.fklub.dk/treo/stregsystem">Stregsystem</a>.<br><br>
+            To follow the events in F-Klubben, you can follow us on our Face page: <a href="https://www.facebook.com/fklub">F-Klubben</a>, <br>
+            keep an eye out for the posters we put up, and the monitors we have placed in<br>
+            cluster 5 and the cafeteria.<br><br>
+            Best regards,<br>
+            TREOen<br>
+            <a href="https://www.facebook.com/groups/721831544500061">Fembers for F-Klubben members to F-Klubben members</a><br>
+            <a href="https://www.facebook.com/fklub">F-Klubben on Facebook, follow announcements and events</a>
+        </body>
+    </html>
     """
     send_mail(member.email, 'Welcome to F-Klubben', html) 
 
