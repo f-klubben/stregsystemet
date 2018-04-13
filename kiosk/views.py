@@ -21,7 +21,7 @@ def find_random_image(request):
 
     response_data = {
         "id": item.id,
-        "url": item.image.url,
+        "duration": item.duration,
     }
     return HttpResponse(
         json.dumps(response_data),
@@ -55,9 +55,13 @@ def find_next_image_real(request, item_id):
         )
     response_data = {
         "id": next_item.id,
-        "url": next_item.image.url,
+        "duration": item.duration,
     }
     return HttpResponse(
         json.dumps(response_data),
         content_type="application/json"
     )
+
+def render_item(request, item_id):
+    item = KioskItem.objects.get(pk=item_id)
+    return render(request, item.getTemplate(), {'object': item})
