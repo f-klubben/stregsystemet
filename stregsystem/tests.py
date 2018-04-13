@@ -106,7 +106,7 @@ class SaleViewTests(TestCase):
         )
         member_after = Member.objects.get(username=member_username)
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 402)
         self.assertTemplateUsed(response, "stregsystem/error_stregforbud.html")
         self.assertEqual(member_before.balance, member_after.balance)
 

@@ -144,7 +144,7 @@ def quicksale(request, room, member, bought_ids):
     try:
         order.execute()
     except StregForbudError:
-        return render(request, 'stregsystem/error_stregforbud.html', locals())
+        return render(request, 'stregsystem/error_stregforbud.html', locals(), status=402)
     except NoMoreInventoryError:
         # @INCOMPLETE this should render with a different template
         return render(request, 'stregsystem/error_stregforbud.html', locals())
