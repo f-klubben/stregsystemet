@@ -1,19 +1,19 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
-	<head>
-		<title></title>
-    	<script type="text/javascript">
-    		var video;
-    		function start() {
-    			video = document.getElementById("vid");
-    			video.play();
-    		}
-    	</script>
-	</head>
-	<body>
-		<video id="vid" loop>
-  			<source src="{{object.video.url}}" type="video/mp4">
-		</video>
-	</body>
+    <head>
+        <title></title>
+        <script type="text/javascript">
+            var video;
+            function start() {
+                video = document.getElementById("vid");
+                video.play();
+            }
+        </script>
+    </head>
+    <body>
+        <video id="vid" loop>
+            <source src="{{object.video.url}}" type="video/mp4">
+        </video>
+    </body>
 </html>

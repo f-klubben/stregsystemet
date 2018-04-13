@@ -1,29 +1,29 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
-	<head>
-		<title></title>
-    	<link href="{% static "kiosk/kiosk.css" %}" rel="stylesheet">
-    	<style type="text/css">
-    		.imageWrapper {
-    			background-image: url({{ object.image.url }});
-    			
-			    background-size: contain;
-			    background-repeat: no-repeat;
-			    background-position: center;
-    		}
+    <head>
+        <title></title>
+        <link href="{% static "kiosk/kiosk.css" %}" rel="stylesheet">
+        <style type="text/css">
+            .imageWrapper {
+                background-image: url({{ object.image.url }});
+                
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-position: center;
+            }
 
-    		body {
-    			background-color: black;
-    		}
-    	</style>
-    	<script type="text/javascript">
-    		function start() {
-    			
-    		}
-    	</script>
-	</head>
-	<body>
-		<div class="fullscreen imageWrapper"></div>
-	</body>
+            body {
+                background-color: black;
+            }
+        </style>
+        <script type="text/javascript">
+            function start() {
+                
+            }
+        </script>
+    </head>
+    <body>
+        <div class="fullscreen imageWrapper"></div>
+    </body>
 </html>
