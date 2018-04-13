@@ -187,7 +187,7 @@ class Member(models.Model):  # id automatisk...
         return active_str(self.active) + " " + self.username + ": " + self.firstname + " " + self.lastname + " | " + self.email + " (" + money(self.balance) + ")"
 
     def save(self, *args, **kwargs):
-        if (self.id is None):
+        if self.id is None:
             send_sign_mail(self)
         super().save(*args, **kwargs)
         
