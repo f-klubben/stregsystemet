@@ -1,6 +1,7 @@
 {% extends "stregsystem/base.html" %}
 
-{% load stregsystem_extras %}
+{% load stregsystem_extras mobilepay_qr %}
+
 
 {% block title %}Treoens stregsystem : Indsæt penge {% endblock %}
 
@@ -29,21 +30,21 @@ Ingen indbetalinger!
 <br />
 
 <center>
-<b>MobilePay stregkoder</b>
+<b>MobilePay QR-koder</b>
 <table cellspacing="32px" align="center">
    <tr>
 {% for amount in amounts %}
       <td align="center">
          <b>{{amount | floatformat}} kr.</b>
          <br /><br />
-         <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=mobilepay%3A%2F%2Fsend%3Fphone%3D90601%26comment%3D{{member.username}}%26amount%3D{{amount | floatformat}}" />
+         {% mobilepay_qr member.username amount %}
       </td>
 {% endfor %}
 
       <td align="center">
          <b>Valgfrit beløb</b>
          <br /><br />
-         <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=mobilepay%3A%2F%2Fsend%3Fphone%3D90601%26comment%3D{{member.username}}" />
+         {% mobilepay_qr member.username %}
       </td>
    </tr>
 </table>
