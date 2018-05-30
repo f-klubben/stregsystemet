@@ -16,7 +16,7 @@ A good feature request gives context for the feature and tells a short focused s
 ## Patches welcome!
 If you want to contribute code you should fork the project.
 
-The project strives to be Python 2 and 3 compliant, if you are writing a feature which will only work in Python 3 please note this clearly and explain why.
+The project only strives to be Python 3 compliant.
 
 ### Coding standards
 We try to adhere to `flake8` whenever possible. Mostly to avoid any
