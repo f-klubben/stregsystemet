@@ -111,7 +111,7 @@ def send_sign_mail(member):
             , the sports day (F-sportsdag), the cabin trip (Fyttetur) and so much <a href="http://www.fklub.dk/aktiviteter/start">more</a>!<br><br>
             The perhaps most important event is the Friday bread (FredagsFranskbrød)<br>
             each Wednesday at 10.00 o'clock in the cafeterie, where there will be 2 free<br>
-            slices of bread for each F-Klub member with butter.<br><br>
+            slices of bread with butter for each F-Klub member.<br><br>
             F-Klubben also has some refrigerators with different beverages located in<br>
             cluster 5. These can be bought through the <a href="http://www.fklub.dk/treo/stregsystem">Stregsystem</a>.<br><br>
             To follow the events in F-Klubben, you can follow us on our Facebook page: <a href="https://www.facebook.com/fklub">F-Klubben</a>, <br>
