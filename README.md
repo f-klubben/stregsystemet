@@ -58,7 +58,7 @@ First time:
 2. `python manage.py loaddata stregsystem/fixtures/testdata.json`
 3. `python manage.py runserver`
 4. ???
-5 Profit
+5. Profit
 
 From then on
 1. `python manage.py runserver`
