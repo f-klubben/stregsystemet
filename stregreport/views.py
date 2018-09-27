@@ -8,11 +8,12 @@ from django.db.models.functions import TruncDay
 from django.forms import fields
 from django.forms.widgets import SelectDateWidget
 from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
 from django.utils import dateparse, timezone
 from stregreport.forms import CategoryReportForm
 from stregsystem.models import Category, Member, Product, Sale
+from stregreport.models import BreadRazzia
 
 
 def reports(request):
@@ -38,24 +39,47 @@ def sales(request):
 sales = staff_member_required(sales)
 
 
-def bread(request):
+def bread(request, razzia_id):
     if request.method == 'POST':
-        return bread_view(request, request.POST['username'])
+        return bread_view(request, razzia_id, request.POST['username'])
     else:
-        return bread_view(request, None)
+        return bread_view(request, razzia_id, None)
 
 
-bread = staff_member_required(bread)
 
 
-def bread_view(request, queryname):
+def bread_view(request, razzia_id, queryname):
+    razzia = get_object_or_404(BreadRazzia, pk=razzia_id)
     if queryname is not None:
         result = list(Member.objects.filter(username__iexact=queryname))
         if len(result) > 0:
             member = result[0]
+            already_used = member in razzia.members.all()
+            if not already_used:
+                razzia.members.add(member)
+                razzia.save()
 
     return render(request, 'admin/stregsystem/razzia/bread.html', locals())
 
+def bread_menu(request):
+    razzias = BreadRazzia.objects.order_by('-pk')[:3]
+    if len(razzias) == 0:
+        return redirect('bread_new')
+    return render(request, 'admin/stregsystem/razzia/bread_menu.html', locals())
+
+def new_bread(request):
+    razzia = BreadRazzia()
+    razzia.save()
+    return redirect('bread_view', razzia_id=razzia.pk)
+
+def bread_members(request, razzia_id):
+    razzia = get_object_or_404(BreadRazzia, pk=razzia_id)
+    return render(request, 'admin/stregsystem/razzia/bread_members.html', locals())
+
+
+bread = staff_member_required(bread)
+bread_view = staff_member_required(bread_view)
+new_bread = staff_member_required(new_bread)
 
 def _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict):
     result = (
