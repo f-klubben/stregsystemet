@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('stregsystem', '0009_auto_20180927_1040'),
+        ('stregsystem', '0008_add_sale_products_id_timestamp_index'),
     ]
 
     operations = [
