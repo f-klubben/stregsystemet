@@ -14,7 +14,7 @@ from django.utils import dateparse, timezone
 from stregreport.forms import CategoryReportForm
 from stregsystem.models import Category, Member, Product, Sale
 from stregreport.models import BreadRazzia
-
+from stregsystem.templatetags.stregsystem_extras import money
 
 def reports(request):
     return render(request, 'admin/stregsystem/report/index.html', locals())
@@ -316,12 +316,6 @@ def fjule_party(year):
     )
     days_to_add = (11 - first_december.weekday()) % 7
     return first_december + datetime.timedelta(days=days_to_add)
-
-
-def money(value):
-    if value is None:
-        value = 0
-    return "{0:.2f}".format(value / 100.0)
 
 
 def parse_id_string(id_string):
