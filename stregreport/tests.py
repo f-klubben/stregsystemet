@@ -81,13 +81,13 @@ class BreadRazziaTests(TestCase):
     fixtures = ["initial_data"]
 
     def test_bread_razzia_can_create_new(self):
-        previous_number_razzias = len(BreadRazzia.objects.all())
+        previous_number_razzias = BreadRazzia.objects.count()
 
         self.client.login(username="tester", password="treotreo")
         response = self.client.get(reverse("bread_new"), follow=True)
         last_url, status_code = response.redirect_chain[-1]
         
-        current_number_razzias = len(BreadRazzia.objects.all())
+        current_number_razzias = BreadRazzia.objects.count()
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed("admin/stregsystem/razzia/bread.html")

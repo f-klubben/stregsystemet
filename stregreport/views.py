@@ -46,20 +46,19 @@ def bread(request, razzia_id):
         return bread_view(request, razzia_id, None)
 
 
-
-
 def bread_view(request, razzia_id, queryname):
     razzia = get_object_or_404(BreadRazzia, pk=razzia_id)
     if queryname is not None:
         result = list(Member.objects.filter(username__iexact=queryname))
         if len(result) > 0:
             member = result[0]
-            already_used = member in razzia.members.all()
+            already_used = razzia.members.filter(pk=member.pk).exists()
             if not already_used:
                 razzia.members.add(member)
                 razzia.save()
 
     return render(request, 'admin/stregsystem/razzia/bread.html', locals())
+
 
 def bread_menu(request):
     razzias = BreadRazzia.objects.order_by('-pk')[:3]
@@ -67,10 +66,12 @@ def bread_menu(request):
         return redirect('bread_new')
     return render(request, 'admin/stregsystem/razzia/bread_menu.html', locals())
 
+
 def new_bread(request):
     razzia = BreadRazzia()
     razzia.save()
     return redirect('bread_view', razzia_id=razzia.pk)
+
 
 def bread_members(request, razzia_id):
     razzia = get_object_or_404(BreadRazzia, pk=razzia_id)
@@ -80,6 +81,8 @@ def bread_members(request, razzia_id):
 bread = staff_member_required(bread)
 bread_view = staff_member_required(bread_view)
 new_bread = staff_member_required(new_bread)
+bread_members = staff_member_required(bread_members)
+
 
 def _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict):
     result = (
