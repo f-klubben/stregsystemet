@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from stregreport import views
+from stregreport.models import BreadRazzia
 
 
 class ParseIdStringTests(TestCase):
@@ -75,3 +76,64 @@ class SalesReportTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed("admin/stregsystem/report/sales.html")
+
+class BreadRazziaTests(TestCase):
+    fixtures = ["initial_data"]
+
+    def test_bread_razzia_can_create_new(self):
+        previous_number_razzias = BreadRazzia.objects.count()
+
+        self.client.login(username="tester", password="treotreo")
+        response = self.client.get(reverse("bread_new"), follow=True)
+        last_url, status_code = response.redirect_chain[-1]
+        
+        current_number_razzias = BreadRazzia.objects.count()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed("admin/stregsystem/razzia/bread.html")
+        self.assertEqual(current_number_razzias, previous_number_razzias + 1)
+
+    def test_bread_razzia_member_can_only_register_once(self):
+        self.client.login(username="tester", password="treotreo")
+        response = self.client.get(reverse("bread_new"), follow=True)
+        razzia_url, _ = response.redirect_chain[-1]
+        
+        response_add_1 = self.client.post(
+            razzia_url,
+            {
+                "username": "jokke"
+            },
+            follow=True)
+
+        response_add_2 = self.client.post(
+            razzia_url,
+            {
+                "username": "jokke"
+            },
+            follow=True)
+
+        self.assertEqual(response_add_1.status_code, 200)
+        self.assertEqual(response_add_2.status_code, 200)
+        self.assertTemplateUsed("admin/stregsystem/razzia/bread.html")
+        self.assertNotContains(response_add_1, "already checked in", status_code=200)
+        self.assertContains(response_add_2, "already checked in", status_code=200)
+
+    def test_bread_razzia_registered_member_is_in_member_list(self):
+        self.client.login(username="tester", password="treotreo")
+        response = self.client.get(reverse("bread_new"), follow=True)
+        razzia_url, _ = response.redirect_chain[-1]
+        
+        response_add = self.client.post(
+            razzia_url,
+            {
+                "username": "jokke"
+            },
+            follow=True)
+
+        response_members = self.client.get(
+            razzia_url + "members",
+            follow=True)
+
+        self.assertEqual(response_add.status_code, 200)
+        self.assertTemplateUsed("admin/stregsystem/razzia/bread_members.html")
+        self.assertContains(response_members, "jokke", status_code=200)

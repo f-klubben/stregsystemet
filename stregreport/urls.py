@@ -18,7 +18,10 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url(r'^admin/stregsystem/razzia/bread/$', views.bread),
+    url(r'^admin/stregsystem/razzia/bread/(?P<razzia_id>\d+)/$', views.bread, name="bread_view"),
+    url(r'^admin/stregsystem/razzia/bread/(?P<razzia_id>\d+)/members$', views.bread_members, name="bread_members"),
+    url(r'^admin/stregsystem/razzia/bread/$', views.bread_menu),
+    url(r'^admin/stregsystem/razzia/bread/new$', views.new_bread, name="bread_new"),
     url(r'^admin/stregsystem/razzia/wizard_guide/$', views.razzia_wizard),
     url(r'^admin/stregsystem/razzia/wizard/$', views.razzia_view, name="razzia_view"),
     url(r'^admin/stregsystem/report/sales/$', views.sales, name="salesreporting"),

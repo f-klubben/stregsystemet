@@ -140,3 +140,17 @@
 .fa-input {
   font-family: FontAwesome, 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
+
+.top {
+	margin-top: 20px;
+}
+
+.rounded {
+	border-radius: 10px;
+}
+
+.fember-link {
+	margin-left: 10px;
+	display: block;
+	margin-bottom: 10px;
+}
