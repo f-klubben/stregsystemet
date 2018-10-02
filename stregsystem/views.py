@@ -40,10 +40,9 @@ def __get_news():
 
 
 def __get_productlist(room_id):
-    lst = (
+    return (
         make_active_productlist_query(Product.objects).filter(make_room_specific_query(room_id))
     )
-    return lst
 
 
 def roomindex(request):
