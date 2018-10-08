@@ -83,15 +83,16 @@ def date_to_midnight(date):
 def send_payment_mail(member, amount):
     formatted_amount = "{0:.2f}".format(amount / 100.0)
     
-    template = Template(render_to_string('templates/mail/payment.html'))
-    context = Context({"member_first":member.firstname, "formatted_amount": formatted_amount, "member_username": member.username})
+    template = Template(render_to_string('mail/payment.html'))
+    context = Context({"member_first": member.firstname, "formatted_amount": formatted_amount,
+                       "member_username": member.username})
 
     send_mail(member.email, 'Stregsystem payment', MIMEText(template.render(context), 'html'))
 
 
 def send_sign_mail(member):
-    template = Template(render_to_string('templates/mail/sign.html'))
-    context = Context({"member_first":member.firstname})
+    template = Template(render_to_string('mail/sign.html'))
+    context = Context({"member_first": member.firstname})
 
     send_mail(member.email, 'Welcome to F-Klubben', MIMEText(template.render(context), 'html'))
 
