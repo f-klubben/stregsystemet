@@ -3,6 +3,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+from django.template import Template, Context
 from django.template.loader import render_to_string
 from django.db.models import Count, F, Q
 from django.utils import timezone
@@ -78,39 +79,21 @@ def date_to_midnight(date):
     """
     return timezone.make_aware(timezone.datetime(date.year, date.month, date.day, 0, 0))
 
+
 def send_payment_mail(member, amount):
     formatted_amount = "{0:.2f}".format(amount / 100.0)
     
-    htmlTemplate = Template(render_to_string('templates/mail/payment.html'))
+    template = Template(render_to_string('templates/mail/payment.html'))
     context = Context({"member_first":member.firstname, "formatted_amount": formatted_amount, "member_username": member.username})
 
     send_mail(member.email, 'Stregsystem payment', MIMEText(template.render(context), 'html'))
 
+
 def send_sign_mail(member):
-    html = f"""
-    <html>
-        <body>
-            Welcome {member.firstname}<br><br>
-            You are now a member of F-Klubben.<br><br>
-            F-Klubben will be hosting various events through out the semester.<br>
-            These events include our annual events like the Christmas party (F-julefrokost)<br>
-            , the sports day (F-sportsdag), the cabin trip (Fyttetur) and so much <a href="http://www.fklub.dk/aktiviteter/start">more</a>!<br><br>
-            The perhaps most important event is the Friday bread (FredagsFranskbrød)<br>
-            each Wednesday at 10.00 o'clock in the cafeterie, where there will be 2 free<br>
-            slices of bread with butter for each F-Klub member.<br><br>
-            F-Klubben also has some refrigerators with different beverages located in<br>
-            cluster 5. These can be bought through the <a href="http://www.fklub.dk/treo/stregsystem">Stregsystem</a>.<br><br>
-            To follow the events in F-Klubben, you can follow us on our Facebook page: <a href="https://www.facebook.com/fklub">F-Klubben</a>, <br>
-            keep an eye out for the posters we put up, and the monitors we have placed in<br>
-            cluster 5 and the cafeteria.<br><br>
-            Best regards,<br>
-            TREOen<br>
-            <a href="https://www.facebook.com/groups/721831544500061">Fembers for F-Klubben members to F-Klubben members</a><br>
-            <a href="https://www.facebook.com/fklub">F-Klubben on Facebook, follow announcements and events</a>
-        </body>
-    </html>
-    """
-    send_mail(member.email, 'Welcome to F-Klubben', html) 
+    template = Template(render_to_string('templates/mail/sign.html'))
+    context = Context({"member_first":member.firstname})
+
+    send_mail(member.email, 'Welcome to F-Klubben', MIMEText(template.render(context), 'html'))
 
 
 def send_mail(email_addr, subject, msg_html_body):
