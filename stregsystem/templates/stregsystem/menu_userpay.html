@@ -1,0 +1,54 @@
+{% extends "stregsystem/base.html" %}
+
+{% load stregsystem_extras mobilepay_qr %}
+
+
+{% block title %}Treoens stregsystem : Indsæt penge {% endblock %}
+
+{% block content %}
+
+<center><h3>{{member.firstname}} {{member.lastname}} ({{member.email}})</h3></center>
+
+<center><h2><a href="/{{room.id}}/sale/{{member.id}}">Tilbage til produktmenu</a></h2></center>
+
+{% spaceless %}
+<center><h4>Du {% if negative_balance %}
+skylder <span style="color: red;">{{member.balance|money|cut:"-"}}</span> kroner
+{% else %}har {{member.balance|money}} kroner til gode!
+{% endif %}
+</h4></center>
+{% endspaceless %}
+
+<center><b>Sidste indbetaling:</b> 
+{% if last_payment %}
+{{last_payment.amount|money}} kr. d. {{last_payment.timestamp}}
+{% else %}
+Ingen indbetalinger!
+{% endif %}
+</center>
+
+<br />
+
+<center>
+<b>MobilePay QR-koder</b>
+<table cellspacing="32px" align="center">
+   <tr>
+{% for amount in amounts %}
+      <td align="center">
+         <b>{{amount | floatformat}} kr.</b>
+         <br /><br />
+         {% mobilepay_qr member.username amount %}
+      </td>
+{% endfor %}
+
+      <td align="center">
+         <b>Valgfrit beløb</b>
+         <br /><br />
+         {% mobilepay_qr member.username %}
+      </td>
+   </tr>
+</table>
+</center>
+
+{% endblock %}
+

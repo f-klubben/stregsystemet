@@ -144,7 +144,7 @@ def quicksale(request, room, member, bought_ids):
     try:
         order.execute()
     except StregForbudError:
-        return render(request, 'stregsystem/error_stregforbud.html', locals())
+        return render(request, 'stregsystem/error_stregforbud.html', locals(), status=402)
     except NoMoreInventoryError:
         # @INCOMPLETE this should render with a different template
         return render(request, 'stregsystem/error_stregforbud.html', locals())
@@ -190,6 +190,27 @@ def menu_userinfo(request, room_id, member_id):
     stregforbud = member.has_stregforbud()
 
     return render(request, 'stregsystem/menu_userinfo.html', locals())
+
+
+def menu_userpay(request, room_id, member_id):
+    room = Room.objects.get(pk=room_id)
+    member = Member.objects.get(pk=member_id, active=True)
+
+    amounts = {100, 200}
+
+    try:
+        last_payment = member.payment_set.order_by('-timestamp')[0]
+        amounts.add(last_payment.amount / 100.0)
+    except IndexError:
+        last_payment = None
+
+    negative_balance = member.balance < 0
+    if negative_balance:
+        amounts.add(- member.balance / 100.0)
+
+    amounts = sorted(amounts)
+
+    return render(request, 'stregsystem/menu_userpay.html', locals())
 
 
 def menu_sale(request, room_id, member_id, product_id=None):

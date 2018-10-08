@@ -22,17 +22,14 @@ For windows using Anaconda and virtual environments:
 For Ubuntu with virtual envs:
 1. Install python3 with pip
  - `sudo apt install python3 python3-pip`
-2. Install virtualenv using pip *or* apt
- - `pip3 install virtualenv`
- - `sudo apt install python3-virtualenv`
-3. Make virtualenv
- - `virtualenv venv`
-4. Activate virtualenv
+2. Create virtual environment
+ - `python3 -m vevn venv`
+3. Activate virtualenv
  - `source venv/bin/activate`
-5. Install packages
+4. Install packages
  - `pip3 install -r requirements.txt`
-6. ???
-7. Profit
+5. ???
+6. Profit
 
 Using Testdata
 --------
@@ -58,7 +55,7 @@ First time:
 2. `python manage.py loaddata stregsystem/fixtures/testdata.json`
 3. `python manage.py runserver`
 4. ???
-5 Profit
+5. Profit
 
 From then on
 1. `python manage.py runserver`
