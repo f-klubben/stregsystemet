@@ -40,10 +40,9 @@ spawn_bat = function() {
 };
 
 d = new Date();
-var NUM_BATS = 200;
 
 if(d.getMonth() === 9){
-    for(n_bats=0; n_bats < NUM_BATS; n_bats++){
+    for(n_bats=0; n_bats < d.getDate(); n_bats++){
         spawn_bat();
     }
 }
