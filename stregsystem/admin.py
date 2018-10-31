@@ -197,6 +197,7 @@ class MemberAdmin(admin.ModelAdmin):
             qs = super().get_queryset()
             return qs.filter(active=True).order_by('username')
 
+
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('get_username', 'timestamp', 'get_amount_display')
     valid_lookups = ('member')

@@ -318,6 +318,7 @@ class Payment(models.Model):  # id automatisk...
         else:
             super(Payment, self).delete(*args, **kwargs)
 
+
 class Category(models.Model):
     name = models.CharField(max_length=64)
 
@@ -330,6 +331,7 @@ class Category(models.Model):
     class Meta:
         verbose_name_plural = 'Categories'
 
+
 # XXX
 class Room(models.Model):
     name = models.CharField(max_length=64)
@@ -341,6 +343,7 @@ class Room(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Product(models.Model): # id automatisk...
     name = models.CharField(max_length=64)
@@ -397,6 +400,7 @@ class Product(models.Model): # id automatisk...
                 and not expired
                 and not out_of_stock)
 
+
 class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statistik?
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='old_prices')
     price = models.IntegerField()  # penge, oere...
@@ -408,6 +412,7 @@ class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statist
 
     def __str__(self):
         return self.product.name + ": " + money(self.price) + " (" + str(self.changed_on) + ")"
+
 
 class Sale(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
