@@ -40,11 +40,10 @@ def __get_news():
 
 
 def __get_productlist(room_id):
-    l = (
-        make_active_productlist_query(Product.objects)
-                       .filter(make_room_specific_query(room_id))
+    return (
+        make_active_productlist_query(Product.objects).filter(make_room_specific_query(room_id))
     )
-    return l
+
 
 def roomindex(request):
     return HttpResponsePermanentRedirect('/1/')
@@ -58,6 +57,7 @@ def index(request, room_id):
     product_list = __get_productlist(room_id)
     news = __get_news()
     return render(request, 'stregsystem/index.html', locals())
+
 
 def sale(request, room_id):
     room = get_object_or_404(Room, pk=room_id)

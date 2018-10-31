@@ -5,7 +5,7 @@ from email.mime.text import MIMEText
 
 from django.db.models import Count, F, Q
 from django.utils import timezone
-
+from stregsystem.templatetags.stregsystem_extras import money
 logger = logging.getLogger(__name__)
 
 
@@ -84,7 +84,7 @@ def send_payment_mail(member, amount):
     msg['To'] = member.email
     msg['Subject'] = 'Stregsystem payment'
 
-    formatted_amount = "{0:.2f}".format(amount / 100.0)
+    formatted_amount = money(amount)
 
     html = f"""
     <html>
