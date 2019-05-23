@@ -3,7 +3,7 @@ import datetime
 import stregsystem.parser as parser
 from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, Avg, Count, Min, Max, Sum
 from django import forms
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
@@ -185,6 +185,14 @@ def menu_userinfo(request, room_id, member_id):
         last_payment = member.payment_set.order_by('-timestamp')[0]
     except IndexError:
         last_payment = None
+
+    sale_statistics = member.sale_set.aggregate(
+        number_sales=Count('timestamp'),
+        total_price=Sum('price'),
+        average_price=Avg('price'),
+        min_price=Min('price'),
+        max_price=Max('price')
+    )
 
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()

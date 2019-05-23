@@ -86,5 +86,35 @@ Ingen indbetalinger!
    </tr>
 </table>
 
+<br />
+
+<center><b>Vi har beregnet følgende statistikker om dig</b></center>
+<table border=1 width="100%">
+   <tr>
+      <th align="left">Felt</th>
+      <th align="right">Værdi</th>
+   </tr>
+   <tr>
+      <td>Totale antal køb</td>
+      <td align="right">{{sale_statistics.number_sales}}</td>
+   </tr>
+   <tr>
+      <td>Total købspris</td>
+      <td align="right">{{sale_statistics.total_price|money}}</td>
+   </tr>
+   <tr>
+      <td>Gennemsnitlig købspris</td>
+      <td align="right">{{sale_statistics.average_price|money}}</td>
+   </tr>
+   <tr>
+      <td>Minimal købspris</td>
+      <td align="right">{{sale_statistics.min_price|money}}</td>
+   </tr>
+   <tr>
+      <td>Maksimal købspris</td>
+      <td align="right">{{sale_statistics.max_price|money}}</td>
+   </tr>
+</table>
+
 {% endblock %}
 
