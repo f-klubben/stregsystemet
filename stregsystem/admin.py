@@ -1,5 +1,7 @@
 from django.contrib import admin
+from django import forms
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
+from django.contrib import messages
 
 from stregsystem.models import (
     Category,
@@ -161,7 +163,21 @@ class CategoryAdmin(admin.ModelAdmin):
         return obj.product_set.count()
 
 
+class MemberForm(forms.ModelForm):
+    class Meta:
+        model = Member
+        exclude = []
+
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        if self.instance is None or self.instance.pk is None:
+            if Member.objects.filter(username=username).exists():
+                raise forms.ValidationError("Brugernavnet er allerede taget")
+        return username
+
+
 class MemberAdmin(admin.ModelAdmin):
+    form = MemberForm
     list_filter = ('want_spam', )
     search_fields = ('username', 'firstname', 'lastname', 'email')
     list_display = ('username', 'firstname', 'lastname', 'balance', 'email', 'notes')
@@ -181,6 +197,12 @@ class MemberAdmin(admin.ModelAdmin):
             'description': "Lad være med at rode med disse, med mindre du ved hvad du laver ..."
         })
     )
+
+    def save_model(self, request, obj, form, change):
+        if 'username' in form.changed_data and change:
+            if Member.objects.filter(username=obj.username).exclude(pk=obj.pk).exists():
+                messages.add_message(request, messages.WARNING, 'Det brugernavn var allerede optaget')
+        super().save_model(request, obj, form, change)
 
     def autocomplete_view(self, request):
         """

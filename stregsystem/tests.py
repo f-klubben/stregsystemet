@@ -5,6 +5,10 @@ from unittest.mock import patch
 
 import pytz
 import stregsystem.parser as parser
+from django.contrib.auth.models import User
+from django.contrib.admin.sites import AdminSite
+from django.contrib.messages import get_messages
+from django.forms import model_to_dict
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -12,7 +16,7 @@ from freezegun import freeze_time
 from stregreport import views
 from stregsystem import admin
 from stregsystem import views as stregsystem_views
-from stregsystem.admin import CategoryAdmin, ProductAdmin
+from stregsystem.admin import CategoryAdmin, ProductAdmin, MemberForm, MemberAdmin
 from stregsystem.booze import ballmer_peak
 from stregsystem.models import (
     Category,
@@ -30,6 +34,13 @@ from stregsystem.models import (
     active_str,
     price_display
 )
+
+class MockRequest():
+    pass
+
+class MockFormChanges():
+    def __init__(self, data):
+        self.changed_data = data
 
 
 def assertCountEqual(case, *args, **kwargs):
@@ -1011,6 +1022,82 @@ class BallmerPeakTests(TestCase):
         is_balmer_peaking, _, _ = ballmer_peak(bac)
 
         self.assertFalse(is_balmer_peaking)
+
+
+class MemberModelFormTests(TestCase):
+    def setUp(self):
+        jeff = Member.objects.create(
+            username = "jeff",
+            firstname = "jeff",
+            lastname = "jefferson",
+            gender = "M"
+        )
+
+    def test_cant_create_duplicate_username(self):
+        jeff = Member(
+            username = "jeff",
+            firstname = "jeffrey",
+            lastname = "jefferson",
+            gender = "M"
+        )
+        form = MemberForm(model_to_dict(jeff))
+        self.assertFalse(form.is_valid())
+
+    def test_can_create_non_duplicate_username(self):
+        not_jeff = Member(
+            username = "not_jeff",
+            firstname = "jeff",
+            lastname = "jefferson",
+            gender = "M"
+        )
+        form = MemberForm(model_to_dict(not_jeff))
+        self.assertTrue(form.is_valid())
+
+class MemberAdminTests(TestCase):
+    def setUp(self):
+        password = "very_secure"
+        super_user = User.objects.create_superuser('superuser', 'test@example.com', password)
+
+        self.jeff = Member.objects.create(
+            pk=1,
+            username = "jeff",
+            firstname = "jeff",
+            lastname = "jefferson",
+            gender = "M"
+        )
+
+        self.jeff2 = Member.objects.create(
+            pk=2,
+            username = "jeffrey",
+            firstname = "jeff",
+            lastname = "jefferson",
+            gender = "M"
+        )
+
+    def test_creates_warning_for_duplicate_usernames(self):
+        self.client.login(username="superuser", password="very_secure")
+        self.jeff2.username = "jeff"
+        response = self.client.post(reverse('admin:stregsystem_member_change', kwargs={'object_id':2}), model_to_dict(self.jeff2), follow=False)
+
+        messages = list(get_messages(response.wsgi_request))
+        
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(2, len(messages))
+        self.assertEqual(str(messages[0]), "Det brugernavn var allerede optaget")
+        self.assertEqual("jeff", Member.objects.filter(pk=2).get().username)
+
+    def test_no_warning_unique_usernames(self):
+        self.client.login(username="superuser", password="very_secure")
+        self.jeff2.username = "mr_jefferson"
+        response = self.client.post(reverse('admin:stregsystem_member_change', kwargs={'object_id':2}), model_to_dict(self.jeff2), follow=False)
+
+        messages = list(get_messages(response.wsgi_request))
+        
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(1, len(messages))
+        self.assertEqual("mr_jefferson", Member.objects.filter(pk=2).get().username)
+
+
 
 
 class ProductActivatedListFilterTests(TestCase):
