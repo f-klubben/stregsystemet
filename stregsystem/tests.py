@@ -35,13 +35,6 @@ from stregsystem.models import (
     price_display
 )
 
-class MockRequest():
-    pass
-
-class MockFormChanges():
-    def __init__(self, data):
-        self.changed_data = data
-
 
 def assertCountEqual(case, *args, **kwargs):
     try:
