@@ -173,7 +173,7 @@ PASSWORD_HASHERS = [
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
-LANGUAGE_CODE = 'da_dk'
+LANGUAGE_CODE = 'da-dk'
 
 TIME_ZONE = 'UTC'
 
