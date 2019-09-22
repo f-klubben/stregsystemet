@@ -1,24 +1,20 @@
 import datetime
 
-import stregsystem.parser as parser
-from django.contrib.admin.views.decorators import staff_member_required
-from django.conf import settings
-from django.db.models import Q
 from django import forms
+from django.conf import settings
+from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Q
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
-import stregsystem.parser as parser
-from django_select2 import forms as s2forms
-
 
 from stregsystem import parser
 from stregsystem.models import (
     Member,
-    Payment,
     News,
     NoMoreInventoryError,
     Order,
+    Payment,
     Product,
     Room,
     Sale,
@@ -225,7 +221,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
         order = Order.from_products(
             member=member,
             room=room,
-            products=(product, )
+            products=(product,)
         )
 
         order.execute()

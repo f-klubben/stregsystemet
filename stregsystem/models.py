@@ -7,8 +7,8 @@ from django.utils import timezone
 
 from stregsystem.deprecated import deprecated
 from stregsystem.templatetags.stregsystem_extras import money
-from stregsystem.utils import date_to_midnight
-from stregsystem.utils import send_payment_mail
+from stregsystem.utils import date_to_midnight, send_payment_mail
+
 
 def price_display(value):
     return money(value) + " kr."
@@ -111,9 +111,7 @@ class Order(object):
 
         # Check if we have enough inventory to fulfill the order
         for item in self.items:
-            if (item.product.start_date is not None
-                    and (item.product.bought + item.count
-                         > item.product.quantity)):
+            if item.product.start_date is not None and (item.product.bought + item.count > item.product.quantity):
                 raise NoMoreInventoryError()
 
         # Take update lock on member row
@@ -181,7 +179,9 @@ class Member(models.Model):  # id automatisk...
         return self.__str__()
 
     def __str__(self):
-        return active_str(self.active) + " " + self.username + ": " + self.firstname + " " + self.lastname + " | " + self.email + " (" + money(self.balance) + ")"
+        return active_str(
+            self.active) + " " + self.username + ": " + self.firstname + " " + self.lastname + " | " + self.email \
+            + " (" + money(self.balance) + ")"
 
     # XXX - virker ikke
     #    def get_absolute_url(self):
@@ -249,9 +249,9 @@ class Member(models.Model):  # id automatisk...
 
         alcohol_sales = (
             self.sale_set
-            .filter(timestamp__gt=calculation_start,
-                    product__alcohol_content_ml__gt=0.0)
-            .order_by('timestamp')
+                .filter(timestamp__gt=calculation_start,
+                        product__alcohol_content_ml__gt=0.0)
+                .order_by('timestamp')
         )
         alcohol_timeline = [(s.timestamp, s.product.alcohol_content_ml)
                             for s in alcohol_sales]
@@ -304,10 +304,10 @@ class Payment(models.Model):  # id automatisk...
             # TODO: Make atomic
             self.member.make_payment(self.amount)
             super(Payment, self).save(*args, **kwargs)
-            self.member.save() 
+            self.member.save()
             if self.member.email != "":
                 if '@' in parseaddr(self.member.email)[1] and self.member.want_spam:
-                    send_payment_mail(self.member, self.amount)            
+                    send_payment_mail(self.member, self.amount)
 
     def delete(self, *args, **kwargs):
         if self.id:
@@ -345,7 +345,7 @@ class Room(models.Model):
         return self.name
 
 
-class Product(models.Model): # id automatisk...
+class Product(models.Model):  # id automatisk...
     name = models.CharField(max_length=64)
     price = models.IntegerField()  # penge, oere...
     active = models.BooleanField()
@@ -383,12 +383,11 @@ class Product(models.Model): # id automatisk...
             return 0
         return (
             self.sale_set
-            .filter(timestamp__gt=date_to_midnight(self.start_date))
-            .aggregate(bought=Count("id"))["bought"])
+                .filter(timestamp__gt=date_to_midnight(self.start_date))
+                .aggregate(bought=Count("id"))["bought"])
 
     def is_active(self):
-        expired = (self.deactivate_date is not None
-                   and self.deactivate_date <= timezone.now())
+        expired = self.deactivate_date is not None and self.deactivate_date <= timezone.now()
 
         if self.start_date is not None:
             out_of_stock = self.quantity <= self.bought
@@ -396,9 +395,7 @@ class Product(models.Model): # id automatisk...
             # Items without a startdate is never out of stock
             out_of_stock = False
 
-        return (self.active
-                and not expired
-                and not out_of_stock)
+        return self.active and not expired and not out_of_stock
 
 
 class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statistik?

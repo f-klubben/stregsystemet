@@ -8,13 +8,15 @@ from django.db.models.functions import TruncDay
 from django.forms import fields
 from django.forms.widgets import SelectDateWidget
 from django.http import JsonResponse
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import dateparse, timezone
+
 from stregreport.forms import CategoryReportForm
-from stregsystem.models import Category, Member, Product, Sale
 from stregreport.models import BreadRazzia
+from stregsystem.models import Category, Member, Product, Sale
 from stregsystem.templatetags.stregsystem_extras import money
+
 
 def reports(request):
     return render(request, 'admin/stregsystem/report/index.html', locals())
@@ -85,16 +87,9 @@ bread_members = staff_member_required(bread_members)
 
 
 def _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict):
-    result = (
-        Product.objects
-            .filter(
-            sale__member__username__iexact=username,
-            id__in=product_list,
-            sale__timestamp__gte=start_date,
-            sale__timestamp__lte=end_date)
-            .annotate(cnt=Count("id"))
-            .values_list("name", "cnt")
-    )
+    result = (Product.objects.filter(sale__member__username__iexact=username, id__in=product_list,
+                                     sale__timestamp__gte=start_date, sale__timestamp__lte=end_date).annotate(
+        cnt=Count("id")).values_list("name", "cnt"))
 
     products_bought = {product: count for product, count in result}
 
@@ -335,28 +330,15 @@ def first_of_month(date):
 
 def daily(request):
     current_date = timezone.now().replace(hour=0, minute=0, second=0)
-    latest_sales = (Sale.objects
-                    .prefetch_related('product', 'member')
-                    .order_by('-timestamp')[:7])
-    top_today = (Product.objects
-                 .filter(sale__timestamp__gt=current_date)
-                 .annotate(Count('sale'))
-                 .order_by('-sale__count')[:7])
-
+    latest_sales = (Sale.objects.prefetch_related('product', 'member').order_by('-timestamp')[:7])
+    top_today = (
+        Product.objects.filter(sale__timestamp__gt=current_date).annotate(Count('sale')).order_by('-sale__count')[:7])
     startTime_day = timezone.now() - datetime.timedelta(hours=24)
-    revenue_day = (Sale.objects
-                   .filter(timestamp__gt=startTime_day)
-                   .aggregate(Sum("price"))
-                   ["price__sum"]) or 0.0
+    revenue_day = (Sale.objects.filter(timestamp__gt=startTime_day).aggregate(Sum("price"))["price__sum"]) or 0.0
     startTime_month = timezone.now() - datetime.timedelta(days=30)
-    revenue_month = (Sale.objects
-                     .filter(timestamp__gt=startTime_month)
-                     .aggregate(Sum("price"))
-                     ["price__sum"]) or 0.0
-    top_month_category = (Category.objects
-                          .filter(product__sale__timestamp__gt=startTime_month)
-                          .annotate(sale=Count("product__sale"))
-                          .order_by("-sale")[:7])
+    revenue_month = (Sale.objects.filter(timestamp__gt=startTime_month).aggregate(Sum("price"))["price__sum"]) or 0.0
+    top_month_category = (Category.objects.filter(product__sale__timestamp__gt=startTime_month).annotate(
+        sale=Count("product__sale")).order_by("-sale")[:7])
 
     return render(request, 'admin/stregsystem/report/daily.html', locals())
 
@@ -413,16 +395,8 @@ def user_purchases_in_categories(request):
             user_sales_per_category = {}
             for c in categories:
                 user_sales_per_category_q = (
-                    Member.objects
-                    .filter(sale__product__categories=c)
-                    .annotate(sales=Count("*"))
-                    .order_by("sale__product__categories")
-                    .values_list(
-                        "id",
-                        "sales",
-                        "sale__product__categories__name",
-                    )
-                )
+                    Member.objects.filter(sale__product__categories=c).annotate(sales=Count("*")).order_by(
+                        "sale__product__categories").values_list("id", "sales", "sale__product__categories__name", ))
 
                 for user_id, sale_count, category_name in user_sales_per_category_q:
                     if user_id not in user_sales_per_category:
@@ -430,16 +404,8 @@ def user_purchases_in_categories(request):
                     user_sales_per_category[user_id][category_name] = sale_count
 
             users = (
-                Member.objects
-                .filter(sale__product__categories__in=categories)
-                .annotate(total_sales=Count("*"))
-                .order_by("-total_sales")
-                .values_list(
-                    "id",
-                    "username",
-                    "total_sales",
-                )
-            )
+                Member.objects.filter(sale__product__categories__in=categories).annotate(
+                    total_sales=Count("*")).order_by("-total_sales").values_list("id", "username", "total_sales", ))
 
             header = categories.values_list("name", flat=True)
             data = []

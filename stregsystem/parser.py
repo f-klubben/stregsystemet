@@ -6,12 +6,15 @@ class QuickBuyError(Exception):
         self.parsed_part = parsed_part
         self.failed_part = failed_part
 
+
 class QuickBuyParseError(Exception):
     pass
+
 
 _item_matcher = regex.compile(
     r'(?V1)(?P<productId>\d+)(?::(?P<count>\d+))?$'
 )
+
 
 def get_token_indexes(string, start_index):
     start, end = (-1, -1)
@@ -32,8 +35,10 @@ def get_token_indexes(string, start_index):
         end = i + 1
     return start, end
 
+
 def parse(buy_string):
     return username(buy_string, 0)
+
 
 def username(buy_string, start_index):
     start, end = get_token_indexes(buy_string, start_index)
@@ -44,7 +49,7 @@ def username(buy_string, start_index):
     # Parse items
     product_lists = []
     while end != len(buy_string):
-        prev_start, prev_end = start, end
+        prev_end = start, end
         start, end = get_token_indexes(buy_string, end)
         if start == -1:
             raise QuickBuyError(buy_string[0: prev_end],
@@ -55,6 +60,7 @@ def username(buy_string, start_index):
             raise QuickBuyError(buy_string[0: start], buy_string[start: len(buy_string)])
 
     return username, [product for product_list in product_lists for product in product_list]
+
 
 def item(token):
     match = _item_matcher.fullmatch(token)

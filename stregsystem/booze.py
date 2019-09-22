@@ -31,9 +31,7 @@ def _water_weight(gender, weight):
 
 
 def alcohol_bac_increase(gender, weight, alcohol_ml):
-    return (
-        _alcohol_ml_to_gram(alcohol_ml)
-        / _water_weight(gender, weight))
+    return _alcohol_ml_to_gram(alcohol_ml) / _water_weight(gender, weight)
 
 
 def alcohol_bac_degradation(time):
@@ -67,10 +65,10 @@ def alcohol_bac_timeline(gender, weight, now, alcohol_timeline):
         current += alcohol_bac_increase(gender, weight, ml)
 
         # last_time can never be None after the first iteration
-        assert(last_time is not None)
+        assert (last_time is not None)
 
     # Since we return if the list is empty we must have some last time
-    assert(last_time is not None)
+    assert (last_time is not None)
 
     # We also need to remove the degredation from the last drink till now
     time_diff = now - last_time

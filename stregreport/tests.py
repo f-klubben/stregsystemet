@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
+
 from stregreport import views
 from stregreport.models import BreadRazzia
 
@@ -77,6 +78,7 @@ class SalesReportTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed("admin/stregsystem/report/sales.html")
 
+
 class BreadRazziaTests(TestCase):
     fixtures = ["initial_data"]
 
@@ -86,7 +88,7 @@ class BreadRazziaTests(TestCase):
         self.client.login(username="tester", password="treotreo")
         response = self.client.get(reverse("bread_new"), follow=True)
         last_url, status_code = response.redirect_chain[-1]
-        
+
         current_number_razzias = BreadRazzia.objects.count()
 
         self.assertEqual(response.status_code, 200)
@@ -97,7 +99,7 @@ class BreadRazziaTests(TestCase):
         self.client.login(username="tester", password="treotreo")
         response = self.client.get(reverse("bread_new"), follow=True)
         razzia_url, _ = response.redirect_chain[-1]
-        
+
         response_add_1 = self.client.post(
             razzia_url,
             {
@@ -122,7 +124,7 @@ class BreadRazziaTests(TestCase):
         self.client.login(username="tester", password="treotreo")
         response = self.client.get(reverse("bread_new"), follow=True)
         razzia_url, _ = response.redirect_chain[-1]
-        
+
         response_add = self.client.post(
             razzia_url,
             {

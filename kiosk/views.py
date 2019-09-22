@@ -39,20 +39,11 @@ def find_next_image_real(request, item_id):
     # Get the item at the index, trust that Django does this smartly.
     try:
         next_item = (
-            KioskItem.objects
-            .filter(active=True)
-            .order_by('ordering', 'id')
-            .filter(
-                Q(ordering__gt=item.ordering)
-                | (Q(ordering=item.ordering) & Q(id__gt=item.id))
-            )[0]
-        )
+            KioskItem.objects.filter(active=True).order_by('ordering', 'id').filter(
+                Q(ordering__gt=item.ordering) | (Q(ordering=item.ordering) & Q(id__gt=item.id)))[0])
     except IndexError:
         next_item = (
-            KioskItem.objects
-            .filter(active=True)
-            .order_by('ordering', 'id')[0]
-        )
+            KioskItem.objects.filter(active=True).order_by('ordering', 'id')[0])
     response_data = {
         "id": next_item.id,
         "url": next_item.image.url,
