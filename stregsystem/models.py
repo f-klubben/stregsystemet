@@ -167,18 +167,8 @@ class Member(models.Model):  # id automatisk...
 
     def __str__(self):
         return (
-            active_str(self.active)
-            + " "
-            + self.username
-            + ": "
-            + self.firstname
-            + " "
-            + self.lastname
-            + " | "
-            + self.email
-            + " ("
-            + money(self.balance)
-            + ")"
+            f"{active_str(self.active)} {self.username}: {self.firstname} {self.lastname} | "
+            f"{self.email} ({money(self.balance)}) "
         )
 
     # XXX - virker ikke
