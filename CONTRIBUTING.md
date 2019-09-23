@@ -19,11 +19,11 @@ If you want to contribute code you should fork the project.
 The project only strives to be Python 3 compliant.
 
 ### Coding standards
-We try to adhere to `flake8` whenever possible. Mostly to avoid any
+We try to adhere to the [black-codestyle](https://github.com/psf/black) whenever possible. Mostly to avoid any
 discussions about coding style.
 
-You can run install `flake8` and run `flake8 --install-hook` to install
-a pre-commit hook.
+Use `tox` during workflow for running tests and reformatting by running `tox`. 
+Options are given in `tox.ini` and it handles dependencies and setup itself. 
 
 ### Branches
  - `master`: The running code on the live system.
