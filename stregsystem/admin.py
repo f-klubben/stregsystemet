@@ -2,33 +2,27 @@ from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 
-from stregsystem.models import (
-    Category,
-    Member,
-    News,
-    Payment,
-    PayTransaction,
-    Product,
-    Room,
-    Sale
-)
-from stregsystem.utils import (
-    make_active_productlist_query,
-    make_inactive_productlist_query
-)
+from stregsystem.models import Category, Member, News, Payment, PayTransaction, Product, Room, Sale
+from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
 
 
 class SaleAdmin(admin.ModelAdmin):
-    list_filter = ('room', 'timestamp')
+    list_filter = ("room", "timestamp")
     list_display = (
-        'get_username', 'get_fullname', 'get_product_name', 'get_room_name', 'timestamp', 'get_price_display')
-    actions = ['refund']
-    search_fields = ['^member__username', '=product__id', 'product__name']
-    valid_lookups = 'member'
-    autocomplete_fields = ['member', 'product']
+        "get_username",
+        "get_fullname",
+        "get_product_name",
+        "get_room_name",
+        "timestamp",
+        "get_price_display",
+    )
+    actions = ["refund"]
+    search_fields = ["^member__username", "=product__id", "product__name"]
+    valid_lookups = "member"
+    autocomplete_fields = ["member", "product"]
 
     class Media:
-        css = {'all': ('stregsystem/select2-stregsystem.css',)}
+        css = {"all": ("stregsystem/select2-stregsystem.css",)}
 
     def get_username(self, obj):
         return obj.member.username
@@ -97,33 +91,25 @@ def toggle_active_selected_products(modeladmin, request, queryset):
 
 
 class ProductActivatedListFilter(admin.SimpleListFilter):
-    title = 'activated'
-    parameter_name = 'activated'
+    title = "activated"
+    parameter_name = "activated"
 
     def lookups(self, request, model_admin):
-        return (
-            ('Yes', 'Yes'),
-            ('No', 'No'),
-        )
+        return (("Yes", "Yes"), ("No", "No"))
 
     def queryset(self, request, queryset):
-        if self.value() == 'Yes':
+        if self.value() == "Yes":
             return make_active_productlist_query(queryset)
-        elif self.value() == 'No':
+        elif self.value() == "No":
             return make_inactive_productlist_query(queryset)
         else:
             return queryset
 
 
 class ProductAdmin(admin.ModelAdmin):
-    search_fields = ('name', 'price', 'id')
-    list_filter = (ProductActivatedListFilter, 'deactivate_date', 'price')
-    list_display = (
-        'activated',
-        'id',
-        'name',
-        'get_price_display',
-    )
+    search_fields = ("name", "price", "id")
+    list_filter = (ProductActivatedListFilter, "deactivate_date", "price")
+    list_display = ("activated", "id", "name", "get_price_display")
     fields = (
         "name",
         "price",
@@ -131,14 +117,12 @@ class ProductAdmin(admin.ModelAdmin):
         ("start_date", "quantity", "get_bought"),
         "categories",
         "rooms",
-        "alcohol_content_ml"
+        "alcohol_content_ml",
     )
-    readonly_fields = (
-        "get_bought",
-    )
+    readonly_fields = ("get_bought",)
 
     actions = [toggle_active_selected_products]
-    filter_horizontal = ('categories', 'rooms')
+    filter_horizontal = ("categories", "rooms")
 
     def get_price_display(self, obj):
         if obj.price is None:
@@ -161,7 +145,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'items_in_category')
+    list_display = ("name", "items_in_category")
 
     def items_in_category(self, obj):
         return obj.product_set.count()
@@ -173,7 +157,7 @@ class MemberForm(forms.ModelForm):
         exclude = []
 
     def clean_username(self):
-        username = self.cleaned_data['username']
+        username = self.cleaned_data["username"]
         if self.instance is None or self.instance.pk is None:
             if Member.objects.filter(username=username).exists():
                 raise forms.ValidationError("Brugernavnet er allerede taget")
@@ -182,30 +166,33 @@ class MemberForm(forms.ModelForm):
 
 class MemberAdmin(admin.ModelAdmin):
     form = MemberForm
-    list_filter = ('want_spam',)
-    search_fields = ('username', 'firstname', 'lastname', 'email')
-    list_display = ('username', 'firstname', 'lastname', 'balance', 'email', 'notes')
+    list_filter = ("want_spam",)
+    search_fields = ("username", "firstname", "lastname", "email")
+    list_display = ("username", "firstname", "lastname", "balance", "email", "notes")
 
     # fieldsets is like fields, except that they are grouped and with descriptions
     fieldsets = (
-        (None, {
-            'fields': ('username', 'firstname', 'lastname', 'year', 'gender', 'email'),
-            'description': "Basal information omkring fember"
-        }),
-        (None, {
-            'fields': ('notes',),
-            'description': "Studieretning + evt. andet i noter"
-        }),
-        (None, {
-            'fields': ('active', 'want_spam', 'balance', 'undo_count'),
-            'description': "Lad være med at rode med disse, med mindre du ved hvad du laver ..."
-        })
+        (
+            None,
+            {
+                "fields": ("username", "firstname", "lastname", "year", "gender", "email"),
+                "description": "Basal information omkring fember",
+            },
+        ),
+        (None, {"fields": ("notes",), "description": "Studieretning + evt. andet i noter"}),
+        (
+            None,
+            {
+                "fields": ("active", "want_spam", "balance", "undo_count"),
+                "description": "Lad være med at rode med disse, med mindre du ved hvad du laver ...",
+            },
+        ),
     )
 
     def save_model(self, request, obj, form, change):
-        if 'username' in form.changed_data and change:
+        if "username" in form.changed_data and change:
             if Member.objects.filter(username=obj.username).exclude(pk=obj.pk).exists():
-                messages.add_message(request, messages.WARNING, 'Det brugernavn var allerede optaget')
+                messages.add_message(request, messages.WARNING, "Det brugernavn var allerede optaget")
         super().save_model(request, obj, form, change)
 
     def autocomplete_view(self, request):
@@ -222,17 +209,17 @@ class MemberAdmin(admin.ModelAdmin):
 
         def get_queryset(self):
             qs = super().get_queryset()
-            return qs.filter(active=True).order_by('username')
+            return qs.filter(active=True).order_by("username")
 
 
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('get_username', 'timestamp', 'get_amount_display')
-    valid_lookups = ('member')
-    search_fields = ['member__username']
-    autocomplete_fields = ['member']
+    list_display = ("get_username", "timestamp", "get_amount_display")
+    valid_lookups = "member"
+    search_fields = ["member__username"]
+    autocomplete_fields = ["member"]
 
     class Media:
-        css = {'all': ('stregsystem/select2-stregsystem.css',)}
+        css = {"all": ("stregsystem/select2-stregsystem.css",)}
 
     def get_username(self, obj):
         return obj.member.username

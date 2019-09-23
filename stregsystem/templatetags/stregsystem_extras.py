@@ -11,13 +11,13 @@ def money(value):
     return "{0:.2f}".format(value / 100.0)
 
 
-register.filter('money', money)
+register.filter("money", money)
 
 
-@register.inclusion_tag('stregsystem/adventcandle.html')
+@register.inclusion_tag("stregsystem/adventcandle.html")
 def show_candle():
-    return {'date': timezone.now()}
+    return {"date": timezone.now()}
 
 
-t = get_template('stregsystem/adventcandle.html')
+t = get_template("stregsystem/adventcandle.html")
 register.inclusion_tag(t)(show_candle)

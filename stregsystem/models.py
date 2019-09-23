@@ -91,11 +91,7 @@ class Order(object):
         counts = Counter(products)
         order = cls(member, room)
         for (product, count) in counts.items():
-            item = OrderItem(
-                product=product,
-                order=order,
-                count=count
-            )
+            item = OrderItem(product=product, order=order, count=count)
             order.items.add(item)
         return order
 
@@ -122,12 +118,7 @@ class Order(object):
             # @HACK Since we want to use the old database layout, we need to
             # add a sale for every item and every instance of that item
             for i in range(item.count):
-                s = Sale(
-                    member=self.member,
-                    product=item.product,
-                    room=self.room,
-                    price=item.product.price
-                )
+                s = Sale(member=self.member, product=item.product, room=self.room, price=item.product.price)
                 s.save()
 
             # Bought (used above) is automatically calculated, so we don't need
@@ -147,11 +138,7 @@ class GetTransaction(MoneyTransaction):
 
 
 class Member(models.Model):  # id automatisk...
-    GENDER_CHOICES = (
-        ('U', 'Unknown'),
-        ('M', 'Male'),
-        ('F', 'Female'),
-    )
+    GENDER_CHOICES = (("U", "Unknown"), ("M", "Male"), ("F", "Female"))
     active = models.BooleanField(default=True)
     username = models.CharField(max_length=16)
     year = models.CharField(max_length=4, default="{}".format(timezone.now().year))  # Put the current year as default
@@ -172,16 +159,27 @@ class Member(models.Model):  # id automatisk...
         return money(self.balance) + " kr."
 
     balance_display.short_description = "Balance"
-    balance_display.admin_order_field = 'balance'
+    balance_display.admin_order_field = "balance"
 
     @deprecated
     def __unicode__(self):
         return self.__str__()
 
     def __str__(self):
-        return active_str(
-            self.active) + " " + self.username + ": " + self.firstname + " " + self.lastname + " | " + self.email \
-            + " (" + money(self.balance) + ")"
+        return (
+            active_str(self.active)
+            + " "
+            + self.username
+            + ": "
+            + self.firstname
+            + " "
+            + self.lastname
+            + " | "
+            + self.email
+            + " ("
+            + money(self.balance)
+            + ")"
+        )
 
     # XXX - virker ikke
     #    def get_absolute_url(self):
@@ -247,14 +245,10 @@ class Member(models.Model):  # id automatisk...
         # Lets assume noone is drinking 12 hours straight
         calculation_start = now - timedelta(hours=12)
 
-        alcohol_sales = (
-            self.sale_set
-                .filter(timestamp__gt=calculation_start,
-                        product__alcohol_content_ml__gt=0.0)
-                .order_by('timestamp')
-        )
-        alcohol_timeline = [(s.timestamp, s.product.alcohol_content_ml)
-                            for s in alcohol_sales]
+        alcohol_sales = self.sale_set.filter(
+            timestamp__gt=calculation_start, product__alcohol_content_ml__gt=0.0
+        ).order_by("timestamp")
+        alcohol_timeline = [(s.timestamp, s.product.alcohol_content_ml) for s in alcohol_sales]
 
         gender = Gender.UNKNOWN
         if self.gender == "M":
@@ -288,7 +282,7 @@ class Payment(models.Model):  # id automatisk...
 
     amount_display.short_description = "Amount"
     # XXX - django bug - kan ikke vaelge mellem desc og asc i admin, som ved normalt felt
-    amount_display.admin_order_field = '-amount'
+    amount_display.admin_order_field = "-amount"
 
     @deprecated
     def __unicode__(self):
@@ -306,7 +300,7 @@ class Payment(models.Model):  # id automatisk...
             super(Payment, self).save(*args, **kwargs)
             self.member.save()
             if self.member.email != "":
-                if '@' in parseaddr(self.member.email)[1] and self.member.want_spam:
+                if "@" in parseaddr(self.member.email)[1] and self.member.want_spam:
                     send_payment_mail(self.member, self.amount)
 
     def delete(self, *args, **kwargs):
@@ -329,7 +323,7 @@ class Category(models.Model):
         return self.name
 
     class Meta:
-        verbose_name_plural = 'Categories'
+        verbose_name_plural = "Categories"
 
 
 # XXX
@@ -367,7 +361,7 @@ class Product(models.Model):  # id automatisk...
         price_changed = True
         if self.id:
             try:
-                oldprice = self.old_prices.order_by('-changed_on')[0:1].get()
+                oldprice = self.old_prices.order_by("-changed_on")[0:1].get()
                 price_changed = oldprice != self.price
             except OldPrice.DoesNotExist:  # der findes varer hvor der ikke er nogen "tidligere priser"
                 pass
@@ -381,10 +375,9 @@ class Product(models.Model):  # id automatisk...
         # bought count - Jesper 27/09-2017
         if self.start_date is None:
             return 0
-        return (
-            self.sale_set
-                .filter(timestamp__gt=date_to_midnight(self.start_date))
-                .aggregate(bought=Count("id"))["bought"])
+        return self.sale_set.filter(timestamp__gt=date_to_midnight(self.start_date)).aggregate(bought=Count("id"))[
+            "bought"
+        ]
 
     def is_active(self):
         expired = self.deactivate_date is not None and self.deactivate_date <= timezone.now()
@@ -399,7 +392,7 @@ class Product(models.Model):  # id automatisk...
 
 
 class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statistik?
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='old_prices')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="old_prices")
     price = models.IntegerField()  # penge, oere...
     changed_on = models.DateTimeField(auto_now_add=True)
 
@@ -419,16 +412,14 @@ class Sale(models.Model):
     price = models.IntegerField()
 
     class Meta:
-        index_together = [
-            ["product", "timestamp"],
-        ]
+        index_together = [["product", "timestamp"]]
 
     def price_display(self):
         return money(self.price) + " kr."
 
     price_display.short_description = "Price"
     # XXX - django bug - kan ikke vaelge mellem desc og asc i admin, som ved normalt felt
-    price_display.admin_order_field = 'price'
+    price_display.admin_order_field = "price"
 
     @deprecated
     def __unicode__(self):

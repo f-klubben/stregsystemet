@@ -8,25 +8,19 @@ from .models import KioskItem
 
 
 def kiosk(request):
-    return render(request, 'kiosk.html', locals())
+    return render(request, "kiosk.html", locals())
 
 
 def find_random_image(request):
     """
     Randomly get an image and return the relative url
     """
-    item = KioskItem.objects.filter(active=True).order_by('?').first()
+    item = KioskItem.objects.filter(active=True).order_by("?").first()
     if item is None:
         raise Http404("No active kiosk items found")
 
-    response_data = {
-        "id": item.id,
-        "url": item.image.url,
-    }
-    return HttpResponse(
-        json.dumps(response_data),
-        content_type="application/json"
-    )
+    response_data = {"id": item.id, "url": item.image.url}
+    return HttpResponse(json.dumps(response_data), content_type="application/json")
 
 
 def find_next_image_real(request, item_id):
@@ -39,16 +33,11 @@ def find_next_image_real(request, item_id):
     # Get the item at the index, trust that Django does this smartly.
     try:
         next_item = (
-            KioskItem.objects.filter(active=True).order_by('ordering', 'id').filter(
-                Q(ordering__gt=item.ordering) | (Q(ordering=item.ordering) & Q(id__gt=item.id)))[0])
+            KioskItem.objects.filter(active=True)
+            .order_by("ordering", "id")
+            .filter(Q(ordering__gt=item.ordering) | (Q(ordering=item.ordering) & Q(id__gt=item.id)))[0]
+        )
     except IndexError:
-        next_item = (
-            KioskItem.objects.filter(active=True).order_by('ordering', 'id')[0])
-    response_data = {
-        "id": next_item.id,
-        "url": next_item.image.url,
-    }
-    return HttpResponse(
-        json.dumps(response_data),
-        content_type="application/json"
-    )
+        next_item = KioskItem.objects.filter(active=True).order_by("ordering", "id")[0]
+    response_data = {"id": next_item.id, "url": next_item.image.url}
+    return HttpResponse(json.dumps(response_data), content_type="application/json")

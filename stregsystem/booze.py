@@ -19,11 +19,11 @@ class Gender(Enum):
 
 def _percent_water(gender):
     if gender == Gender.MALE:
-        return .7
+        return 0.7
     elif gender == Gender.FEMALE:
-        return .6
+        return 0.6
     elif gender == Gender.UNKNOWN:
-        return .65
+        return 0.65
 
 
 def _water_weight(gender, weight):
@@ -65,10 +65,10 @@ def alcohol_bac_timeline(gender, weight, now, alcohol_timeline):
         current += alcohol_bac_increase(gender, weight, ml)
 
         # last_time can never be None after the first iteration
-        assert (last_time is not None)
+        assert last_time is not None
 
     # Since we return if the list is empty we must have some last time
-    assert (last_time is not None)
+    assert last_time is not None
 
     # We also need to remove the degredation from the last drink till now
     time_diff = now - last_time

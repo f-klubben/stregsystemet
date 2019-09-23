@@ -19,19 +19,18 @@ from stregsystem.templatetags.stregsystem_extras import money
 
 
 def reports(request):
-    return render(request, 'admin/stregsystem/report/index.html', locals())
+    return render(request, "admin/stregsystem/report/index.html", locals())
 
 
 reports = staff_member_required(reports)
 
 
 def sales(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
-            return sales_product(request,
-                                 parse_id_string(request.POST['products']),
-                                 request.POST['from_date'],
-                                 request.POST['to_date'])
+            return sales_product(
+                request, parse_id_string(request.POST["products"]), request.POST["from_date"], request.POST["to_date"]
+            )
         except RuntimeError as ex:
             return sales_product(request, None, None, None, error=ex.__str__())
     else:
@@ -42,8 +41,8 @@ sales = staff_member_required(sales)
 
 
 def bread(request, razzia_id):
-    if request.method == 'POST':
-        return bread_view(request, razzia_id, request.POST['username'])
+    if request.method == "POST":
+        return bread_view(request, razzia_id, request.POST["username"])
     else:
         return bread_view(request, razzia_id, None)
 
@@ -59,25 +58,25 @@ def bread_view(request, razzia_id, queryname):
                 razzia.members.add(member)
                 razzia.save()
 
-    return render(request, 'admin/stregsystem/razzia/bread.html', locals())
+    return render(request, "admin/stregsystem/razzia/bread.html", locals())
 
 
 def bread_menu(request):
-    razzias = BreadRazzia.objects.order_by('-pk')[:3]
+    razzias = BreadRazzia.objects.order_by("-pk")[:3]
     if len(razzias) == 0:
-        return redirect('bread_new')
-    return render(request, 'admin/stregsystem/razzia/bread_menu.html', locals())
+        return redirect("bread_new")
+    return render(request, "admin/stregsystem/razzia/bread_menu.html", locals())
 
 
 def new_bread(request):
     razzia = BreadRazzia()
     razzia.save()
-    return redirect('bread_view', razzia_id=razzia.pk)
+    return redirect("bread_view", razzia_id=razzia.pk)
 
 
 def bread_members(request, razzia_id):
     razzia = get_object_or_404(BreadRazzia, pk=razzia_id)
-    return render(request, 'admin/stregsystem/razzia/bread_members.html', locals())
+    return render(request, "admin/stregsystem/razzia/bread_members.html", locals())
 
 
 bread = staff_member_required(bread)
@@ -87,9 +86,16 @@ bread_members = staff_member_required(bread_members)
 
 
 def _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict):
-    result = (Product.objects.filter(sale__member__username__iexact=username, id__in=product_list,
-                                     sale__timestamp__gte=start_date, sale__timestamp__lte=end_date).annotate(
-        cnt=Count("id")).values_list("name", "cnt"))
+    result = (
+        Product.objects.filter(
+            sale__member__username__iexact=username,
+            id__in=product_list,
+            sale__timestamp__gte=start_date,
+            sale__timestamp__lte=end_date,
+        )
+        .annotate(cnt=Count("id"))
+        .values_list("name", "cnt")
+    )
 
     products_bought = {product: count for product, count in result}
 
@@ -99,77 +105,84 @@ def _sales_to_user_in_period(username, start_date, end_date, product_list, produ
 def razzia_view(request):
     default_start = timezone.now().today() - datetime.timedelta(days=-180)
     default_end = timezone.now().today()
-    start = request.GET.get('start', default_start.isoformat())
-    end = request.GET.get('end', default_end.isoformat())
-    products = request.GET.get('products', "")
-    username = request.GET.get('username', "")
-    title = request.GET.get('razzia_title', "Razzia!")
+    start = request.GET.get("start", default_start.isoformat())
+    end = request.GET.get("end", default_end.isoformat())
+    products = request.GET.get("products", "")
+    username = request.GET.get("username", "")
+    title = request.GET.get("razzia_title", "Razzia!")
 
     try:
         product_list = [int(p) for p in products.split(",")]
     except ValueError:
-        return render(request, 'admin/stregsystem/razzia/error_wizarderror.html', {})
+        return render(request, "admin/stregsystem/razzia/error_wizarderror.html", {})
 
     product_dict = {k.name: 0 for k in Product.objects.filter(id__in=product_list)}
     if len(product_list) != len(product_dict.items()):
-        return render(request, 'admin/stregsystem/razzia/error_wizarderror.html', {})
+        return render(request, "admin/stregsystem/razzia/error_wizarderror.html", {})
 
     try:
         user = Member.objects.get(username__iexact=username)
     except (Member.DoesNotExist, Member.MultipleObjectsReturned):
-        return render(request, 'admin/stregsystem/razzia/wizard_view.html',
-                      {
-                          'start': start,
-                          'end': end,
-                          'products': products,
-                          'username': username,
-                          'razzia_title': title}
-                      )
+        return render(
+            request,
+            "admin/stregsystem/razzia/wizard_view.html",
+            {"start": start, "end": end, "products": products, "username": username, "razzia_title": title},
+        )
 
     start_date = dateparse.parse_date(start)
     end_date = dateparse.parse_date(end)
     sales_to_user = _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict)
 
-    return render(request, 'admin/stregsystem/razzia/wizard_view.html',
-                  {
-                      'razzia_title': title,
-                      'username': username,
-                      'start': start,
-                      'end': end,
-                      'products': products,
-                      'member_name': user.firstname + " " + user.lastname,
-                      'items_bought': sales_to_user.items(),
-                  })
+    return render(
+        request,
+        "admin/stregsystem/razzia/wizard_view.html",
+        {
+            "razzia_title": title,
+            "username": username,
+            "start": start,
+            "end": end,
+            "products": products,
+            "member_name": user.firstname + " " + user.lastname,
+            "items_bought": sales_to_user.items(),
+        },
+    )
 
 
 razzia_view = staff_member_required(razzia_view)
 
 
 def razzia_wizard(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         return redirect(
-            reverse("razzia_view") + "?start={0}-{1}-{2}&end={3}-{4}-{5}&products={6}&username=&razzia_title={7}"
-            .format(int(request.POST['start_year']),
-                    int(request.POST['start_month']),
-                    int(request.POST['start_day']),
-                    int(request.POST['end_year']), int(request.POST['end_month']),
-                    int(request.POST['end_day']),
-                    request.POST.get('products'),
-                    request.POST.get('razzia_title')))
+            reverse("razzia_view")
+            + "?start={0}-{1}-{2}&end={3}-{4}-{5}&products={6}&username=&razzia_title={7}".format(
+                int(request.POST["start_year"]),
+                int(request.POST["start_month"]),
+                int(request.POST["start_day"]),
+                int(request.POST["end_year"]),
+                int(request.POST["end_month"]),
+                int(request.POST["end_day"]),
+                request.POST.get("products"),
+                request.POST.get("razzia_title"),
+            )
+        )
 
     suggested_start_date = timezone.now() - datetime.timedelta(days=-180)
     suggested_end_date = timezone.now()
 
     start_date_picker = fields.DateField(
-        widget=SelectDateWidget(years=[x for x in range(2000, timezone.now().year + 1)]))
-    end_date_picker = fields.DateField(
-        widget=SelectDateWidget(years=[x for x in range(2000, timezone.now().year + 1)]))
+        widget=SelectDateWidget(years=[x for x in range(2000, timezone.now().year + 1)])
+    )
+    end_date_picker = fields.DateField(widget=SelectDateWidget(years=[x for x in range(2000, timezone.now().year + 1)]))
 
-    return render(request, 'admin/stregsystem/razzia/wizard.html',
-                  {
-                      'start_date_picker': start_date_picker.widget.render("start", suggested_start_date),
-                      'end_date_picker': end_date_picker.widget.render("end", suggested_end_date)},
-                  )
+    return render(
+        request,
+        "admin/stregsystem/razzia/wizard.html",
+        {
+            "start_date_picker": start_date_picker.widget.render("start", suggested_start_date),
+            "end_date_picker": end_date_picker.widget.render("end", suggested_end_date),
+        },
+    )
 
 
 razzia_wizard = staff_member_required(razzia_wizard)
@@ -186,18 +199,15 @@ ranks = staff_member_required(ranks)
 
 
 def sales_product(request, ids, from_time, to_time, error=None):
-    date_format = '%Y-%m-%d'
+    date_format = "%Y-%m-%d"
 
     if error is not None:
-        return render(request, 'admin/stregsystem/report/error_invalidsalefetch.html', {'error': error})
+        return render(request, "admin/stregsystem/report/error_invalidsalefetch.html", {"error": error})
 
     try:
         from_time_date = datetime.datetime.strptime(from_time, date_format)
         from_date_time_tz_aware = timezone.datetime(
-            from_time_date.year,
-            from_time_date.month,
-            from_time_date.day,
-            tzinfo=pytz.UTC
+            from_time_date.year, from_time_date.month, from_time_date.day, tzinfo=pytz.UTC
         )
     except (ValueError, TypeError):
         from_date_time_tz_aware = first_of_month(timezone.now())
@@ -206,21 +216,18 @@ def sales_product(request, ids, from_time, to_time, error=None):
     try:
         to_date_time = late(timezone.datetime.strptime(to_time, date_format))
         to_date_time_tz_aware = timezone.datetime(
-            to_date_time.year,
-            to_date_time.month,
-            to_date_time.day,
-            tzinfo=pytz.UTC
+            to_date_time.year, to_date_time.month, to_date_time.day, tzinfo=pytz.UTC
         )
     except (ValueError, TypeError):
         to_date_time = timezone.now()
     to_time = to_date_time.strftime(date_format)
     sales = []
     if ids is not None and len(ids) > 0:
-        products = reduce(lambda a, b: a + str(b) + ' ', ids, '')
+        products = reduce(lambda a, b: a + str(b) + " ", ids, "")
         query = reduce(lambda x, y: x | y, [Q(id=z) for z in ids])
         query &= Q(sale__timestamp__gt=from_date_time_tz_aware)
         query &= Q(sale__timestamp__lte=to_date_time_tz_aware)
-        result = Product.objects.filter(query).annotate(Count('sale'), Sum('sale__price'))
+        result = Product.objects.filter(query).annotate(Count("sale"), Sum("sale__price"))
 
         count = 0
         sum = 0
@@ -229,24 +236,54 @@ def sales_product(request, ids, from_time, to_time, error=None):
             count = count + r.sale__count
             sum = sum + r.sale__price__sum
 
-        sales.append(('', 'TOTAL', count, money(sum)))
+        sales.append(("", "TOTAL", count, money(sum)))
 
-    return render(request, 'admin/stregsystem/report/sales.html', locals())
+    return render(request, "admin/stregsystem/report/sales.html", locals())
 
 
 # renders stats for the year starting at first friday in december (year - 1) to the first friday in december (year)
 # both at 10 o'clock
 def ranks_for_year(request, year):
-    if (year <= 1900 or year > 9999):
-        return render(request, 'admin/stregsystem/report/error_ranksnotfound.html', locals())
+    if year <= 1900 or year > 9999:
+        return render(request, "admin/stregsystem/report/error_ranksnotfound.html", locals())
     milk = [2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 17, 18, 19, 20, 24, 25, 43, 44, 45, 1865]
     caffeine = [11, 12, 30, 34, 37, 1787, 1790, 1791, 1795, 1799, 1800, 1803, 1804, 1837, 1864]
-    beer = [13, 14, 29, 42, 47, 54, 65, 66, 1773, 1776, 1777, 1779, 1780, 1783, 1793, 1794, 1807, 1808, 1809, 1820,
-            1822, 1840, 1844, 1846, 1847, 1853, 1855, 1856, 1858, 1859]
+    beer = [
+        13,
+        14,
+        29,
+        42,
+        47,
+        54,
+        65,
+        66,
+        1773,
+        1776,
+        1777,
+        1779,
+        1780,
+        1783,
+        1793,
+        1794,
+        1807,
+        1808,
+        1809,
+        1820,
+        1822,
+        1840,
+        1844,
+        1846,
+        1847,
+        1853,
+        1855,
+        1856,
+        1858,
+        1859,
+    ]
     coffee = [32, 35, 36, 39]
     vitamin = [1850, 1851, 1852, 1863]
 
-    FORMAT = '%d/%m/%Y kl. %H:%M'
+    FORMAT = "%d/%m/%Y kl. %H:%M"
     last_year = year - 1
     from_time = fjule_party(year - 1)
     to_time = fjule_party(year)
@@ -260,22 +297,26 @@ def ranks_for_year(request, year):
     to_time_string = to_time.strftime(FORMAT)
     current_date = timezone.now()
     is_ongoing = current_date > from_time and current_date <= to_time
-    return render(request, 'admin/stregsystem/report/ranks.html', locals())
+    return render(request, "admin/stregsystem/report/ranks.html", locals())
 
 
 # gives a list of member objects, with the additional field sale__count, with the number of sales which are in the parameter id
 def sale_product_rank(ids, from_time, to_time, rank_limit=10):
-    stat_list = Member.objects.filter(sale__timestamp__gt=from_time, sale__timestamp__lte=to_time,
-                                      sale__product__in=ids).annotate(Count('sale')).order_by('-sale__count',
-                                                                                              'username')[:rank_limit]
+    stat_list = (
+        Member.objects.filter(sale__timestamp__gt=from_time, sale__timestamp__lte=to_time, sale__product__in=ids)
+        .annotate(Count("sale"))
+        .order_by("-sale__count", "username")[:rank_limit]
+    )
     return stat_list
 
 
 # gives a list of member object, with the additional field sale__price__sum__formatted which is the number of money spent in the period given.
 def sale_money_rank(from_time, to_time, rank_limit=10):
-    stat_list = Member.objects.filter(active=True, sale__timestamp__gt=from_time,
-                                      sale__timestamp__lte=to_time).annotate(Sum('sale__price')).order_by(
-        '-sale__price__sum', 'username')[:rank_limit]
+    stat_list = (
+        Member.objects.filter(active=True, sale__timestamp__gt=from_time, sale__timestamp__lte=to_time)
+        .annotate(Sum("sale__price"))
+        .order_by("-sale__price__sum", "username")[:rank_limit]
+    )
     for member in stat_list:
         member.sale__price__sum__formatted = money(member.sale__price__sum)
     return stat_list
@@ -302,20 +343,14 @@ def next_fjule_party_year():
 # date of fjuleparty (first friday of december) for the given year at
 # 10 o'clock
 def fjule_party(year):
-    first_december = timezone.datetime(
-        year,
-        12,
-        1,
-        22,
-        tzinfo=pytz.timezone("Europe/Copenhagen")
-    )
+    first_december = timezone.datetime(year, 12, 1, 22, tzinfo=pytz.timezone("Europe/Copenhagen"))
     days_to_add = (11 - first_december.weekday()) % 7
     return first_december + datetime.timedelta(days=days_to_add)
 
 
 def parse_id_string(id_string):
     try:
-        return list(map(int, id_string.split(' ')))
+        return list(map(int, id_string.split(" ")))
     except ValueError as ex:
         raise RuntimeError("The list contained an invalid id: {}".format(ex.__str__()))
 
@@ -330,28 +365,32 @@ def first_of_month(date):
 
 def daily(request):
     current_date = timezone.now().replace(hour=0, minute=0, second=0)
-    latest_sales = (Sale.objects.prefetch_related('product', 'member').order_by('-timestamp')[:7])
+    latest_sales = Sale.objects.prefetch_related("product", "member").order_by("-timestamp")[:7]
     top_today = (
-        Product.objects.filter(sale__timestamp__gt=current_date).annotate(Count('sale')).order_by('-sale__count')[:7])
+        Product.objects.filter(sale__timestamp__gt=current_date).annotate(Count("sale")).order_by("-sale__count")[:7]
+    )
     startTime_day = timezone.now() - datetime.timedelta(hours=24)
     revenue_day = (Sale.objects.filter(timestamp__gt=startTime_day).aggregate(Sum("price"))["price__sum"]) or 0.0
     startTime_month = timezone.now() - datetime.timedelta(days=30)
     revenue_month = (Sale.objects.filter(timestamp__gt=startTime_month).aggregate(Sum("price"))["price__sum"]) or 0.0
-    top_month_category = (Category.objects.filter(product__sale__timestamp__gt=startTime_month).annotate(
-        sale=Count("product__sale")).order_by("-sale")[:7])
+    top_month_category = (
+        Category.objects.filter(product__sale__timestamp__gt=startTime_month)
+        .annotate(sale=Count("product__sale"))
+        .order_by("-sale")[:7]
+    )
 
-    return render(request, 'admin/stregsystem/report/daily.html', locals())
+    return render(request, "admin/stregsystem/report/daily.html", locals())
 
 
 def sales_api(request):
     startTime_month = timezone.now() - datetime.timedelta(days=30)
-    qs = (Sale.objects
-          .filter(timestamp__gt=startTime_month)
-          .annotate(day=TruncDay('timestamp'))
-          .values('day')
-          .annotate(c=Count('*'))
-          .annotate(r=Sum('price'))
-          )
+    qs = (
+        Sale.objects.filter(timestamp__gt=startTime_month)
+        .annotate(day=TruncDay("timestamp"))
+        .values("day")
+        .annotate(c=Count("*"))
+        .annotate(r=Sum("price"))
+    )
     db_sales = {i["day"].date(): (i["c"], money(i["r"])) for i in qs}
     base = timezone.now().date()
     date_list = [base - datetime.timedelta(days=x) for x in range(0, 30)]
@@ -367,11 +406,7 @@ def sales_api(request):
             sales_list.append(0)
             revenue_list.append(0)
 
-    items = {
-        "day": date_list,
-        "sales": sales_list,
-        "revenue": revenue_list,
-    }
+    items = {"day": date_list, "sales": sales_list, "revenue": revenue_list}
     return JsonResponse(items)
 
 
@@ -382,10 +417,10 @@ def user_purchases_in_categories(request):
     form = CategoryReportForm()
     data = None
     header = None
-    if request.method == 'POST':
+    if request.method == "POST":
         form = CategoryReportForm(request.POST)
         if form.is_valid():
-            categories = form.cleaned_data['categories']
+            categories = form.cleaned_data["categories"]
 
             # @SPEED: This is not a good solution for maximum speed,
             # however neither is using MySQL. Django doesn't want to
@@ -395,8 +430,11 @@ def user_purchases_in_categories(request):
             user_sales_per_category = {}
             for c in categories:
                 user_sales_per_category_q = (
-                    Member.objects.filter(sale__product__categories=c).annotate(sales=Count("*")).order_by(
-                        "sale__product__categories").values_list("id", "sales", "sale__product__categories__name", ))
+                    Member.objects.filter(sale__product__categories=c)
+                    .annotate(sales=Count("*"))
+                    .order_by("sale__product__categories")
+                    .values_list("id", "sales", "sale__product__categories__name")
+                )
 
                 for user_id, sale_count, category_name in user_sales_per_category_q:
                     if user_id not in user_sales_per_category:
@@ -404,8 +442,11 @@ def user_purchases_in_categories(request):
                     user_sales_per_category[user_id][category_name] = sale_count
 
             users = (
-                Member.objects.filter(sale__product__categories__in=categories).annotate(
-                    total_sales=Count("*")).order_by("-total_sales").values_list("id", "username", "total_sales", ))
+                Member.objects.filter(sale__product__categories__in=categories)
+                .annotate(total_sales=Count("*"))
+                .order_by("-total_sales")
+                .values_list("id", "username", "total_sales")
+            )
 
             header = categories.values_list("name", flat=True)
             data = []
@@ -421,10 +462,6 @@ def user_purchases_in_categories(request):
 
     return render(
         request,
-        'admin/stregsystem/report/user_purchases_in_categories.html',
-        {
-            "form": form,
-            "data": data,
-            "header": header,
-        }
+        "admin/stregsystem/report/user_purchases_in_categories.html",
+        {"form": form, "data": data, "header": header},
     )
