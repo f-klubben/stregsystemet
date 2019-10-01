@@ -7,7 +7,7 @@
 <blink>
 <b>
 {% autoescape off %}
-{{member.username}} har lige købt
+<span id="username">{{member.username}}</span> har lige købt
 {% for product in products %}{% if forloop.last and not forloop.first %}
  og
 {% else %}{% if not forloop.first %},
