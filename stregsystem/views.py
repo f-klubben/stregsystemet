@@ -2,6 +2,7 @@ import datetime
 
 import stregsystem.parser as parser
 from django.contrib.admin.views.decorators import staff_member_required
+from stregsystem.templatetags.stregsystem_extras import money
 from django.conf import settings
 from django.db.models import Q
 from django import forms
@@ -142,7 +143,7 @@ def quicksale(request, room, member, bought_ids):
     )
 
     try:
-        order.execute()
+        newbalance = order.execute()
     except StregForbudError:
         return render(request, 'stregsystem/error_stregforbud.html', locals(), status=402)
     except NoMoreInventoryError:
@@ -153,6 +154,9 @@ def quicksale(request, room, member, bought_ids):
     is_ballmer_peaking, bp_minutes, bp_seconds = ballmer_peak(promille)
 
     cost = order.total
+
+    showmemberbalance = newbalance <= 5000
+    newmemberbalance = money(newbalance)
 
     give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
 
