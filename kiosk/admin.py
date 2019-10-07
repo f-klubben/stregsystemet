@@ -7,14 +7,14 @@ def set_active_kiosk_item(modeladmin, request, queryset):
     queryset.update(active=True)
 
 
-set_active_kiosk_item.short_description = "Make selected kiosk items active"
+set_active_kiosk_item.short_description = "Gør valgte kiosk items aktive"
 
 
 def set_inactive_kiosk_item(modeladmin, request, queryset):
     queryset.update(active=False)
 
 
-set_inactive_kiosk_item.short_description = "Make selected kiosk items inactive"
+set_inactive_kiosk_item.short_description = "Gør valgte kiosk items inaktive"
 
 
 class KioskItemAdmin(admin.ModelAdmin):
