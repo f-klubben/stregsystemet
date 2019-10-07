@@ -19,7 +19,7 @@ def send_email(mailadress, msg_string):
 
 def send_welcome_mail(member):
     msg = MIMEMultipart()
-    
+
     if member.balance != 0:
         balancemsg = f"""Din stregkonto har en balance på {money(member.balance)}"""
     else:
@@ -39,7 +39,7 @@ def send_welcome_mail(member):
             Med dit brugernavn kan du også købe drikkevarer fra Strandvejen. 
             Strandvejen er det lille køkken i klynge 2, stueetagen, nær Jægerstuen med de fire køleskabe og stregsystemets terminal.<br>
             {balancemsg}<br>
-            Priserne kan ses i stegsystemet på strandvejen.<br><br><br>
+            Priserne kan ses i stegsystemet på Strandvejen.<br><br><br>
 
 
             Mvh,<br>
