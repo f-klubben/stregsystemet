@@ -4,6 +4,7 @@ import logging
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from .utils import money
 
 
 logger = logging.getLogger(__name__)
@@ -18,21 +19,27 @@ def send_email(mailadress, msg_string):
 
 def send_welcome_mail(member):
     msg = MIMEMultipart()
+    
+    if member.balance != 0:
+        balancemsg = f"""Din stregkonto har en balance på {money(member.balance)}"""
+    else:
+        balancemsg = f"""Bemærk at du skal indsætte penge på din stregkonto før at du kan købe noget på strandvejen.<br>
+        Dette kan gøres ved at sende en yderligere betaling på MobilePay til Fklubben, med det beløb som du gerne vil have indsat."""
+    
     html = f"""
     <html>
         <head></head>
         <body>
-            Hej {member.firstname}!
+            Hej {member.firstname}!<br><br>
             Velkommen som fember i Fklubben.
-            Du har nu en brugerkonto oprettet. Dit brugernavn er {member.username}. 
+            Du har nu en brugerkonto oprettet. Dit brugernavn er {member.username}.<br><br>
 
-            De 200 kr du har givet for at blive medlem betaler for din adgang til fredagsfranskbrød, hver onsdag.
-            Når du møder op til fredagsfranskbrød, så kan du opleve en razzia. Her skriver du dit brugernavn ind ({member.username}), for at sikre at du er medlem af fklubben.
+            De 200 kr du har givet for at blive medlem betaler for din adgang til fredagsfranskbrød, hver onsdag.<br><br>
 
-            Med dit brugernavn kan du også købe drikkevarer fra strandvejen.
-            Bemærk at du skal indsætte penge på din stregkonto før at du kan købe noget på strandvejen.
-            Dette kan gøres ved at sende en yderligere betaling på MobilePay til Fklubben, med det beløb som du gerne vil have indsat.
-            Priserne kan ses i stegsystemet på strandvejen. 
+            Med dit brugernavn kan du også købe drikkevarer fra Strandvejen. 
+            Strandvejen er det lille køkken i klynge 2, stueetagen, nær Jægerstuen med de fire køleskabe og stregsystemets terminal.<br>
+            {balancemsg}<br>
+            Priserne kan ses i stegsystemet på strandvejen.<br><br><br>
 
 
             Mvh,<br>
