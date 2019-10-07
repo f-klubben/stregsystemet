@@ -14,6 +14,7 @@ spawn_bat = function() {
     v.height = "48";
     v.autoplay = true;
     v.loop = true;
+    v.muted = true;
     s.src = media_url + "stregsystem/bat.webm";
     s.type = "video/webm";
     document.body.querySelector(".bat-container").appendChild(z);
