@@ -1,5 +1,5 @@
 /*
-Hides the username after 5 seconds of showing it.´
+Hides the username after 5 seconds of showing it.ï¿½
 Simply replaces the letters with 'x'.
 */
 
@@ -10,7 +10,7 @@ if (username_element !== null) {
 
     var username_element = document.getElementById("username");
     if (username_element !== null) {
-      username_element.innerText = "x".repeat(username_element.innerText.length);
+      username_element.innerText = "xxxxxxxx";
     }
   }, 5000);
 }
