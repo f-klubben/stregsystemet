@@ -18,32 +18,22 @@ def send_email(mailadress, msg_string):
 
 
 def send_welcome_mail(member):
-    msg = MIMEMultipart()
-
-    if member.balance != 0:
-        balancemsg = f"""Din stregkonto har en balance på {money(member.balance)}"""
-    else:
-        balancemsg = f"""Bemærk at du skal indsætte penge på din stregkonto før at du kan købe noget på strandvejen.<br>
-        Dette kan gøres ved at sende en yderligere betaling på MobilePay til Fklubben, med det beløb som du gerne vil have indsat."""
-    
+    msg = MIMEMultipart()    
     html = f"""
     <html>
         <head></head>
         <body>
             Hej {member.firstname}!<br><br>
-            Velkommen som fember i Fklubben.
-            Du har nu en brugerkonto oprettet. Dit brugernavn er {member.username}.<br><br>
+            Velkommen som fember (medlem) i Fklubben!
+            Din stregkonto (bruger) er oprettet med følgende brugernavn: <b>{member.username}</b>.<br>
+            Fremover kan du benytte dit brugernavn i <a href="http://fklub.dk/treo/stregsystem">stregsystemet</a> til køb af diverse varer og/eller event billetter, såfremt du har penge på din stregkonto.<br>
+            Din nuværende saldo er: {money(member.balance)} kr.<br><br>
+            Hvis du har nogen spørgsmål henviser vi til <a href="http://fklub.dk">fklub.dk</a>, men ellers er du meget velkommen til at kontakte os på <a href="mailto:info@fklub.dk">info@fklub.dk</a> eller <a href="https://www.facebook.com/fklub">Facebook</a>.<br><br>
 
-            De 200 kr du har givet for at blive medlem betaler for din adgang til fredagsfranskbrød, hver onsdag.<br><br>
-
-            Med dit brugernavn kan du også købe drikkevarer fra Strandvejen. 
-            Strandvejen er det lille køkken i klynge 2, stueetagen, nær Jægerstuen med de fire køleskabe og stregsystemets terminal.<br>
-            {balancemsg}<br>
-            Priserne kan ses i stegsystemet på Strandvejen.<br><br><br>
-
-
-            Mvh,<br>
-            TREOen
+			Følg med på <a href="https://www.facebook.com/fklub">Facebook</a> og <a href="https://www.instagram.com/fklub">Instagram</a> for events, billeder, og andre relevante indslag.<br><br>
+			Husk at der er fredagsfranskbrød i kantinen hver onsdag kl. 10.00!<br><br> 
+            Med venlig hilsen,<br>
+            F-klubben
         </body>
     </html>
     """
