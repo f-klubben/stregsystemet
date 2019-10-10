@@ -2,6 +2,8 @@ import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from django.conf import settings
+from django.test.runner import DiscoverRunner
 
 from django.db.models import Count, F, Q
 from django.utils import timezone
@@ -79,6 +81,8 @@ def date_to_midnight(date):
 
 
 def send_payment_mail(member, amount):
+    if hasattr(settings, 'TEST_MODE'):
+        return
     msg = MIMEMultipart()
     msg['From'] = 'treo@fklub.dk'
     msg['To'] = member.email
@@ -112,3 +116,8 @@ def send_payment_mail(member, amount):
         smtpObj.sendmail('treo@fklub.dk', member.email, msg.as_string())
     except Exception as e:
         logger.error(str(e))
+
+class stregsystemTestRunner(DiscoverRunner):
+    def __init__(self, *args, **kwargs):
+        settings.TEST_MODE = True
+        super(stregsystemTestRunner, self).__init__(*args, **kwargs)

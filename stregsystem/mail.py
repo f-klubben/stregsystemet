@@ -5,11 +5,14 @@ import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from .utils import money
+from django.conf import settings 
 
 
 logger = logging.getLogger(__name__)
 
 def send_email(mailadress, msg_string):
+    if hasattr(settings, 'TEST_MODE'):
+        return
     try:
         smtpObj = smtplib.SMTP('localhost', 25)
         smtpObj.sendmail('treo@fklub.dk', mailadress, msg_string)

@@ -200,3 +200,5 @@ SELECT2_JS = '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/js/select2.min.js'
 SELECT2_CSS = (
     '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/css/select2.min.css'
 )
+
+TEST_RUNNER = 'stregsystem.utils.stregsystemTestRunner'
