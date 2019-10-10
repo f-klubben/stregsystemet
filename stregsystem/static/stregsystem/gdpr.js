@@ -1,5 +1,5 @@
 /*
-Hides the username after 5 seconds of showing it.�
+Hides the username after 5 seconds of showing it.
 Simply replaces the letters with 'x'.
 */
 
