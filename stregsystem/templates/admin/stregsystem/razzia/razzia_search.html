@@ -1,0 +1,31 @@
+{% extends "admin/stregsystem/razzia/razzia.html" %}
+
+{% block razzia_content %}
+<div class="searcher">
+	<div class="titlebar">
+		<h1>{{title|default:"Razzia"}}!</h1>
+	</div>
+	<form action="./" method="post" class="content">{% csrf_token %}
+		<div class="grouped">
+			<span class="group-label fa fa-search">
+			</span>
+			<input id="usernamesearcher" type="text" autofocus name="username" maxlength="40" value="{{username}}" autocomplete="off" placeholder="Brugernavn" />
+			<input type="submit" class="" value="Search">
+		</div>
+	</form>
+	<a class="fember-link" href="./members">View registered fembers</a>
+</div>
+{% if queryname %}
+<div id="result" class="result">
+	{% if member %}
+		{% block member_present %}{% endblock %}
+	{% else %}
+		{% block member_not_present %}
+		<div class="status">
+			<div class="fa fa-times-circle failure" aria-hidden="true"></div></div>
+		{{queryname}} is not a fember!!!
+		{% endblock %}
+	{% endif %}
+</div>
+{% endif %}
+{% endblock %}
