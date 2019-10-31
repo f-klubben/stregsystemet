@@ -1,0 +1,10 @@
+{% extends "admin/stregsystem/razzia/razzia_search.html" %}
+
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Foobar razzia</a></div>{% endblock %}
+
+{% block member_present %}
+<div class="status">
+	<div class="fa {% if already_used %} fa-exclamation-circle sucess {% else %} fa-check-circle sucess {% endif %}" aria-hidden="true"></div>
+</div>
+{{member.firstname}} {{member.lastname}} ({{member.username}}) {% if already_used %} last checked in at {{entry.time}} {% endif %}
+{% endblock %}

@@ -16,12 +16,17 @@ Including another URLconf
 from django.conf.urls import url
 
 from . import views
+from .models import BreadRazzia
 
 urlpatterns = [
-    url(r'^admin/stregsystem/razzia/bread/(?P<razzia_id>\d+)/$', views.bread, name="bread_view"),
-    url(r'^admin/stregsystem/razzia/bread/(?P<razzia_id>\d+)/members$', views.bread_members, name="bread_members"),
-    url(r'^admin/stregsystem/razzia/bread/$', views.bread_menu),
-    url(r'^admin/stregsystem/razzia/bread/new$', views.new_bread, name="bread_new"),
+    url(r'^admin/stregsystem/razzia/bread/(?P<razzia_id>\d+)/$', views.razzia, {'razzia_type' : BreadRazzia.BREAD, 'title': 'Brødrazzia'}, name="bread_view"),
+    url(r'^admin/stregsystem/razzia/foobar/(?P<razzia_id>\d+)/$', views.razzia, {'razzia_type' : BreadRazzia.FOOBAR, 'title': 'Foobar razzia'}, name="foobar_view"),
+    url(r'^admin/stregsystem/razzia/bread/(?P<razzia_id>\d+)/members$', views.razzia_members, {'razzia_type' : BreadRazzia.BREAD, 'title': 'Brødrazzia'}),
+    url(r'^admin/stregsystem/razzia/foobar/(?P<razzia_id>\d+)/members$', views.razzia_members, {'razzia_type' : BreadRazzia.FOOBAR, 'title': 'Foobar razzia'}),
+    url(r'^admin/stregsystem/razzia/bread/$', views.razzia_menu, {'razzia_type' : BreadRazzia.BREAD, 'new_text': "New bread razzia", 'title': 'Brødrazzia'}),
+    url(r'^admin/stregsystem/razzia/foobar/$', views.razzia_menu, {'razzia_type' : BreadRazzia.FOOBAR, 'new_text': "New foobar razzia", 'title': 'Foobar razzia'}),
+    url(r'^admin/stregsystem/razzia/bread/new$', views.new_razzia, {'razzia_type' : BreadRazzia.BREAD}, name="razzia_new_BR"),
+    url(r'^admin/stregsystem/razzia/foobar/new$', views.new_razzia, {'razzia_type' : BreadRazzia.FOOBAR}, name="razzia_new_FB"),
     url(r'^admin/stregsystem/razzia/wizard_guide/$', views.razzia_wizard),
     url(r'^admin/stregsystem/razzia/wizard/$', views.razzia_view, name="razzia_view"),
     url(r'^admin/stregsystem/report/sales/$', views.sales, name="salesreporting"),
