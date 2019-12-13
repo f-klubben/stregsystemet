@@ -26,7 +26,8 @@ from stregsystem.models import (
 )
 from stregsystem.utils import (
     make_active_productlist_query,
-    make_room_specific_query
+    make_room_specific_query,
+    date_in_april_fools_timespan
 )
 
 from .booze import ballmer_peak
@@ -56,6 +57,7 @@ def index(request, room_id):
     room = get_object_or_404(Room, pk=int(room_id))
     product_list = __get_productlist(room_id)
     news = __get_news()
+    is_april_fools = date_in_april_fools_timespan()
     return render(request, 'stregsystem/index.html', locals())
 
 
@@ -91,7 +93,7 @@ def sale(request, room_id):
         return usermenu(request, room, member, None)
 
 
-def _multibuy_hint(now, member):
+def _multibuy_hint(now, member, hide_name=False):
     # Get a timestamp to fetch sales for the member for the last 60 sec
     earliest_recent_purchase = now - datetime.timedelta(seconds=60)
     # get the sales with this timestamp
@@ -109,7 +111,7 @@ def _multibuy_hint(now, member):
                 sale_dict[str(sale.product.id)] = 1
             else:
                 sale_dict[str(sale.product.id)] = sale_dict[str(sale.product.id)] + 1
-        sale_hints = [member.username]
+        sale_hints = ["********"] if hide_name else [member.username]
         for key in sale_dict:
             if sale_dict[key] > 1:
                 sale_hints.append("{}:{}".format(key, sale_dict[key]))
@@ -124,6 +126,8 @@ def quicksale(request, room, member, bought_ids):
     news = __get_news()
     product_list = __get_productlist(room.id)
     now = timezone.now()
+    is_april_fools = date_in_april_fools_timespan()
+
 
     # Retrieve products and construct transaction
     products = []
@@ -154,7 +158,7 @@ def quicksale(request, room, member, bought_ids):
 
     cost = order.total
 
-    give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
+    give_multibuy_hint, sale_hints = _multibuy_hint(now, member, hide_name=is_april_fools)
 
     return render(request, 'stregsystem/index_sale.html', locals())
 

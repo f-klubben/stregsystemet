@@ -7,7 +7,12 @@
 <blink>
 <b>
 {% autoescape off %}
-{{member.username}} har lige købt
+{% if is_april_fools %}
+********
+{% else %}
+{{member.username}}
+{% endif %}
+har lige købt
 {% for product in products %}{% if forloop.last and not forloop.first %}
  og
 {% else %}{% if not forloop.first %},

@@ -77,6 +77,11 @@ def date_to_midnight(date):
     """
     return timezone.make_aware(timezone.datetime(date.year, date.month, date.day, 0, 0))
 
+def date_in_april_fools_timespan():
+    today = timezone.now()
+    startdate = timezone.make_aware(timezone.datetime(today.year, 3, 31, 0, 0)) 
+    enddate = timezone.make_aware(timezone.datetime(today.year, 4, 7, 0, 0))
+    return startdate < today < enddate
 
 def send_payment_mail(member, amount):
     msg = MIMEMultipart()
