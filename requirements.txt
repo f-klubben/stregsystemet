@@ -1,4 +1,4 @@
-Django==2.2.8
+Django==2.2.10
 Pillow==6.2.0
 Coverage==4.4.1
 pytz==2018.3
