@@ -11,8 +11,8 @@ if (username_element.length > 0) {
         var replaced_username = "[username_hidden]";
         var date = new Date();
         // Only do username memes on April Fools
-        if (date.getDate() === 1 && date.getMonth() + 1 === 4) {
-            const easter_egg_names = ["user", "admin", "root", "alan_turing", "hackerman", "hans_huttel"];
+        if (date.getDate() === 21 && date.getMonth() + 1 === 2) {
+            const easter_egg_names = ["user", "admin", "root", "alan_turing", "hackerman", "foo", "bar"];
             replaced_username = easter_egg_names[Math.floor(Math.random() * easter_egg_names.length)];
         }
         for (var i = 0; i < username_element.length; i++) {
