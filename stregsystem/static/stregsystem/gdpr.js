@@ -12,7 +12,10 @@ if (username_element.length > 0) {
         var date = new Date();
         // Only do username replacements on Fridays
         if (date.getDay() === 5) {
-            const easter_egg_names = ["user", "admin", "root", "alan_turing", "hackerman", "foo", "bar"];
+            const easter_egg_names = ["user", "admin", "root", "alan_turing", "dijkstra", "knuth", "hackerman", "foo",
+                "bar", "Robert\'); DROP TABLE fembers;--", "hunter2", "correcthorsebatterystaple",
+                String.fromCodePoint(0x1F4BE), String.fromCodePoint(0x1F37A),
+                String.fromCodePoint(0x1F937)];
             replaced_username = easter_egg_names[Math.floor(Math.random() * easter_egg_names.length)];
         }
         for (var i = 0; i < username_element.length; i++) {
