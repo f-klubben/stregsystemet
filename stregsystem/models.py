@@ -278,6 +278,11 @@ class Member(models.Model):  # id automatisk...
 
 
 class Payment(models.Model):  # id automatisk...
+    class Meta:
+        permissions = (
+            ("import_batch_payments", "Import batch payments"),
+        )
+
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     amount = models.IntegerField()  # penge, oere...
@@ -425,6 +430,10 @@ class Sale(models.Model):
         index_together = [
             ["product", "timestamp"],
         ]
+
+        permissions = (
+            ("access_sales_reports", "Can access sales reports"),
+        )
 
     def price_display(self):
         return money(self.price) + " kr."
