@@ -3,6 +3,7 @@ from functools import reduce
 
 import pytz
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import permission_required
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncDay
 from django.forms import fields
@@ -16,6 +17,7 @@ from stregsystem.models import Category, Member, Product, Sale
 from stregreport.models import BreadRazzia, RazziaEntry
 from stregsystem.templatetags.stregsystem_extras import money
 
+@permission_required("stregsystem.access_sales_reports")
 def reports(request):
     return render(request, 'admin/stregsystem/report/index.html', locals())
 
@@ -23,6 +25,7 @@ def reports(request):
 reports = staff_member_required(reports)
 
 
+@permission_required("stregsystem.access_sales_reports")
 def sales(request):
     if request.method == 'POST':
         try:
@@ -39,6 +42,7 @@ def sales(request):
 sales = staff_member_required(sales)
 
 
+@permission_required("stregreport.host_razzia")
 def razzia(request, razzia_id, razzia_type=BreadRazzia.BREAD, title=None):
     if request.method == 'POST':
         return razzia_view_single(request, razzia_id, request.POST['username'], razzia_type=razzia_type, title=title)
@@ -46,6 +50,7 @@ def razzia(request, razzia_id, razzia_type=BreadRazzia.BREAD, title=None):
         return razzia_view_single(request, razzia_id, None, razzia_type=razzia_type, title=title)
 
 
+@permission_required("stregreport.host_razzia")
 def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BREAD, title=None):
     razzia = get_object_or_404(BreadRazzia, pk=razzia_id, razzia_type=razzia_type)
     if queryname is not None:
@@ -66,6 +71,7 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
     return render(request, templates[razzia_type], locals())
 
 
+@permission_required("stregreport.host_razzia")
 def razzia_menu(request, razzia_type=BreadRazzia.BREAD, new_text=None, title=None):
     razzias = BreadRazzia.objects.filter(razzia_type=razzia_type).order_by('-pk')[:3]
     if len(razzias) == 0:
@@ -73,6 +79,7 @@ def razzia_menu(request, razzia_type=BreadRazzia.BREAD, new_text=None, title=Non
     return render(request, 'admin/stregsystem/razzia/menu.html', locals())
 
 
+@permission_required("stregreport.host_razzia")
 def new_razzia(request, razzia_type=BreadRazzia.BREAD):
     razzia = BreadRazzia(razzia_type=razzia_type)
     razzia.save()
@@ -85,6 +92,7 @@ def new_razzia(request, razzia_type=BreadRazzia.BREAD):
     return redirect(views[razzia_type], razzia_id=razzia.pk)
 
 
+@permission_required("stregreport.host_razzia")
 def razzia_members(request, razzia_id, razzia_type=BreadRazzia.BREAD, title=None):
     razzia = get_object_or_404(BreadRazzia, pk=razzia_id, razzia_type=razzia_type)
     return render(request, 'admin/stregsystem/razzia/members.html', locals())
@@ -113,6 +121,7 @@ def _sales_to_user_in_period(username, start_date, end_date, product_list, produ
     return {product: products_bought.get(product, 0) for product in product_dict}
 
 
+@permission_required("stregreport.host_razzia")
 def razzia_view(request):
     default_start = timezone.now().today() - datetime.timedelta(days=-180)
     default_end = timezone.now().today()
@@ -162,6 +171,7 @@ def razzia_view(request):
 razzia_view = staff_member_required(razzia_view)
 
 
+@permission_required("stregreport.host_razzia")
 def razzia_wizard(request):
     if request.method == 'POST':
         return redirect(
@@ -202,6 +212,7 @@ def ranks(request, year=None):
 ranks = staff_member_required(ranks)
 
 
+@permission_required("stregsystem.access_sales_reports")
 def sales_product(request, ids, from_time, to_time, error=None):
     date_format = '%Y-%m-%d'
 
@@ -253,6 +264,7 @@ def sales_product(request, ids, from_time, to_time, error=None):
 
 # renders stats for the year starting at first friday in december (year - 1) to the first friday in december (year)
 # both at 10 o'clock
+@permission_required("stregsystem.access_sales_reports")
 def ranks_for_year(request, year):
     if (year <= 1900 or year > 9999):
         return render(request, 'admin/stregsystem/report/error_ranksnotfound.html', locals())
@@ -345,6 +357,7 @@ def first_of_month(date):
     return timezone.datetime(date.year, date.month, 1, 23, 59, 59)
 
 
+@permission_required("stregsystem.access_sales_reports")
 def daily(request):
     current_date = timezone.now().replace(hour=0, minute=0, second=0)
     latest_sales = (Sale.objects
@@ -408,6 +421,7 @@ def sales_api(request):
 daily = staff_member_required(daily)
 
 
+@permission_required("stregsystem.access_sales_reports")
 def user_purchases_in_categories(request):
     form = CategoryReportForm()
     data = None

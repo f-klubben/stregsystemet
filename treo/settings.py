@@ -202,3 +202,6 @@ SELECT2_CSS = (
 )
 
 TEST_RUNNER = 'stregsystem.utils.stregsystemTestRunner'
+
+LOGIN_REDIRECT_URL = '/admin/login'
+LOGIN_URL = '/admin/login'
