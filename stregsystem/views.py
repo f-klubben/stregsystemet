@@ -2,6 +2,7 @@ import datetime
 
 import stregsystem.parser as parser
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import permission_required
 from django.conf import settings
 from django.db.models import Q
 from django import forms
@@ -243,6 +244,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
 
 
 @staff_member_required()
+@permission_required("stregsystem.import_batch_payments")
 def batch_payment(request):
     PaymentFormSet = forms.modelformset_factory(
         Payment,

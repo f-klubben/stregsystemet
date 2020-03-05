@@ -3,6 +3,11 @@ from django.db import models
 from stregsystem.models import Member
 
 class BreadRazzia(models.Model):
+    class Meta:
+        permissions = (
+            ("host_razzia", "Can host a foobar or bread razzia"),
+        )
+    
     BREAD = 'BR'
     FOOBAR = 'FB'
     RAZZIA_CHOICES = [
