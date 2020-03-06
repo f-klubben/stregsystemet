@@ -6,8 +6,10 @@ from unittest.mock import patch
 import pytz
 import stregsystem.parser as parser
 from django.contrib.auth.models import User
+from django.contrib.admin.models import LogEntry
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages import get_messages
+from django.contrib.contenttypes.models import ContentType
 from django.forms import model_to_dict
 from django.test import TestCase
 from django.urls import reverse
@@ -581,6 +583,14 @@ class PaymentTests(TestCase):
             balance=100
         )
 
+        self.member2 = Member.objects.create(
+            username="seb",
+            balance=100
+        )
+
+        self.super_user = User.objects.create_superuser('superuser', 'test@example.com', 'password')
+
+
     @patch("stregsystem.models.Member.make_payment")
     def test_payment_save_not_saved(self, make_payment):
         payment = Payment(
@@ -627,6 +637,39 @@ class PaymentTests(TestCase):
 
         with self.assertRaises(AssertionError):
             payment.delete()
+
+    def test_batch_payment_logged(self):
+        form_data = {
+            'form-1-member': self.member.id,
+            'form-1-amount': 100,
+            'form-2-member': self.member2.id,
+            'form-2-amount': 200,
+            'form-TOTAL_FORMS': 3,
+            'form-INITIAL_FORMS': 0,
+            'form-MIN_NUM_FORMS': 0,
+            'form-MAX_NUM_FORMS': 1000
+            }
+
+
+        content_type = ContentType.objects.get_for_model(Payment).pk,
+
+        number_of_logs = LogEntry.objects.filter(content_type=content_type,
+            user_id = self.super_user.pk).count()
+
+        self.client.login(username="superuser", password="password")
+
+        response = self.client.post(reverse('batch'), form_data, follow=True)
+
+        self.assertTemplateUsed(response, "admin/stregsystem/batch_payment_done.html")
+
+        updated_balance = Member.objects.get(pk=self.member.pk).balance
+
+        new_number_of_logs = LogEntry.objects.filter(content_type=content_type,
+            user_id = self.super_user.pk).count()
+
+        self.assertEqual(updated_balance, 200)
+
+        self.assertEqual(new_number_of_logs, number_of_logs + 2)
 
 
 class ProductTests(TestCase):

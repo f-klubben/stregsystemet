@@ -2,6 +2,9 @@ import datetime
 
 import stregsystem.parser as parser
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.admin.models import LogEntry
+from django.contrib.admin.models import LogEntryManager, ADDITION
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import permission_required
 from django.conf import settings
 from django.db.models import Q
@@ -246,6 +249,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
 @staff_member_required()
 @permission_required("stregsystem.import_batch_payments")
 def batch_payment(request):
+    user = request.user
     PaymentFormSet = forms.modelformset_factory(
         Payment,
         fields=("member", "amount"),
@@ -275,6 +279,15 @@ def batch_payment(request):
 
             for payment in payments:
                 payment.save()
+                LogEntry.objects.log_action(
+                    user_id = user.pk,
+                    content_type_id = ContentType.objects.get_for_model(Payment).pk,
+                    object_id = payment.id,
+                    object_repr=str(payment), 
+                    action_flag=ADDITION,
+                    change_message="Batch payments"
+                    )
+
 
             return render(
                 request,
