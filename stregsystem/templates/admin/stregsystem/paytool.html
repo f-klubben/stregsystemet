@@ -2,28 +2,36 @@
 {% load static %}
 
 {% block title %}Payments{% endblock %}
-{% block breadcrumbs %}<div class="breadcrumbs"><a href="../">Hjem</a></div>{% endblock %}
+{% block breadcrumbs %}
+    <div class="breadcrumbs"><a href="../">Hjem</a></div>{% endblock %}
 
 {% block extrahead %}
 
-<!-- <link rel="stylesheet" type="text/css" href="{% static '/stregsystem/batch.css' %}" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="{% static '/stregsystem/batch.css' %}" /> -->
 {% endblock %}
 
 {% block content %}
-{% load admin_static %}
+    {% load admin_static %}
 
-<div id="content-main">
-	<h1>Paytool</h1>
-    <i>Add option to upload mbpay csv?</i>
-    {% if payments %}
-        {% for payment in payments %}
-            <p>{{ payment. }}</p>
-        {% endfor %}
+    <div id="content-main">
+        <h1>Paytool</h1>
+        <i>Add option to upload mbpay csv?</i>
+        {% if payments %}
+            <form method="post"> {% csrf_token %}
+                {{ formset.management_form }}
+                {% for form in formset %}
+                    {% for field in form %}
+                        {{ field.label_tag }} {{ field }}
+                    {% endfor %}
+                    <br>
+                {% endfor %}
+                <br>
+                <input type="submit" value="Submit"/>
+            </form>
+        {% else %}
+            <h2> Received no data from backend!</h2>
+        {% endif %}
 
-    {% else %}
-        <h2> Received no data from backend!</h2>
-    {% endif %}
-
-</div>
+    </div>
 
 {% endblock %}

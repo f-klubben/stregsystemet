@@ -291,19 +291,20 @@ def batch_payment(request):
 
 @staff_member_required()
 def paytool(request):
+    gen_formset = forms.modelformset_factory(Payment, exclude=('id',),
+                                             widgets={"member": forms.Select(attrs={"class": "select2"})})
+
     data = {
-        'payments': Payment.objects.all()
+        'payments': Payment.objects.all(),
+        'formset': gen_formset,
     }
     if request.method == "GET":
         return render(request, "admin/stregsystem/paytool.html", data)
     elif request.method == "POST":
         # Do submission of form to db
+        res_formset = gen_formset(request.POST, request.FILES)
+        if res_formset.is_valid():
+            res_formset.save()
+
         # Calc resulting data
         return render(request, "admin/stregsystem/paytool.html", data)
-
-
-    """
-    latest_payments = Payment.objects.order_by('timestamp')[:10]
-    output = '\n'.join([f"{p.timestamp}, {p.member}, {p.amount}" for p in latest_payments])
-    return HttpResponse(output)
-    """
