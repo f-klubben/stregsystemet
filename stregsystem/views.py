@@ -12,7 +12,6 @@ from django.utils import timezone
 import stregsystem.parser as parser
 from django_select2 import forms as s2forms
 
-
 from stregsystem import parser
 from stregsystem.models import (
     Member,
@@ -226,7 +225,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
         order = Order.from_products(
             member=member,
             room=room,
-            products=(product, )
+            products=(product,)
         )
 
         order.execute()
@@ -288,3 +287,23 @@ def batch_payment(request):
         "select2_js": settings.SELECT2_JS,
         "select2_css": settings.SELECT2_CSS,
     })
+
+
+@staff_member_required()
+def paytool(request):
+    data = {
+        'payments': Payment.objects.all()
+    }
+    if request.method == "GET":
+        return render(request, "admin/stregsystem/paytool.html", data)
+    elif request.method == "POST":
+        # Do submission of form to db
+        # Calc resulting data
+        return render(request, "admin/stregsystem/paytool.html", data)
+
+
+    """
+    latest_payments = Payment.objects.order_by('timestamp')[:10]
+    output = '\n'.join([f"{p.timestamp}, {p.member}, {p.amount}" for p in latest_payments])
+    return HttpResponse(output)
+    """
