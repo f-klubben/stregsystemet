@@ -286,6 +286,8 @@ class Payment(models.Model):  # id automatisk...
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     amount = models.IntegerField()  # penge, oere...
+    # mobilepay transaction ids are no longer than 17 chars
+    transaction_id = models.CharField(max_length=32, blank=True, default="")
 
     @deprecated
     def amount_display(self):
