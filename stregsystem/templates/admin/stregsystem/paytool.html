@@ -1,0 +1,29 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Payments{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../">Hjem</a></div>{% endblock %}
+
+{% block extrahead %}
+
+<!-- <link rel="stylesheet" type="text/css" href="{% static '/stregsystem/batch.css' %}" /> -->
+{% endblock %}
+
+{% block content %}
+{% load admin_static %}
+
+<div id="content-main">
+	<h1>Paytool</h1>
+    <i>Add option to upload mbpay csv?</i>
+    {% if payments %}
+        {% for payment in payments %}
+            <p>{{ payment. }}</p>
+        {% endfor %}
+
+    {% else %}
+        <h2> Received no data from backend!</h2>
+    {% endif %}
+
+</div>
+
+{% endblock %}
