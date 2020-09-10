@@ -1,4 +1,10 @@
 import datetime
+import io
+import logging
+from pprint import pprint
+
+from django.core.exceptions import ValidationError
+from django.core.files.uploadhandler import MemoryFileUploadHandler
 
 import stregsystem.parser as parser
 from django.contrib.admin.views.decorators import staff_member_required
@@ -22,7 +28,7 @@ from stregsystem.models import (
     Product,
     Room,
     Sale,
-    StregForbudError
+    StregForbudError, MobilePayment
 )
 from stregsystem.utils import (
     make_active_productlist_query,
@@ -289,22 +295,65 @@ def batch_payment(request):
     })
 
 
+logger = logging.getLogger('django')
+
+
 @staff_member_required()
 def paytool(request):
-    gen_formset = forms.modelformset_factory(Payment, exclude=('id',),
-                                             widgets={"member": forms.Select(attrs={"class": "select2"})})
+    def parse_csv(csvfile) -> list:
+        import csv
+        res = list()
+        # get csv reader and ignore header
+        reader = csv.reader(csvfile[1:], delimiter=';', quotechar='"')
+        for row in reader:
+            # logger.info(row)
+            # make timestamp compliant to ISO 8601 combined date and time - sigh
+            # TODO: smarter handling of '+' or '-', point is moot though, as DK is always either +1 or +2 UTC
+            #  also, I don't care as datetime doesn't support '%z' anymore apparently
+            split_row = row[3].split('+')
+            # remove precision of second-decimal, add back '+' and remove ':' from timezone specification
+            # TODO, fix timestamps as Django uses seconds precision - but afair does not account for local timezone
+            #  and simply shows UTC
+            row[3] = f"{split_row[0][:-8]}"  # +{''.join(split_row[1].split(':'))}"
+            mbpay = MobilePayment(member=None, amount=row[2].replace(',', ''),
+                                  # timestamp=datetime.datetime.strptime(row[3], "%Y-%m-%dT%H:%M:%S"),
+                                  customer_name=row[4], transaction_id=row[7], comment=row[6])
+
+            # Unique constraint on transaction_id must hold before saving new object
+            try:
+                mbpay.validate_unique()
+                mbpay.save()
+            except ValidationError:
+                logger.info(f"[paytool] Found duplicate of transmission_id: {mbpay.transaction_id}, ignoring")
+
+        # datetime.datetime.strptime(row[3], format="%Y-%m-%dT%H:%M:%S.%f+%z"),
+        return res
+
+    if request.method == "POST" and request.content_type == 'csv':
+        # processing uploaded mobilepay csv - hopefully
+        pass
 
     data = {
         'payments': Payment.objects.all(),
-        'formset': gen_formset,
+        'members': Member.objects.all(),
+        'mbpayment': MobilePayment.objects.all(),
+        'status': "Idle",
     }
-    if request.method == "GET":
-        return render(request, "admin/stregsystem/paytool.html", data)
-    elif request.method == "POST":
-        # Do submission of form to db
-        res_formset = gen_formset(request.POST, request.FILES)
-        if res_formset.is_valid():
-            res_formset.save()
+    logger.info(request.FILES)
+    if request.method == "POST" and request.FILES:
+        data['status'] = "Finished processing CSV"
+        logger.info("received POST request")
+        # got csv, do stuff
+        # logger.info(request.POST)
+        # logger.info(request.FILES)
 
-        # Calc resulting data
-        return render(request, "admin/stregsystem/paytool.html", data)
+        csv_file = request.FILES['csv_file']
+        csv_file.seek(0)
+
+        parse_csv(str(csv_file.read().decode('utf-8')).splitlines())
+        log_stream = None
+        pprint(data, stream=log_stream)
+        logger.info(log_stream)
+    elif request.method == "POST":
+        data['status'] = "Finished matching payments"
+    return render(request, "admin/stregsystem/paytool.html", data)
