@@ -10,6 +10,7 @@ from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import date_to_midnight
 from stregsystem.utils import send_payment_mail
 
+
 def price_display(value):
     return money(value) + " kr."
 
@@ -181,7 +182,9 @@ class Member(models.Model):  # id automatisk...
         return self.__str__()
 
     def __str__(self):
-        return active_str(self.active) + " " + self.username + ": " + self.firstname + " " + self.lastname + " | " + self.email + " (" + money(self.balance) + ")"
+        return active_str(
+            self.active) + " " + self.username + ": " + self.firstname + " " + self.lastname + " | " + self.email + " (" + money(
+            self.balance) + ")"
 
     # XXX - virker ikke
     #    def get_absolute_url(self):
@@ -249,9 +252,9 @@ class Member(models.Model):  # id automatisk...
 
         alcohol_sales = (
             self.sale_set
-            .filter(timestamp__gt=calculation_start,
-                    product__alcohol_content_ml__gt=0.0)
-            .order_by('timestamp')
+                .filter(timestamp__gt=calculation_start,
+                        product__alcohol_content_ml__gt=0.0)
+                .order_by('timestamp')
         )
         alcohol_timeline = [(s.timestamp, s.product.alcohol_content_ml)
                             for s in alcohol_sales]
@@ -286,8 +289,6 @@ class Payment(models.Model):  # id automatisk...
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     amount = models.IntegerField()  # penge, oere...
-    # mobilepay transaction ids are no longer than 17 chars
-    transaction_id = models.CharField(max_length=32, blank=True, default="")
 
     @deprecated
     def amount_display(self):
@@ -311,10 +312,10 @@ class Payment(models.Model):  # id automatisk...
             # TODO: Make atomic
             self.member.make_payment(self.amount)
             super(Payment, self).save(*args, **kwargs)
-            self.member.save() 
+            self.member.save()
             if self.member.email != "":
                 if '@' in parseaddr(self.member.email)[1] and self.member.want_spam:
-                    send_payment_mail(self.member, self.amount)            
+                    send_payment_mail(self.member, self.amount)
 
     def delete(self, *args, **kwargs):
         if self.id:
@@ -324,6 +325,21 @@ class Payment(models.Model):  # id automatisk...
             self.member.save()
         else:
             super(Payment, self).delete(*args, **kwargs)
+
+
+class MobilePayment(models.Model):
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True,
+                               blank=True)  # nullable as mbpayment may not have match yet
+    customer_name = models.CharField(max_length=64)
+    timestamp = models.DateTimeField(auto_now_add=True)  # fixme, convert mbpay given timestamp
+    amount = models.IntegerField()  # penge, oere...
+    # mobilepay transaction ids are no longer than 17 chars and assumed to be unique
+    transaction_id = models.CharField(max_length=32, unique=True)
+    comment = models.CharField(max_length=128)
+
+    def __str__(self):
+        return f"{self.member.username if self.member is not None else 'Not assigned'}, {self.customer_name}, " \
+               f"{self.timestamp}, {self.amount}, {self.transaction_id}, {self.comment}"
 
 
 class Category(models.Model):
@@ -352,7 +368,7 @@ class Room(models.Model):
         return self.name
 
 
-class Product(models.Model): # id automatisk...
+class Product(models.Model):  # id automatisk...
     name = models.CharField(max_length=64)
     price = models.IntegerField()  # penge, oere...
     active = models.BooleanField()
@@ -390,8 +406,8 @@ class Product(models.Model): # id automatisk...
             return 0
         return (
             self.sale_set
-            .filter(timestamp__gt=date_to_midnight(self.start_date))
-            .aggregate(bought=Count("id"))["bought"])
+                .filter(timestamp__gt=date_to_midnight(self.start_date))
+                .aggregate(bought=Count("id"))["bought"])
 
     def is_active(self):
         expired = (self.deactivate_date is not None
