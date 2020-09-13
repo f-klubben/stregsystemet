@@ -300,47 +300,36 @@ logger = logging.getLogger('django')
 @staff_member_required()
 def import_mobilepay_csv(request):
     def parse_csv_and_create_mbpayments(csvfile):
-        fembers = Member.objects.all()
-        imports, duplicates = 0, 0
+        imported_transactions, duplicate_transactions = 0, 0
         import csv
         # get csv reader and ignore header
         reader = csv.reader(csvfile[1:], delimiter=';', quotechar='"')
         for row in reader:
-            # logger.info(row)
-            # make timestamp compliant to ISO 8601 combined date and time - sigh
-            # TODO: smarter handling of '+' or '-', point is moot though, as DK is always either +1 or +2 UTC
-            #  also, I don't care as datetime doesn't support '%z' anymore apparently
+            # make timestamp compliant to ISO 8601 combined date and time, because MobilePay thinks they're cool adding
+            #  7 decimals of precision to timestamps, however ISO 8601 only allows for 3-6 decimals of precision
+            # TODO: make check for 7 digits of precision before converting in case MobilePay fixes this in future
             split_row = row[3].split('+')
-            # remove precision of second-decimal, add back '+' and remove ':' from timezone specification
-            # TODO, fix timestamps as Django uses seconds precision - but afair does not account for local timezone
-            #  and simply shows UTC
-            row[3] = f"{split_row[0][:-8]}"  # +{''.join(split_row[1].split(':'))}"
-            mbpay = MobilePayment(member=None, amount=row[2].replace(',', ''),
-                                  # timestamp=datetime.datetime.strptime(row[3], "%Y-%m-%dT%H:%M:%S"),
-                                  customer_name=row[4], transaction_id=row[7], comment=row[6])
+            row[3] = f"{split_row[0][:-1]}+{split_row[1]}"
 
+            mobile_payment = MobilePayment(member=None, amount=row[2].replace(',', ''),
+                                           timestamp=datetime.datetime.fromisoformat(row[3]),
+                                           customer_name=row[4], transaction_id=row[7], comment=row[6])
             try:
-                # Unique constraint on transaction_id must hold before saving new object
-                mbpay.validate_unique()
-                # logger.info(f"comment: {mbpay.comment.strip()}")
-                # do exact case sensitive match
-                match = fembers.filter(username__exact=mbpay.comment.strip())
-                if match and match.count() == 0:
-                    logger.info(f"found no match for payment with comment: {mbpay.comment}")
+                # unique constraint on transaction_id must hold before saving new object
+                mobile_payment.validate_unique()
 
-                elif match and match.count() == 1:
-                    # logger.info(f"matched with username: {match.first().username}")
-                    # TODO: also do check on mobilepay name against fember name
-                    mbpay.member_guess = match.first()
-                    mbpay.member = match.first()
-                else:
-                    logger.info(f"matched with more than one username: {[x.username for x in match]}")
-                mbpay.save()
-                imports += 1
+                # do exact case sensitive match
+                match = Member.objects.filter(username__exact=mobile_payment.comment.strip())
+                if match and match.count() == 1:
+                    # TODO: also do check on mobilepay name against fember name?
+                    mobile_payment.member_guess = match.first()
+                    mobile_payment.member = match.first()
+
+                mobile_payment.save()
+                imported_transactions += 1
             except ValidationError:
-                logger.info(f"[paytool] Found duplicate of transmission_id: {mbpay.transaction_id}, ignoring")
-                duplicates += 1
-        return imports, duplicates
+                duplicate_transactions += 1
+        return imported_transactions, duplicate_transactions
 
     data = dict()
     if request.method == "POST" and request.FILES:
@@ -351,9 +340,7 @@ def import_mobilepay_csv(request):
         data['imports'], data['duplicates'] = parse_csv_and_create_mbpayments(
             str(csv_file.read().decode('utf-8')).splitlines())
         if data['imports'] > 0:
-            n = data['imports']
-            logger.info(f"have {n} new imports")
-            data['mobilepayments'] = MobilePayment.objects.all().order_by('-id')[:n]
+            data['mobilepayments'] = MobilePayment.objects.all().order_by('-id')[:data['imports']]
         logger.info(data)
     return render(request, "admin/stregsystem/import_mbpay.html", data)
 
