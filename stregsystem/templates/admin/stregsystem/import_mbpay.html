@@ -1,0 +1,34 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Import MobilePay CSV transactions{% endblock %}
+{% block breadcrumbs %}
+    <div class="breadcrumbs"><a href="../">Hjem</a></div>{% endblock %}
+
+
+{% block content %}
+    {% load admin_static %}
+
+    <div id="content-main">
+
+        <h1>Import MobilePay CSV transactions</h1>
+        <p><i>Existing MobilePay transactions are ignored, this function is idempotent</i></p>
+        <form method="post" enctype="multipart/form-data"> {% csrf_token %}
+            <input type="file" name="csv_file" id="csv_file" accept="text/csv"/>
+            <input type="submit" value="Submit MobilePay CSV"/>
+        </form>
+        {% if imports or duplicates %}
+            <h2> Imported {{ imports }} MobilePay transactions{% if duplicates %}, and ignored {{ duplicates }}
+                duplicates {% endif %} </h2>
+            <h1><a href="{% url 'paytool' %}" >Go to processing of MobilePay transactions</a></h1>
+        {% endif %}
+
+        {% for e in mobilepayments %}
+            {{ e }}
+            <br>
+        {% endfor %}
+
+
+    </div>
+
+{% endblock %}
