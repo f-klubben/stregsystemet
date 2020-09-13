@@ -1,0 +1,64 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}MobilePaytool{% endblock %}
+{% block breadcrumbs %}
+    <div class="breadcrumbs"><a href="../">Hjem</a></div>{% endblock %}
+
+
+{% block content %}
+    {% load admin_static %}
+
+    <div id="content-main">
+        <h1>MobilePaytool</h1>
+        <p>Displays a list of MobilePay transactions with no assigned member.</p>
+        <p>If member is prefilled, then the user wrote their username correctly in the MobilePay comment.
+            To submit this payment to the user, check the 'approved' box in the appropriate row.</p>
+        <p>If member is not prefilled, then pick the appropriate user and check the 'approved' box. </p>
+        <p>Once you submit the payments, all rows that are checked in the 'approved' box, will be processed and payment
+            sent to the appropriate user.</p>
+        {% if not formset.forms %}
+            <h2> No MobilePay transactions needs processing</h2>
+        {% endif %}
+        <form method="post"> {% csrf_token %}
+            {{ formset.management_form }}
+            {{ formset.non_form_errors.as_ul }}
+            <table id="formset" class="form">
+                {% for form in formset.forms %}
+                    {% if forloop.first %}
+                        <thead>
+                        <tr>
+                            {% for field in form.visible_fields %}
+                                <th>{{ field.label|capfirst }}</th>
+                            {% endfor %}
+                        </tr>
+                        </thead>
+                    {% endif %}
+                    <tr class="{% cycle row1 row2 %}">
+                        {% for field in form.visible_fields %}
+                            <td>
+                                {# Include the hidden fields in the form #}
+                                {% if forloop.first %}
+                                    {% for hidden in form.hidden_fields %}
+                                        {{ hidden }}
+                                    {% endfor %}
+                                {% endif %}
+                                {{ field.errors.as_ul }}
+                                {{ field }}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </table>
+
+            <br>
+            <hr style="height: 3px">
+            <br>
+
+            <input type="submit" value="Submit payments"/>
+        </form>
+
+
+    </div>
+
+{% endblock %}

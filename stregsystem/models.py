@@ -330,12 +330,16 @@ class Payment(models.Model):  # id automatisk...
 class MobilePayment(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True,
                                blank=True)  # nullable as mbpayment may not have match yet
+    payment = models.OneToOneField(Payment, on_delete=models.CASCADE, null=True, blank=True)
     customer_name = models.CharField(max_length=64)
     timestamp = models.DateTimeField(auto_now_add=True)  # fixme, convert mbpay given timestamp
     amount = models.IntegerField()  # penge, oere...
     # mobilepay transaction ids are no longer than 17 chars and assumed to be unique
     transaction_id = models.CharField(max_length=32, unique=True)
     comment = models.CharField(max_length=128)
+    member_guess = models.ForeignKey(Member, on_delete=models.CASCADE, null=True,
+                                     blank=True, related_name='member_guess')
+    approval = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.member.username if self.member is not None else 'Not assigned'}, {self.customer_name}, " \

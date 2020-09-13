@@ -1,10 +1,10 @@
 import datetime
-import io
 import logging
-from pprint import pprint
 
 from django.core.exceptions import ValidationError
 from django.core.files.uploadhandler import MemoryFileUploadHandler
+from django.db import transaction
+from django.forms import modelformset_factory
 
 import stregsystem.parser as parser
 from django.contrib.admin.views.decorators import staff_member_required
@@ -15,7 +15,6 @@ from django import forms
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
-import stregsystem.parser as parser
 from django_select2 import forms as s2forms
 
 from stregsystem import parser
@@ -299,10 +298,11 @@ logger = logging.getLogger('django')
 
 
 @staff_member_required()
-def paytool(request):
-    def parse_csv(csvfile) -> list:
+def import_mobilepay_csv(request):
+    def parse_csv_and_create_mbpayments(csvfile):
+        fembers = Member.objects.all()
+        imports, duplicates = 0, 0
         import csv
-        res = list()
         # get csv reader and ignore header
         reader = csv.reader(csvfile[1:], delimiter=';', quotechar='"')
         for row in reader:
@@ -319,41 +319,101 @@ def paytool(request):
                                   # timestamp=datetime.datetime.strptime(row[3], "%Y-%m-%dT%H:%M:%S"),
                                   customer_name=row[4], transaction_id=row[7], comment=row[6])
 
-            # Unique constraint on transaction_id must hold before saving new object
             try:
+                # Unique constraint on transaction_id must hold before saving new object
                 mbpay.validate_unique()
+                # logger.info(f"comment: {mbpay.comment.strip()}")
+                # do exact case sensitive match
+                match = fembers.filter(username__exact=mbpay.comment.strip())
+                if match and match.count() == 0:
+                    logger.info(f"found no match for payment with comment: {mbpay.comment}")
+
+                elif match and match.count() == 1:
+                    # logger.info(f"matched with username: {match.first().username}")
+                    # TODO: also do check on mobilepay name against fember name
+                    mbpay.member_guess = match.first()
+                    mbpay.member = match.first()
+                else:
+                    logger.info(f"matched with more than one username: {[x.username for x in match]}")
                 mbpay.save()
+                imports += 1
             except ValidationError:
                 logger.info(f"[paytool] Found duplicate of transmission_id: {mbpay.transaction_id}, ignoring")
+                duplicates += 1
+        return imports, duplicates
 
-        # datetime.datetime.strptime(row[3], format="%Y-%m-%dT%H:%M:%S.%f+%z"),
-        return res
-
-    if request.method == "POST" and request.content_type == 'csv':
-        # processing uploaded mobilepay csv - hopefully
-        pass
-
-    data = {
-        'payments': Payment.objects.all(),
-        'members': Member.objects.all(),
-        'mbpayment': MobilePayment.objects.all(),
-        'status': "Idle",
-    }
-    logger.info(request.FILES)
+    data = dict()
     if request.method == "POST" and request.FILES:
-        data['status'] = "Finished processing CSV"
-        logger.info("received POST request")
-        # got csv, do stuff
-        # logger.info(request.POST)
-        # logger.info(request.FILES)
 
         csv_file = request.FILES['csv_file']
         csv_file.seek(0)
 
-        parse_csv(str(csv_file.read().decode('utf-8')).splitlines())
-        log_stream = None
-        pprint(data, stream=log_stream)
-        logger.info(log_stream)
+        data['imports'], data['duplicates'] = parse_csv_and_create_mbpayments(
+            str(csv_file.read().decode('utf-8')).splitlines())
+        if data['imports'] > 0:
+            n = data['imports']
+            logger.info(f"have {n} new imports")
+            data['mobilepayments'] = MobilePayment.objects.all().order_by('-id')[:n]
+        logger.info(data)
+    return render(request, "admin/stregsystem/import_mbpay.html", data)
+
+
+class MemberWidget(s2forms.ModelSelect2Widget):
+    model = Member
+
+
+class MobilePaymentForm(forms.ModelForm):
+    class Meta:
+        model = MobilePayment
+        fields = ('amount', 'member', 'member_guess', 'customer_name', 'comment', 'approval')
+        widgets = {"member": MemberWidget,
+                   "member_guess": MemberWidget}
+
+
+@staff_member_required()
+def paytool(request):
+    paytool_form_set = modelformset_factory(MobilePayment, fields=(
+        'amount', 'member', 'member_guess', 'customer_name', 'comment', 'approval'), extra=0,
+                                            widgets={"member": MemberWidget,
+                                                     "member_guess": MemberWidget()})
+
+    @transaction.atomic
+    def submit_mbpayments():
+        approved_mbpayments = MobilePayment.objects.filter(
+            Q(approval=True) & Q(payment__isnull=True) & (Q(member__isnull=False) | Q(member_guess__isnull=False)))
+
+        for mbpayment in approved_mbpayments:
+            # set mobilepayment receiving member to guess if unfilled
+            if not mbpayment.member and mbpayment.member_guess:
+                mbpayment.member = mbpayment.member_guess
+
+            # todo: write edit-distance matching on non-exact matches?
+
+            # create payment for transaction, assign payment to mobilepayment and save both
+            # note that key to payment is not available when chaining a save call, hence this structure
+            payment = Payment(member=mbpayment.member, amount=mbpayment.amount)
+            payment.save()
+            mbpayment.payment = payment
+            mbpayment.save()
+
+    def get_unprocessed_transactions():
+        return paytool_form_set(queryset=MobilePayment.objects.filter(Q(approval=False) | Q(payment__isnull=True)))
+
+    data = {
+        'mbpayment': MobilePayment.objects.all(),
+    }
+
+    if request.method == "GET":
+        data['formset'] = get_unprocessed_transactions()
+
     elif request.method == "POST":
-        data['status'] = "Finished matching payments"
-    return render(request, "admin/stregsystem/paytool.html", data)
+        form = paytool_form_set(request.POST)
+
+        # todo: enable form-errors to be shown to user, since we are using a custom template for form, maybe difficult?
+        if form.is_valid():
+            form.save()
+            submit_mbpayments()
+            # refresh form after submission
+            data['formset'] = get_unprocessed_transactions()
+
+    return render(request, "admin/stregsystem/mobilepaytool.html", data)
