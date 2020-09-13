@@ -13,6 +13,7 @@ from stregsystem.models import (
     Room,
     Sale, MobilePayment
 )
+from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
     make_active_productlist_query,
     make_inactive_productlist_query
@@ -228,7 +229,7 @@ class MemberAdmin(admin.ModelAdmin):
 
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('get_username', 'timestamp', 'get_amount_display')
-    valid_lookups = ('member')
+    valid_lookups = 'member'
     search_fields = ['member__username']
     autocomplete_fields = ['member']
 
@@ -242,17 +243,17 @@ class PaymentAdmin(admin.ModelAdmin):
     get_username.admin_order_field = "member__username"
 
     def get_amount_display(self, obj):
-        if obj.amount is None:
-            obj.amount = 0
-        return "{0:.2f} kr.".format(obj.amount / 100.0)
+        return money(obj.amount)
 
     get_amount_display.short_description = "Amount"
     get_amount_display.admin_order_field = "amount"
 
 
 class MobilePaymentAdmin(admin.ModelAdmin):
-    list_display = ('get_username', 'payment', 'customer_name', 'comment', 'member_guess', 'timestamp', 'transaction_id', 'get_amount_display', 'approval')
-    valid_lookups = ('member')
+    list_display = (
+        'get_username', 'payment', 'customer_name', 'comment', 'member_guess', 'timestamp', 'transaction_id',
+        'get_amount_display', 'approval')
+    valid_lookups = 'member'
     search_fields = ['member__username']
     autocomplete_fields = ['member']
 
@@ -272,9 +273,7 @@ class MobilePaymentAdmin(admin.ModelAdmin):
     get_username.admin_order_field = "member__username"
 
     def get_amount_display(self, obj):
-        if obj.amount is None:
-            obj.amount = 0
-        return "{0:.2f} kr.".format(obj.amount / 100.0)
+        return money(obj.amount)
 
     get_amount_display.short_description = "Amount"
     get_amount_display.admin_order_field = "amount"
