@@ -10,7 +10,7 @@ import stregsystem.parser as parser
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, Model
 from django import forms
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
@@ -312,19 +312,27 @@ def import_mobilepay_csv(request):
             row[3] = f"{split_row[0][:-1]}+{split_row[1]}"
 
             mobile_payment = MobilePayment(member=None, amount=row[2].replace(',', ''),
-                                           timestamp=datetime.datetime.fromisoformat(row[3]),
-                                           customer_name=row[4], transaction_id=row[7], comment=row[6])
+                                           timestamp=datetime.datetime.fromisoformat(row[3]), customer_name=row[4],
+                                           transaction_id=row[7], comment=row[6], payment=None)
             try:
-                # unique constraint on transaction_id must hold before saving new object
+                # unique constraint on transaction_id and payment-foreign key must hold before saving new object
                 mobile_payment.validate_unique()
 
                 # do exact case sensitive match
                 match = Member.objects.filter(username__exact=mobile_payment.comment.strip())
-                if match and match.count() == 1:
+                if match.count() == 0:
+                    # no match, maybe do edit-distance checking for nearest match and remove common fluff such as emoji
+                    #  could/should be combined with a match against MobilePay-provided customer name
+                    pass
+                elif match.count() == 1:
                     # TODO: also do check on mobilepay name against fember name?
                     mobile_payment.member_guess = match.first()
                     mobile_payment.member = match.first()
-
+                elif match.count() > 1:
+                    # something is very wrong, there should be no active users which are duplicates post PR #178
+                    #  TODO: how to properly raise error in stregsystem? simply log-entry?
+                    pass
+                # TODO: do LogEntry
                 mobile_payment.save()
                 imported_transactions += 1
             except ValidationError:
@@ -333,7 +341,7 @@ def import_mobilepay_csv(request):
 
     data = dict()
     if request.method == "POST" and request.FILES:
-
+        # Prepare uploaded CSV to be read
         csv_file = request.FILES['csv_file']
         csv_file.seek(0)
 
@@ -341,7 +349,6 @@ def import_mobilepay_csv(request):
             str(csv_file.read().decode('utf-8')).splitlines())
         if data['imports'] > 0:
             data['mobilepayments'] = MobilePayment.objects.all().order_by('-id')[:data['imports']]
-        logger.info(data)
     return render(request, "admin/stregsystem/import_mbpay.html", data)
 
 
@@ -374,8 +381,6 @@ def paytool(request):
             if not mbpayment.member and mbpayment.member_guess:
                 mbpayment.member = mbpayment.member_guess
 
-            # todo: write edit-distance matching on non-exact matches?
-
             # create payment for transaction, assign payment to mobilepayment and save both
             # note that key to payment is not available when chaining a save call, hence this structure
             payment = Payment(member=mbpayment.member, amount=mbpayment.amount)
@@ -398,7 +403,7 @@ def paytool(request):
 
         # todo: enable form-errors to be shown to user, since we are using a custom template for form, maybe difficult?
         if form.is_valid():
-            form.save()
+            form.save()  # commit=false here? it was done for batch because of reference thing
             submit_mbpayments()
             # refresh form after submission
             data['formset'] = get_unprocessed_transactions()

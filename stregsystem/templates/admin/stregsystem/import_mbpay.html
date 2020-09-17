@@ -20,13 +20,27 @@
         {% if imports or duplicates %}
             <h2> Imported {{ imports }} MobilePay transactions{% if duplicates %}, and ignored {{ duplicates }}
                 duplicates {% endif %} </h2>
-            <h1><a href="{% url 'paytool' %}" >Go to processing of MobilePay transactions</a></h1>
+            <h1><a href="{% url 'paytool' %}">Go to processing of MobilePay transactions</a></h1>
         {% endif %}
 
-        {% for e in mobilepayments %}
-            {{ e }}
-            <br>
-        {% endfor %}
+        {% if mobilepayments %}
+            <table>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Amount</th>
+                    <th>Customer Name</th>
+                    <th>Comment</th>
+                </tr>
+                {% for e in mobilepayments %}
+                    <tr>
+                        <td>{{ e.timestamp }}</td>
+                        <td>{{ e.amount }}</td>
+                        <td>{{ e.customer_name }}</td>
+                        <td>{{ e.comment }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
 
 
     </div>
