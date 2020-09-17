@@ -330,7 +330,8 @@ class Payment(models.Model):  # id automatisk...
 class MobilePayment(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True,
                                blank=True)  # nullable as mbpayment may not have match yet
-    payment = models.OneToOneField(Payment, on_delete=models.CASCADE, null=True, blank=True)
+    # Django does not consider null == null, so this should work
+    payment = models.OneToOneField(Payment, on_delete=models.CASCADE, null=True, blank=True, unique=True)
     customer_name = models.CharField(max_length=64)
     timestamp = models.DateTimeField()
     amount = models.IntegerField()
