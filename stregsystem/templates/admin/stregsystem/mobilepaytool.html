@@ -5,6 +5,12 @@
 {% block breadcrumbs %}
     <div class="breadcrumbs"><a href="../">Hjem</a></div>{% endblock %}
 
+{% block extrahead %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    {{ formset.media.css }}
+    {{ formset.media.js }}
+
+{% endblock %}
 
 {% block content %}
     {% load admin_static %}
@@ -57,8 +63,5 @@
 
             <input type="submit" value="Submit payments"/>
         </form>
-
-
     </div>
-
 {% endblock %}

@@ -353,23 +353,14 @@ def import_mobilepay_csv(request):
 
 
 class MemberWidget(s2forms.ModelSelect2Widget):
+    search_fields = ['username__icontains', 'firstname__icontains', 'lastname__icontains', 'email__icontains']
     model = Member
-
-
-class MobilePaymentForm(forms.ModelForm):
-    class Meta:
-        model = MobilePayment
-        fields = ('amount', 'member', 'member_guess', 'customer_name', 'comment', 'approval')
-        widgets = {"member": MemberWidget,
-                   "member_guess": MemberWidget}
 
 
 @staff_member_required()
 def paytool(request):
-    paytool_form_set = modelformset_factory(MobilePayment, fields=(
-        'amount', 'member', 'member_guess', 'customer_name', 'comment', 'approval'), extra=0,
-                                            widgets={"member": MemberWidget,
-                                                     "member_guess": MemberWidget()})
+    paytool_form_set = modelformset_factory(MobilePayment, extra=0, widgets={"member": MemberWidget}, fields=(
+        'amount', 'member', 'member_guess', 'customer_name', 'comment', 'approval'))
 
     @transaction.atomic
     def submit_mbpayments():
