@@ -319,14 +319,13 @@ def import_mobilepay_csv(request):
                 mobile_payment.validate_unique()
 
                 # do exact case sensitive match
-                match = Member.objects.filter(username__exact=mobile_payment.comment.strip())
+                match = Member.objects.filter(username__exact=mobile_payment.comment.strip(), active=True)
                 if match.count() == 0:
                     # no match, maybe do edit-distance checking for nearest match and remove common fluff such as emoji
                     #  could/should be combined with a match against MobilePay-provided customer name
                     pass
                 elif match.count() == 1:
                     # TODO: also do check on mobilepay name against fember name?
-                    mobile_payment.member_guess = match.first()
                     mobile_payment.member = match.first()
                 elif match.count() > 1:
                     # something is very wrong, there should be no active users which are duplicates post PR #178
