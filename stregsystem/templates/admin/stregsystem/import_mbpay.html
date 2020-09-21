@@ -1,5 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load static %}
+{% load stregsystem_extras %}
 
 {% block title %}Import MobilePay CSV transactions{% endblock %}
 {% block breadcrumbs %}
@@ -34,7 +35,7 @@
                 {% for e in mobilepayments %}
                     <tr>
                         <td>{{ e.timestamp }}</td>
-                        <td>{{ e.amount }}</td>
+                        <td>{{ e.amount | money }} kr </td>
                         <td>{{ e.customer_name }}</td>
                         <td>{{ e.comment }}</td>
                     </tr>
