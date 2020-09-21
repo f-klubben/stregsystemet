@@ -1,6 +1,7 @@
 from collections import Counter
 from email.utils import parseaddr
 
+from django.contrib.auth.models import User
 from django.db import models, transaction
 from django.db.models import Count
 from django.utils import timezone
@@ -340,7 +341,8 @@ class MobilePayment(models.Model):
     comment = models.CharField(max_length=128)
     member_guess = models.ForeignKey(Member, on_delete=models.CASCADE, null=True,
                                      blank=True, related_name='member_guess')
-    approval = models.BooleanField(default=False)
+    approved = models.BooleanField(default=False)
+    approved_by_admin = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, )
 
     def __str__(self):
         return f"{self.member.username if self.member is not None else 'Not assigned'}, {self.customer_name}, " \

@@ -86,80 +86,98 @@
   },
   {
     "model": "stregsystem.mobilepayment",
-    "pk": 1,
+    "pk": 7,
     "fields": {
       "member": null,
+      "payment": null,
       "customer_name": "Martin Larsen",
-      "timestamp": "2020-09-12T16:46:01.785Z",
+      "timestamp": "2019-11-29T12:51:08.857Z",
       "amount": 6969,
       "transaction_id": "156E027485173228",
       "comment": "mlarsen indbetalt ",
-      "member_guess": null
+      "member_guess": null,
+      "approved": false,
+      "approved_by_admin": null
     }
   },
   {
     "model": "stregsystem.mobilepayment",
-    "pk": 2,
+    "pk": 8,
     "fields": {
       "member": null,
+      "payment": null,
       "customer_name": "Bobby Tables",
-      "timestamp": "2020-09-12T16:46:01.821Z",
+      "timestamp": "2019-11-28T16:40:55.719Z",
       "amount": 50000,
       "transaction_id": "232E027452733666",
       "comment": "tables eksdee",
-      "member_guess": null
+      "member_guess": null,
+      "approved": false,
+      "approved_by_admin": null
     }
   },
   {
     "model": "stregsystem.mobilepayment",
-    "pk": 3,
+    "pk": 9,
     "fields": {
-      "member": null,
+      "member": 4,
+      "payment": null,
       "customer_name": "Karl Marx",
-      "timestamp": "2020-09-12T16:46:01.850Z",
+      "timestamp": "2019-11-28T14:30:58.357Z",
       "amount": 20000,
       "transaction_id": "241E027449465355",
       "comment": "marx",
-      "member_guess": 4
+      "member_guess": null,
+      "approved": false,
+      "approved_by_admin": null
     }
   },
   {
     "model": "stregsystem.mobilepayment",
-    "pk": 4,
+    "pk": 10,
     "fields": {
       "member": null,
+      "payment": null,
       "customer_name": "Bobby Tables",
-      "timestamp": "2020-09-12T16:46:01.875Z",
+      "timestamp": "2019-11-28T16:40:55.719Z",
       "amount": 50000,
       "transaction_id": "232E027452733676",
       "comment": "tables eksdee",
-      "member_guess": null
+      "member_guess": null,
+      "approved": false,
+      "approved_by_admin": null
     }
   },
   {
     "model": "stregsystem.mobilepayment",
-    "pk": 5,
+    "pk": 11,
     "fields": {
-      "member": null,
+      "member": 5,
+      "payment": null,
       "customer_name": "John Doe",
-      "timestamp": "2020-09-12T16:46:01.904Z",
+      "timestamp": "2019-11-27T11:15:38.529Z",
       "amount": 15000,
       "transaction_id": "016E027417049990",
       "comment": "jdoe",
-      "member_guess": 5
+      "member_guess": null,
+      "approved": false,
+      "approved_by_admin": null
     }
   },
   {
     "model": "stregsystem.mobilepayment",
-    "pk": 6,
+    "pk": 12,
     "fields": {
-      "member": null,
+      "member": 1,
+      "payment": null,
       "customer_name": "Tester Testsen",
-      "timestamp": "2020-09-12T16:46:01.932Z",
+      "timestamp": "2019-11-26T11:54:37.521Z",
       "amount": 20000,
       "transaction_id": "207E027395896809",
       "comment": "tester",
-      "member_guess": 1
+      "member_guess": null,
+      "approved": false,
+      "approved_by_admin": null
     }
   },
   {
@@ -299,23 +317,6 @@
       "timestamp": "2017-03-13T13:38:10.573Z",
       "price": 300
     }
-  },
-  {
-    "model": "auth.user",
-    "pk": 1,
-    "fields": {
-      "password": "pbkdf2_sha256$30000$ivRA8qABWClG$pxi2R4uyotlGpwa66RQuDOXFaO9JElQutMFJqXmnOdI=",
-      "last_login": "2017-03-13T12:41:13.546+00:00",
-      "is_superuser": true,
-      "username": "tester",
-      "first_name": "test",
-      "last_name": "testsen",
-      "email": "",
-      "is_staff": true,
-      "is_active": true,
-      "date_joined": "2017-03-06T10:53:54+00:00",
-      "groups": [],
-      "user_permissions": []
-    }
   }
 ]
+s

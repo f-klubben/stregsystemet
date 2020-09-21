@@ -1,16 +1,13 @@
 import datetime
-import logging
 
 from django.core.exceptions import ValidationError
-from django.core.files.uploadhandler import MemoryFileUploadHandler
 from django.db import transaction
 from django.forms import modelformset_factory
 
-import stregsystem.parser as parser
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.conf import settings
-from django.db.models import Q, Model
+from django.db.models import Q
 from django import forms
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, render
@@ -294,9 +291,6 @@ def batch_payment(request):
     })
 
 
-logger = logging.getLogger('django')
-
-
 @staff_member_required()
 def import_mobilepay_csv(request):
     def parse_csv_and_create_mbpayments(csvfile):
@@ -318,7 +312,7 @@ def import_mobilepay_csv(request):
                 # unique constraint on transaction_id and payment-foreign key must hold before saving new object
                 mobile_payment.validate_unique()
 
-                # do exact case sensitive match
+                # do case insensitive match on active members
                 match = Member.objects.filter(username__iexact=mobile_payment.comment.strip(), active=True)
                 if match.count() == 0:
                     # no match, maybe do edit-distance checking for nearest match and remove common fluff such as emoji
@@ -359,32 +353,28 @@ class MemberWidget(s2forms.ModelSelect2Widget):
 @staff_member_required()
 def paytool(request):
     paytool_form_set = modelformset_factory(MobilePayment, extra=0, widgets={"member": MemberWidget}, fields=(
-        'amount', 'member', 'member_guess', 'customer_name', 'comment', 'approval'))
+        'amount', 'member', 'member_guess', 'customer_name', 'comment', 'approved'))
 
     @transaction.atomic
     def submit_mbpayments():
         approved_mbpayments = MobilePayment.objects.filter(
-            Q(approval=True) & Q(payment__isnull=True) & (Q(member__isnull=False) | Q(member_guess__isnull=False)))
+            Q(approved=True) & Q(payment__isnull=True) & (Q(member__isnull=False) | Q(member_guess__isnull=False)))
 
         for mbpayment in approved_mbpayments:
-            # set mobilepayment receiving member to guess if unfilled
-            if not mbpayment.member and mbpayment.member_guess:
-                mbpayment.member = mbpayment.member_guess
-
             # create payment for transaction, assign payment to mobilepayment and save both
             # note that key to payment is not available when chaining a save call, hence this structure
             payment = Payment(member=mbpayment.member, amount=mbpayment.amount)
             payment.save()
+            mbpayment.approved_by_admin = request.user
             mbpayment.payment = payment
             mbpayment.save()
 
     def get_unprocessed_transactions():
-        return paytool_form_set(queryset=MobilePayment.objects.filter(Q(approval=False) | Q(payment__isnull=True)))
+        return paytool_form_set(queryset=MobilePayment.objects.filter(Q(approved=False) | Q(payment__isnull=True)))
 
     data = {
         'mbpayment': MobilePayment.objects.all(),
     }
-
     if request.method == "GET":
         data['formset'] = get_unprocessed_transactions()
 
