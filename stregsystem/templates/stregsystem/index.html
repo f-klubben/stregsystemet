@@ -47,7 +47,43 @@
 {% block products %}
 {% if product_list %}
 {% autoescape off %}
-<table cellpadding="0" cellspacing="0" border="0">
+<div id="product-container">
+
+    <div class="column">
+        <div class="column-inner">
+            <div class="product-row product-heading">
+                <div class="product-cell product-id">ID</div>
+                <div class="product-cell product-name">NAME</div>
+                <div class="product-cell product-price">PRICE</div>
+            </div>
+            {% for product in product_list|partition:"2"|first %}
+            <div class="product-row">
+                <div class="product-cell product-id">{{product.id}}</div>
+                <div class="product-cell product-name">{{product.name}}</div>
+                <div class="product-cell product-price">{{product.price|money}} kr</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="column">
+        <div class="column-inner">
+            <div class="product-row product-heading">
+                <div class="product-cell product-id">ID</div>
+                <div class="product-cell product-name">NAME</div>
+                <div class="product-cell product-price">PRICE</div>
+            </div>
+            {% for product in product_list|partition:"2"|last %}
+            <div class="product-row">
+                <div class="product-cell product-id">{{product.id}}</div>
+                <div class="product-cell product-name">{{product.name}}</div>
+                <div class="product-cell product-price">{{product.price|money}} kr</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!--<table cellpadding="0" cellspacing="0" border="0">
     <tr>
         <td valign="top">
             <table border="1" cellspacing="2" cellpadding="2">
@@ -92,7 +128,7 @@
 
 {% endif %}
 {% endblock %}
-</center>
+</center>-->
 
 <div style="clear: both;">&nbsp;</div>
 
