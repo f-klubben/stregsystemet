@@ -17,12 +17,17 @@
 
     <div id="content-main">
         <h1>MobilePaytool</h1>
-        <p>Displays a list of MobilePay transactions with no assigned member.</p>
-        <p>If member is prefilled, then the user wrote their username correctly in the MobilePay comment.
-            To submit this payment to the user, check the 'approved' box in the appropriate row.</p>
-        <p>If member is not prefilled, then pick the appropriate user and check the 'approved' box. </p>
-        <p>Once you submit the payments, all rows that are checked in the 'approved' box, will be processed and payment
-            sent to the appropriate user.</p>
+        <p>Displays a list of unprocessed MobilePay transactions for easier processing of payments.</p>
+        <ul>
+            <li><p>If member is prefilled, then the user wrote their username correctly in the MobilePay comment.
+                To submit this payment to the user, check the 'approved' box in the appropriate row.</p></li>
+            <li><p>If member is not prefilled, then pick the appropriate user in the member column and check the
+                'approved'
+                box. </p></li>
+            <li><p>Once you submit the payments, all rows that are checked in the 'approved' box, will be processed and
+                payment
+                sent to the appropriate user.</p></li>
+        </ul>
         {% if not formset.forms %}
             <h2> No MobilePay transactions needs processing</h2>
         {% endif %}
