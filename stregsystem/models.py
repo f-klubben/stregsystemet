@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from stregsystem.deprecated import deprecated
 from stregsystem.templatetags.stregsystem_extras import money
-from stregsystem.utils import date_to_midnight, make_approved_mobilepayment_query
+from stregsystem.utils import date_to_midnight, make_approved_mobilepayment_query, make_ignored_mobilepayment_query
 from stregsystem.utils import send_payment_mail
 
 
@@ -345,6 +345,7 @@ class MobilePayment(models.Model):
                                      blank=True, related_name='member_guess')
     approved = models.BooleanField(default=False)
     approved_by_admin = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    ignored = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.member.username if self.member is not None else 'Not assigned'}, {self.customer_name}, " \
@@ -352,17 +353,16 @@ class MobilePayment(models.Model):
 
     @staticmethod
     @transaction.atomic
-    def submit_approved_mobile_payments(admin_user: User):
-        approved_mobile_payments = make_approved_mobilepayment_query()
-
-        for mobile_payment in approved_mobile_payments:
+    def submit_processed_mobile_payments(admin_user: User):
+        # TODO: could be merged into one query and handling of those instead of duplicating code
+        for approved_mobile_payment in make_approved_mobilepayment_query():
             # create payment for transaction, assign payment to mobile payment and save both
             # note that key to payment is not available when chaining a save call, hence this structure
-            payment = Payment(member=mobile_payment.member, amount=mobile_payment.amount)
+            payment = Payment(member=approved_mobile_payment.member, amount=approved_mobile_payment.amount)
             payment.save()
-            mobile_payment.approved_by_admin = admin_user
-            mobile_payment.payment = payment
-            mobile_payment.save()
+            approved_mobile_payment.approved_by_admin = admin_user
+            approved_mobile_payment.payment = payment
+            approved_mobile_payment.save()
 
             LogEntry.objects.log_action(
                 user_id=admin_user.pk,
@@ -370,7 +370,24 @@ class MobilePayment(models.Model):
                 object_id=payment.id,
                 object_repr=str(payment),
                 action_flag=ADDITION,
-                change_message=f"MobilePayment (transaction_id: {mobile_payment.transaction_id})"
+                change_message=f"MobilePayment (transaction_id: {approved_mobile_payment.transaction_id})"
+            )
+
+        for ignored_mobile_payment in make_ignored_mobilepayment_query():
+            # create payment for ignored transaction by creating zero-amount payment
+            payment = Payment(member=ignored_mobile_payment.member, amount=0)
+            payment.save()
+            ignored_mobile_payment.approved_by_admin = admin_user
+            ignored_mobile_payment.payment = payment
+            ignored_mobile_payment.save()
+
+            LogEntry.objects.log_action(
+                user_id=admin_user.pk,
+                content_type_id=ContentType.objects.get_for_model(Payment).pk,
+                object_id=payment.id,
+                object_repr=str(payment),
+                action_flag=ADDITION,
+                change_message=f"Ignored MobilePayment (transaction_id: {ignored_mobile_payment.transaction_id})"
             )
 
 
