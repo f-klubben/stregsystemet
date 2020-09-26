@@ -32,7 +32,7 @@ from stregsystem.models import (
     Sale,
     StregForbudError,
     active_str,
-    price_display
+    price_display, MobilePayment
 )
 
 
@@ -1480,3 +1480,64 @@ class RazziaTests(TestCase):
 
         self.assertEqual(0, res[self.flan.name])
         self.assertEqual(0, res[self.flanmad.name])
+
+
+class MobilePaymentTests(TestCase):
+    def setUp(self):
+        self.fixture_path = "stregsystem/fixtures/mobilepay-sales-testdata-fixture.csv"
+
+        # setup admin
+        self.super_user = User.objects.create_superuser('superuser', 'test@example.com', "hunter2")
+
+        # Create members, directly mirrors fixture in 'stregsystem/fixtures/testdata-mobilepay.json'
+        members = [
+            {'username': 'jdoe', 'firstname': 'John', 'lastname': 'Doe', 'email': 'jdoe@nsa.gov', 'balance': 42000},
+            {'username': 'marx', 'firstname': 'Karl', 'lastname': 'Marx', 'email': 'marx@nsa.gov', 'balance': 6900},
+            {'username': 'tables', 'firstname': 'Bobby', 'lastname': 'Tables', 'email': 'tables@nsa.gov',
+             'balance': 12500},
+            {'username': 'mlarsen', 'firstname': 'Martin', 'lastname': 'Larsen', 'email': 'mlarsen@nsa.gov',
+             'balance': 10000},
+            {'username': 'tester', 'firstname': 'Test', 'lastname': 'Testsen', 'email': 'tables@nsa.gov',
+             'balance': 50000},
+        ]
+        for member in members:
+            Member.objects.create(
+                username=member['username'],
+                firstname=member['firstname'],
+                lastname=member['lastname'],
+                email=member['email'],
+                balance=member['balance']).save()
+
+        from stregsystem.utils import parse_csv_and_create_mbpayments
+        with open(self.fixture_path, "r") as csv_file:
+            parse_csv_and_create_mbpayments(csv_file.readlines())
+
+    def test_csv_parsing(self):
+        self.assertEqual(MobilePayment.objects.count(), 6)
+
+        # two bobby-payments in test data
+        self.assertGreaterEqual(MobilePayment.objects.filter(comment__icontains="tables").count(), 2)
+
+        payment_timestamp = MobilePayment.objects.get(transaction_id="156E027485173228").timestamp
+        # manually accounting for UTC+1 timezone at time of transaction
+        real_timestamp = datetime.datetime(2019, 11, 29, 12, 51, 8, tzinfo=pytz.UTC)
+        self.assertLess((payment_timestamp - real_timestamp).seconds, 1)
+
+    def test_member_exact_matching(self):
+        for matched_member in MobilePayment.objects.filter(member__isnull=False):
+            self.assertEqual(matched_member.member, Member.objects.get(pk=matched_member.member.pk))
+
+    def test_submission_payment_balance(self):
+        # member balance unchanged
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, 42000)
+
+        # submit mobile payment
+        self.client.login(username="superuser", password="hunter2")
+
+        mobile_payment = MobilePayment.objects.get(transaction_id__exact="016E027417049990")
+        mobile_payment.approved = True
+        mobile_payment.save()
+
+        MobilePayment.submit_processed_mobile_payments(self.super_user)
+
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, 42000 + mobile_payment.amount)
