@@ -1,6 +1,7 @@
 import logging
 import smtplib
-from datetime import datetime
+import datetime
+from backports.datetime_fromisoformat import MonkeyPatch
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from django.conf import settings
@@ -12,6 +13,7 @@ from django.utils import timezone
 from stregsystem.templatetags.stregsystem_extras import money
 
 logger = logging.getLogger(__name__)
+MonkeyPatch.patch_fromisoformat()  # FIXME: remove when updated to py37 or newer
 
 
 def make_active_productlist_query(queryset):
@@ -81,7 +83,14 @@ def make_unprocessed_mobilepayment_query():
 def make_approved_mobilepayment_query():
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
     return MobilePayment.objects.filter(
-        Q(approved=True) & Q(payment__isnull=True) & (Q(member__isnull=False) | Q(member_guess__isnull=False)))
+        Q(approved=True) & Q(ignored=False) & Q(payment__isnull=True) & (
+                Q(member__isnull=False) | Q(member_guess__isnull=False)))
+
+
+def make_ignored_mobilepayment_query():
+    from stregsystem.models import MobilePayment  # import locally to avoid circular import
+    return MobilePayment.objects.filter(
+        Q(approved=False) & Q(ignored=True) & Q(payment__isnull=True) & Q(member__isnull=False))
 
 
 def date_to_midnight(date):
@@ -148,7 +157,7 @@ def parse_csv_and_create_mbpayments(csvfile):
 
         from stregsystem.models import MobilePayment
         mobile_payment = MobilePayment(member=None, amount=row[2].replace(',', ''),
-                                       timestamp=datetime.fromisoformat(row[3]), customer_name=row[4],
+                                       timestamp=datetime.datetime.fromisoformat(row[3]), customer_name=row[4],
                                        transaction_id=row[7], comment=row[6], payment=None)
         try:
             # unique constraint on transaction_id and payment-foreign key must hold before saving new object
