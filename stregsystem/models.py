@@ -344,7 +344,6 @@ class MobilePayment(models.Model):
     member_guess = models.ForeignKey(Member, on_delete=models.CASCADE, null=True,
                                      blank=True, related_name='member_guess')
     approved = models.BooleanField(default=False)
-    approved_by_admin = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     ignored = models.BooleanField(default=False)
 
     def __str__(self):
@@ -360,7 +359,6 @@ class MobilePayment(models.Model):
             # note that key to payment is not available when chaining a save call, hence this structure
             payment = Payment(member=approved_mobile_payment.member, amount=approved_mobile_payment.amount)
             payment.save()
-            approved_mobile_payment.approved_by_admin = admin_user
             approved_mobile_payment.payment = payment
             approved_mobile_payment.save()
 

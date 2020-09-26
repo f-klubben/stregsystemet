@@ -252,7 +252,7 @@ class PaymentAdmin(admin.ModelAdmin):
 class MobilePaymentAdmin(admin.ModelAdmin):
     list_display = (
         'get_username', 'payment', 'customer_name', 'comment', 'member_guess', 'timestamp', 'transaction_id',
-        'get_amount_display', 'ignored', 'approved', 'approved_by_admin')
+        'get_amount_display', 'ignored', 'approved')
     valid_lookups = 'member'
     search_fields = ['member__username']
     autocomplete_fields = ['member']

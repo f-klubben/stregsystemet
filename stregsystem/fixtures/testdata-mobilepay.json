@@ -97,7 +97,7 @@
       "comment": "mlarsen indbetalt ",
       "member_guess": null,
       "approved": false,
-      "approved_by_admin": null
+      "ignored": false
     }
   },
   {
@@ -113,7 +113,7 @@
       "comment": "tables eksdee",
       "member_guess": null,
       "approved": false,
-      "approved_by_admin": null
+      "ignored": false
     }
   },
   {
@@ -129,7 +129,7 @@
       "comment": "marx",
       "member_guess": null,
       "approved": false,
-      "approved_by_admin": null
+      "ignored": false
     }
   },
   {
@@ -145,7 +145,7 @@
       "comment": "tables eksdee",
       "member_guess": null,
       "approved": false,
-      "approved_by_admin": null
+      "ignored": false
     }
   },
   {
@@ -161,7 +161,7 @@
       "comment": "jdoe",
       "member_guess": null,
       "approved": false,
-      "approved_by_admin": null
+      "ignored": false
     }
   },
   {
@@ -177,7 +177,7 @@
       "comment": "tester",
       "member_guess": null,
       "approved": false,
-      "approved_by_admin": null
+      "ignored": false
     }
   },
   {
