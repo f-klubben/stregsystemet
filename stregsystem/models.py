@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from stregsystem.deprecated import deprecated
 from stregsystem.templatetags.stregsystem_extras import money
-from stregsystem.utils import date_to_midnight
+from stregsystem.utils import date_to_midnight, make_approved_mobilepayment_query
 from stregsystem.utils import send_payment_mail
 
 
@@ -353,8 +353,7 @@ class MobilePayment(models.Model):
     @staticmethod
     @transaction.atomic
     def submit_approved_mobile_payments(admin_user: User):
-        approved_mobile_payments = MobilePayment.objects.filter(
-            Q(approved=True) & Q(payment__isnull=True) & (Q(member__isnull=False) | Q(member_guess__isnull=False)))
+        approved_mobile_payments = make_approved_mobilepayment_query()
 
         for mobile_payment in approved_mobile_payments:
             # create payment for transaction, assign payment to mobile payment and save both

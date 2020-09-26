@@ -317,9 +317,7 @@ def paytool(request):
     paytool_form_set = modelformset_factory(MobilePayment, extra=0, widgets={"member": MemberWidget}, fields=(
         'amount', 'member', 'member_guess', 'customer_name', 'comment', 'approved'))
 
-    data = {
-        'mbpayment': MobilePayment.objects.all(),
-    }
+    data = dict()
     if request.method == "GET":
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
@@ -330,6 +328,7 @@ def paytool(request):
         if form.is_valid():
             form.save()  # commit=false here? it was done for batch because of reference thing
             MobilePayment.submit_approved_mobile_payments(request.user)  # todo: can request.user ever be null?
+
             # refresh form after submission
             data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
