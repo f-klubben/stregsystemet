@@ -29,7 +29,7 @@ from stregsystem.utils import (
     make_active_productlist_query,
     make_room_specific_query,
     make_unprocessed_mobilepayment_query,
-    parse_csv_and_create_mbpayments
+    parse_csv_and_create_mobile_payments
 )
 
 from .booze import ballmer_peak
@@ -300,7 +300,7 @@ def import_mobilepay_csv(request):
         csv_file = request.FILES['csv_file']
         csv_file.seek(0)
 
-        data['imports'], data['duplicates'] = parse_csv_and_create_mbpayments(
+        data['imports'], data['duplicates'] = parse_csv_and_create_mobile_payments(
             str(csv_file.read().decode('utf-8')).splitlines())
         if data['imports'] > 0:
             data['mobilepayments'] = MobilePayment.objects.all().order_by('-id')[:data['imports']]
@@ -316,7 +316,6 @@ class MemberWidget(s2forms.ModelSelect2Widget):
 def paytool(request):
     paytool_form_set = modelformset_factory(MobilePayment, extra=0, widgets={"member": MemberWidget}, fields=(
         'amount', 'member', 'member_guess', 'customer_name', 'comment', 'ignored', 'approved'))
-
     data = dict()
     if request.method == "GET":
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())

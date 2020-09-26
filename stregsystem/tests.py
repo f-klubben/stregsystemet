@@ -1511,9 +1511,9 @@ class MobilePaymentTests(TestCase):
                 balance=self.members[member]['balance']
             ).save()
 
-        from stregsystem.utils import parse_csv_and_create_mbpayments
+        from stregsystem.utils import parse_csv_and_create_mobile_payments
         with open(self.fixture_path, "r") as csv_file:
-            parse_csv_and_create_mbpayments(csv_file.readlines())
+            parse_csv_and_create_mobile_payments(csv_file.readlines())
 
     def test_csv_parsing(self):
         self.assertEqual(MobilePayment.objects.count(), 6)
