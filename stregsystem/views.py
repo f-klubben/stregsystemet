@@ -1,7 +1,5 @@
 import datetime
 
-from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.forms import modelformset_factory
 
 from django.contrib.admin.views.decorators import staff_member_required
@@ -24,11 +22,14 @@ from stregsystem.models import (
     Product,
     Room,
     Sale,
-    StregForbudError, MobilePayment
+    StregForbudError,
+    MobilePayment
 )
 from stregsystem.utils import (
     make_active_productlist_query,
-    make_room_specific_query
+    make_room_specific_query,
+    make_unprocessed_mobilepayment_query,
+    parse_csv_and_create_mbpayments
 )
 
 from .booze import ballmer_peak
@@ -293,45 +294,6 @@ def batch_payment(request):
 
 @staff_member_required()
 def import_mobilepay_csv(request):
-    def parse_csv_and_create_mbpayments(csvfile):
-        imported_transactions, duplicate_transactions = 0, 0
-        import csv
-        # get csv reader and ignore header
-        reader = csv.reader(csvfile[1:], delimiter=';', quotechar='"')
-        for row in reader:
-            # make timestamp compliant to ISO 8601 combined date and time, because MobilePay thinks they're cool adding
-            #  7 decimals of precision to timestamps, however ISO 8601 only allows for 3-6 decimals of precision
-            # TODO: make check for 7 digits of precision before converting in case MobilePay fixes this in future
-            split_row = row[3].split('+')
-            row[3] = f"{split_row[0][:-1]}+{split_row[1]}"
-
-            mobile_payment = MobilePayment(member=None, amount=row[2].replace(',', ''),
-                                           timestamp=datetime.datetime.fromisoformat(row[3]), customer_name=row[4],
-                                           transaction_id=row[7], comment=row[6], payment=None)
-            try:
-                # unique constraint on transaction_id and payment-foreign key must hold before saving new object
-                mobile_payment.validate_unique()
-
-                # do case insensitive match on active members
-                match = Member.objects.filter(username__iexact=mobile_payment.comment.strip(), active=True)
-                if match.count() == 0:
-                    # no match, maybe do edit-distance checking for nearest match and remove common fluff such as emoji
-                    #  could/should be combined with a match against MobilePay-provided customer name
-                    pass
-                elif match.count() == 1:
-                    # TODO: also do check on mobilepay name against fember name?
-                    mobile_payment.member = match.first()
-                elif match.count() > 1:
-                    # something is very wrong, there should be no active users which are duplicates post PR #178
-                    #  TODO: how to properly raise error in stregsystem? simply log-entry?
-                    pass
-                # TODO: do LogEntry
-                mobile_payment.save()
-                imported_transactions += 1
-            except ValidationError:
-                duplicate_transactions += 1
-        return imported_transactions, duplicate_transactions
-
     data = dict()
     if request.method == "POST" and request.FILES:
         # Prepare uploaded CSV to be read
@@ -355,28 +317,11 @@ def paytool(request):
     paytool_form_set = modelformset_factory(MobilePayment, extra=0, widgets={"member": MemberWidget}, fields=(
         'amount', 'member', 'member_guess', 'customer_name', 'comment', 'approved'))
 
-    @transaction.atomic
-    def submit_mbpayments():
-        approved_mbpayments = MobilePayment.objects.filter(
-            Q(approved=True) & Q(payment__isnull=True) & (Q(member__isnull=False) | Q(member_guess__isnull=False)))
-
-        for mbpayment in approved_mbpayments:
-            # create payment for transaction, assign payment to mobilepayment and save both
-            # note that key to payment is not available when chaining a save call, hence this structure
-            payment = Payment(member=mbpayment.member, amount=mbpayment.amount)
-            payment.save()
-            mbpayment.approved_by_admin = request.user
-            mbpayment.payment = payment
-            mbpayment.save()
-
-    def get_unprocessed_transactions():
-        return paytool_form_set(queryset=MobilePayment.objects.filter(Q(approved=False) | Q(payment__isnull=True)))
-
     data = {
         'mbpayment': MobilePayment.objects.all(),
     }
     if request.method == "GET":
-        data['formset'] = get_unprocessed_transactions()
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
     elif request.method == "POST":
         form = paytool_form_set(request.POST)
@@ -384,8 +329,8 @@ def paytool(request):
         # todo: enable form-errors to be shown to user, since we are using a custom template for form, maybe difficult?
         if form.is_valid():
             form.save()  # commit=false here? it was done for batch because of reference thing
-            submit_mbpayments()
+            MobilePayment.submit_approved_mobile_payments(request.user)  # todo: can request.user ever be null?
             # refresh form after submission
-            data['formset'] = get_unprocessed_transactions()
+            data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
     return render(request, "admin/stregsystem/mobilepaytool.html", data)

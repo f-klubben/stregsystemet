@@ -3,7 +3,7 @@ from email.utils import parseaddr
 
 from django.contrib.auth.models import User
 from django.db import models, transaction
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 
 from stregsystem.deprecated import deprecated
@@ -330,23 +330,38 @@ class Payment(models.Model):  # id automatisk...
 
 class MobilePayment(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True,
-                               blank=True)  # nullable as mbpayment may not have match yet
-    # Django does not consider null == null, so this should work
-    payment = models.OneToOneField(Payment, on_delete=models.CASCADE, null=True, blank=True, unique=True)
+                               blank=True)  # nullable as mobile payment may not have match yet
+    payment = models.OneToOneField(Payment, on_delete=models.CASCADE, null=True, blank=True,
+                                   unique=True)  # Django does not consider null == null, so this works
     customer_name = models.CharField(max_length=64)
     timestamp = models.DateTimeField()
     amount = models.IntegerField()
-    # mobilepay transaction ids are no longer than 17 chars and assumed to be unique
-    transaction_id = models.CharField(max_length=32, unique=True)
+    transaction_id = models.CharField(max_length=32,
+                                      unique=True)  # trans_ids are at most 17 chars, assumed to be unique
     comment = models.CharField(max_length=128)
     member_guess = models.ForeignKey(Member, on_delete=models.CASCADE, null=True,
                                      blank=True, related_name='member_guess')
     approved = models.BooleanField(default=False)
-    approved_by_admin = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, )
+    approved_by_admin = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return f"{self.member.username if self.member is not None else 'Not assigned'}, {self.customer_name}, " \
                f"{self.timestamp}, {self.amount}, {self.transaction_id}, {self.comment}"
+
+    @staticmethod
+    @transaction.atomic
+    def submit_approved_mobile_payments(admin_user: User):
+        approved_mobile_payments = MobilePayment.objects.filter(
+            Q(approved=True) & Q(payment__isnull=True) & (Q(member__isnull=False) | Q(member_guess__isnull=False)))
+
+        for mobile_payment in approved_mobile_payments:
+            # create payment for transaction, assign payment to mobile payment and save both
+            # note that key to payment is not available when chaining a save call, hence this structure
+            payment = Payment(member=mobile_payment.member, amount=mobile_payment.amount)
+            payment.save()
+            mobile_payment.approved_by_admin = admin_user
+            mobile_payment.payment = payment
+            mobile_payment.save()
 
 
 class Category(models.Model):

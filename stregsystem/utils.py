@@ -1,13 +1,16 @@
 import logging
 import smtplib
+from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.test.runner import DiscoverRunner
 
 from django.db.models import Count, F, Q
 from django.utils import timezone
 from stregsystem.templatetags.stregsystem_extras import money
+
 logger = logging.getLogger(__name__)
 
 
@@ -70,6 +73,11 @@ def make_room_specific_query(room):
     )
 
 
+def make_unprocessed_mobilepayment_query():
+    from stregsystem.models import MobilePayment  # import locally to avoid circular import
+    return MobilePayment.objects.filter(Q(approved=False) | Q(payment__isnull=True))
+
+
 def date_to_midnight(date):
     """
     Converts a datetime.date to a datetime of the same date at midnight.
@@ -118,6 +126,49 @@ def send_payment_mail(member, amount):
         smtpObj.sendmail('treo@fklub.dk', member.email, msg.as_string())
     except Exception as e:
         logger.error(str(e))
+
+
+def parse_csv_and_create_mbpayments(csvfile):
+    imported_transactions, duplicate_transactions = 0, 0
+    import csv
+    # get csv reader and ignore header
+    reader = csv.reader(csvfile[1:], delimiter=';', quotechar='"')
+    for row in reader:
+        # make timestamp compliant to ISO 8601 combined date and time, because MobilePay thinks they're cool adding
+        #  7 decimals of precision to timestamps, however ISO 8601 only allows for 3-6 decimals of precision
+        # TODO: make check for 7 digits of precision before converting in case MobilePay fixes this in future
+        split_row = row[3].split('+')
+        row[3] = f"{split_row[0][:-1]}+{split_row[1]}"
+
+        from stregsystem.models import MobilePayment
+        mobile_payment = MobilePayment(member=None, amount=row[2].replace(',', ''),
+                                       timestamp=datetime.fromisoformat(row[3]), customer_name=row[4],
+                                       transaction_id=row[7], comment=row[6], payment=None)
+        try:
+            # unique constraint on transaction_id and payment-foreign key must hold before saving new object
+            mobile_payment.validate_unique()
+
+            # do case insensitive match on active members
+            from stregsystem.models import Member
+            match = Member.objects.filter(username__iexact=mobile_payment.comment.strip(), active=True)
+            if match.count() == 0:
+                # no match, maybe do edit-distance checking for nearest match and remove common fluff such as emoji
+                #  could/should be combined with a match against MobilePay-provided customer name
+                pass
+            elif match.count() == 1:
+                # TODO: also do check on mobilepay name against fember name?
+                mobile_payment.member = match.first()
+            elif match.count() > 1:
+                # something is very wrong, there should be no active users which are duplicates post PR #178
+                #  TODO: how to properly raise error in stregsystem? simply log-entry?
+                pass
+            # TODO: do LogEntry
+            mobile_payment.save()
+            imported_transactions += 1
+        except ValidationError:
+            duplicate_transactions += 1
+    return imported_transactions, duplicate_transactions
+
 
 class stregsystemTestRunner(DiscoverRunner):
     def __init__(self, *args, **kwargs):
