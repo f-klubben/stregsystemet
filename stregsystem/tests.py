@@ -1490,23 +1490,26 @@ class MobilePaymentTests(TestCase):
         self.super_user = User.objects.create_superuser('superuser', 'test@example.com', "hunter2")
 
         # Create members, directly mirrors fixture in 'stregsystem/fixtures/testdata-mobilepay.json'
-        members = [
-            {'username': 'jdoe', 'firstname': 'John', 'lastname': 'Doe', 'email': 'jdoe@nsa.gov', 'balance': 42000},
-            {'username': 'marx', 'firstname': 'Karl', 'lastname': 'Marx', 'email': 'marx@nsa.gov', 'balance': 6900},
-            {'username': 'tables', 'firstname': 'Bobby', 'lastname': 'Tables', 'email': 'tables@nsa.gov',
-             'balance': 12500},
-            {'username': 'mlarsen', 'firstname': 'Martin', 'lastname': 'Larsen', 'email': 'mlarsen@nsa.gov',
-             'balance': 10000},
-            {'username': 'tester', 'firstname': 'Test', 'lastname': 'Testsen', 'email': 'tables@nsa.gov',
-             'balance': 50000},
-        ]
-        for member in members:
+        self.members = {
+            'jdoe': {'username': 'jdoe', 'firstname': 'John', 'lastname': 'Doe', 'email': 'jdoe@nsa.gov',
+                     'balance': 42000},
+            'marx': {'username': 'marx', 'firstname': 'Karl', 'lastname': 'Marx', 'email': 'marx@nsa.gov',
+                     'balance': 6900},
+            'tables': {'username': 'tables', 'firstname': 'Bobby', 'lastname': 'Tables', 'email': 'tables@nsa.gov',
+                       'balance': 12500},
+            'mlarsen': {'username': 'mlarsen', 'firstname': 'Martin', 'lastname': 'Larsen', 'email': 'mlarsen@nsa.gov',
+                        'balance': 10000},
+            'tester': {'username': 'tester', 'firstname': 'Test', 'lastname': 'Testsen', 'email': 'tables@nsa.gov',
+                       'balance': 50000},
+        }
+        for member in self.members:
             Member.objects.create(
-                username=member['username'],
-                firstname=member['firstname'],
-                lastname=member['lastname'],
-                email=member['email'],
-                balance=member['balance']).save()
+                username=self.members[member]['username'],
+                firstname=self.members[member]['firstname'],
+                lastname=self.members[member]['lastname'],
+                email=self.members[member]['email'],
+                balance=self.members[member]['balance']
+            ).save()
 
         from stregsystem.utils import parse_csv_and_create_mbpayments
         with open(self.fixture_path, "r") as csv_file:
@@ -1527,7 +1530,7 @@ class MobilePaymentTests(TestCase):
         for matched_member in MobilePayment.objects.filter(member__isnull=False):
             self.assertEqual(matched_member.member, Member.objects.get(pk=matched_member.member.pk))
 
-    def test_submission_payment_balance(self):
+    def test_approved_payment_balance(self):
         # member balance unchanged
         self.assertEqual(Member.objects.get(username__exact="jdoe").balance, 42000)
 
@@ -1541,3 +1544,47 @@ class MobilePaymentTests(TestCase):
         MobilePayment.submit_processed_mobile_payments(self.super_user)
 
         self.assertEqual(Member.objects.get(username__exact="jdoe").balance, 42000 + mobile_payment.amount)
+
+    def test_ignored_payment_balance(self):
+        # member balance unchanged
+        self.assertEqual(Member.objects.get(username__exact="tester").balance, 50000)
+
+        # submit mobile payment
+        self.client.login(username="superuser", password="hunter2")
+
+        mobile_payment = MobilePayment.objects.get(transaction_id__exact="207E027395896809")
+        mobile_payment.ignored = True
+        mobile_payment.save()
+
+        MobilePayment.submit_processed_mobile_payments(self.super_user)
+
+        self.assertEqual(Member.objects.get(username__exact="tester").balance, 50000)
+
+    def test_batch_submission_balance(self):
+        # member balance unchanged
+        for member in self.members:
+            self.assertEqual(Member.objects.get(username__exact=self.members[member]['username']).balance,
+                            self.members[member]['balance'])
+
+        # submit mobile payment
+        self.client.login(username="superuser", password="hunter2")
+
+        # approve all exact matches
+        for matched_mobile_payment in MobilePayment.objects.filter(member__isnull=False):
+            matched_mobile_payment.approved = True
+            matched_mobile_payment.save()
+
+        # manually approve bobby
+        bobby_tables_mobile_payment1 = MobilePayment.objects.get(transaction_id__exact="232E027452733666")
+        bobby_tables_mobile_payment1.member = Member.objects.get(username__exact="tables")
+        bobby_tables_mobile_payment1.approved = True
+        bobby_tables_mobile_payment1.save()
+
+        MobilePayment.submit_processed_mobile_payments(self.super_user)
+
+        # assert that each member who has an approved mobile payment has their balance updated by the amount given
+        for approved_mobile_payment in MobilePayment.objects.filter(approved=True):
+            member = Member.objects.get(pk=approved_mobile_payment.member.pk)
+            self.assertEqual(member.balance, approved_mobile_payment.amount + self.members[member.username]['balance'])
+
+
