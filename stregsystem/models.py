@@ -1,7 +1,9 @@
 from collections import Counter
 from email.utils import parseaddr
 
+from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.db.models import Count, Q
 from django.utils import timezone
@@ -362,6 +364,15 @@ class MobilePayment(models.Model):
             mobile_payment.approved_by_admin = admin_user
             mobile_payment.payment = payment
             mobile_payment.save()
+
+            LogEntry.objects.log_action(
+                user_id=admin_user.pk,
+                content_type_id=ContentType.objects.get_for_model(Payment).pk,
+                object_id=payment.id,
+                object_repr=str(payment),
+                action_flag=ADDITION,
+                change_message=f"MobilePayment (transaction_id: {mobile_payment.transaction_id})"
+            )
 
 
 class Category(models.Model):
