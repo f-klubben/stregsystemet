@@ -86,7 +86,7 @@
   },
   {
     "model": "stregsystem.mobilepayment",
-    "pk": 7,
+    "pk": 1,
     "fields": {
       "member": null,
       "payment": null,
@@ -95,14 +95,14 @@
       "amount": 6969,
       "transaction_id": "156E027485173228",
       "comment": "mlarsen indbetalt ",
-      "member_guess": null,
+      "member_guess": 2,
       "approved": false,
       "ignored": false
     }
   },
   {
     "model": "stregsystem.mobilepayment",
-    "pk": 8,
+    "pk": 2,
     "fields": {
       "member": null,
       "payment": null,
@@ -111,14 +111,14 @@
       "amount": 50000,
       "transaction_id": "232E027452733666",
       "comment": "tables eksdee",
-      "member_guess": null,
+      "member_guess": 3,
       "approved": false,
       "ignored": false
     }
   },
   {
     "model": "stregsystem.mobilepayment",
-    "pk": 9,
+    "pk": 3,
     "fields": {
       "member": 4,
       "payment": null,
@@ -134,7 +134,7 @@
   },
   {
     "model": "stregsystem.mobilepayment",
-    "pk": 10,
+    "pk": 4,
     "fields": {
       "member": null,
       "payment": null,
@@ -143,14 +143,14 @@
       "amount": 50000,
       "transaction_id": "232E027452733676",
       "comment": "tables eksdee",
-      "member_guess": null,
+      "member_guess": 3,
       "approved": false,
       "ignored": false
     }
   },
   {
     "model": "stregsystem.mobilepayment",
-    "pk": 11,
+    "pk": 5,
     "fields": {
       "member": 5,
       "payment": null,
@@ -166,7 +166,7 @@
   },
   {
     "model": "stregsystem.mobilepayment",
-    "pk": 12,
+    "pk": 6,
     "fields": {
       "member": 1,
       "payment": null,

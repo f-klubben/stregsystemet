@@ -354,13 +354,15 @@ class MobilePayment(models.Model):
     @transaction.atomic
     def submit_processed_mobile_payments(admin_user: User):
         # TODO: could be merged into one query and handling of those instead of duplicating code
-        for approved_mobile_payment in make_approved_mobilepayment_query():
+        for approved_payment in make_approved_mobilepayment_query():
             # create payment for transaction, assign payment to mobile payment and save both
             # note that key to payment is not available when chaining a save call, hence this structure
-            payment = Payment(member=approved_mobile_payment.member, amount=approved_mobile_payment.amount)
+            payment = Payment(
+                member=approved_payment.member if approved_payment.member else approved_payment.member_guess,
+                amount=approved_payment.amount)
             payment.save()
-            approved_mobile_payment.payment = payment
-            approved_mobile_payment.save()
+            approved_payment.payment = payment
+            approved_payment.save()
 
             LogEntry.objects.log_action(
                 user_id=admin_user.pk,
@@ -368,16 +370,16 @@ class MobilePayment(models.Model):
                 object_id=payment.id,
                 object_repr=str(payment),
                 action_flag=ADDITION,
-                change_message=f"MobilePayment (transaction_id: {approved_mobile_payment.transaction_id})"
+                change_message=f"MobilePayment (transaction_id: {approved_payment.transaction_id})"
             )
 
-        for ignored_mobile_payment in make_ignored_mobilepayment_query():
+        for ignored_payment in make_ignored_mobilepayment_query():
             # create payment for ignored transaction by creating zero-amount payment
-            payment = Payment(member=ignored_mobile_payment.member, amount=0)
+            payment = Payment(member=ignored_payment.member, amount=0)
             payment.save()
-            ignored_mobile_payment.approved_by_admin = admin_user
-            ignored_mobile_payment.payment = payment
-            ignored_mobile_payment.save()
+            ignored_payment.approved_by_admin = admin_user
+            ignored_payment.payment = payment
+            ignored_payment.save()
 
             LogEntry.objects.log_action(
                 user_id=admin_user.pk,
@@ -385,7 +387,7 @@ class MobilePayment(models.Model):
                 object_id=payment.id,
                 object_repr=str(payment),
                 action_flag=ADDITION,
-                change_message=f"Ignored MobilePayment (transaction_id: {ignored_mobile_payment.transaction_id})"
+                change_message=f"Ignored MobilePayment (transaction_id: {ignored_payment.transaction_id})"
             )
 
 

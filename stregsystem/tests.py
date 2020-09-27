@@ -1620,3 +1620,18 @@ class MobilePaymentTests(TestCase):
     def test_member_guess_customer_name_comment_other_user(self):
         self.assertIsNone(mobile_payment_guess_member("tables", "Karl Marx"))
 
+    def test_approved_member_guess_payment_balance(self):
+        # member balance unchanged
+        self.assertEqual(Member.objects.get(username__exact="mlarsen").balance, 10000)
+
+        # submit mobile payment
+        self.client.login(username="superuser", password="hunter2")
+
+        mobile_payment = MobilePayment.objects.get(transaction_id__exact="156E027485173228")
+        mobile_payment.approved = True
+        mobile_payment.save()
+
+        MobilePayment.submit_processed_mobile_payments(self.super_user)
+
+        self.assertEqual(Member.objects.get(username__exact="mlarsen").balance, 10000 + mobile_payment.amount)
+
