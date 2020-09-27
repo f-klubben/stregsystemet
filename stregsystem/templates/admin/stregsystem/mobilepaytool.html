@@ -9,6 +9,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     {{ formset.media.css }}
     {{ formset.media.js }}
+    <style>
+        .select2-container {
+            min-width: 250px;
+        }
+    </style>
 
 {% endblock %}
 
@@ -22,15 +27,15 @@
             <li><p>If member is prefilled, then the user wrote their username correctly in the MobilePay comment.
                 To submit this payment to the user, check the 'approved' box in the appropriate row.</p></li>
             <li><p>If member is not prefilled, then pick the appropriate user in the member column and check the
-                'approved'
-                box. </p></li>
+                'approved' box. </p></li>
             <li><p>If you know a transaction has already been submitted through the old procedure, then check the
                 'ignored' box and pick the appropriate user in the appropriate row. This ensures that the transaction
                 will be ignored.</p></li>
             <li><p>Once you submit the payments, all rows that are checked in the 'approved' box, will be processed and
-                payment
-                sent to the appropriate user.</p></li>
+                payment sent to the appropriate user.</p></li>
         </ul>
+        <p><u>Do not change values except member, approved, and ignored. If both approved and ignored are chosen,
+            payment will be sent to the given user.</u></p>
         {% if not formset.forms %}
             <h2> No MobilePay transactions needs processing</h2>
         {% endif %}
