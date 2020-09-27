@@ -77,7 +77,7 @@ def make_room_specific_query(room):
 
 def make_unprocessed_mobilepayment_query():
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
-    return MobilePayment.objects.filter(Q(approved=False) | Q(payment__isnull=True))
+    return MobilePayment.objects.filter((Q(approved=False) & Q(ignored=False)) | Q(payment__isnull=True))
 
 
 def make_approved_mobilepayment_query():
@@ -179,10 +179,8 @@ def parse_csv_and_create_mobile_payments(csv_file):
             from stregsystem.models import Member
             match = Member.objects.filter(username__iexact=mobile_payment.comment.strip(), active=True)
             if match.count() == 0:
-                # TODO: future work
-                # no match, maybe do edit-distance checking for best match and remove common fluff such as emoji
-                #  could/should be combined with a match against MobilePay-provided customer name
-                pass
+                mobile_payment.member_guess = mobile_payment_guess_member(mobile_payment.comment,
+                                                                          mobile_payment.customer_name)
             elif match.count() == 1:
                 mobile_payment.member = match.first()
             elif match.count() > 1:
@@ -193,6 +191,36 @@ def parse_csv_and_create_mobile_payments(csv_file):
         except ValidationError:
             duplicate_transactions += 1
     return imported_transactions, duplicate_transactions
+
+
+def mobile_payment_guess_member(comment, customer_name):
+    """
+    Not very pretty and does not handle ranking of results, similar to fuzzy searching. Improving this function could
+     utilise the select2 functionality
+    """
+    comment_first_word = comment.strip().split()[0] if comment else None
+    customer_first_name = customer_name.split()[0] if customer_name else None
+    customer_last_name = customer_name.split()[-1] if customer_name else None
+
+    from stregsystem.models import Member
+
+    if comment_first_word and not customer_name:
+        guess = Member.objects.filter(username__iexact=comment_first_word)
+    elif not comment_first_word and customer_name:
+        guess = Member.objects.filter(
+            Q(firstname__icontains=customer_first_name) | Q(lastname__icontains=customer_last_name))
+    elif comment_first_word and customer_name:
+        guess = Member.objects.filter(
+            Q(username__iexact=comment_first_word) |
+            Q(firstname__icontains=customer_first_name) | Q(lastname__icontains=customer_last_name))
+    else:
+        return None
+
+    if guess.count() != 1:
+        # not able to rank search results like fuzzy searching
+        return None
+    else:
+        return guess.get()
 
 
 class stregsystemTestRunner(DiscoverRunner):
