@@ -1,5 +1,6 @@
 {% extends "stregsystem/base.html" %}
 
+{% load tz %}
 {% load stregsystem_extras %}
 
 {% block title %}Treoens stregsystem : Brugerinfo {% endblock %}
@@ -41,6 +42,7 @@ Ingen indbetalinger!
       <th align=left>Pris</th>
    </tr>
 {% autoescape off %}
+{% timezone "Europe/Copenhagen" %}
 {% for sale in last_sale_list %}
    <tr>
       <td>{{sale.timestamp}}</td>
@@ -48,6 +50,7 @@ Ingen indbetalinger!
       <td align="right">{{sale.price|money}}</td>
    </tr>
 {% endfor %}
+{% endtimezone %}
 {% endautoescape %}
 </table>
 </center>
