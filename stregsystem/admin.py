@@ -248,10 +248,10 @@ class LogEntryAdmin(admin.ModelAdmin):
     date_hierarchy = 'action_time'
     list_filter = ['content_type', 'action_flag']
     search_fields = ['object_repr', 'change_message', 'user__username']
-    list_display = ['action_time', 'user', 'content_type', 'object_id', 'action_flag', 'change_message']
+    list_display = ['action_time', 'user', 'content_type', 'object_id', 'action_flag', 'change_message', 'object_repr']
 
     def has_view_permission(self, request, obj=None):
-        return True
+        return request.user.is_superuser
 
     def has_add_permission(self, request):
         return False
