@@ -292,33 +292,26 @@ def batch_payment(request):
     })
 
 
-@staff_member_required()
-def import_mobilepay_csv(request):
-    data = dict()
-    if request.method == "POST" and request.FILES:
-        # Prepare uploaded CSV to be read
-        csv_file = request.FILES['csv_file']
-        csv_file.seek(0)
-
-        data['imports'], data['duplicates'] = parse_csv_and_create_mobile_payments(
-            str(csv_file.read().decode('utf-8')).splitlines())
-        if data['imports'] > 0:
-            data['mobilepayments'] = MobilePayment.objects.all().order_by('-id')[:data['imports']]
-    return render(request, "admin/stregsystem/import_mbpay.html", data)
-
-
 class MemberWidget(s2forms.ModelSelect2Widget):
     search_fields = ['username__icontains', 'firstname__icontains', 'lastname__icontains', 'email__icontains']
     model = Member
 
 
 @staff_member_required()
-def paytool(request):
+def mobilepaytool(request):
     paytool_form_set = modelformset_factory(MobilePayment, extra=0, widgets={"member": MemberWidget}, fields=(
         'amount', 'member', 'member_guess', 'customer_name', 'comment', 'ignored', 'approved'))
     data = dict()
     if request.method == "GET":
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+
+    elif request.method == "POST" and 'csv_file' in request.FILES:
+        # Prepare uploaded CSV to be read
+        csv_file = request.FILES['csv_file']
+        csv_file.seek(0)
+
+        data['imports'], data['duplicates'] = parse_csv_and_create_mobile_payments(
+            str(csv_file.read().decode('utf-8')).splitlines())
 
     elif request.method == "POST":
         form = paytool_form_set(request.POST)
