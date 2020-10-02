@@ -106,10 +106,10 @@ def _multibuy_hint(now, member):
     if number_of_recent_distinct_purchases > 1:
         sale_dict = {}
         for sale in recent_purchases:
-            if not str(sale.product.id) in sale_dict:
-                sale_dict[str(sale.product.id)] = 1
+            if not str(sale.product.custom_id) in sale_dict:
+                sale_dict[str(sale.product.custom_id)] = 1
             else:
-                sale_dict[str(sale.product.id)] = sale_dict[str(sale.product.id)] + 1
+                sale_dict[str(sale.product.custom_id)] = sale_dict[str(sale.product.custom_id)] + 1
         sale_hints = ["<span class=\"username\">{}</span>".format(member.username)]
         for key in sale_dict:
             if sale_dict[key] > 1:
@@ -130,7 +130,7 @@ def quicksale(request, room, member, bought_ids):
     products = []
     try:
         for i in bought_ids:
-            product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=now) | Q(
+            product = Product.objects.get(Q(custom_id=i), Q(active=True), Q(deactivate_date__gte=now) | Q(
                 deactivate_date__isnull=True), Q(rooms__id=room.id) | Q(rooms=None))
             products.append(product)
     except Product.DoesNotExist:

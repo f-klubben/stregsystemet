@@ -360,6 +360,7 @@ class Product(models.Model): # id automatisk...
     categories = models.ManyToManyField(Category, blank=True)
     rooms = models.ManyToManyField(Room, blank=True)
     alcohol_content_ml = models.FloatField(default=0.0, null=True)
+    custom_id = models.IntegerField(null=False, blank=False, unique=True)
 
     @deprecated
     def __unicode__(self):

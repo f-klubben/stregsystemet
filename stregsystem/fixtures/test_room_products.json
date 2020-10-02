@@ -27,7 +27,8 @@
         "fields": {
             "active": 1,
             "name": "general_drink_1",
-            "price": 1
+            "price": 1,
+            "custom_id": 1
         },
         "model": "stregsystem.product",
         "pk": "1"
@@ -36,7 +37,8 @@
         "fields": {
             "active": 1,
             "name": "general_drink_2",
-            "price": 2
+            "price": 2,
+            "custom_id": 2
         },
         "model": "stregsystem.product",
         "pk": "2"
@@ -46,6 +48,7 @@
             "active": 1,
             "name": "special_drink",
             "price": 3,
+            "custom_id": 3,
             "rooms": [
                 2
             ]
@@ -58,6 +61,7 @@
             "active": 1,
             "name": "special_drink_multiple_rooms",
             "price": 3,
+            "custom_id": 4,
             "rooms": [
                 2, 3
             ]

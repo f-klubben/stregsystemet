@@ -337,7 +337,8 @@ class SaleViewTests(TestCase):
         coke = Product.objects.create(
             name="coke",
             price=100,
-            active=True
+            active=True,
+            custom_id=5,
         )
         Sale.objects.create(
             member=member,
@@ -353,7 +354,8 @@ class SaleViewTests(TestCase):
         coke = Product.objects.create(
             name="coke",
             price=100,
-            active=True
+            active=True,
+            custom_id=5,
         )
         with freeze_time(timezone.datetime(2018, 1, 1)) as frozen_time:
             for i in range(1, 3):
@@ -365,7 +367,7 @@ class SaleViewTests(TestCase):
                 frozen_time.tick()
         give_multibuy_hint, sale_hints = stregsystem_views._multibuy_hint(timezone.datetime(2018, 1, 1, tzinfo=pytz.UTC), member)
         self.assertTrue(give_multibuy_hint)
-        self.assertEqual(sale_hints, "{} {}:{}".format("<span class=\"username\">jokke</span>", coke.id, 2))
+        self.assertEqual(sale_hints, "{} {}:{}".format("<span class=\"username\">jokke</span>", coke.custom_id, 2))
 
 
 class UserInfoViewTests(TestCase):
@@ -379,12 +381,14 @@ class UserInfoViewTests(TestCase):
         self.coke = Product.objects.create(
             name="coke",
             price=100,
-            active=True
+            active=True,
+            custom_id=1,
         )
         self.flan = Product.objects.create(
             name="flan",
             price=200,
-            active=True
+            active=True,
+            custom_id=2,
         )
         self.sales = []
         with freeze_time(timezone.datetime(2000, 1, 1)) as frozen_time:
@@ -470,6 +474,7 @@ class OrderTest(TestCase):
             name="øl",
             price=10,
             active=True,
+            custom_id=1,
         )
 
     def test_order_fromproducts(self):
@@ -639,6 +644,7 @@ class ProductTests(TestCase):
         product = Product.objects.create(
             active=True,
             price=100,
+            custom_id=1,
         )
 
         self.assertTrue(product.is_active())
@@ -648,7 +654,8 @@ class ProductTests(TestCase):
             active=True,
             price=100,
             deactivate_date=(timezone.now()
-                             + datetime.timedelta(hours=1))
+                             + datetime.timedelta(hours=1)),
+            custom_id=2,
         )
 
         self.assertTrue(product.is_active())
@@ -658,7 +665,8 @@ class ProductTests(TestCase):
             active=True,
             price=100,
             deactivate_date=(timezone.now()
-                             - datetime.timedelta(hours=1))
+                             - datetime.timedelta(hours=1)),
+            custom_id=2,
         )
 
         self.assertFalse(product.is_active())
@@ -668,7 +676,8 @@ class ProductTests(TestCase):
             active=True,
             price=100,
             quantity=1,
-            start_date=datetime.date(year=2017, month=1, day=1)
+            start_date=datetime.date(year=2017, month=1, day=1),
+            custom_id=2,
         )
         product.sale_set.create(
             price=100,
@@ -682,7 +691,8 @@ class ProductTests(TestCase):
             active=True,
             price=100,
             quantity=2,
-            start_date=datetime.date(year=2017, month=1, day=1)
+            start_date=datetime.date(year=2017, month=1, day=1),
+            custom_id=2,
         )
         product.sale_set.create(
             price=100,
@@ -695,6 +705,7 @@ class ProductTests(TestCase):
         product = Product.objects.create(
             active=False,
             price=100,
+            custom_id=2,
         )
 
         self.assertFalse(product.is_active())
@@ -704,7 +715,8 @@ class ProductTests(TestCase):
             active=False,
             price=100,
             deactivate_date=(timezone.now()
-                             - datetime.timedelta(hours=1))
+                             - datetime.timedelta(hours=1)),
+            custom_id=2,
         )
 
         self.assertFalse(product.is_active())
@@ -714,7 +726,8 @@ class ProductTests(TestCase):
             active=False,
             price=100,
             quantity=1,
-            start_date=datetime.date(year=2017, month=12, day=1)
+            start_date=datetime.date(year=2017, month=12, day=1),
+            custom_id=2,
         )
         product.sale_set.create(
             price=100,
@@ -728,7 +741,8 @@ class ProductTests(TestCase):
             active=False,
             price=100,
             quantity=2,
-            start_date=datetime.date(year=2017, month=12, day=1)
+            start_date=datetime.date(year=2017, month=12, day=1),
+            custom_id=2,
         )
         product.sale_set.create(
             price=100,
@@ -748,6 +762,7 @@ class SaleTests(TestCase):
             name="beer",
             price=1.0,
             active=True,
+            custom_id=2,
         )
 
     def test_sale_save_not_saved(self):
@@ -869,7 +884,8 @@ class MemberTests(TestCase):
             Product.objects.create(
                 name="mælk",
                 price=1.0,
-                active=True))
+                active=True,
+                custom_id=2))
 
         user.sale_set.create(
             product=non_alcoholic,
@@ -890,7 +906,8 @@ class MemberTests(TestCase):
                 name="øl",
                 price=2.0,
                 alcohol_content_ml=15.18,
-                active=True))
+                active=True,
+                custom_id=1,))
 
         user.sale_set.create(
             product=alcoholic_drink,
@@ -910,7 +927,8 @@ class MemberTests(TestCase):
                 name="øl",
                 price=2.0,
                 alcohol_content_ml=15.18,
-                active=True))
+                active=True,
+                custom_id=2))
 
         user.sale_set.create(
             product=alcoholic_drink,
@@ -931,7 +949,8 @@ class MemberTests(TestCase):
                 name="øl",
                 price=2.0,
                 alcohol_content_ml=15.18,
-                active=True))
+                active=True,
+                custom_id=2))
 
         with freeze_time(timezone.datetime(year=2000, month=1, day=1, hour=0,
                                            minute=0)) as ft:
@@ -960,7 +979,8 @@ class MemberTests(TestCase):
                 name="øl",
                 price=2.0,
                 alcohol_content_ml=15.18,
-                active=True))
+                active=True,
+                custom_id=2))
 
         with freeze_time(timezone.datetime(year=2000, month=1, day=1, hour=0,
                                            minute=0)) as ft:
@@ -1101,42 +1121,48 @@ class ProductActivatedListFilterTests(TestCase):
         Product.objects.create(
             name="active_dec_none",
             price=1.0, active=True,
-            deactivate_date=None
+            deactivate_date=None,
+            custom_id=1,
         )
         Product.objects.create(
             name="active_dec_future",
             price=1.0,
             active=True,
             deactivate_date=(timezone.now()
-                             + datetime.timedelta(hours=1))
+                             + datetime.timedelta(hours=1)),
+            custom_id=2,
         )
         Product.objects.create(
             name="active_dec_past",
             price=1.0,
             active=True,
             deactivate_date=(timezone.now()
-                             - datetime.timedelta(hours=1))
+                             - datetime.timedelta(hours=1)),
+            custom_id=3,
         )
 
         Product.objects.create(
             name="deactivated_dec_none",
             price=1.0,
             active=False,
-            deactivate_date=None
+            deactivate_date=None,
+            custom_id=4,
         )
         Product.objects.create(
             name="deactivated_dec_future",
             price=1.0,
             active=False,
             deactivate_date=(timezone.now()
-                             + datetime.timedelta(hours=1))
+                             + datetime.timedelta(hours=1)),
+            custom_id=5,
         )
         Product.objects.create(
             name="deactivated_dec_past",
             price=1.0,
             active=False,
             deactivate_date=(timezone.now()
-                             - datetime.timedelta(hours=1))
+                             - datetime.timedelta(hours=1)),
+            custom_id=6,
         )
         p = Product.objects.create(
             name="active_none_left",
@@ -1144,6 +1170,7 @@ class ProductActivatedListFilterTests(TestCase):
             active=True,
             start_date=datetime.date(year=2017, month=1, day=1),
             quantity=2,
+            custom_id=7,
         )
         p.sale_set.create(
             price=100,
@@ -1159,6 +1186,7 @@ class ProductActivatedListFilterTests(TestCase):
             active=True,
             start_date=datetime.date(year=2017, month=1, day=1),
             quantity=2,
+            custom_id=8,
         )
         p.sale_set.create(
             price=100,
@@ -1438,9 +1466,9 @@ class QuickbuyParserTests(TestCase):
 
 class RazziaTests(TestCase):
     def setUp(self):
-        self.flan = Product.objects.create(name="FLan", price=1.0, active=True)
-        self.flanmad = Product.objects.create(name="FLan mad", price=2.0, active=True)
-        self.notflan = Product.objects.create(name="Ikke Flan", price=2.0, active=True)
+        self.flan = Product.objects.create(name="FLan", price=1.0, active=True, custom_id=1)
+        self.flanmad = Product.objects.create(name="FLan mad", price=2.0, active=True, custom_id=2)
+        self.notflan = Product.objects.create(name="Ikke Flan", price=2.0, active=True, custom_id=3)
 
         self.alan = Member.objects.create(username="tester", firstname="Alan", lastname="Alansen")
         self.bob = Member.objects.create(username="bob", firstname="bob", lastname="bob")
