@@ -1,6 +1,8 @@
 import logging
 import smtplib
 import datetime
+
+from django.utils.dateparse import parse_datetime
 from backports.datetime_fromisoformat import MonkeyPatch
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -144,23 +146,6 @@ def send_payment_mail(member, amount):
 
 
 def parse_csv_and_create_mobile_payments(csv_file):
-    def convert_timestamp(timestamp):
-        """
-        Get datetime object from MobilePay transaction timestamp. If not within ISO format, then make timestamp
-        compliant to ISO 8601 combined date and time. This is necessary because MobilePay thinks they're cool adding
-        7 decimals of precision to timestamps, however ISO 8601 only allows for 3-6 decimals of precision.
-        """
-        try:
-            return datetime.datetime.fromisoformat(timestamp)
-        except ValueError:
-            try:
-                # split at timezone specification, remove last digit of precision and concat
-                split_timestamp = timestamp.split('+')
-                timestamp = f"{split_timestamp[0][:-1]}+{split_timestamp[1]}"
-                return datetime.datetime.fromisoformat(timestamp)
-            except ValueError:
-                raise RuntimeError(f"Could not convert transaction timestamp to ISO 8601: {timestamp}")
-
     imported_transactions, duplicate_transactions = 0, 0
     import csv
     # get csv reader and ignore header
@@ -169,7 +154,7 @@ def parse_csv_and_create_mobile_payments(csv_file):
 
         from stregsystem.models import MobilePayment
         mobile_payment = MobilePayment(member=None, amount=row[2].replace(',', ''),
-                                       timestamp=convert_timestamp(row[3]), customer_name=row[4],
+                                       timestamp=parse_datetime(row[3]), customer_name=row[4],
                                        transaction_id=row[7], comment=row[6], payment=None)
         try:
             # unique constraint on transaction_id and payment-foreign key must hold before saving new object
