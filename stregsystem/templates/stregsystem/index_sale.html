@@ -15,10 +15,10 @@
 {{product.name}}{% endfor %}
 for tilsammen {{cost|money}} kr.
 </b>
-{% if showmemberbalance %}
+{% if show_member_balance %}
 <br>
 <b>
-    Balance: <span class="remainingbalance">{{newmemberbalance}}</span>
+    Balance: <span class="remainingbalance">{{new_member_balance}}</span>
 </b>
 {% endif %}
 {% if give_multibuy_hint %}

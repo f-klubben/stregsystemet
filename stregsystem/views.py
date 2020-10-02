@@ -156,10 +156,10 @@ def quicksale(request, room, member, bought_ids):
 
     cost = order.total
 
-    newbalance = Member.objects.filter(pk=member.id).get().balance
+    new_balance = Member.objects.get(pk=member.id).balance
 
-    showmemberbalance = newbalance <= 5000
-    newmemberbalance = money(newbalance)
+    show_member_balance = new_balance <= 5000
+    new_member_balance = money(new_balance)
 
     give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
 
