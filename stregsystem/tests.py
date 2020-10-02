@@ -164,7 +164,7 @@ class SaleViewTests(TestCase):
 
         self.assertContains(
             response,
-            "<b>jokke har lige købt Limfjordsporter for tilsammen "
+            "<b><span class=\"username\">jokke</span> har lige købt Limfjordsporter for tilsammen "
             "9.00 kr.</b>",
             html=True
         )
@@ -365,7 +365,7 @@ class SaleViewTests(TestCase):
                 frozen_time.tick()
         give_multibuy_hint, sale_hints = stregsystem_views._multibuy_hint(timezone.datetime(2018, 1, 1, tzinfo=pytz.UTC), member)
         self.assertTrue(give_multibuy_hint)
-        self.assertEqual(sale_hints, "{} {}:{}".format("jokke", coke.id, 2))
+        self.assertEqual(sale_hints, "{} {}:{}".format("<span class=\"username\">jokke</span>", coke.id, 2))
 
 
 class UserInfoViewTests(TestCase):

@@ -2,6 +2,8 @@ import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from django.conf import settings
+from django.test.runner import DiscoverRunner
 
 from django.db.models import Count, F, Q
 from django.utils import timezone
@@ -79,6 +81,8 @@ def date_to_midnight(date):
 
 
 def send_payment_mail(member, amount):
+    if hasattr(settings, 'TEST_MODE'):
+        return
     msg = MIMEMultipart()
     msg['From'] = 'treo@fklub.dk'
     msg['To'] = member.email
@@ -90,7 +94,8 @@ def send_payment_mail(member, amount):
     <html>
         <head></head>
         <body>
-            <p>Hej {member.firstname}!<br><br>
+            <p>
+               Hej {member.firstname}!<br><br>
                Vi har indsat {formatted_amount} stregdollars på din konto: "{member.username}". <br><br>
                Hvis du ikke ønsker at modtage flere mails som denne kan du skrive en mail til: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
                Mvh,<br>
@@ -101,6 +106,7 @@ def send_payment_mail(member, amount):
                If you do not desire to receive any more mails of this sort, please file a complaint to: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
                Kind regards,<br>
                TREOen
+            </p>
         </body>
     </html>
     """
@@ -112,3 +118,8 @@ def send_payment_mail(member, amount):
         smtpObj.sendmail('treo@fklub.dk', member.email, msg.as_string())
     except Exception as e:
         logger.error(str(e))
+
+class stregsystemTestRunner(DiscoverRunner):
+    def __init__(self, *args, **kwargs):
+        settings.TEST_MODE = True
+        super(stregsystemTestRunner, self).__init__(*args, **kwargs)

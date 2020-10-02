@@ -11,6 +11,11 @@
 
 </style>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link rel="stylesheet" type="text/css" media="screen" href="{% static "/stregsystem/bat.css" %}" />
+<script>
+    var static_url = "{% get_static_prefix %}";
+    var media_url = "{% get_media_prefix %}";
+</script>
 </head>
 <body onLoad='if (document.focusform) {document.focusform.quickbuy.focus()}'>
 {% comment %}
@@ -53,6 +58,8 @@
 {% endblock %}
 </div>
 <script type="text/javascript" async src="{% static "/stregsystem/bat.js" %}"></script>
+<script type="text/javascript" async src="{% static "/stregsystem/gdpr.js" %}"></script>
+<div class="bat-container"></div>
 
 {% show_candle %}
 </body>

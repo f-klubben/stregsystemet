@@ -3,6 +3,7 @@ import datetime
 import stregsystem.parser as parser
 from django.contrib.admin.views.decorators import staff_member_required
 from stregsystem.templatetags.stregsystem_extras import money
+from django.contrib.auth.decorators import permission_required
 from django.conf import settings
 from django.db.models import Q
 from django import forms
@@ -110,7 +111,7 @@ def _multibuy_hint(now, member):
                 sale_dict[str(sale.product.id)] = 1
             else:
                 sale_dict[str(sale.product.id)] = sale_dict[str(sale.product.id)] + 1
-        sale_hints = [member.username]
+        sale_hints = ["<span class=\"username\">{}</span>".format(member.username)]
         for key in sale_dict:
             if sale_dict[key] > 1:
                 sale_hints.append("{}:{}".format(key, sale_dict[key]))
@@ -247,6 +248,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
 
 
 @staff_member_required()
+@permission_required("stregsystem.import_batch_payments")
 def batch_payment(request):
     PaymentFormSet = forms.modelformset_factory(
         Payment,
