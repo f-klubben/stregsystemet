@@ -136,7 +136,6 @@ class Order(object):
             # to update it
         # We changed the user balance, so save that
         self.member.save()
-        return self.member.balance
 
 
 class GetTransaction(MoneyTransaction):
