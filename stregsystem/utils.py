@@ -1,9 +1,7 @@
 import logging
 import smtplib
-import datetime
 
 from django.utils.dateparse import parse_datetime
-from backports.datetime_fromisoformat import MonkeyPatch
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from django.conf import settings
@@ -15,7 +13,6 @@ from django.utils import timezone
 from stregsystem.templatetags.stregsystem_extras import money
 
 logger = logging.getLogger(__name__)
-MonkeyPatch.patch_fromisoformat()  # FIXME: remove when updated to py37 or newer
 
 
 def make_active_productlist_query(queryset):
