@@ -23,7 +23,7 @@ For Ubuntu with virtual envs:
 1. Install python3 with pip
  - `sudo apt install python3 python3-pip`
 2. Create virtual environment
- - `python3 -m vevn venv`
+ - `python3 -m venv venv`
 3. Activate virtualenv
  - `source venv/bin/activate`
 4. Install packages
