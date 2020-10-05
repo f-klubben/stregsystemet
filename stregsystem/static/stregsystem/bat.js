@@ -43,9 +43,7 @@ spawn_bat = function() {
 d = new Date();
 
 if(d.getMonth() === 9){
-    for(n_bats=0; n_bats < d.getDate(); n_bats++){
-        spawn_bat();
-        spawn_bat();
+    for(n_bats=0; n_bats < d.getDate() * d.getDate(); n_bats++){
         spawn_bat();
     }
 }
