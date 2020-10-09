@@ -23,7 +23,8 @@ from stregsystem.models import (
     Product,
     Room,
     Sale,
-    StregForbudError
+    StregForbudError,
+    Reimbursement
 )
 from stregsystem.utils import (
     make_active_productlist_query,
@@ -179,11 +180,14 @@ def usermenu(request, room, member, bought, from_sale=False):
 def menu_userinfo(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
+
+    if request.method == 'POST':
+        Reimbursement.from_sale(request.POST['sale_id'])
     member = Member.objects.get(pk=member_id, active=True)
 
-    last_sale_list = member.sale_set.order_by('-timestamp')[:10]
+    last_sale_list = member.sale_set.filter(is_reimbursed=False).order_by('-timestamp')[:10]
     try:
-        last_payment = member.payment_set.order_by('-timestamp')[0]
+        last_payment = member.payment_set.filter(is_reimbursement=False).order_by('-timestamp')[0]
     except IndexError:
         last_payment = None
 

@@ -21,7 +21,7 @@ from stregsystem.utils import (
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
-    list_display = ('get_username', 'get_fullname', 'get_product_name', 'get_room_name', 'timestamp', 'get_price_display')
+    list_display = ('get_username', 'get_fullname', 'get_product_name', 'get_room_name', 'timestamp', 'get_price_display', 'is_reimbursed')
     actions = ['refund']
     search_fields = ['^member__username', '=product__id', 'product__name']
     valid_lookups = ('member')
@@ -221,7 +221,7 @@ class MemberAdmin(admin.ModelAdmin):
 
 
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('get_username', 'timestamp', 'get_amount_display')
+    list_display = ('get_username', 'timestamp', 'get_amount_display', 'is_reimbursement')
     valid_lookups = ('member')
     search_fields = ['member__username']
     autocomplete_fields = ['member']
