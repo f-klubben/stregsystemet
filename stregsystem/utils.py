@@ -76,20 +76,20 @@ def make_room_specific_query(room):
 
 def make_unprocessed_mobilepayment_query():
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
-    return MobilePayment.objects.filter((Q(approved=False) & Q(ignored=False)) | Q(payment__isnull=True))
+    return MobilePayment.objects.filter(Q(status__exact=MobilePayment.UNSET) | Q(payment__isnull=True))
 
 
 def make_approved_mobilepayment_query():
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
     return MobilePayment.objects.filter(
-        Q(approved=True) & Q(ignored=False) & Q(payment__isnull=True) & (
+        Q(status__exact=MobilePayment.APPROVED) & Q(payment__isnull=True) & (
                 Q(member__isnull=False) | Q(member_guess__isnull=False)))
 
 
 def make_ignored_mobilepayment_query():
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
     return MobilePayment.objects.filter(
-        Q(approved=False) & Q(ignored=True) & Q(payment__isnull=True) & Q(member__isnull=False))
+        Q(status__exact=MobilePayment.IGNORED) & Q(payment__isnull=True) & Q(member__isnull=False))
 
 
 def date_to_midnight(date):

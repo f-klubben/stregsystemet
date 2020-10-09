@@ -1,6 +1,6 @@
 import datetime
 
-from django.forms import modelformset_factory
+from django.forms import modelformset_factory, formset_factory
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
@@ -33,6 +33,7 @@ from stregsystem.utils import (
 )
 
 from .booze import ballmer_peak
+from .forms import MobilePayToolForm
 
 
 def __get_news():
@@ -299,8 +300,8 @@ class MemberWidget(s2forms.ModelSelect2Widget):
 
 @staff_member_required()
 def mobilepaytool(request):
-    paytool_form_set = modelformset_factory(MobilePayment, extra=0, widgets={"member": MemberWidget}, fields=(
-        'amount', 'member', 'member_guess', 'customer_name', 'comment', 'ignored', 'approved'))
+    paytool_form_set = modelformset_factory(MobilePayment, form=MobilePayToolForm, extra=0, fields=(
+        'amount', 'member', 'member_guess', 'customer_name', 'comment', 'status'))
     data = dict()
     if request.method == "GET":
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
@@ -315,7 +316,6 @@ def mobilepaytool(request):
 
     elif request.method == "POST":
         form = paytool_form_set(request.POST)
-
         # todo: enable form-errors to be shown to user, since we are using a custom template for form, maybe difficult?
         if form.is_valid():
             form.save()  # commit=false here? it was done for batch because of reference thing

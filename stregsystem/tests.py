@@ -1520,7 +1520,7 @@ class MobilePaymentTests(TestCase):
         self.assertEqual(MobilePayment.objects.count(), 6)
 
         # two bobby-payments in test data
-        self.assertGreaterEqual(MobilePayment.objects.filter(comment__icontains="tables").count(), 2)
+        self.assertEqual(MobilePayment.objects.filter(comment__icontains="tables").count(), 2)
 
         payment_timestamp = MobilePayment.objects.get(transaction_id="156E027485173228").timestamp
         # manually accounting for UTC+1 timezone at time of transaction
@@ -1533,33 +1533,33 @@ class MobilePaymentTests(TestCase):
 
     def test_approved_payment_balance(self):
         # member balance unchanged
-        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, 42000)
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
 
         # submit mobile payment
         self.client.login(username="superuser", password="hunter2")
 
         mobile_payment = MobilePayment.objects.get(transaction_id__exact="016E027417049990")
-        mobile_payment.approved = True
+        mobile_payment.status = MobilePayment.APPROVED
         mobile_payment.save()
 
         MobilePayment.submit_processed_mobile_payments(self.super_user)
 
-        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, 42000 + mobile_payment.amount)
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'] + mobile_payment.amount)
 
     def test_ignored_payment_balance(self):
         # member balance unchanged
-        self.assertEqual(Member.objects.get(username__exact="tester").balance, 50000)
+        self.assertEqual(Member.objects.get(username__exact="tester").balance, self.members["tester"]['balance'])
 
         # submit mobile payment
         self.client.login(username="superuser", password="hunter2")
 
         mobile_payment = MobilePayment.objects.get(transaction_id__exact="207E027395896809")
-        mobile_payment.ignored = True
+        mobile_payment.status = MobilePayment.IGNORED
         mobile_payment.save()
 
         MobilePayment.submit_processed_mobile_payments(self.super_user)
 
-        self.assertEqual(Member.objects.get(username__exact="tester").balance, 50000)
+        self.assertEqual(Member.objects.get(username__exact="tester").balance, self.members["tester"]['balance'])
 
     def test_batch_submission_balance(self):
         # member balance unchanged
@@ -1572,19 +1572,19 @@ class MobilePaymentTests(TestCase):
 
         # approve all exact matches
         for matched_mobile_payment in MobilePayment.objects.filter(member__isnull=False):
-            matched_mobile_payment.approved = True
+            matched_mobile_payment.status = MobilePayment.APPROVED
             matched_mobile_payment.save()
 
         # manually approve bobby
         bobby_tables_mobile_payment1 = MobilePayment.objects.get(transaction_id__exact="232E027452733666")
         bobby_tables_mobile_payment1.member = Member.objects.get(username__exact="tables")
-        bobby_tables_mobile_payment1.approved = True
+        bobby_tables_mobile_payment1.status = MobilePayment.APPROVED
         bobby_tables_mobile_payment1.save()
 
         MobilePayment.submit_processed_mobile_payments(self.super_user)
 
         # assert that each member who has an approved mobile payment has their balance updated by the amount given
-        for approved_mobile_payment in MobilePayment.objects.filter(approved=True):
+        for approved_mobile_payment in MobilePayment.objects.filter(status__exact=MobilePayment.APPROVED):
             member = Member.objects.get(pk=approved_mobile_payment.member.pk)
             self.assertEqual(member.balance, approved_mobile_payment.amount + self.members[member.username]['balance'])
 
@@ -1622,16 +1622,16 @@ class MobilePaymentTests(TestCase):
 
     def test_approved_member_guess_payment_balance(self):
         # member balance unchanged
-        self.assertEqual(Member.objects.get(username__exact="mlarsen").balance, 10000)
+        self.assertEqual(Member.objects.get(username__exact="mlarsen").balance, self.members["mlarsen"]['balance'])
 
         # submit mobile payment
         self.client.login(username="superuser", password="hunter2")
 
         mobile_payment = MobilePayment.objects.get(transaction_id__exact="156E027485173228")
-        mobile_payment.approved = True
+        mobile_payment.status = MobilePayment.APPROVED
         mobile_payment.save()
 
         MobilePayment.submit_processed_mobile_payments(self.super_user)
 
-        self.assertEqual(Member.objects.get(username__exact="mlarsen").balance, 10000 + mobile_payment.amount)
+        self.assertEqual(Member.objects.get(username__exact="mlarsen").balance, self.members["mlarsen"]['balance'] + mobile_payment.amount)
 

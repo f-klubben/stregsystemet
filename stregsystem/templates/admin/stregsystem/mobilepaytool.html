@@ -29,7 +29,6 @@
             padding-left: 10px;
             border-left: thin dashed grey;
         }
-
     </style>
 
 {% endblock %}
@@ -73,7 +72,6 @@
                 {% if imports or duplicates %}
                     <h2> Imported {{ imports }} MobilePay transactions{% if duplicates %}, and ignored {{ duplicates }}
                         duplicates {% endif %} </h2>
-                    <h1><a href="{% url 'paytool' %}">Go to processing of MobilePay transactions</a></h1>
                 {% endif %}
 
             </div>
@@ -108,7 +106,13 @@
                                     {% endfor %}
                                 {% endif %}
                                 {{ field.errors.as_ul }}
-                                {{ field }}
+                                {% if field.name == "status" %}
+                                    {% for radio in form.status %}
+                                        {{ radio }}
+                                    {% endfor %}
+                                {% else %}
+                                    {{ field }}
+                                {% endif %}
                             </td>
                         {% endfor %}
                     </tr>

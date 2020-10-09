@@ -331,6 +331,15 @@ class Payment(models.Model):  # id automatisk...
 
 
 class MobilePayment(models.Model):
+    UNSET = 'U'
+    APPROVED = 'A'
+    IGNORED = 'I'
+
+    STATUS_CHOICES = (
+        (UNSET, 'Unset'),
+        (APPROVED, 'Approved'),
+        (IGNORED, 'Ignored'),
+    )
     member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True,
                                blank=True)  # nullable as mobile payment may not have match yet
     payment = models.OneToOneField(Payment, on_delete=models.CASCADE, null=True, blank=True,
@@ -343,8 +352,7 @@ class MobilePayment(models.Model):
     comment = models.CharField(max_length=128)
     member_guess = models.ForeignKey(Member, on_delete=models.CASCADE, null=True,
                                      blank=True, related_name='member_guess')
-    approved = models.BooleanField(default=False)
-    ignored = models.BooleanField(default=False)
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=UNSET)
 
     def __str__(self):
         return f"{self.member.username if self.member is not None else 'Not assigned'}, {self.customer_name}, " \
