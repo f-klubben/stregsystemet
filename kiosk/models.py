@@ -1,6 +1,7 @@
 import random
-
+from .validators import validate_file_extension, valid_images
 from django.db import models
+import os
 
 
 def random_ordering():
@@ -12,5 +13,10 @@ class KioskItem(models.Model):
     notes = models.CharField(max_length=2000, blank=True, null=True)
     uploaded_date = models.DateField(auto_now_add=True)
     active = models.BooleanField(default=True)
-    image = models.ImageField(upload_to='kiosk', null=False)
+    image = models.FileField(upload_to='kiosk', null=False, validators=[validate_file_extension])
     ordering = models.IntegerField(null=False, default=random_ordering, blank=False)
+
+    @property
+    def is_image(self):
+        name, extension = os.path.splitext(self.image.name)
+        return extension in valid_images
