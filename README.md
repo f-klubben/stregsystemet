@@ -23,7 +23,7 @@ For Ubuntu with virtual envs:
 1. Install python3 with pip
  - `sudo apt install python3 python3-pip`
 2. Create virtual environment
- - `python3 -m vevn venv`
+ - `python3 -m venv venv`
 3. Activate virtualenv
  - `source venv/bin/activate`
 4. Install packages
@@ -41,11 +41,11 @@ To use it do the following:
 3. ???
 4. Profit
 
-Admin panel: `http://127.0.0.1:8000/admin/` 
-Login: tester:treotreo
+Admin panel: <http://127.0.0.1:8000/admin/>  
+Login: `tester:treotreo`
 
-Stregsystem: `http://127.0.0.1:8000/1/` 
-User: tester
+Stregsystem: <http://127.0.0.1:8000/1/>  
+User: `tester`
 
 Persistent Testdata
 -------
