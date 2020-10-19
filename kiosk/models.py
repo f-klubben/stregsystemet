@@ -13,10 +13,10 @@ class KioskItem(models.Model):
     notes = models.CharField(max_length=2000, blank=True, null=True)
     uploaded_date = models.DateField(auto_now_add=True)
     active = models.BooleanField(default=True)
-    image = models.FileField(upload_to='kiosk', null=False, validators=[validate_file_extension])
+    media = models.FileField(upload_to='kiosk', null=False, validators=[validate_file_extension])
     ordering = models.IntegerField(null=False, default=random_ordering, blank=False)
 
     @property
     def is_image(self):
-        name, extension = os.path.splitext(self.image.name)
+        name, extension = os.path.splitext(self.media.name)
         return extension in valid_images

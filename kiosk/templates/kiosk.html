@@ -39,6 +39,7 @@
                 if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
                     obj = JSON.parse(xmlHttp.responseText);
                     this_id = obj.id;
+                    t.style.backgroundImage = '';
                     if (!obj.is_image) {
                         t.style.backgroundImage = '';
                         t.innerHTML = //
