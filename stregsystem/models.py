@@ -149,7 +149,7 @@ class GetTransaction(MoneyTransaction):
 
 
 def get_current_year():
-    return timezone.now().year
+    return str(timezone.now().year)
 
 
 class Member(models.Model):  # id automatisk...
