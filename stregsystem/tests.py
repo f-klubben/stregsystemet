@@ -32,7 +32,8 @@ from stregsystem.models import (
     Sale,
     StregForbudError,
     active_str,
-    price_display, MobilePayment
+    price_display,
+    MobilePayment
 )
 from stregsystem.utils import mobile_payment_guess_member
 

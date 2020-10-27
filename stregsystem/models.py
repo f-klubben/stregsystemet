@@ -185,9 +185,7 @@ class Member(models.Model):  # id automatisk...
         return self.__str__()
 
     def __str__(self):
-        return active_str(
-            self.active) + " " + self.username + ": " + self.firstname + " " + self.lastname + " | " + self.email + " (" + money(
-            self.balance) + ")"
+        return active_str(self.active) + " " + self.username + ": " + self.firstname + " " + self.lastname + " | " + self.email + " (" + money(self.balance) + ")"
 
     # XXX - virker ikke
     #    def get_absolute_url(self):
@@ -255,9 +253,9 @@ class Member(models.Model):  # id automatisk...
 
         alcohol_sales = (
             self.sale_set
-                .filter(timestamp__gt=calculation_start,
-                        product__alcohol_content_ml__gt=0.0)
-                .order_by('timestamp')
+            .filter(timestamp__gt=calculation_start,
+                    product__alcohol_content_ml__gt=0.0)
+            .order_by('timestamp')
         )
         alcohol_timeline = [(s.timestamp, s.product.alcohol_content_ml)
                             for s in alcohol_sales]
@@ -415,7 +413,7 @@ class Room(models.Model):
         return self.name
 
 
-class Product(models.Model):  # id automatisk...
+class Product(models.Model): # id automatisk...
     name = models.CharField(max_length=64)
     price = models.IntegerField()  # penge, oere...
     active = models.BooleanField()
@@ -453,8 +451,8 @@ class Product(models.Model):  # id automatisk...
             return 0
         return (
             self.sale_set
-                .filter(timestamp__gt=date_to_midnight(self.start_date))
-                .aggregate(bought=Count("id"))["bought"])
+            .filter(timestamp__gt=date_to_midnight(self.start_date))
+            .aggregate(bought=Count("id"))["bought"])
 
     def is_active(self):
         expired = (self.deactivate_date is not None

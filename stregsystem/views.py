@@ -229,7 +229,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
         order = Order.from_products(
             member=member,
             room=room,
-            products=(product,)
+            products=(product, )
         )
 
         order.execute()

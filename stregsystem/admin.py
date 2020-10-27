@@ -11,7 +11,8 @@ from stregsystem.models import (
     PayTransaction,
     Product,
     Room,
-    Sale, MobilePayment
+    Sale,
+    MobilePayment
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -22,8 +23,7 @@ from stregsystem.utils import (
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
-    list_display = (
-        'get_username', 'get_fullname', 'get_product_name', 'get_room_name', 'timestamp', 'get_price_display')
+    list_display = ('get_username', 'get_fullname', 'get_product_name', 'get_room_name', 'timestamp', 'get_price_display')
     actions = ['refund']
     search_fields = ['^member__username', '=product__id', 'product__name']
     valid_lookups = ('member')
@@ -84,7 +84,6 @@ class SaleAdmin(admin.ModelAdmin):
             obj.member.rollback(transaction)
             obj.member.save()
         queryset.delete()
-
     refund.short_description = "Refund selected"
 
 
@@ -146,19 +145,16 @@ class ProductAdmin(admin.ModelAdmin):
         if obj.price is None:
             obj.price = 0
         return "{0:.2f} kr.".format(obj.price / 100.0)
-
     get_price_display.short_description = "Price"
     get_price_display.admin_order_field = "price"
 
     def get_bought(self, obj):
         return obj.bought
-
     get_bought.short_description = "Bought"
     get_bought.admin_order_field = "bought"
 
     def activated(self, product):
         return product.is_active()
-
     activated.boolean = True
 
 
@@ -184,7 +180,7 @@ class MemberForm(forms.ModelForm):
 
 class MemberAdmin(admin.ModelAdmin):
     form = MemberForm
-    list_filter = ('want_spam',)
+    list_filter = ('want_spam', )
     search_fields = ('username', 'firstname', 'lastname', 'email')
     list_display = ('username', 'firstname', 'lastname', 'balance', 'email', 'notes')
 
@@ -221,7 +217,6 @@ class MemberAdmin(admin.ModelAdmin):
         @HACK: We need to apply a filter to our AutoComplete (select2),
         we do this by overwriting the default behaviour, and apply our filter.
         """
-
         def get_queryset(self):
             qs = super().get_queryset()
             return qs.filter(active=True).order_by('username')
@@ -229,7 +224,7 @@ class MemberAdmin(admin.ModelAdmin):
 
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('get_username', 'timestamp', 'get_amount_display')
-    valid_lookups = 'member'
+    valid_lookups = ('member')
     search_fields = ['member__username']
     autocomplete_fields = ['member']
 
