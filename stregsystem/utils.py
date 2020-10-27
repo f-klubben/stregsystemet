@@ -79,17 +79,10 @@ def make_unprocessed_mobilepayment_query():
     return MobilePayment.objects.filter(Q(status__exact=MobilePayment.UNSET) | Q(payment__isnull=True))
 
 
-def make_approved_mobilepayment_query():
-    from stregsystem.models import MobilePayment  # import locally to avoid circular import
+def make_processed_mobilepayment_query():
+    from stregsystem.models import MobilePayment
     return MobilePayment.objects.filter(
-        Q(status__exact=MobilePayment.APPROVED) & Q(payment__isnull=True) & (
-                Q(member__isnull=False) | Q(member_guess__isnull=False)))
-
-
-def make_ignored_mobilepayment_query():
-    from stregsystem.models import MobilePayment  # import locally to avoid circular import
-    return MobilePayment.objects.filter(
-        Q(status__exact=MobilePayment.IGNORED) & Q(payment__isnull=True) & Q(member__isnull=False))
+        Q(payment__isnull=True) & Q(status__in=[MobilePayment.APPROVED, MobilePayment.IGNORED]))
 
 
 def date_to_midnight(date):

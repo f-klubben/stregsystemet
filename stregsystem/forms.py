@@ -12,15 +12,15 @@ class Select2MemberWidget(s2forms.ModelSelect2Widget):
 class MobilePayToolForm(django.forms.ModelForm):
     class Meta:
         model = MobilePayment
-        fields = ('amount', 'member', 'member_guess', 'customer_name', 'comment')
+        fields = ('amount', 'member', 'member_guess', 'customer_name', 'comment', 'status')
         widgets = {"member": Select2MemberWidget,
-                   "status": django.forms.RadioSelect()}
+                   "member_guess": django.forms.TextInput,  # hidden field but widget chosen for performance
+                   "status": django.forms.RadioSelect(choices=MobilePayment.STATUS_CHOICES)}
 
     def __init__(self, *args, **kwargs):
         super(MobilePayToolForm, self).__init__(*args, **kwargs)
+        # Make fields not meant for editing by user readonly (note that this is prevented in template as well)
         if self.instance.id:
-
             for field in self.fields:
                 if field in ['amount', 'member_guess', 'customer_name', 'comment']:
                     self.fields[field].widget.attrs['readonly'] = True
-                    self.fields[field].widget.attrs['disabled'] = True

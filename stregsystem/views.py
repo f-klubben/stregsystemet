@@ -293,11 +293,6 @@ def batch_payment(request):
     })
 
 
-class MemberWidget(s2forms.ModelSelect2Widget):
-    search_fields = ['username__icontains', 'firstname__icontains', 'lastname__icontains', 'email__icontains']
-    model = Member
-
-
 @staff_member_required()
 def mobilepaytool(request):
     paytool_form_set = modelformset_factory(MobilePayment, form=MobilePayToolForm, extra=0, fields=(
@@ -314,14 +309,20 @@ def mobilepaytool(request):
         data['imports'], data['duplicates'] = parse_csv_and_create_mobile_payments(
             str(csv_file.read().decode('utf-8')).splitlines())
 
+        # refresh form after submission
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+
     elif request.method == "POST":
         form = paytool_form_set(request.POST)
-        # todo: enable form-errors to be shown to user, since we are using a custom template for form, maybe difficult?
+
         if form.is_valid():
-            form.save()  # commit=false here? it was done for batch because of reference thing
-            MobilePayment.submit_processed_mobile_payments(request.user)  # todo: can request.user ever be null?
+            form.save()
+            MobilePayment.submit_processed_mobile_payments(request.user)
 
             # refresh form after submission
             data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+        else:
+            # update form with errors
+            data['formset'] = form
 
     return render(request, "admin/stregsystem/mobilepaytool.html", data)
