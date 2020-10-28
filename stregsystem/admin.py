@@ -223,7 +223,7 @@ class MemberAdmin(admin.ModelAdmin):
 
 
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('get_username', 'timestamp', 'get_amount_display')
+    list_display = ('get_username', 'timestamp', 'get_amount_display', 'is_mobilepayment')
     valid_lookups = ('member')
     search_fields = ['member__username']
     autocomplete_fields = ['member']
@@ -242,6 +242,13 @@ class PaymentAdmin(admin.ModelAdmin):
 
     get_amount_display.short_description = "Amount"
     get_amount_display.admin_order_field = "amount"
+
+    def is_mobilepayment(self, obj):
+        return MobilePayment.objects.filter(payment=obj.pk).exists()
+
+    is_mobilepayment.short_description = "From MobilePayment"
+    is_mobilepayment.admin_order_field = "from_mobilepayment"
+    is_mobilepayment.boolean = True
 
 
 class MobilePaymentAdmin(admin.ModelAdmin):
