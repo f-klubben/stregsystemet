@@ -80,7 +80,7 @@ def make_unprocessed_mobilepayment_query():
 
 
 def make_processed_mobilepayment_query():
-    from stregsystem.models import MobilePayment
+    from stregsystem.models import MobilePayment  # import locally to avoid circular import
     return MobilePayment.objects.filter(
         Q(payment__isnull=True) & Q(status__in=[MobilePayment.APPROVED, MobilePayment.IGNORED]))
 

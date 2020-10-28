@@ -5,7 +5,7 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.utils import timezone
 
 from stregsystem.deprecated import deprecated
