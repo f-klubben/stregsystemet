@@ -197,7 +197,7 @@ class SaleViewTests(TestCase):
 
     def test_menu_index(self):
         response = self.client.post(
-            reverse('menu_index', args=(1, ))
+            reverse('menu_index', args=(1,))
         )
 
         self.assertEqual(response.status_code, 200)
@@ -284,8 +284,8 @@ class SaleViewTests(TestCase):
 
         response = self.client.post(
             reverse('quickbuy', args=(1,)),
-                {"quickbuy": "jokke 4"}
-            )
+            {"quickbuy": "jokke 4"}
+        )
 
         after_product = Product.objects.get(id=4)
         after_member = Member.objects.get(username="jokke")
@@ -302,8 +302,8 @@ class SaleViewTests(TestCase):
 
         response = self.client.post(
             reverse('quickbuy', args=(1,)),
-                {"quickbuy": "jokke 1"}
-            )
+            {"quickbuy": "jokke 1"}
+        )
 
         after_product = Product.objects.get(id=1)
         after_member = Member.objects.get(username="jokke")
@@ -365,7 +365,8 @@ class SaleViewTests(TestCase):
                     price=100,
                 )
                 frozen_time.tick()
-        give_multibuy_hint, sale_hints = stregsystem_views._multibuy_hint(timezone.datetime(2018, 1, 1, tzinfo=pytz.UTC), member)
+        give_multibuy_hint, sale_hints = stregsystem_views._multibuy_hint(
+            timezone.datetime(2018, 1, 1, tzinfo=pytz.UTC), member)
         self.assertTrue(give_multibuy_hint)
         self.assertEqual(sale_hints, "{} {}:{}".format("<span class=\"username\">jokke</span>", coke.id, 2))
 
@@ -573,7 +574,6 @@ class OrderTest(TestCase):
 
         balance_after = self.member.balance
         self.assertEqual(balance_before, balance_after)
-
 
 
 class PaymentTests(TestCase):
@@ -888,7 +888,7 @@ class MemberTests(TestCase):
         # (330 ml * 4.6%) = 15.18
         alcoholic_drink = (
             Product.objects
-            .create(
+                .create(
                 name="øl",
                 price=2.0,
                 alcohol_content_ml=15.18,
@@ -1022,31 +1022,32 @@ class BallmerPeakTests(TestCase):
 class MemberModelFormTests(TestCase):
     def setUp(self):
         jeff = Member.objects.create(
-            username = "jeff",
-            firstname = "jeff",
-            lastname = "jefferson",
-            gender = "M"
+            username="jeff",
+            firstname="jeff",
+            lastname="jefferson",
+            gender="M"
         )
 
     def test_cant_create_duplicate_username(self):
         jeff = Member(
-            username = "jeff",
-            firstname = "jeffrey",
-            lastname = "jefferson",
-            gender = "M"
+            username="jeff",
+            firstname="jeffrey",
+            lastname="jefferson",
+            gender="M"
         )
         form = MemberForm(model_to_dict(jeff))
         self.assertFalse(form.is_valid())
 
     def test_can_create_non_duplicate_username(self):
         not_jeff = Member(
-            username = "not_jeff",
-            firstname = "jeff",
-            lastname = "jefferson",
-            gender = "M"
+            username="not_jeff",
+            firstname="jeff",
+            lastname="jefferson",
+            gender="M"
         )
         form = MemberForm(model_to_dict(not_jeff))
         self.assertTrue(form.is_valid())
+
 
 class MemberAdminTests(TestCase):
     def setUp(self):
@@ -1055,27 +1056,28 @@ class MemberAdminTests(TestCase):
 
         self.jeff = Member.objects.create(
             pk=1,
-            username = "jeff",
-            firstname = "jeff",
-            lastname = "jefferson",
-            gender = "M"
+            username="jeff",
+            firstname="jeff",
+            lastname="jefferson",
+            gender="M"
         )
 
         self.jeff2 = Member.objects.create(
             pk=2,
-            username = "jeffrey",
-            firstname = "jeff",
-            lastname = "jefferson",
-            gender = "M"
+            username="jeffrey",
+            firstname="jeff",
+            lastname="jefferson",
+            gender="M"
         )
 
     def test_creates_warning_for_duplicate_usernames(self):
         self.client.login(username="superuser", password="very_secure")
         self.jeff2.username = "jeff"
-        response = self.client.post(reverse('admin:stregsystem_member_change', kwargs={'object_id':2}), model_to_dict(self.jeff2), follow=False)
+        response = self.client.post(reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}),
+                                    model_to_dict(self.jeff2), follow=False)
 
         messages = list(get_messages(response.wsgi_request))
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertEqual(2, len(messages))
         self.assertEqual(str(messages[0]), "Det brugernavn var allerede optaget")
@@ -1084,15 +1086,14 @@ class MemberAdminTests(TestCase):
     def test_no_warning_unique_usernames(self):
         self.client.login(username="superuser", password="very_secure")
         self.jeff2.username = "mr_jefferson"
-        response = self.client.post(reverse('admin:stregsystem_member_change', kwargs={'object_id':2}), model_to_dict(self.jeff2), follow=False)
+        response = self.client.post(reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}),
+                                    model_to_dict(self.jeff2), follow=False)
 
         messages = list(get_messages(response.wsgi_request))
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertEqual(1, len(messages))
         self.assertEqual("mr_jefferson", Member.objects.filter(pk=2).get().username)
-
-
 
 
 class ProductActivatedListFilterTests(TestCase):
@@ -1322,12 +1323,13 @@ class ProductActivatedListFilterTests(TestCase):
         self.assertIn(Product.objects.get(name="active_some_left"), qy)
         self.assertNotIn(Product.objects.get(name="active_some_left"), qn)
 
+
 class ProductRoomFilterTests(TestCase):
     fixtures = ["test_room_products"]
 
     def test_general_room_dont_get_special_items(self):
         numberOfSpecialItems = 2
-        response = self.client.get(reverse('menu_index', args=(1, )))
+        response = self.client.get(reverse('menu_index', args=(1,)))
         products = response.context['product_list']
         specialProduct = Product.objects.get(pk=3)
 
@@ -1335,7 +1337,7 @@ class ProductRoomFilterTests(TestCase):
         self.assertEqual(len(products), len(Product.objects.all()) - numberOfSpecialItems)
 
     def test_special_room_get_special_items(self):
-        response = self.client.get(reverse('menu_index', args=(2, )))
+        response = self.client.get(reverse('menu_index', args=(2,)))
         products = response.context['product_list']
         specialProduct = Product.objects.get(pk=3)
 
@@ -1528,6 +1530,18 @@ class MobilePaymentTests(TestCase):
         real_timestamp = datetime.datetime(2019, 11, 29, 12, 51, 8, tzinfo=pytz.UTC)
         self.assertLess((payment_timestamp - real_timestamp).seconds, 1)
 
+    def test_multiple_csv_submission(self):
+        # csv fixture contains six payments, ensure that setup created those
+        self.assertEqual(MobilePayment.objects.count(), 6)
+
+        # do import once again on same csv fixture
+        from stregsystem.utils import parse_csv_and_create_mobile_payments
+        with open(self.fixture_path, "r") as csv_file:
+            parse_csv_and_create_mobile_payments(csv_file.readlines())
+
+        # mobilepayment count should remain unchanged
+        self.assertEqual(MobilePayment.objects.count(), 6)
+
     def test_member_exact_matching(self):
         for matched_member in MobilePayment.objects.filter(member__isnull=False):
             self.assertEqual(matched_member.member, Member.objects.get(pk=matched_member.member.pk))
@@ -1545,7 +1559,8 @@ class MobilePaymentTests(TestCase):
 
         MobilePayment.submit_processed_mobile_payments(self.super_user)
 
-        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'] + mobile_payment.amount)
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance,
+                         self.members["jdoe"]['balance'] + mobile_payment.amount)
 
     def test_ignored_payment_balance(self):
         # member balance unchanged
@@ -1566,7 +1581,7 @@ class MobilePaymentTests(TestCase):
         # member balance unchanged
         for member in self.members:
             self.assertEqual(Member.objects.get(username__exact=self.members[member]['username']).balance,
-                            self.members[member]['balance'])
+                             self.members[member]['balance'])
 
         # submit mobile payment
         self.client.login(username="superuser", password="hunter2")
@@ -1634,5 +1649,5 @@ class MobilePaymentTests(TestCase):
 
         MobilePayment.submit_processed_mobile_payments(self.super_user)
 
-        self.assertEqual(Member.objects.get(username__exact="mlarsen").balance, self.members["mlarsen"]['balance'] + mobile_payment.amount)
-
+        self.assertEqual(Member.objects.get(username__exact="mlarsen").balance,
+                         self.members["mlarsen"]['balance'] + mobile_payment.amount)
