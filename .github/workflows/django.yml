@@ -4,7 +4,7 @@ on:
   push:
     branches: [ next ]
   pull_request:
-    branches: [ next ]
+    branches: [ master ]
 
 jobs:
   build:
@@ -28,8 +28,3 @@ jobs:
     - name: Run Tests
       run: |
         python manage.py test
-
-    - name: Coveralls
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
