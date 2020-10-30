@@ -19,6 +19,11 @@
             display: flex;
             overflow: hidden;
         }
+        
+        .hidden {
+            visibility: hidden;
+            position: absolute
+        }
 
         #mobilepay-description {
             float: left;
@@ -110,16 +115,16 @@
                                     {#  Modify non-editable fields for printing only and hide real widgets #}
                                     {% if field.name == "amount" %}
                                         {{ field.value|money }} DKK
-                                        <span style="visibility: hidden; position: absolute">{{ field }}</span>
+                                        <span class="hidden">{{ field }}</span>
                                     {% elif field.name == "member_guess" %}
                                         {{ field.value|get_member_str_key|safe }}
-                                        <span style="visibility: hidden; position: absolute">{{ field }}</span>
+                                        <span class="hidden">{{ field }}</span>
                                     {% elif field.name == "customer_name" %}
                                         {{ field.value }}
-                                        <span style="visibility: hidden; position: absolute">{{ field }}</span>
+                                        <span class="hidden">{{ field }}</span>
                                     {% elif field.name == "comment" %}
                                         {{ field.value }}
-                                        <span style="visibility: hidden; position: absolute">{{ field }}</span>
+                                        <span class="hidden">{{ field }}</span>
                                     {% elif field.name == "status" %}
                                         {% for radio in form.status %}
                                             {{ radio }}
