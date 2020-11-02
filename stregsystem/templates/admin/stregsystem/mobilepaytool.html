@@ -117,8 +117,7 @@
                                         {{ field.value|money }} DKK
                                         <span class="hidden">{{ field }}</span>
                                     {% elif field.name == "member_guess" %}
-                                        {{ field.value|get_member_str_key|safe }}
-                                        <span class="hidden">{{ field }}</span>
+                                        {{ field }}
                                     {% elif field.name == "customer_name" %}
                                         {{ field.value }}
                                         <span class="hidden">{{ field }}</span>

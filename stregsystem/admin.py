@@ -258,6 +258,7 @@ class MobilePaymentAdmin(admin.ModelAdmin):
     valid_lookups = 'member'
     search_fields = ['member__username']
     autocomplete_fields = ['member']
+    raw_id_fields = ['member_guess']
 
     class Media:
         css = {'all': ('stregsystem/select2-stregsystem.css',)}

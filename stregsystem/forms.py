@@ -3,6 +3,8 @@ import django.forms
 from stregsystem.models import MobilePayment, Member
 from django_select2 import forms as s2forms
 
+from stregsystem.widgets import ReadonlyFemberInput
+
 
 class Select2MemberWidget(s2forms.ModelSelect2Widget):
     search_fields = ['username__icontains', 'firstname__icontains', 'lastname__icontains', 'email__icontains']
@@ -14,7 +16,7 @@ class MobilePayToolForm(django.forms.ModelForm):
         model = MobilePayment
         fields = ('amount', 'member', 'member_guess', 'customer_name', 'comment', 'status')
         widgets = {"member": Select2MemberWidget,
-                   "member_guess": django.forms.TextInput,  # hidden field but widget chosen for performance
+                   "member_guess": ReadonlyFemberInput,  # hidden field but widget chosen for performance
                    "status": django.forms.RadioSelect(choices=MobilePayment.STATUS_CHOICES)}
 
     def __init__(self, *args, **kwargs):
