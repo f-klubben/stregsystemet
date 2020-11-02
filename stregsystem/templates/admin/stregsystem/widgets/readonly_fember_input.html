@@ -1,2 +1,2 @@
 <input type="hidden" name="{{ widget.name }}" class="form-control" {% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}"{% endif %} {% include "django/forms/widgets/attrs.html" %} >
-<span>{{fember|default_if_none:"No guess"}}</span>
+<span>{{fember|default_if_none:"<i>No guess</i>"}}</span>

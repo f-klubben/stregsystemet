@@ -4,7 +4,7 @@ from stregsystem.models import Member
 
 
 class ReadonlyFemberInput(Input):
-    template_name = 'stregsystem/widgets/readonly_fember_input.html'
+    template_name = 'admin/stregsystem/widgets/readonly_fember_input.html'
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
