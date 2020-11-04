@@ -2,14 +2,19 @@ from datetime import datetime, timedelta, timezone
 from django.core.management.base import BaseCommand
 from django.utils.dateparse import parse_datetime
 from pathlib import Path
-from stregsystem.models import MobilePayment, Member
+
+from requests import HTTPError
+
+from stregsystem.models import MobilePayment
 import json
 import logging
 import requests
 
+from stregsystem.utils import mobile_payment_guess_member
+
 
 class Command(BaseCommand):
-    help = 'Imports the latests payments from MobilePay'
+    help = 'Imports the latest payments from MobilePay'
 
     api_endpoint = 'https://api.mobilepay.dk'
     # Saves secret tokens to the file "tokens.json" right next to this file.
@@ -19,9 +24,15 @@ class Command(BaseCommand):
 
     logger = logging.getLogger(__name__)
     verbosity_level = 1
+    days_back = None
+
+    def add_arguments(self, parser):
+        parser.add_argument('days_back', nargs='?', type=int, default=7,
+                            help="Days back from today to look for MobilePay transactions (max 31 days)")
 
     def handle(self, *args, **options):
         self.verbosity_level = int(options['verbosity'])
+        self.days_back = options['days_back'] if options['days_back'] <= 31 else 7
         self.import_mobilepay_payments()
 
     def write_debug(self, str):
@@ -82,7 +93,7 @@ class Command(BaseCommand):
         url = f"{self.api_endpoint}/transaction-reporting/api/merchant/v1/paymentpoints/{self.tokens['paymentpoint']}/transactions"
         currenttime = datetime.now(timezone.utc)
         params = {
-            'from': self.formatdatetime(currenttime - timedelta(days=7)),
+            'from': self.formatdatetime(currenttime - timedelta(days=self.days_back)),
             'to': self.formatdatetime(currenttime)
         }
         headers = {
@@ -105,8 +116,12 @@ class Command(BaseCommand):
         # Do a client side check if token is good. If not - fetch another token.
         try:
             self.refresh_expired_token()
+            assert self.days_back is not None
             return self.get_transactions()
-        except:
+        except HTTPError as e:
+            self.write_error(f"Got an HTTP error when trying to fetch transactions: {e.response}")
+        except Exception as e:
+            print(e)
             self.write_error(f'Got an error when trying to fetch transactions.')
             pass
 
@@ -143,10 +158,7 @@ class Command(BaseCommand):
 
         amount_converted = amount * 100
         comment = transaction['senderComment']
-        strippedcomment = comment.strip()
-        guessed_fember = None
-        if Member.objects.filter(username=strippedcomment).exists():
-            guessed_fember = Member.objects.get(username=strippedcomment)
+        guessed_fember = mobile_payment_guess_member(comment, None)
 
         payment_datetime = parse_datetime(transaction['timestamp'])
 

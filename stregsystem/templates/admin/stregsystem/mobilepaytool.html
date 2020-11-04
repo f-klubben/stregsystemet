@@ -19,7 +19,7 @@
             display: flex;
             overflow: hidden;
         }
-        
+
         .hidden {
             visibility: hidden;
             position: absolute
@@ -71,11 +71,23 @@
                         href="https://en.wikipedia.org/wiki/Idempotence">idempotent</a></i></p>
                 <form method="post" enctype="multipart/form-data"> {% csrf_token %}
                     <input type="file" name="csv_file" id="csv_file" accept="text/csv"/>
-                    <input type="submit" value="Submit MobilePay CSV"/>
+                    <input type="submit" name="action" value="Submit MobilePay CSV"/>
                 </form>
                 {% if imports or duplicates %}
                     <h2> Imported {{ imports }} MobilePay transactions{% if duplicates %}, and ignored {{ duplicates }}
                         duplicates {% endif %} </h2>
+                {% endif %}
+
+                <br>
+                <hr style="height: 3px">
+                <br>
+
+                <form method="post"> {% csrf_token %}
+                    <input type="submit" name="action" value="Import via MobilePay API"/>
+                </form>
+
+                {% if api %}
+                    <h2>{{ api }}</h2>
                 {% endif %}
 
             </div>
@@ -139,7 +151,7 @@
                 <br>
                 <hr style="height: 3px">
                 <br>
-                <input type="submit" value="Submit payments"/>
+                <input type="submit" name="action" value="Submit payments"/>
             </form>
         </center>
     </div>

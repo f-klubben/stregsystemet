@@ -1,5 +1,6 @@
 import datetime
 
+from django.core import management
 from django.forms import modelformset_factory, formset_factory
 
 from django.contrib.admin.views.decorators import staff_member_required
@@ -301,7 +302,7 @@ def mobilepaytool(request):
     if request.method == "GET":
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
-    elif request.method == "POST" and 'csv_file' in request.FILES:
+    elif request.method == "POST" and 'csv_file' in request.FILES and request.POST['action'] == "Submit MobilePay CSV":
         # Prepare uploaded CSV to be read
         csv_file = request.FILES['csv_file']
         csv_file.seek(0)
@@ -312,7 +313,14 @@ def mobilepaytool(request):
         # refresh form after submission
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
-    elif request.method == "POST":
+    elif request.method == "POST" and request.POST['action'] == "Import via MobilePay API":
+        before_count = MobilePayment.objects.count()
+        management.call_command('importmobilepaypayments')
+        count = MobilePayment.objects.count() - before_count
+        data['api'] = f"Successfully imported {count} MobilePay transactions"
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+
+    elif request.method == "POST" and request.POST['action'] == "Submit payments":
         form = paytool_form_set(request.POST)
 
         if form.is_valid():
@@ -324,5 +332,7 @@ def mobilepaytool(request):
         else:
             # update form with errors
             data['formset'] = form
+    else:
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
     return render(request, "admin/stregsystem/mobilepaytool.html", data)
