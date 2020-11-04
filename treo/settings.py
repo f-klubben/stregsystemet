@@ -14,6 +14,7 @@ import os
 
 from configparser import ConfigParser
 from io import StringIO
+import json
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -45,6 +46,13 @@ PASSWORD =
 [hostnames]
 2=127.0.0.1
 3=localhost
+
+[logging]
+HANDLERS = [
+    "console"
+    ]
+FILE = /tmp/stregsystem.log
+LEVEL = DEBUG
 """
 
 cfg = ConfigParser()
@@ -205,3 +213,34 @@ TEST_RUNNER = 'stregsystem.utils.stregsystemTestRunner'
 
 LOGIN_REDIRECT_URL = '/admin/login'
 LOGIN_URL = '/admin/login'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'console': {
+            'format': '%(name)-12s %(levelname)-8s %(message)s'
+        },
+        'file': {
+            'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+        }
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'console'
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'file',
+            'filename': cfg.get('logging', 'FILE')
+        }
+    },
+    'loggers': {
+        '': {
+            'level': cfg.get('logging', 'LEVEL'),
+            'handlers': json.loads(cfg.get('logging', 'HANDLERS'))
+        }
+    }
+}

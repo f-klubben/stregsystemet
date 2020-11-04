@@ -6,3 +6,4 @@ regex==2017.07.28
 git+https://github.com/spulec/freezegun.git@39a0f1c103e734e1f88a788e956e7c9fcffb7918
 Django-Select2==5.11.1
 django-debug-toolbar==1.8
+requests==2.24.0
