@@ -302,7 +302,7 @@ def mobilepaytool(request):
     if request.method == "GET":
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
-    elif request.method == "POST" and 'csv_file' in request.FILES and request.POST['action'] == "Submit MobilePay CSV":
+    elif request.method == "POST" and 'csv_file' in request.FILES and request.POST['action'] == "Import MobilePay CSV":
         # Prepare uploaded CSV to be read
         csv_file = request.FILES['csv_file']
         csv_file.seek(0)
