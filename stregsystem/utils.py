@@ -180,14 +180,14 @@ def mobile_payment_guess_member(comment, customer_name):
     from stregsystem.models import Member
 
     if comment_first_word and not customer_name:
-        guess = Member.objects.filter(username__iexact=comment_first_word)
+        guess = Member.objects.filter(username__iexact=comment_first_word, active=True)
     elif not comment_first_word and customer_name:
         guess = Member.objects.filter(
-            Q(firstname__icontains=customer_first_name) | Q(lastname__icontains=customer_last_name))
+            Q(firstname__icontains=customer_first_name) | Q(lastname__icontains=customer_last_name), active=True)
     elif comment_first_word and customer_name:
         guess = Member.objects.filter(
             Q(username__iexact=comment_first_word) |
-            Q(firstname__icontains=customer_first_name) | Q(lastname__icontains=customer_last_name))
+            Q(firstname__icontains=customer_first_name) | Q(lastname__icontains=customer_last_name), active=True)
     else:
         return None
 
