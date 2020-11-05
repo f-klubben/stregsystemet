@@ -193,7 +193,7 @@ class Member(models.Model):  # id automatisk...
 
     def make_payment(self, amount):
         """
-        Should only be called by the Payment class.
+        Should only be called by the Payment and MobilePayment class.
 
         >>> jokke = Member.objects.create(username="jokke", firstname="Joakim", lastname="Byg", email="treo@cs.aau.dk", year=2007)
         >>> jokke.balance
@@ -356,6 +356,15 @@ class MobilePayment(models.Model):
         return f"{self.member.username if self.member is not None else 'Not assigned'}, {self.customer_name}, " \
                f"{self.timestamp}, {self.amount}, {self.transaction_id}, {self.comment}"
 
+    @transaction.atomic()
+    def delete(self, *args, **kwargs):
+        if self.id and self.payment is not None:
+            self.member.make_payment(-self.amount)
+            super(MobilePayment, self).delete(*args, **kwargs)
+            self.member.save()
+        else:
+            super(MobilePayment, self).delete(*args, **kwargs)
+
     @staticmethod
     @transaction.atomic
     def submit_processed_mobile_payments(admin_user: User):
@@ -374,6 +383,8 @@ class MobilePayment(models.Model):
             # Save payment and foreign key to MobilePayment field
             payment.save()
             processed_payment.payment = payment
+            if processed_payment.member is None:
+                processed_payment.member = processed_payment.member_guess
             processed_payment.save()
 
             LogEntry.objects.log_action(

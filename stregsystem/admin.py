@@ -253,7 +253,7 @@ class PaymentAdmin(admin.ModelAdmin):
 
 class MobilePaymentAdmin(admin.ModelAdmin):
     list_display = (
-        'get_username', 'payment', 'customer_name', 'comment', 'member_guess', 'timestamp', 'transaction_id',
+        'payment', 'customer_name', 'comment', 'member_guess', 'timestamp', 'transaction_id',
         'get_amount_display', 'status')
     valid_lookups = 'member'
     search_fields = ['member__username']
@@ -263,23 +263,25 @@ class MobilePaymentAdmin(admin.ModelAdmin):
     class Media:
         css = {'all': ('stregsystem/select2-stregsystem.css',)}
 
-    def get_username(self, obj):
-        """
-        Username if foreign key may be none
-        """
-        if obj.member is not None:
-            return obj.member.username
-        else:
-            return "Not assigned"
-
-    get_username.short_description = "Payment assigned to"
-    get_username.admin_order_field = "member__username"
-
     def get_amount_display(self, obj):
         return money(obj.amount)
 
     get_amount_display.short_description = "Amount"
     get_amount_display.admin_order_field = "amount"
+
+    # django-bug, .delete() is not called https://stackoverflow.com/questions/1471909/django-model-delete-not-triggered
+    actions = ['really_delete_selected']
+
+    def get_actions(self, request):
+        actions = super(MobilePaymentAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    def really_delete_selected(self, _, queryset):
+        for obj in queryset:
+            obj.delete()
+
+    really_delete_selected.short_description = "Delete selected entries"
 
 
 admin.site.register(Sale, SaleAdmin)

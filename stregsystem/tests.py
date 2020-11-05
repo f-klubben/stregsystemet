@@ -1649,3 +1649,48 @@ class MobilePaymentTests(TestCase):
 
         self.assertEqual(Member.objects.get(username__exact="mlarsen").balance,
                          self.members["mlarsen"]['balance'] + mobile_payment.amount)
+
+    def test_member_balance_on_delete_approved_mobilepayment(self):
+        # member balance unchanged before submission
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+        # submit mobile payment
+        self.client.login(username="superuser", password="hunter2")
+
+        mobile_payment = MobilePayment.objects.get(transaction_id__exact="016E027417049990")
+        mobile_payment.status = MobilePayment.APPROVED
+        mobile_payment.save()
+
+        MobilePayment.submit_processed_mobile_payments(self.super_user)
+
+        # ensure new balance is mobilepayment amount
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance,
+                         self.members["jdoe"]['balance'] + mobile_payment.amount)
+
+        # delete payment
+        MobilePayment.objects.get(transaction_id__exact="016E027417049990").delete()
+
+        # ensure member balance is original amount, as deletion of mobilepayment should revert change
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+    def test_member_balance_on_delete_ignored_mobilepayment(self):
+        # member balance unchanged before submission
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+        # submit mobile payment
+        self.client.login(username="superuser", password="hunter2")
+
+        mobile_payment = MobilePayment.objects.get(transaction_id__exact="016E027417049990")
+        mobile_payment.status = MobilePayment.IGNORED
+        mobile_payment.save()
+
+        MobilePayment.submit_processed_mobile_payments(self.super_user)
+
+        # ensure balance is still initial amount
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+        # delete payment
+        mobile_payment.delete()
+
+        # ensure member balance is original amount, as deletion of mobilepayment should revert change
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
