@@ -76,7 +76,8 @@ def make_room_specific_query(room):
 
 def make_unprocessed_mobilepayment_query():
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
-    return MobilePayment.objects.filter(Q(status__exact=MobilePayment.UNSET) | Q(payment__isnull=True))
+    return MobilePayment.objects.filter(Q(status__exact=MobilePayment.UNSET) | Q(payment__isnull=True)).order_by(
+        '-timestamp')
 
 
 def make_processed_mobilepayment_query():

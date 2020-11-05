@@ -376,7 +376,9 @@ class MobilePayment(models.Model):
                     member=processed_payment.member if processed_payment.member else processed_payment.member_guess,
                     amount=processed_payment.amount)
             elif processed_payment.status == MobilePayment.IGNORED:
-                payment = Payment(member=processed_payment.member, amount=0)
+                payment = Payment(
+                    member=processed_payment.member if processed_payment.member else processed_payment.member_guess,
+                    amount=0)
             else:
                 raise RuntimeError("Trying to process MobilePayment not of status (APPROVED, IGNORED)")
 

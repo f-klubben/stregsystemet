@@ -14,7 +14,7 @@ class Select2MemberWidget(s2forms.ModelSelect2Widget):
 class MobilePayToolForm(django.forms.ModelForm):
     class Meta:
         model = MobilePayment
-        fields = ('amount', 'member', 'member_guess', 'customer_name', 'comment', 'status')
+        fields = ('timestamp', 'amount', 'member', 'member_guess', 'customer_name', 'comment', 'status')
         widgets = {"member": Select2MemberWidget,
                    "member_guess": ReadonlyFemberInput,  # hidden field but widget chosen for performance
                    "status": django.forms.RadioSelect(choices=MobilePayment.STATUS_CHOICES)}

@@ -1,5 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load static %}
+{% load tz %}
 
 {% block title %}MobilePaytool{% endblock %}
 {% block breadcrumbs %}
@@ -64,8 +65,14 @@
                 </ol>
                 <p>Clicking <code>Submit payments</code> will process all <code>Approved</code> and <code>Ignored</code>
                     transactions.</p>
-                <i>Protip: A good workflow is selecting the member-field, filling it, using tab to access status,
-                    using arrow-keys to choose status and pressing tab to go to next row.</i>
+                <p>If you need any help on how to use this tool, please contact <a
+                        href="mailto:treo@fklub.dk">treo@fklub.dk</a> and for any bugs or suggestions <a
+                        href="mailto:fit@fklub.dk">fit@fklub.dk</a> or submit them directly at <a
+                        href="https://github.com/f-klubben/stregsystemet/issues">f-klubben/stregsystemet</a>.</p>
+                <br>
+                <p><i>Protip: A good workflow is selecting the member-field, filling it, using tab to access status,
+                    using arrow-keys to choose status and pressing tab to go to next row.</i></p>
+
 
             </div>
             <div id="mobilepay-import">
@@ -81,7 +88,7 @@
 
 
                 <br>
-                <hr style="background-color: white; border-top: thin dashed grey"; width="500px">
+                <hr style="background-color: white; border-top: thin dashed grey; width:500px">
                 <br>
 
                 <h1>Import MobilePay CSV transactions</h1>
@@ -130,7 +137,12 @@
                                     {{ field.errors.as_ul }}
 
                                     {#  Modify non-editable fields for printing only and hide real widgets #}
-                                    {% if field.name == "amount" %}
+                                    {% if field.name == "timestamp" %}
+                                        {% timezone "Europe/Copenhagen" %} {# TODO: remove when #212 is merged #}
+                                            {{ field.value }}
+                                            <span class="hidden">{{ field }}</span>
+                                        {% endtimezone %}
+                                    {% elif field.name == "amount" %}
                                         {{ field.value|money }} DKK
                                         <span class="hidden">{{ field }}</span>
                                     {% elif field.name == "member_guess" %}
