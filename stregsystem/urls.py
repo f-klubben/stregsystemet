@@ -20,7 +20,7 @@ Including another URLconf
 urlpatterns = [
     url(r'^$', views.roomindex, name="index"),
     url(r'^admin/batch/$', views.batch_payment, name="batch"),
-    url(r'^admin/paytool/$', views.mobilepaytool, name="mobilepaytool"),
+    url(r'^admin/mobilepaytool/$', views.mobilepaytool, name="mobilepaytool"),
     url(r'^(?P<room_id>\d+)/$', views.index, name="menu_index"),
     url(r'^(?P<room_id>\d+)/sale/$', views.sale, name="quickbuy"),
     url(r'^(?P<room_id>\d+)/sale/(?P<member_id>\d+)/$', views.menu_sale, name="menu"),

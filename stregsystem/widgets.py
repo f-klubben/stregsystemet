@@ -1,6 +1,7 @@
 from django.forms.widgets import Input
 
 from stregsystem.models import Member
+from stregsystem.templatetags.stregsystem_extras import money
 
 
 class ReadonlyFemberInput(Input):
@@ -10,7 +11,8 @@ class ReadonlyFemberInput(Input):
         context = super().get_context(name, value, attrs)
         context["fember"] = None
         if value is not None:
-            members = Member.objects.filter(pk=value)
-            if members.exists():
-                context["fember"] = members.get()
+            member = Member.objects.filter(pk=value)
+            if member.exists():
+                m = member.get()
+                context["fember"] = f"({money(m.balance)}) {m.firstname} {m.lastname} - {m.username}"
         return context
