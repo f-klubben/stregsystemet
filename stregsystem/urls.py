@@ -1,6 +1,7 @@
 from django.conf.urls import url
 
 from . import views
+from django.shortcuts import redirect
 
 """stregsystem URL Configuration
 
@@ -23,7 +24,7 @@ urlpatterns = [
     url(r'^(?P<room_id>\d+)/$', views.index, name="menu_index"),
     url(r'^(?P<room_id>\d+)/sale/$', views.sale, name="quickbuy"),
     url(r'^(?P<room_id>\d+)/sale/(?P<member_id>\d+)/$', views.menu_sale, name="menu"),
-    url(r'^(?P<room_id>\d+)/sale/(?P<member_id>\d+)/(?P<product_id>\d+)/$', views.menu_sale, name="menu_sale"),
+    url(r'^(?P<room_id>\d+)/sale/\d+/\d+/$', lambda request, room_id: redirect('menu_index', room_id=room_id), name="menu_sale"),
     url(r'^(?P<room_id>\d+)/user/(?P<member_id>\d+)/$', views.menu_userinfo, name="userinfo"),
     url(r'^(?P<room_id>\d+)/user/(?P<member_id>\d+)/pay$', views.menu_userpay, name="userpay"),
 ]
