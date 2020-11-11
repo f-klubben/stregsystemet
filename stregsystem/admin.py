@@ -257,7 +257,7 @@ class MobilePaymentAdmin(admin.ModelAdmin):
         'get_amount_display', 'status')
     valid_lookups = 'member'
     search_fields = ['member__username']
-    autocomplete_fields = ['member']
+    autocomplete_fields = ['member', 'payment']
     raw_id_fields = ['member_guess']
 
     class Media:
@@ -281,7 +281,7 @@ class MobilePaymentAdmin(admin.ModelAdmin):
         for obj in queryset:
             obj.delete()
 
-    really_delete_selected.short_description = "Delete selected entries"
+    really_delete_selected.short_description = "Delete and refund selected entries"
 
 
 admin.site.register(Sale, SaleAdmin)

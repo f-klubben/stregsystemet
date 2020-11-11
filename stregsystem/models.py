@@ -347,7 +347,7 @@ class MobilePayment(models.Model):
     amount = models.IntegerField()
     transaction_id = models.CharField(max_length=32,
                                       unique=True)  # trans_ids are at most 17 chars, assumed to be unique
-    comment = models.CharField(max_length=128)
+    comment = models.CharField(max_length=128, blank=True, null=True)
     member_guess = models.ForeignKey(Member, on_delete=models.CASCADE, null=True,
                                      blank=True, related_name='member_guess')
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=UNSET)
