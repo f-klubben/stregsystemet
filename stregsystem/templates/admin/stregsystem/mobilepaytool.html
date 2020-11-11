@@ -7,15 +7,11 @@
     <div class="breadcrumbs"><a href="../">Hjem</a></div>{% endblock %}
 
 {% block extrahead %}
+    <link rel="stylesheet" type="text/css" href="{% static '/stregsystem/select2-stregsystem.css' %}"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     {{ formset.media.css }}
     {{ formset.media.js }}
     <style>
-        .select2-container {
-            min-width: 400px;
-            max_width: 400px;
-        }
-
         #wrapper {
             display: flex;
             overflow: hidden;
@@ -51,6 +47,7 @@
     {% load stregsystem_extras %}
 
     <div id="content-main">
+
         <div id="wrapper">
             <div id="mobilepaytool-description">
                 <h1>MobilePaytool</h1>
