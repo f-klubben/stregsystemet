@@ -18,12 +18,11 @@ class Command(BaseCommand):
 
     api_endpoint = 'https://api.mobilepay.dk'
     # Saves secret tokens to the file "tokens.json" right next to this file.
-    # Important to use a seperate file since the tokens can change and is thus not suitable for django settings.
+    # Important to use a separate file since the tokens can change and is thus not suitable for django settings.
     tokens_file = (Path(__file__).parent / 'tokens.json').as_posix()
     tokens = None
 
     logger = logging.getLogger(__name__)
-    verbosity_level = 1
     days_back = None
 
     def add_arguments(self, parser):
@@ -31,32 +30,24 @@ class Command(BaseCommand):
                             help="Days back from today to look for MobilePay transactions (max 31 days)")
 
     def handle(self, *args, **options):
-        self.verbosity_level = int(options['verbosity'])
         self.days_back = options['days_back'] if options['days_back'] <= 31 else 7
         self.import_mobilepay_payments()
 
-    def write_debug(self, str):
-        self.logger.debug(str)
-        if self.verbosity_level > 2:
-            self.stdout.write(self.style.NOTICE(str))
+    def write_debug(self, s):
+        self.logger.debug(s)
 
-    def write_info(self, str):
-        self.logger.info(str)
-        if self.verbosity_level > 1:
-            self.stdout.write(self.style.SUCCESS(str))
+    def write_info(self, s):
+        self.logger.info(s)
 
-    def write_warning(self, str):
-        self.logger.warning(str)
-        if self.verbosity_level > 0:
-            self.stdout.write(self.style.WARNING(str))
+    def write_warning(self, s):
+        self.logger.warning(s)
 
-    def write_error(self, str):
-        self.logger.error(str)
-        self.stdout.write(self.style.ERROR(str))
+    def write_error(self, s):
+        self.logger.error(s)
 
     # Reads the token file from disk
     def read_token_storage(self):
-        with open(self.tokens_file) as json_file:
+        with open(self.tokens_file, 'r') as json_file:
             self.tokens = json.load(json_file)
 
     # Saves the token variable to disk
@@ -78,23 +69,24 @@ class Command(BaseCommand):
         response.raise_for_status()
         json_response = response.json()
         # Calculate when the token expires
-        expiretime = datetime.now() + timedelta(seconds=json_response['expires_in'] - 1)
-        self.tokens['access_token_timeout'] = expiretime.isoformat(timespec='milliseconds')
+        expire_time = datetime.now() + timedelta(seconds=json_response['expires_in'] - 1)
+        self.tokens['access_token_timeout'] = expire_time.isoformat(timespec='milliseconds')
         self.tokens['access_token'] = json_response['access_token']
         self.update_token_storage()
 
     # Format to timestamp format. Source:
     # https://github.com/MobilePayDev/MobilePay-TransactionReporting-API/blob/master/docs/api/types.md#timestamp
-    def formatdatetime(self, inputdatetime):
+    @staticmethod
+    def format_datetime(inputdatetime):
         return f"{inputdatetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]}Z"
 
-    # Fetches the transactions for a given paymentpoint (MobilePay phonenumber) in a given period (from-to)
+    # Fetches the transactions for a given payment-point (MobilePay phone-number) in a given period (from-to)
     def get_transactions(self):
         url = f"{self.api_endpoint}/transaction-reporting/api/merchant/v1/paymentpoints/{self.tokens['paymentpoint']}/transactions"
-        currenttime = datetime.now(timezone.utc)
+        current_time = datetime.now(timezone.utc)
         params = {
-            'from': self.formatdatetime(currenttime - timedelta(days=self.days_back)),
-            'to': self.formatdatetime(currenttime)
+            'from': self.format_datetime(current_time - timedelta(days=self.days_back)),
+            'to': self.format_datetime(current_time)
         }
         headers = {
             'x-ibm-client-secret': self.tokens['ibm-client-secret'],
@@ -108,8 +100,8 @@ class Command(BaseCommand):
     # Client side check if the token has expired.
     def refresh_expired_token(self):
         self.read_token_storage()
-        expiretime = parse_datetime(self.tokens['access_token_timeout'])
-        if datetime.now() >= expiretime:
+        expire_time = parse_datetime(self.tokens['access_token_timeout'])
+        if datetime.now() >= expire_time:
             self.refresh_access_token()
 
     def fetch_transactions(self):
@@ -121,20 +113,19 @@ class Command(BaseCommand):
         except HTTPError as e:
             self.write_error(f"Got an HTTP error when trying to fetch transactions: {e.response}")
         except Exception as e:
-            print(e)
             self.write_error(f'Got an error when trying to fetch transactions.')
             pass
 
     def import_mobilepay_payments(self):
         transactions = self.fetch_transactions()
         if transactions is None:
-            self.write_warning(f'Ran, but no transactions found')
+            self.write_info(f'Ran, but no transactions found')
             return
 
         for transaction in transactions:
             self.import_mobilepay_payment(transaction)
 
-        self.write_info('Successfully ran the import')
+        self.write_info('Successfully ran MobilePayment API import')
 
     def import_mobilepay_payment(self, transaction):
         if transaction['type'] != 'Payment':
@@ -146,23 +137,19 @@ class Command(BaseCommand):
             self.write_debug(f'Skipping transaction since it already exists (Transaction ID: {trans_id})')
             return
 
-        currencyCode = transaction['currencyCode']
-        if currencyCode != 'DKK':
-            self.write_warning(f'Does ONLY support DKK (Transaction ID: {trans_id}), was {currencyCode}')
+        currency_code = transaction['currencyCode']
+        if currency_code != 'DKK':
+            self.write_warning(f'Does ONLY support DKK (Transaction ID: {trans_id}), was {currency_code}')
             return
 
         amount = transaction['amount']
-        if amount < 50:
-            self.write_warning(f'Only importing more than 50 DKK (Transaction ID: {trans_id}), was {amount})')
-            return
 
-        amount_converted = amount * 100
         comment = transaction['senderComment']
         guessed_fember = mobile_payment_guess_member(comment, None)
 
         payment_datetime = parse_datetime(transaction['timestamp'])
 
-        MobilePayment.objects.create(amount=amount_converted,
+        MobilePayment.objects.create(amount=amount * 100,  # convert to streg-ører
                                      member=guessed_fember,
                                      comment=comment,
                                      timestamp=payment_datetime,
