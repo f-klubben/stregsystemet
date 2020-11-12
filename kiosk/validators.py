@@ -1,5 +1,5 @@
 valid_images = ['.jpg', '.png', '.jpeg']
-valid_mov = ['.mp4', '.webm']
+valid_mov = ['.mp4']  # fixme: initial testing shows '.webm' are not supported
 
 
 def validate_file_extension(value):

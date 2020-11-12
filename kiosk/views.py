@@ -21,7 +21,7 @@ def find_random_media(request):
 
     response_data = {
         "id": item.id,
-        "url": item.image.url,
+        "url": item.media.url,
         "is_image": item.is_image,
     }
     return HttpResponse(
@@ -56,7 +56,7 @@ def find_next_media_real(request, item_id):
         )
     response_data = {
         "id": next_item.id,
-        "url": next_item.image.url,
+        "url": next_item.media.url,
         "is_image": next_item.is_image,
     }
     return HttpResponse(
