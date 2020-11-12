@@ -6,13 +6,11 @@ from django.contrib.auth.decorators import permission_required
 from django.conf import settings
 from django.db.models import Q
 from django import forms
-from django.http import HttpResponsePermanentRedirect, HttpResponse, HttpResponseNotFound
+from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 import stregsystem.parser as parser
 from django_select2 import forms as s2forms
-import qrcode
-import qrcode.image.svg
 import urllib.parse
 
 
@@ -30,10 +28,11 @@ from stregsystem.models import (
 )
 from stregsystem.utils import (
     make_active_productlist_query,
-    make_room_specific_query
+    make_room_specific_query, qr_code
 )
 
 from .booze import ballmer_peak
+from .forms import QRPaymentForm
 
 
 def __get_news():
@@ -293,25 +292,10 @@ def batch_payment(request):
     })
 
 
-def qr_code(request, data):
-    response = HttpResponse(content_type="image/svg+xml")
-    qr = qrcode.make(data, image_factory=qrcode.image.svg.SvgPathFillImage)
-    qr.save(response)
-
-    return response
-
-
-class QRPaymentForm(forms.Form):
-    member = forms.CharField(max_length=16)
-    amount = forms.IntegerField(min_value=50, required=False)
-
-
 def qr_payment(request):
     form = QRPaymentForm(request.GET)
     if not form.is_valid():
-        return HttpResponse(status=400)
-
-    print(form.cleaned_data)
+        return HttpResponseBadRequest("Invalid input for MobilePay QR code generation")
 
     query = {
         'phone': '90601',
