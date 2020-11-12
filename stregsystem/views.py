@@ -31,6 +31,7 @@ from stregsystem.utils import (
 )
 
 from .booze import ballmer_peak
+from .forms import PurchaseForm
 
 
 def __get_news():
@@ -214,10 +215,6 @@ def menu_userpay(request, room_id, member_id):
     return render(request, 'stregsystem/menu_userpay.html', locals())
 
 
-class PurchaseForm(forms.Form):
-    product_id = forms.IntegerField()
-
-
 def menu_sale(request, room_id, member_id, product_id=None):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
@@ -227,7 +224,8 @@ def menu_sale(request, room_id, member_id, product_id=None):
     if request.method == 'POST':
         purchase = PurchaseForm(request.POST)
         if not purchase.is_valid():
-            return HttpResponseBadRequest()
+            return HttpResponseBadRequest(
+                "Cannot complete sale, get help at /dev/null or at mailto:[treo|fit]@fklub.dk")
 
         try:
             product = Product.objects.get(Q(pk=purchase.cleaned_data['product_id']), Q(active=True), Q(rooms__id=room_id) | Q(rooms=None),
