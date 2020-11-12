@@ -6,11 +6,14 @@ from django.contrib.auth.decorators import permission_required
 from django.conf import settings
 from django.db.models import Q
 from django import forms
-from django.http import HttpResponsePermanentRedirect
+from django.http import HttpResponsePermanentRedirect, HttpResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 import stregsystem.parser as parser
 from django_select2 import forms as s2forms
+import qrcode
+import qrcode.image.svg
+import urllib.parse
 
 
 from stregsystem import parser
@@ -288,3 +291,36 @@ def batch_payment(request):
         "select2_js": settings.SELECT2_JS,
         "select2_css": settings.SELECT2_CSS,
     })
+
+
+def qr_code(request, data):
+    response = HttpResponse(content_type="image/svg+xml")
+    qr = qrcode.make(data, image_factory=qrcode.image.svg.SvgPathFillImage)
+    qr.save(response)
+
+    return response
+
+
+class QRPaymentForm(forms.Form):
+    member = forms.CharField(max_length=16)
+    amount = forms.IntegerField(min_value=50, required=False)
+
+
+def qr_payment(request):
+    form = QRPaymentForm(request.GET)
+    if not form.is_valid():
+        return HttpResponse(status=400)
+
+    print(form.cleaned_data)
+
+    query = {
+        'phone': '90601',
+        'comment': form.cleaned_data.get('member')
+    }
+
+    if form.cleaned_data.get("amount") is not None:
+        query['amount'] = form.cleaned_data.get("amount")
+
+    data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
+
+    return qr_code(request, data)
