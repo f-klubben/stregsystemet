@@ -86,6 +86,12 @@ def make_processed_mobilepayment_query():
         Q(payment__isnull=True) & Q(status__in=[MobilePayment.APPROVED, MobilePayment.IGNORED]))
 
 
+def make_unprocessed_member_filled_mobilepayment_query():
+    from stregsystem.models import MobilePayment  # import locally to avoid circular import
+    return MobilePayment.objects.filter(
+        Q(payment__isnull=True) & Q(status=MobilePayment.UNSET) & Q(member__isnull=False))
+
+
 def date_to_midnight(date):
     """
     Converts a datetime.date to a datetime of the same date at midnight.

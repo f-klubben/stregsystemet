@@ -10,7 +10,8 @@ from django.utils import timezone
 
 from stregsystem.deprecated import deprecated
 from stregsystem.templatetags.stregsystem_extras import money
-from stregsystem.utils import date_to_midnight, make_processed_mobilepayment_query
+from stregsystem.utils import date_to_midnight, make_processed_mobilepayment_query, \
+    make_unprocessed_member_filled_mobilepayment_query
 from stregsystem.utils import send_payment_mail
 
 
@@ -394,6 +395,12 @@ class MobilePayment(models.Model):
                 change_message=f"{'Ignored' if processed_payment.status == MobilePayment.IGNORED else ''}"
                                f"MobilePayment (transaction_id: {processed_payment.transaction_id})"
             )
+
+    @staticmethod
+    def approve_member_filled_mobile_payments():
+        for m in make_unprocessed_member_filled_mobilepayment_query():
+            m.status = MobilePayment.APPROVED
+            m.save()
 
 
 class Category(models.Model):

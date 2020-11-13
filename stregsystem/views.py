@@ -321,7 +321,11 @@ def mobilepaytool(request):
         data['api'] = f"Successfully imported {count} MobilePay transactions"
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
-    elif request.method == "POST" and request.POST['action'] == "Submit payments":
+    elif request.method == "POST" and request.POST['action'] == "Submit all matches":
+        MobilePayment.approve_member_filled_mobile_payments()
+        MobilePayment.submit_processed_mobile_payments(request.user)
+
+    elif request.method == "POST" and request.POST['action'] == "Submit approved payments":
         form = paytool_form_set(request.POST)
 
         if form.is_valid():

@@ -163,7 +163,10 @@
                 <br>
                 <hr style="height: 3px">
                 <br>
-                <input type="submit" class="submit-button" name="action" value="Submit payments"/>
+                <input type="submit" class="submit-button" name="action"
+                       onclick="return confirm('Are you sure you want to submit all payments ({{ formset.forms | length }}) where member is set?')"
+                       value="Submit all payments"/>
+                <input type="submit" class="submit-button" name="action" value="Submit approved payments"/>
             </form>
         </center>
     </div>
