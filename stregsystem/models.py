@@ -374,7 +374,8 @@ class MobilePayment(models.Model):
                 payment = Payment(
                     member=processed_payment.member,
                     amount=processed_payment.amount)
-           else:
+            else:
+                # otherwise it's an IGNORED payment
                 payment = Payment(
                     member=processed_payment.member,
                     amount=0)
