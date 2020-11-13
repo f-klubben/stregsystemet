@@ -38,10 +38,14 @@
         .submit-button {
             min-width: 180px;
         }
+
+        #submit-matched-button {
+            background-color: #E6AE07;
+        }
     </style>
 
     <script>
-        const prompt = () => confirm('Are you sure you want to submit all payments (' + //
+        const prompt = () => confirm('Are you sure you want to submit all matched transactions (' + //
             Array.from(document.getElementsByTagName('select')).filter((foo, x, bar) => document.getElementsByTagName('select')[x].value !== "").length + //
             ') where member is set?')
     </script>
@@ -73,14 +77,14 @@
                         href="mailto:fit@fklub.dk">fit@fklub.dk</a> or submit them directly at <a
                         href="https://github.com/f-klubben/stregsystemet/issues">f-klubben/stregsystemet</a>.</p>
                 <br>
-                <p><i>Protip: A good workflow is selecting the member-field, filling it, using tab to access status,
-                    using arrow-keys to choose status and pressing tab to go to next row.</i></p>
+                <p><i>Protip: A good workflow is checking that prefilled rows are correct, clicking 'Submit matched
+                    payments', then manually matching any remaining transactions to members.</i></p>
 
 
             </div>
             <div id="mobilepay-import">
                 <h1>Import MobilePay API transactions</h1>
-                <p><i>Automatically import MobilePay transactions from the last week</i></p>
+                <p><i>Automatically import MobilePay transactions from the past week</i></p>
                 <form method="post"> {% csrf_token %}
                     <input type="submit" class="submit-button" name="action" value="Import via MobilePay API"/>
                 </form>
@@ -111,8 +115,12 @@
         <hr style="height: 3px">
         <br>
         <center>
-            {% if not formset.forms %}
+            {% if not formset.forms and submitted_count %}
+                <h2> No more MobilePay transactions needs processing, submitted {{ submitted_count }} transactions </h2>
+            {% elif not formset.forms %}
                 <h2> No MobilePay transactions needs processing</h2>
+            {% elif submitted_count %}
+                <h2 style="padding-bottom: 20px">Submitted {{ submitted_count }} transactions</h2>
             {% endif %}
             <form method="post" class="js-formset"> {% csrf_token %}
                 {{ formset.management_form }}
@@ -171,10 +179,11 @@
                 <br>
                 <hr style="height: 3px">
                 <br>
-                <input type="submit" class="submit-button" name="action"
+                <input type="submit" class="submit-button" id="submit-matched-button" name="action"
                        onclick="return prompt()"
-                       value="Submit all payments"/>
-                <input type="submit" class="submit-button" name="action" value="Submit approved payments"/>
+                       value="Submit matched payments"/>
+                <span style="color: white">fuck css</span>
+                <input type="submit" class="submit-button" name="action" value="Submit payments"/>
             </form>
         </center>
     </div>

@@ -318,20 +318,31 @@ def mobilepaytool(request):
         before_count = MobilePayment.objects.count()
         management.call_command('importmobilepaypayments')
         count = MobilePayment.objects.count() - before_count
+
         data['api'] = f"Successfully imported {count} MobilePay transactions"
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
-    elif request.method == "POST" and request.POST['action'] == "Submit all payments":
+    elif request.method == "POST" and request.POST['action'] == "Submit matched payments":
+        before_count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count()
+
         MobilePayment.approve_member_filled_mobile_payments()
         MobilePayment.submit_processed_mobile_payments(request.user)
+
+        count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count() - before_count
+        data['submitted_count'] = count
+
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
-        
-    elif request.method == "POST" and request.POST['action'] == "Submit approved payments":
+
+    elif request.method == "POST" and request.POST['action'] == "Submit payments":
         form = paytool_form_set(request.POST)
 
         if form.is_valid():
             form.save()
+
+            before_count = MobilePayment.objects.filter(payment__isnull=True).count()
             MobilePayment.submit_processed_mobile_payments(request.user)
+            count = before_count - MobilePayment.objects.filter(payment__isnull=True).count()
+            data['submitted_count'] = count
 
             # refresh form after submission
             data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())

@@ -399,8 +399,9 @@ class MobilePayment(models.Model):
     @staticmethod
     def approve_member_filled_mobile_payments():
         for m in make_unprocessed_member_filled_mobilepayment_query():
-            m.status = MobilePayment.APPROVED
-            m.save()
+            if m.status == MobilePayment.UNSET:
+                m.status = MobilePayment.APPROVED
+                m.save()
 
 
 class Category(models.Model):
