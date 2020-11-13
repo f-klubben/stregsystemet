@@ -298,7 +298,7 @@ def batch_payment(request):
 def mobilepaytool(request):
     paytool_form_set = modelformset_factory(MobilePayment, form=MobilePayToolForm, extra=0, fields=(
         'timestamp', 'amount', 'member', 'comment', 'status'))  # TODO: 'customer_name' removed,
-    #  MobilepayAPI does not that information at this point in time - add back 'customer_name' if available in future
+    #  MobilepayAPI does not have that information at this point in time - add back 'customer_name' if available in future
     data = dict()
     if request.method == "GET":
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())

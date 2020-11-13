@@ -374,12 +374,10 @@ class MobilePayment(models.Model):
                 payment = Payment(
                     member=processed_payment.member,
                     amount=processed_payment.amount)
-            elif processed_payment.status == MobilePayment.IGNORED:
+           else:
                 payment = Payment(
                     member=processed_payment.member,
                     amount=0)
-            else:
-                raise RuntimeError("Trying to process MobilePayment not of status (APPROVED, IGNORED)")
 
             # Save payment and foreign key to MobilePayment field
             payment.save()
