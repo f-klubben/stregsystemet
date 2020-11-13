@@ -35,7 +35,6 @@ from stregsystem.models import (
     price_display,
     MobilePayment
 )
-from stregsystem.utils import mobile_payment_guess_member
 
 
 def assertCountEqual(case, *args, **kwargs):

@@ -10,7 +10,7 @@ import json
 import logging
 import requests
 
-from stregsystem.utils import mobile_payment_guess_member
+from stregsystem.utils import mobile_payment_exact_match_member
 
 
 class Command(BaseCommand):
@@ -145,12 +145,11 @@ class Command(BaseCommand):
         amount = transaction['amount']
 
         comment = transaction['senderComment']
-        guessed_fember = mobile_payment_guess_member(comment, None)
 
         payment_datetime = parse_datetime(transaction['timestamp'])
 
         MobilePayment.objects.create(amount=amount * 100,  # convert to streg-ører
-                                     member=guessed_fember,
+                                     member=mobile_payment_exact_match_member(comment),
                                      comment=comment,
                                      timestamp=payment_datetime,
                                      transaction_id=trans_id,

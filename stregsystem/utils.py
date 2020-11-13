@@ -151,17 +151,8 @@ def parse_csv_and_create_mobile_payments(csv_file):
             # unique constraint on transaction_id and payment-foreign key must hold before saving new object
             mobile_payment.validate_unique()
 
-            # do case insensitive match on active members
-            from stregsystem.models import Member
-            match = Member.objects.filter(username__iexact=mobile_payment.comment.strip(), active=True)
-            if match.count() == 0:
-                mobile_payment.member_guess = mobile_payment_guess_member(mobile_payment.comment,
-                                                                          mobile_payment.customer_name)
-            elif match.count() == 1:
-                mobile_payment.member = match.first()
-            elif match.count() > 1:
-                # something is very wrong, there should be no active users which are duplicates post PR #178
-                raise RuntimeError("Duplicate usernames found at MobilePayment import. Should not exist post PR #178")
+            # do case insensitive exact match on active members
+            mobile_payment.member = mobile_payment_exact_match_member(mobile_payment.comment)
             mobile_payment.save()
             imported_transactions += 1
         except ValidationError:
@@ -169,34 +160,14 @@ def parse_csv_and_create_mobile_payments(csv_file):
     return imported_transactions, duplicate_transactions
 
 
-def mobile_payment_guess_member(comment, customer_name):
-    """
-    Not very pretty and does not handle ranking of results, similar to fuzzy searching. Improving this function could
-     utilise the select2 functionality
-    """
-    comment_first_word = comment.strip().split()[0] if comment else None
-    customer_first_name = customer_name.split()[0] if customer_name else None
-    customer_last_name = customer_name.split()[-1] if customer_name else None
-
+def mobile_payment_exact_match_member(comment):
     from stregsystem.models import Member
-
-    if comment_first_word and not customer_name:
-        guess = Member.objects.filter(username__iexact=comment_first_word, active=True)
-    elif not comment_first_word and customer_name:
-        guess = Member.objects.filter(
-            Q(firstname__icontains=customer_first_name) | Q(lastname__icontains=customer_last_name), active=True)
-    elif comment_first_word and customer_name:
-        guess = Member.objects.filter(
-            Q(username__iexact=comment_first_word) |
-            Q(firstname__icontains=customer_first_name) | Q(lastname__icontains=customer_last_name), active=True)
-    else:
-        return None
-
-    if guess.count() != 1:
-        # not able to rank search results like fuzzy searching
-        return None
-    else:
-        return guess.get()
+    match = Member.objects.filter(username__iexact=comment.strip(), active=True)
+    if match.count() == 1:
+        return match.get()
+    elif match.count() > 1:
+        # something is very wrong, there should be no active users which are duplicates post PR #178
+        raise RuntimeError("Duplicate usernames found at MobilePayment import. Should not exist post PR #178")
 
 
 class stregsystemTestRunner(DiscoverRunner):
