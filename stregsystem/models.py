@@ -348,8 +348,6 @@ class MobilePayment(models.Model):
     transaction_id = models.CharField(max_length=32,
                                       unique=True)  # trans_ids are at most 17 chars, assumed to be unique
     comment = models.CharField(max_length=128, blank=True, null=True)
-    member_guess = models.ForeignKey(Member, on_delete=models.CASCADE, null=True,
-                                     blank=True, related_name='member_guess')
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=UNSET)
 
     def __str__(self):
@@ -373,11 +371,11 @@ class MobilePayment(models.Model):
 
             if processed_payment.status == MobilePayment.APPROVED:
                 payment = Payment(
-                    member=processed_payment.member if processed_payment.member else processed_payment.member_guess,
+                    member=processed_payment.member,
                     amount=processed_payment.amount)
             elif processed_payment.status == MobilePayment.IGNORED:
                 payment = Payment(
-                    member=processed_payment.member if processed_payment.member else processed_payment.member_guess,
+                    member=processed_payment.member,
                     amount=0)
             else:
                 raise RuntimeError("Trying to process MobilePayment not of status (APPROVED, IGNORED)")
@@ -385,8 +383,6 @@ class MobilePayment(models.Model):
             # Save payment and foreign key to MobilePayment field
             payment.save()
             processed_payment.payment = payment
-            if processed_payment.member is None:
-                processed_payment.member = processed_payment.member_guess
             processed_payment.save()
 
             LogEntry.objects.log_action(

@@ -1602,54 +1602,6 @@ class MobilePaymentTests(TestCase):
             member = Member.objects.get(pk=approved_mobile_payment.member.pk)
             self.assertEqual(member.balance, approved_mobile_payment.amount + self.members[member.username]['balance'])
 
-    def test_member_guess_none_is_none(self):
-        self.assertIsNone(mobile_payment_guess_member(None, None))
-
-    def test_member_guess_comment_match(self):
-        self.assertEqual(mobile_payment_guess_member("marx eksdee", None),
-                         Member.objects.get(username__exact="marx"))
-
-    def test_member_guess_comment_match_post_emoji(self):
-        self.assertEqual(mobile_payment_guess_member("marx 💸💳💶💵", None),
-                         Member.objects.get(username__exact="marx"))
-
-    def test_member_guess_comment_match_pre_emoji(self):
-        self.assertIsNone(mobile_payment_guess_member("💸💳💶💵 marx", None))
-
-    def test_member_guess_comment_mismatch(self):
-        self.assertIsNone(mobile_payment_guess_member("mar", None))
-
-    def test_member_guess_customer_name_bad_comment(self):
-        self.assertEqual(mobile_payment_guess_member("nonsense", "Karl Marx"),
-                         Member.objects.get(username__exact="marx"))
-
-    def test_member_guess_customer_name_none_comment(self):
-        self.assertEqual(mobile_payment_guess_member(None, "Karl Marx"),
-                         Member.objects.get(username__exact="marx"))
-
-    def test_member_guess_customer_name_empty_comment(self):
-        self.assertEqual(mobile_payment_guess_member("", "Karl Marx"),
-                         Member.objects.get(username__exact="marx"))
-
-    def test_member_guess_customer_name_comment_other_user(self):
-        self.assertIsNone(mobile_payment_guess_member("tables", "Karl Marx"))
-
-    def test_approved_member_guess_payment_balance(self):
-        # member balance unchanged
-        self.assertEqual(Member.objects.get(username__exact="mlarsen").balance, self.members["mlarsen"]['balance'])
-
-        # submit mobile payment
-        self.client.login(username="superuser", password="hunter2")
-
-        mobile_payment = MobilePayment.objects.get(transaction_id__exact="156E027485173228")
-        mobile_payment.status = MobilePayment.APPROVED
-        mobile_payment.save()
-
-        MobilePayment.submit_processed_mobile_payments(self.super_user)
-
-        self.assertEqual(Member.objects.get(username__exact="mlarsen").balance,
-                         self.members["mlarsen"]['balance'] + mobile_payment.amount)
-
     def test_member_balance_on_delete_approved_mobilepayment(self):
         # member balance unchanged before submission
         self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])

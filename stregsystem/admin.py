@@ -253,12 +253,10 @@ class PaymentAdmin(admin.ModelAdmin):
 
 class MobilePaymentAdmin(admin.ModelAdmin):
     list_display = (
-        'payment', 'customer_name', 'comment', 'member_guess', 'timestamp', 'transaction_id',
-        'get_amount_display', 'status')
+        'payment', 'customer_name', 'comment', 'timestamp', 'transaction_id', 'get_amount_display', 'status')
     valid_lookups = 'member'
     search_fields = ['member__username']
     autocomplete_fields = ['member', 'payment']
-    raw_id_fields = ['member_guess']
 
     class Media:
         css = {'all': ('stregsystem/select2-stregsystem.css',)}
