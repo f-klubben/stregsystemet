@@ -40,6 +40,12 @@
         }
     </style>
 
+    <script>
+        const prompt = () => confirm('Are you sure you want to submit all payments (' + //
+            Array.from(document.getElementsByTagName('select')).filter((foo, x, bar) => document.getElementsByTagName('select')[x].value !== "").length + //
+            ') where member is set?')
+    </script>
+
 {% endblock %}
 
 {% block content %}
@@ -108,7 +114,7 @@
             {% if not formset.forms %}
                 <h2> No MobilePay transactions needs processing</h2>
             {% endif %}
-            <form method="post"> {% csrf_token %}
+            <form method="post" class="js-formset"> {% csrf_token %}
                 {{ formset.management_form }}
                 {{ formset.non_form_errors.as_ul }}
                 <table id="formset" class="form">
@@ -122,7 +128,7 @@
                             </tr>
                             </thead>
                         {% endif %}
-                        <tr class="{% cycle row1 row2 %}">
+                        <tr class="js-row {% cycle row1 row2 %}">
                             {% for field in form.visible_fields %}
                                 <td>
                                     {# Include the hidden fields in the form #}
@@ -142,6 +148,8 @@
                                     {% elif field.name == "amount" %}
                                         {{ field.value|money }} DKK
                                         <span class="hidden">{{ field }}</span>
+                                    {% elif field.name == "member" %}
+                                        <span class="js-member">{{ field }}</span>
                                     {% elif field.name == "customer_name" %}
                                         {{ field.value }}
                                         <span class="hidden">{{ field }}</span>
@@ -164,10 +172,11 @@
                 <hr style="height: 3px">
                 <br>
                 <input type="submit" class="submit-button" name="action"
-                       onclick="return confirm('Are you sure you want to submit all payments ({{ formset.forms | length }}) where member is set?')"
+                       onclick="return prompt()"
                        value="Submit all payments"/>
                 <input type="submit" class="submit-button" name="action" value="Submit approved payments"/>
             </form>
         </center>
     </div>
+
 {% endblock %}

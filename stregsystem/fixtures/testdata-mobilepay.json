@@ -95,7 +95,6 @@
       "amount": 6969,
       "transaction_id": "156E027485173228",
       "comment": "mlarsen indbetalt ",
-      "member_guess": 2,
       "status": "U"
     }
   },
@@ -110,7 +109,6 @@
       "amount": 50000,
       "transaction_id": "232E027452733666",
       "comment": "tables eksdee",
-      "member_guess": 3,
       "status": "U"
     }
   },
@@ -125,7 +123,6 @@
       "amount": 20000,
       "transaction_id": "241E027449465355",
       "comment": "marx",
-      "member_guess": null,
       "status": "U"
     }
   },
@@ -140,7 +137,6 @@
       "amount": 50000,
       "transaction_id": "232E027452733676",
       "comment": "tables eksdee",
-      "member_guess": 3,
       "status": "U"
     }
   },
@@ -155,7 +151,6 @@
       "amount": 15000,
       "transaction_id": "016E027417049990",
       "comment": "jdoe",
-      "member_guess": null,
       "status": "U"
     }
   },
@@ -170,7 +165,6 @@
       "amount": 20000,
       "transaction_id": "207E027395896809",
       "comment": "tester",
-      "member_guess": null,
       "status": "U"
     }
   },

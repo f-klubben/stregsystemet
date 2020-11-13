@@ -35,6 +35,7 @@ from stregsystem.models import (
     price_display,
     MobilePayment
 )
+from stregsystem.utils import mobile_payment_exact_match_member
 
 
 def assertCountEqual(case, *args, **kwargs):
@@ -1645,3 +1646,23 @@ class MobilePaymentTests(TestCase):
 
         # ensure member balance is original amount, as deletion of mobilepayment should revert change
         self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+    def test_member_balance_on_delete_unset_mobilepayment(self):
+        # member balance unchanged before submission
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+        # submit mobile payments
+        self.client.login(username="superuser", password="hunter2")
+        MobilePayment.submit_processed_mobile_payments(self.super_user)
+
+        # ensure balance is still initial amount
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+        # delete payment
+        MobilePayment.objects.get(transaction_id__exact="016E027417049990").delete()
+
+        # ensure member balance is original amount, as deletion of mobilepayment should revert change
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+    def test_exact_guess(self):
+        self.assertEqual(Member.objects.get(username__exact="marx"), mobile_payment_exact_match_member("marx"))

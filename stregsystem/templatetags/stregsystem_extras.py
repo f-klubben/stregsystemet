@@ -1,4 +1,5 @@
 from django import template
+from django.db.models import QuerySet
 from django.template.loader import get_template
 from django.utils import timezone
 
