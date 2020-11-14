@@ -1,10 +1,11 @@
-name: Django CI
+name: Django CI and Codecov
 
 on:
   push:
     branches: [ next ]
   pull_request:
     branches: [ next ]
+
 
 jobs:
   build:
@@ -27,4 +28,10 @@ jobs:
         pip install -r requirements.txt
     - name: Run Tests
       run: |
-        python manage.py test
+        coverage run ./manage.py test
+    - name: Coverage report
+      run: |
+        coverage report
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v1.0.14
+
