@@ -1,4 +1,4 @@
-name: Django CI
+name: Django CI and Codecov
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.6]
+        python-version: [3.6, 3.7]
 
     steps:
     - uses: actions/checkout@v2
