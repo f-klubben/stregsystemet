@@ -297,8 +297,8 @@ def batch_payment(request):
 @staff_member_required()
 def mobilepaytool(request):
     paytool_form_set = modelformset_factory(MobilePayment, form=MobilePayToolForm, extra=0, fields=(
-        'timestamp', 'amount', 'member', 'comment', 'status'))  # TODO: 'customer_name' removed,
-    #  MobilepayAPI does not have that information at this point in time - add back 'customer_name' if available in future
+        'timestamp', 'amount', 'member', 'comment', 'status'))  # TODO: 'customer_name' removed, MobilepayAPI does not
+    # TODO-cont: have that information at this point in time - add back 'customer_name' if available in future
     data = dict()
     if request.method == "GET":
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
@@ -324,13 +324,11 @@ def mobilepaytool(request):
 
     elif request.method == "POST" and request.POST['action'] == "Submit matched payments":
         before_count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count()
-
         MobilePayment.approve_member_filled_mobile_payments()
         MobilePayment.submit_processed_mobile_payments(request.user)
-
         count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count() - before_count
-        data['submitted_count'] = count
 
+        data['submitted_count'] = count
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
     elif request.method == "POST" and request.POST['action'] == "Submit payments":
@@ -342,8 +340,8 @@ def mobilepaytool(request):
             before_count = MobilePayment.objects.filter(payment__isnull=True).count()
             MobilePayment.submit_processed_mobile_payments(request.user)
             count = before_count - MobilePayment.objects.filter(payment__isnull=True).count()
-            data['submitted_count'] = count
 
+            data['submitted_count'] = count
             # refresh form after submission
             data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
         else:

@@ -7,49 +7,18 @@
     <div class="breadcrumbs"><a href="../">Hjem</a></div>{% endblock %}
 
 {% block extrahead %}
+    <link rel="stylesheet" type="text/css" href="{% static '/stregsystem/mobilepaytool.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static '/stregsystem/select2-stregsystem.css' %}"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     {{ formset.media.css }}
     {{ formset.media.js }}
-    <style>
-        #wrapper {
-            display: flex;
-            overflow: hidden;
-        }
-
-        .hidden {
-            visibility: hidden;
-            position: absolute
-        }
-
-        #mobilepaytool-description {
-            float: left;
-            width: 50%;
-            padding-right: 10px;
-        }
-
-        #mobilepay-import {
-            float: left;
-            width: 50%;
-            padding-left: 10px;
-            border-left: thin dashed grey;
-        }
-
-        .submit-button {
-            min-width: 180px;
-        }
-
-        #submit-matched-button {
-            background-color: #E6AE07;
-        }
-    </style>
-
     <script>
+        // Count number of member-fields filled at point of invocation
         const prompt = () => confirm('Are you sure you want to submit all matched transactions (' + //
-            Array.from(document.getElementsByTagName('select')).filter((foo, x, bar) => document.getElementsByTagName('select')[x].value !== "").length + //
+            Array.from(document.getElementsByTagName('select')).filter((foo, x, _) => //
+                document.getElementsByTagName('select')[x].value !== "").length + //
             ') where member is set?')
     </script>
-
 {% endblock %}
 
 {% block content %}

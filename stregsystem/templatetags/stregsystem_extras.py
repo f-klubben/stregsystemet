@@ -1,5 +1,4 @@
 from django import template
-from django.db.models import QuerySet
 from django.template.loader import get_template
 from django.utils import timezone
 
@@ -13,18 +12,6 @@ def money(value):
 
 
 register.filter('money', money)
-
-
-def get_member_str_key(value):
-    from stregsystem.models import Member
-    try:
-        m = Member.objects.get(pk=value)
-        return f"({money(m.balance)} DKK) {m.username} | {m.firstname} {m.lastname}"
-    except Member.DoesNotExist:
-        return "<i>No member guess</i>"
-
-
-register.filter('get_member_str_key', get_member_str_key)
 
 
 @register.inclusion_tag('stregsystem/adventcandle.html')
