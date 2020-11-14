@@ -38,7 +38,7 @@ jobs:
       uses: codecov/codecov-action@v1.0.14
       with:
         # User defined upload name. Visible in Codecov UI
-        name: stregsystemet # optional
+        name: stregsystemet # optional?
         # Repository upload token - get it from codecov.io. Required only for private repositories
         #token: # optional
         # Path to coverage file to upload
