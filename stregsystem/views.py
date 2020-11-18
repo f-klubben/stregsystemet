@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import permission_required
 from django.conf import settings
 from django.db.models import Q
 from django import forms
-from django.http import HttpResponsePermanentRedirect
+from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 import stregsystem.parser as parser
@@ -31,6 +31,7 @@ from stregsystem.utils import (
 )
 
 from .booze import ballmer_peak
+from .forms import PurchaseForm
 
 
 def __get_news():
@@ -218,26 +219,35 @@ def menu_sale(request, room_id, member_id, product_id=None):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
+
     product = None
-    try:
-        product = Product.objects.get(Q(pk=product_id), Q(active=True), Q(rooms__id=room_id) | Q(rooms=None),
-                                      Q(deactivate_date__gte=timezone.now()) | Q(deactivate_date__isnull=True))
+    if request.method == 'POST':
+        purchase = PurchaseForm(request.POST)
+        if not purchase.is_valid():
+            return HttpResponseBadRequest(
+                "Cannot complete sale, get help at /dev/null or at mailto:[treo|fit]@fklub.dk")
 
-        order = Order.from_products(
-            member=member,
-            room=room,
-            products=(product, )
-        )
+        try:
+            product = Product.objects.get(Q(pk=purchase.cleaned_data['product_id']), Q(active=True), Q(rooms__id=room_id) | Q(rooms=None),
+                                          Q(deactivate_date__gte=timezone.now()) | Q(deactivate_date__isnull=True))
 
-        order.execute()
+            order = Order.from_products(
+                member=member,
+                room=room,
+                products=(product,)
+            )
 
-    except Product.DoesNotExist:
-        pass
-    except StregForbudError:
-        return render(request, 'stregsystem/error_stregforbud.html', locals())
-    except NoMoreInventoryError:
-        # @INCOMPLETE this should render with a different template
-        return render(request, 'stregsystem/error_stregforbud.html', locals())
+            order.execute()
+
+        except Product.DoesNotExist:
+            pass
+        except StregForbudError:
+            return render(request, 'stregsystem/error_stregforbud.html', locals())
+        except NoMoreInventoryError:
+            # @INCOMPLETE this should render with a different template
+            return render(request, 'stregsystem/error_stregforbud.html', locals())
+
+
     # Refresh member, to get new amount
     member = Member.objects.get(pk=member_id, active=True)
     return usermenu(request, room, member, product, from_sale=True)

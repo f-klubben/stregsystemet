@@ -79,7 +79,15 @@ har {{member.balance|money}} kroner til gode!
 			  </tr>
 			  {% for product in product_list|partition:"2"|first %}
 			  <tr>
-			    <td><a href="/{{room.id}}/sale/{{member.id}}/{{product.id}}">{{product.name}}</a></td>
+			    <td>
+                    <form method="post" action="/{{ room.id }}/sale/{{ member.id }}/">
+                        {% csrf_token %}
+                        <a href="" onclick="this.closest('form').submit();return false;">{{product.name}}</a>
+                        <input type="hidden" value="{{ product.id }}" name="product_id">
+                        <input type="hidden" value="{{ room.id }}" name="room_id">
+                        <input type="hidden" value="{{ member.id }}" name="member_id">
+                    </form>
+                </td>
 			    <td align="right">{{product.price|money}} kr</td>
 			  </tr>
 			  {% endfor %}
@@ -95,7 +103,15 @@ har {{member.balance|money}} kroner til gode!
                   </tr>
                   {% for product in product_list|partition:"2"|last %}
                   <tr>
-                    <td><a href="/{{room.id}}/sale/{{member.id}}/{{product.id}}">{{product.name}}</a></td>
+                    <td>
+                        <form method="post" action="/{{ room.id }}/sale/{{ member.id }}/">
+                            {% csrf_token %}
+                            <a href="" onclick="this.closest('form').submit();return false;">{{product.name}}</a>
+                            <input type="hidden" value="{{ product.id }}" name="product_id">
+                            <input type="hidden" value="{{ room.id }}" name="room_id">
+                            <input type="hidden" value="{{ member.id }}" name="member_id">
+                        </form>
+                    </td>
                     <td align="right">{{product.price|money}} kr</td>
                   </tr>
                   {% endfor %}
