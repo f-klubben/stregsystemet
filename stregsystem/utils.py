@@ -87,7 +87,8 @@ def make_unprocessed_mobilepayment_query():
 def make_processed_mobilepayment_query():
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
     return MobilePayment.objects.filter(
-        Q(payment__isnull=True) & Q(status__in=[MobilePayment.APPROVED, MobilePayment.IGNORED]))
+        Q(payment__isnull=True) & Q(member__isnull=False) &
+        Q(status__in=[MobilePayment.APPROVED, MobilePayment.IGNORED]))
 
 
 def make_unprocessed_member_filled_mobilepayment_query():
@@ -179,7 +180,7 @@ def mobile_payment_exact_match_member(comment):
         # something is very wrong, there should be no active users which are duplicates post PR #178
         raise RuntimeError("Duplicate usernames found at MobilePayment import. Should not exist post PR #178")
 
-        
+
 def qr_code(data):
     response = HttpResponse(content_type="image/svg+xml")
     qr = qrcode.make(data, image_factory=qrcode.image.svg.SvgPathFillImage)
