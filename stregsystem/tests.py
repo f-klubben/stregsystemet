@@ -32,8 +32,10 @@ from stregsystem.models import (
     Sale,
     StregForbudError,
     active_str,
-    price_display
+    price_display,
+    MobilePayment
 )
+from stregsystem.utils import mobile_payment_exact_match_member
 
 
 def assertCountEqual(case, *args, **kwargs):
@@ -1073,7 +1075,7 @@ class MemberAdminTests(TestCase):
         response = self.client.post(reverse('admin:stregsystem_member_change', kwargs={'object_id':2}), model_to_dict(self.jeff2), follow=False)
 
         messages = list(get_messages(response.wsgi_request))
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertEqual(2, len(messages))
         self.assertEqual(str(messages[0]), "Det brugernavn var allerede optaget")
@@ -1085,7 +1087,7 @@ class MemberAdminTests(TestCase):
         response = self.client.post(reverse('admin:stregsystem_member_change', kwargs={'object_id':2}), model_to_dict(self.jeff2), follow=False)
 
         messages = list(get_messages(response.wsgi_request))
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertEqual(1, len(messages))
         self.assertEqual("mr_jefferson", Member.objects.filter(pk=2).get().username)
@@ -1480,3 +1482,187 @@ class RazziaTests(TestCase):
 
         self.assertEqual(0, res[self.flan.name])
         self.assertEqual(0, res[self.flanmad.name])
+
+
+class MobilePaymentTests(TestCase):
+    def setUp(self):
+        self.fixture_path = "stregsystem/fixtures/mobilepay-sales-testdata-fixture.csv"
+
+        # setup admin
+        self.super_user = User.objects.create_superuser('superuser', 'test@example.com', "hunter2")
+
+        # Create members, directly mirrors fixture in 'stregsystem/fixtures/testdata-mobilepay.json'
+        self.members = {
+            'jdoe': {'username': 'jdoe', 'firstname': 'John', 'lastname': 'Doe', 'email': 'jdoe@nsa.gov',
+                     'balance': 42000},
+            'marx': {'username': 'marx', 'firstname': 'Karl', 'lastname': 'Marx', 'email': 'marx@nsa.gov',
+                     'balance': 6900},
+            'tables': {'username': 'tables', 'firstname': 'Bobby', 'lastname': 'Tables', 'email': 'tables@nsa.gov',
+                       'balance': 12500},
+            'mlarsen': {'username': 'mlarsen', 'firstname': 'Martin', 'lastname': 'Larsen', 'email': 'mlarsen@nsa.gov',
+                        'balance': 10000},
+            'tester': {'username': 'tester', 'firstname': 'Test', 'lastname': 'Testsen', 'email': 'tables@nsa.gov',
+                       'balance': 50000},
+        }
+        for member in self.members:
+            Member.objects.create(
+                username=self.members[member]['username'],
+                firstname=self.members[member]['firstname'],
+                lastname=self.members[member]['lastname'],
+                email=self.members[member]['email'],
+                balance=self.members[member]['balance']
+            ).save()
+
+        from stregsystem.utils import parse_csv_and_create_mobile_payments
+        with open(self.fixture_path, "r") as csv_file:
+            parse_csv_and_create_mobile_payments(csv_file.readlines())
+
+    def test_csv_parsing(self):
+        self.assertEqual(MobilePayment.objects.count(), 6)
+
+        # two bobby-payments in test data
+        self.assertEqual(MobilePayment.objects.filter(comment__icontains="tables").count(), 2)
+
+        payment_timestamp = MobilePayment.objects.get(transaction_id="156E027485173228").timestamp
+        # manually accounting for UTC+1 timezone at time of transaction
+        real_timestamp = datetime.datetime(2019, 11, 29, 12, 51, 8, tzinfo=pytz.UTC)
+        self.assertLess((payment_timestamp - real_timestamp).seconds, 1)
+
+    def test_multiple_csv_submission(self):
+        # csv fixture contains six payments, ensure that setup created those
+        self.assertEqual(MobilePayment.objects.count(), 6)
+
+        # do import once again on same csv fixture
+        from stregsystem.utils import parse_csv_and_create_mobile_payments
+        with open(self.fixture_path, "r") as csv_file:
+            parse_csv_and_create_mobile_payments(csv_file.readlines())
+
+        # mobilepayment count should remain unchanged
+        self.assertEqual(MobilePayment.objects.count(), 6)
+
+    def test_member_exact_matching(self):
+        for matched_member in MobilePayment.objects.filter(member__isnull=False):
+            self.assertEqual(matched_member.member, Member.objects.get(pk=matched_member.member.pk))
+
+    def test_approved_payment_balance(self):
+        # member balance unchanged
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+        # submit mobile payment
+        self.client.login(username="superuser", password="hunter2")
+
+        mobile_payment = MobilePayment.objects.get(transaction_id__exact="016E027417049990")
+        mobile_payment.status = MobilePayment.APPROVED
+        mobile_payment.save()
+
+        MobilePayment.submit_processed_mobile_payments(self.super_user)
+
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance,
+                         self.members["jdoe"]['balance'] + mobile_payment.amount)
+
+    def test_ignored_payment_balance(self):
+        # member balance unchanged
+        self.assertEqual(Member.objects.get(username__exact="tester").balance, self.members["tester"]['balance'])
+
+        # submit mobile payment
+        self.client.login(username="superuser", password="hunter2")
+
+        mobile_payment = MobilePayment.objects.get(transaction_id__exact="207E027395896809")
+        mobile_payment.status = MobilePayment.IGNORED
+        mobile_payment.save()
+
+        MobilePayment.submit_processed_mobile_payments(self.super_user)
+
+        self.assertEqual(Member.objects.get(username__exact="tester").balance, self.members["tester"]['balance'])
+
+    def test_batch_submission_balance(self):
+        # member balance unchanged
+        for member in self.members:
+            self.assertEqual(Member.objects.get(username__exact=self.members[member]['username']).balance,
+                             self.members[member]['balance'])
+
+        # submit mobile payment
+        self.client.login(username="superuser", password="hunter2")
+
+        # approve all exact matches
+        for matched_mobile_payment in MobilePayment.objects.filter(member__isnull=False):
+            matched_mobile_payment.status = MobilePayment.APPROVED
+            matched_mobile_payment.save()
+
+        # manually approve bobby
+        bobby_tables_mobile_payment1 = MobilePayment.objects.get(transaction_id__exact="232E027452733666")
+        bobby_tables_mobile_payment1.member = Member.objects.get(username__exact="tables")
+        bobby_tables_mobile_payment1.status = MobilePayment.APPROVED
+        bobby_tables_mobile_payment1.save()
+
+        MobilePayment.submit_processed_mobile_payments(self.super_user)
+
+        # assert that each member who has an approved mobile payment has their balance updated by the amount given
+        for approved_mobile_payment in MobilePayment.objects.filter(status__exact=MobilePayment.APPROVED):
+            member = Member.objects.get(pk=approved_mobile_payment.member.pk)
+            self.assertEqual(member.balance, approved_mobile_payment.amount + self.members[member.username]['balance'])
+
+    def test_member_balance_on_delete_approved_mobilepayment(self):
+        # member balance unchanged before submission
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+        # submit mobile payment
+        self.client.login(username="superuser", password="hunter2")
+
+        mobile_payment = MobilePayment.objects.get(transaction_id__exact="016E027417049990")
+        mobile_payment.status = MobilePayment.APPROVED
+        mobile_payment.save()
+
+        MobilePayment.submit_processed_mobile_payments(self.super_user)
+
+        # ensure new balance is mobilepayment amount
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance,
+                         self.members["jdoe"]['balance'] + mobile_payment.amount)
+
+        # delete payment
+        MobilePayment.objects.get(transaction_id__exact="016E027417049990").delete()
+
+        # ensure member balance is original amount, as deletion of mobilepayment should revert change
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+    def test_member_balance_on_delete_ignored_mobilepayment(self):
+        # member balance unchanged before submission
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+        # submit mobile payment
+        self.client.login(username="superuser", password="hunter2")
+
+        mobile_payment = MobilePayment.objects.get(transaction_id__exact="016E027417049990")
+        mobile_payment.status = MobilePayment.IGNORED
+        mobile_payment.save()
+
+        MobilePayment.submit_processed_mobile_payments(self.super_user)
+
+        # ensure balance is still initial amount
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+        # delete payment
+        mobile_payment.delete()
+
+        # ensure member balance is original amount, as deletion of mobilepayment should revert change
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+    def test_member_balance_on_delete_unset_mobilepayment(self):
+        # member balance unchanged before submission
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+        # submit mobile payments
+        self.client.login(username="superuser", password="hunter2")
+        MobilePayment.submit_processed_mobile_payments(self.super_user)
+
+        # ensure balance is still initial amount
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+        # delete payment
+        MobilePayment.objects.get(transaction_id__exact="016E027417049990").delete()
+
+        # ensure member balance is original amount, as deletion of mobilepayment should revert change
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+    def test_exact_guess(self):
+        self.assertEqual(Member.objects.get(username__exact="marx"), mobile_payment_exact_match_member("marx"))

@@ -1,14 +1,19 @@
 from collections import Counter
 from email.utils import parseaddr
 
+from django.contrib.admin.models import LogEntry, ADDITION
+from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.db.models import Count
 from django.utils import timezone
 
 from stregsystem.deprecated import deprecated
 from stregsystem.templatetags.stregsystem_extras import money
-from stregsystem.utils import date_to_midnight
+from stregsystem.utils import date_to_midnight, make_processed_mobilepayment_query, \
+    make_unprocessed_member_filled_mobilepayment_query
 from stregsystem.utils import send_payment_mail
+
 
 def price_display(value):
     return money(value) + " kr."
@@ -193,7 +198,7 @@ class Member(models.Model):  # id automatisk...
 
     def make_payment(self, amount):
         """
-        Should only be called by the Payment class.
+        Should only be called by the Payment and MobilePayment class.
 
         >>> jokke = Member.objects.create(username="jokke", firstname="Joakim", lastname="Byg", email="treo@cs.aau.dk", year=2007)
         >>> jokke.balance
@@ -313,10 +318,10 @@ class Payment(models.Model):  # id automatisk...
             # TODO: Make atomic
             self.member.make_payment(self.amount)
             super(Payment, self).save(*args, **kwargs)
-            self.member.save() 
-            if self.member.email != "":
+            self.member.save()
+            if self.member.email != "" and self.amount != 0:
                 if '@' in parseaddr(self.member.email)[1] and self.member.want_spam:
-                    send_payment_mail(self.member, self.amount)            
+                    send_payment_mail(self.member, self.amount)
 
     def delete(self, *args, **kwargs):
         if self.id:
@@ -326,6 +331,81 @@ class Payment(models.Model):  # id automatisk...
             self.member.save()
         else:
             super(Payment, self).delete(*args, **kwargs)
+
+
+class MobilePayment(models.Model):
+    UNSET = 'U'
+    APPROVED = 'A'
+    IGNORED = 'I'
+
+    STATUS_CHOICES = (
+        (UNSET, 'Unset'),
+        (APPROVED, 'Approved'),
+        (IGNORED, 'Ignored'),
+    )
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True,
+                               blank=True)  # nullable as mobile payment may not have match yet
+    payment = models.OneToOneField(Payment, on_delete=models.CASCADE, null=True, blank=True,
+                                   unique=True)  # Django does not consider null == null, so this works
+    customer_name = models.CharField(max_length=64)
+    timestamp = models.DateTimeField()
+    amount = models.IntegerField()
+    transaction_id = models.CharField(max_length=32,
+                                      unique=True)  # trans_ids are at most 17 chars, assumed to be unique
+    comment = models.CharField(max_length=128, blank=True, null=True)
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=UNSET)
+
+    def __str__(self):
+        return f"{self.member.username if self.member is not None else 'Not assigned'}, {self.customer_name}, " \
+               f"{self.timestamp}, {self.amount}, {self.transaction_id}, {self.comment}"
+
+    @transaction.atomic()
+    def delete(self, *args, **kwargs):
+        if self.id and self.payment is not None:
+            self.member.make_payment(-self.amount)
+            super(MobilePayment, self).delete(*args, **kwargs)
+            self.member.save()
+        else:
+            super(MobilePayment, self).delete(*args, **kwargs)
+
+    @staticmethod
+    @transaction.atomic
+    def submit_processed_mobile_payments(admin_user: User):
+        processed_payment: MobilePayment  # annotate iterated variable (PEP 526)
+        for processed_payment in make_processed_mobilepayment_query():
+
+            if processed_payment.status == MobilePayment.APPROVED:
+                payment = Payment(
+                    member=processed_payment.member,
+                    amount=processed_payment.amount)
+            else:
+                # otherwise it's an IGNORED payment
+                payment = Payment(
+                    member=processed_payment.member,
+                    amount=0)
+
+            # Save payment and foreign key to MobilePayment field
+            payment.save()
+            processed_payment.payment = payment
+            processed_payment.save()
+
+            LogEntry.objects.log_action(
+                user_id=admin_user.pk,
+                content_type_id=ContentType.objects.get_for_model(Payment).pk,
+                object_id=payment.id,
+                object_repr=str(payment),
+                action_flag=ADDITION,
+                change_message=f"{'Ignored' if processed_payment.status == MobilePayment.IGNORED else ''}"
+                               f"MobilePayment (transaction_id: {processed_payment.transaction_id})"
+            )
+
+    @staticmethod
+    @transaction.atomic
+    def approve_member_filled_mobile_payments():
+        for payment in make_unprocessed_member_filled_mobilepayment_query():
+            if payment.status == MobilePayment.UNSET:
+                payment.status = MobilePayment.APPROVED
+                payment.save()
 
 
 class Category(models.Model):

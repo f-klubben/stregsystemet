@@ -1,6 +1,8 @@
 import datetime
 
-import stregsystem.parser as parser
+from django.core import management
+from django.forms import modelformset_factory, formset_factory
+
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.conf import settings
@@ -9,10 +11,8 @@ from django import forms
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
-import stregsystem.parser as parser
 from django_select2 import forms as s2forms
 import urllib.parse
-
 
 from stregsystem import parser
 from stregsystem.models import (
@@ -24,15 +24,19 @@ from stregsystem.models import (
     Product,
     Room,
     Sale,
-    StregForbudError
+    StregForbudError,
+    MobilePayment
 )
 from stregsystem.utils import (
     make_active_productlist_query,
-    make_room_specific_query, qr_code
+    qr_code,
+    make_room_specific_query,
+    make_unprocessed_mobilepayment_query,
+    parse_csv_and_create_mobile_payments
 )
 
 from .booze import ballmer_peak
-from .forms import QRPaymentForm, PurchaseForm
+from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm
 
 
 def __get_news():
@@ -301,6 +305,65 @@ def batch_payment(request):
     })
 
 
+@staff_member_required()
+def mobilepaytool(request):
+    paytool_form_set = modelformset_factory(MobilePayment, form=MobilePayToolForm, extra=0, fields=(
+        'timestamp', 'amount', 'member', 'comment', 'status'))  # TODO: 'customer_name' removed, MobilepayAPI does not
+    # TODO-cont: have that information at this point in time - add back 'customer_name' if available in future
+    data = dict()
+    if request.method == "GET":
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+
+    elif request.method == "POST" and 'csv_file' in request.FILES and request.POST['action'] == "Import MobilePay CSV":
+        # Prepare uploaded CSV to be read
+        csv_file = request.FILES['csv_file']
+        csv_file.seek(0)
+
+        data['imports'], data['duplicates'] = parse_csv_and_create_mobile_payments(
+            str(csv_file.read().decode('utf-8')).splitlines())
+
+        # refresh form after submission
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+
+    elif request.method == "POST" and request.POST['action'] == "Import via MobilePay API":
+        before_count = MobilePayment.objects.count()
+        management.call_command('importmobilepaypayments')
+        count = MobilePayment.objects.count() - before_count
+
+        data['api'] = f"Successfully imported {count} MobilePay transactions"
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+
+    elif request.method == "POST" and request.POST['action'] == "Submit matched payments":
+        before_count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count()
+        MobilePayment.approve_member_filled_mobile_payments()
+        MobilePayment.submit_processed_mobile_payments(request.user)
+        count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count() - before_count
+
+        data['submitted_count'] = count
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+
+    elif request.method == "POST" and request.POST['action'] == "Submit payments":
+        form = paytool_form_set(request.POST)
+
+        if form.is_valid():
+            form.save()
+
+            before_count = MobilePayment.objects.filter(payment__isnull=True).count()
+            MobilePayment.submit_processed_mobile_payments(request.user)
+            count = before_count - MobilePayment.objects.filter(payment__isnull=True).count()
+
+            data['submitted_count'] = count
+            # refresh form after submission
+            data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+        else:
+            # update form with errors
+            data['formset'] = form
+    else:
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+
+    return render(request, "admin/stregsystem/mobilepaytool.html", data)
+
+  
 def qr_payment(request):
     form = QRPaymentForm(request.GET)
     if not form.is_valid():

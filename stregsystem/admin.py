@@ -12,8 +12,10 @@ from stregsystem.models import (
     PayTransaction,
     Product,
     Room,
-    Sale
+    Sale,
+    MobilePayment
 )
+from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
     make_active_productlist_query,
     make_inactive_productlist_query
@@ -222,7 +224,7 @@ class MemberAdmin(admin.ModelAdmin):
 
 
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('get_username', 'timestamp', 'get_amount_display')
+    list_display = ('get_username', 'timestamp', 'get_amount_display', 'is_mobilepayment')
     valid_lookups = ('member')
     search_fields = ['member__username']
     autocomplete_fields = ['member']
@@ -237,18 +239,57 @@ class PaymentAdmin(admin.ModelAdmin):
     get_username.admin_order_field = "member__username"
 
     def get_amount_display(self, obj):
-        if obj.amount is None:
-            obj.amount = 0
-        return "{0:.2f} kr.".format(obj.amount / 100.0)
+        return money(obj.amount)
 
     get_amount_display.short_description = "Amount"
     get_amount_display.admin_order_field = "amount"
+
+
+    def is_mobilepayment(self, obj):
+        return MobilePayment.objects.filter(payment=obj.pk).exists()
+
+    is_mobilepayment.short_description = "From MobilePayment"
+    is_mobilepayment.admin_order_field = "from_mobilepayment"
+    is_mobilepayment.boolean = True
+
+
+class MobilePaymentAdmin(admin.ModelAdmin):
+    list_display = (
+        'payment', 'customer_name', 'comment', 'timestamp', 'transaction_id', 'get_amount_display', 'status')
+    valid_lookups = 'member'
+    search_fields = ['member__username']
+    autocomplete_fields = ['member', 'payment']
+
+    class Media:
+        css = {'all': ('stregsystem/select2-stregsystem.css',)}
+
+    def get_amount_display(self, obj):
+        return money(obj.amount)
+
+    get_amount_display.short_description = "Amount"
+    get_amount_display.admin_order_field = "amount"
+
+    # django-bug, .delete() is not called https://stackoverflow.com/questions/1471909/django-model-delete-not-triggered
+    actions = ['really_delete_selected']
+
+    def get_actions(self, request):
+        actions = super(MobilePaymentAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    def really_delete_selected(self, _, queryset):
+        for obj in queryset:
+            obj.delete()
+
+    really_delete_selected.short_description = "Delete and refund selected entries"
+
 
 class LogEntryAdmin(admin.ModelAdmin):
     date_hierarchy = 'action_time'
     list_filter = ['content_type', 'action_flag']
     search_fields = ['object_repr', 'change_message', 'user__username']
     list_display = ['action_time', 'user', 'content_type', 'object_id', 'action_flag', 'change_message', 'object_repr']
+
 
     def has_view_permission(self, request, obj=None):
         return request.user.is_superuser
@@ -272,3 +313,4 @@ admin.site.register(News)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Room)
+admin.site.register(MobilePayment, MobilePaymentAdmin)
