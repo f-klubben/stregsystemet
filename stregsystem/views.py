@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 import stregsystem.parser as parser
 from django_select2 import forms as s2forms
+import urllib.parse
 
 
 from stregsystem import parser
@@ -27,11 +28,11 @@ from stregsystem.models import (
 )
 from stregsystem.utils import (
     make_active_productlist_query,
-    make_room_specific_query
+    make_room_specific_query, qr_code
 )
 
 from .booze import ballmer_peak
-from .forms import PurchaseForm
+from .forms import QRPaymentForm, PurchaseForm
 
 
 def __get_news():
@@ -298,3 +299,21 @@ def batch_payment(request):
         "select2_js": settings.SELECT2_JS,
         "select2_css": settings.SELECT2_CSS,
     })
+
+
+def qr_payment(request):
+    form = QRPaymentForm(request.GET)
+    if not form.is_valid():
+        return HttpResponseBadRequest("Invalid input for MobilePay QR code generation")
+
+    query = {
+        'phone': '90601',
+        'comment': form.cleaned_data.get('member')
+    }
+
+    if form.cleaned_data.get("amount") is not None:
+        query['amount'] = form.cleaned_data.get("amount")
+
+    data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
+
+    return qr_code(data)

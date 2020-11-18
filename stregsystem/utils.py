@@ -3,11 +3,16 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from django.conf import settings
+from django.http import HttpResponse
 from django.test.runner import DiscoverRunner
 
 from django.db.models import Count, F, Q
 from django.utils import timezone
 from stregsystem.templatetags.stregsystem_extras import money
+
+import qrcode
+import qrcode.image.svg
+
 logger = logging.getLogger(__name__)
 
 
@@ -118,6 +123,15 @@ def send_payment_mail(member, amount):
         smtpObj.sendmail('treo@fklub.dk', member.email, msg.as_string())
     except Exception as e:
         logger.error(str(e))
+
+
+def qr_code(data):
+    response = HttpResponse(content_type="image/svg+xml")
+    qr = qrcode.make(data, image_factory=qrcode.image.svg.SvgPathFillImage)
+    qr.save(response)
+
+    return response
+
 
 class stregsystemTestRunner(DiscoverRunner):
     def __init__(self, *args, **kwargs):
