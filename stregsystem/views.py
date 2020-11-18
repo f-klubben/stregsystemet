@@ -307,4 +307,4 @@ def qr_payment(request):
 
     data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
 
-    return qr_code(request, data)
+    return qr_code(data)
