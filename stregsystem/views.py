@@ -1,17 +1,18 @@
 import datetime
 
-import stregsystem.parser as parser
+from django.core import management
+from django.forms import modelformset_factory, formset_factory
+
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.conf import settings
 from django.db.models import Q
 from django import forms
-from django.http import HttpResponsePermanentRedirect
+from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
-import stregsystem.parser as parser
 from django_select2 import forms as s2forms
-
+import urllib.parse
 
 from stregsystem import parser
 from stregsystem.models import (
@@ -23,14 +24,19 @@ from stregsystem.models import (
     Product,
     Room,
     Sale,
-    StregForbudError
+    StregForbudError,
+    MobilePayment
 )
 from stregsystem.utils import (
     make_active_productlist_query,
-    make_room_specific_query
+    qr_code,
+    make_room_specific_query,
+    make_unprocessed_mobilepayment_query,
+    parse_csv_and_create_mobile_payments
 )
 
 from .booze import ballmer_peak
+from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm
 
 
 def __get_news():
@@ -218,26 +224,35 @@ def menu_sale(request, room_id, member_id, product_id=None):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
+
     product = None
-    try:
-        product = Product.objects.get(Q(pk=product_id), Q(active=True), Q(rooms__id=room_id) | Q(rooms=None),
-                                      Q(deactivate_date__gte=timezone.now()) | Q(deactivate_date__isnull=True))
+    if request.method == 'POST':
+        purchase = PurchaseForm(request.POST)
+        if not purchase.is_valid():
+            return HttpResponseBadRequest(
+                "Cannot complete sale, get help at /dev/null or at mailto:[treo|fit]@fklub.dk")
 
-        order = Order.from_products(
-            member=member,
-            room=room,
-            products=(product, )
-        )
+        try:
+            product = Product.objects.get(Q(pk=purchase.cleaned_data['product_id']), Q(active=True), Q(rooms__id=room_id) | Q(rooms=None),
+                                          Q(deactivate_date__gte=timezone.now()) | Q(deactivate_date__isnull=True))
 
-        order.execute()
+            order = Order.from_products(
+                member=member,
+                room=room,
+                products=(product,)
+            )
 
-    except Product.DoesNotExist:
-        pass
-    except StregForbudError:
-        return render(request, 'stregsystem/error_stregforbud.html', locals())
-    except NoMoreInventoryError:
-        # @INCOMPLETE this should render with a different template
-        return render(request, 'stregsystem/error_stregforbud.html', locals())
+            order.execute()
+
+        except Product.DoesNotExist:
+            pass
+        except StregForbudError:
+            return render(request, 'stregsystem/error_stregforbud.html', locals())
+        except NoMoreInventoryError:
+            # @INCOMPLETE this should render with a different template
+            return render(request, 'stregsystem/error_stregforbud.html', locals())
+
+
     # Refresh member, to get new amount
     member = Member.objects.get(pk=member_id, active=True)
     return usermenu(request, room, member, product, from_sale=True)
@@ -288,3 +303,80 @@ def batch_payment(request):
         "select2_js": settings.SELECT2_JS,
         "select2_css": settings.SELECT2_CSS,
     })
+
+
+@staff_member_required()
+def mobilepaytool(request):
+    paytool_form_set = modelformset_factory(MobilePayment, form=MobilePayToolForm, extra=0, fields=(
+        'timestamp', 'amount', 'member', 'comment', 'status'))  # TODO: 'customer_name' removed, MobilepayAPI does not
+    # TODO-cont: have that information at this point in time - add back 'customer_name' if available in future
+    data = dict()
+    if request.method == "GET":
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+
+    elif request.method == "POST" and 'csv_file' in request.FILES and request.POST['action'] == "Import MobilePay CSV":
+        # Prepare uploaded CSV to be read
+        csv_file = request.FILES['csv_file']
+        csv_file.seek(0)
+
+        data['imports'], data['duplicates'] = parse_csv_and_create_mobile_payments(
+            str(csv_file.read().decode('utf-8')).splitlines())
+
+        # refresh form after submission
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+
+    elif request.method == "POST" and request.POST['action'] == "Import via MobilePay API":
+        before_count = MobilePayment.objects.count()
+        management.call_command('importmobilepaypayments')
+        count = MobilePayment.objects.count() - before_count
+
+        data['api'] = f"Successfully imported {count} MobilePay transactions"
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+
+    elif request.method == "POST" and request.POST['action'] == "Submit matched payments":
+        before_count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count()
+        MobilePayment.approve_member_filled_mobile_payments()
+        MobilePayment.submit_processed_mobile_payments(request.user)
+        count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count() - before_count
+
+        data['submitted_count'] = count
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+
+    elif request.method == "POST" and request.POST['action'] == "Submit payments":
+        form = paytool_form_set(request.POST)
+
+        if form.is_valid():
+            form.save()
+
+            before_count = MobilePayment.objects.filter(payment__isnull=True).count()
+            MobilePayment.submit_processed_mobile_payments(request.user)
+            count = before_count - MobilePayment.objects.filter(payment__isnull=True).count()
+
+            data['submitted_count'] = count
+            # refresh form after submission
+            data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+        else:
+            # update form with errors
+            data['formset'] = form
+    else:
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+
+    return render(request, "admin/stregsystem/mobilepaytool.html", data)
+
+  
+def qr_payment(request):
+    form = QRPaymentForm(request.GET)
+    if not form.is_valid():
+        return HttpResponseBadRequest("Invalid input for MobilePay QR code generation")
+
+    query = {
+        'phone': '90601',
+        'comment': form.cleaned_data.get('member')
+    }
+
+    if form.cleaned_data.get("amount") is not None:
+        query['amount'] = form.cleaned_data.get("amount")
+
+    data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
+
+    return qr_code(data)

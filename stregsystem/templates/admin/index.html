@@ -20,7 +20,7 @@
         <caption><a href="{{ app.app_url }}" class="section">{% blocktrans with app.name as name %}{{ name }}{% endblocktrans %}</a></caption>
         {% for model in app.models %}
             <tr>
-            {% if model.perms.change %}
+            {% if model.perms.view %}
                 <th scope="row"><a href="{{ model.admin_url }}">{{ model.name }}</a></th>
             {% else %}
                 <th scope="row">{{ model.name }}</th>
@@ -79,6 +79,11 @@
     <div class="module">
         <table>
         <caption><a class="section">{% blocktrans with app.name as name %}Indbetalinger{% endblocktrans %}</a></caption>
+            <tr>
+                <th scope="row"><a href = "/admin/mobilepaytool/">MobilePaytool</a></th>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+            </tr>
             <tr>
                 <th scope="row"><a href = "/admin/batch/">Multi-indbetaling</a></th>
                 <td>&nbsp;</td>

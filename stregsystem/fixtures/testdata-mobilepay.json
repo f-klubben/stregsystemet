@@ -1,0 +1,327 @@
+[
+  {
+    "model": "stregsystem.member",
+    "pk": 1,
+    "fields": {
+      "active": true,
+      "username": "tester",
+      "year": "2017",
+      "firstname": "Test",
+      "lastname": "Testsen",
+      "gender": "U",
+      "email": "plznospam@fklub.dk",
+      "want_spam": true,
+      "balance": 13366037,
+      "undo_count": 0,
+      "notes": "This is a test user."
+    }
+  },
+  {
+    "model": "stregsystem.member",
+    "pk": 2,
+    "fields": {
+      "active": true,
+      "username": "mlarsen",
+      "year": "2020",
+      "firstname": "Martin",
+      "lastname": "Larsen",
+      "gender": "M",
+      "email": "mlarsen@nsa.gov",
+      "want_spam": true,
+      "balance": 10000,
+      "undo_count": 0,
+      "notes": ""
+    }
+  },
+  {
+    "model": "stregsystem.member",
+    "pk": 3,
+    "fields": {
+      "active": true,
+      "username": "tables",
+      "year": "2020",
+      "firstname": "Bobby",
+      "lastname": "Tables",
+      "gender": "M",
+      "email": "tables@nsa.gov",
+      "want_spam": true,
+      "balance": 12500,
+      "undo_count": 0,
+      "notes": ""
+    }
+  },
+  {
+    "model": "stregsystem.member",
+    "pk": 4,
+    "fields": {
+      "active": true,
+      "username": "marx",
+      "year": "2020",
+      "firstname": "Karl",
+      "lastname": "Marx",
+      "gender": "M",
+      "email": "kmarx@nsa.gov",
+      "want_spam": true,
+      "balance": 6900,
+      "undo_count": 0,
+      "notes": ""
+    }
+  },
+  {
+    "model": "stregsystem.member",
+    "pk": 5,
+    "fields": {
+      "active": true,
+      "username": "jdoe",
+      "year": "2020",
+      "firstname": "John",
+      "lastname": "Doe",
+      "gender": "M",
+      "email": "jdoe@nsa.gov",
+      "want_spam": true,
+      "balance": 42000,
+      "undo_count": 0,
+      "notes": ""
+    }
+  },
+  {
+    "model": "stregsystem.mobilepayment",
+    "pk": 1,
+    "fields": {
+      "member": null,
+      "payment": null,
+      "customer_name": "Martin Larsen",
+      "timestamp": "2019-11-29T12:51:08.857Z",
+      "amount": 6969,
+      "transaction_id": "156E027485173228",
+      "comment": "mlarsen indbetalt ",
+      "status": "U"
+    }
+  },
+  {
+    "model": "stregsystem.mobilepayment",
+    "pk": 2,
+    "fields": {
+      "member": null,
+      "payment": null,
+      "customer_name": "Bobby Tables",
+      "timestamp": "2019-11-28T16:40:55.719Z",
+      "amount": 50000,
+      "transaction_id": "232E027452733666",
+      "comment": "tables eksdee",
+      "status": "U"
+    }
+  },
+  {
+    "model": "stregsystem.mobilepayment",
+    "pk": 3,
+    "fields": {
+      "member": 4,
+      "payment": null,
+      "customer_name": "Karl Marx",
+      "timestamp": "2019-11-28T14:30:58.357Z",
+      "amount": 20000,
+      "transaction_id": "241E027449465355",
+      "comment": "marx",
+      "status": "U"
+    }
+  },
+  {
+    "model": "stregsystem.mobilepayment",
+    "pk": 4,
+    "fields": {
+      "member": null,
+      "payment": null,
+      "customer_name": "Bobby Tables",
+      "timestamp": "2019-11-28T16:40:55.719Z",
+      "amount": 50000,
+      "transaction_id": "232E027452733676",
+      "comment": "tables eksdee",
+      "status": "U"
+    }
+  },
+  {
+    "model": "stregsystem.mobilepayment",
+    "pk": 5,
+    "fields": {
+      "member": 5,
+      "payment": null,
+      "customer_name": "John Doe",
+      "timestamp": "2019-11-27T11:15:38.529Z",
+      "amount": 15000,
+      "transaction_id": "016E027417049990",
+      "comment": "jdoe",
+      "status": "U"
+    }
+  },
+  {
+    "model": "stregsystem.mobilepayment",
+    "pk": 6,
+    "fields": {
+      "member": 1,
+      "payment": null,
+      "customer_name": "Tester Testsen",
+      "timestamp": "2019-11-26T11:54:37.521Z",
+      "amount": 20000,
+      "transaction_id": "207E027395896809",
+      "comment": "tester",
+      "status": "U"
+    }
+  },
+  {
+    "model": "stregsystem.room",
+    "pk": 1,
+    "fields": {
+      "name": "testrummet",
+      "description": "127.0.0.1"
+    }
+  },
+  {
+    "model": "stregsystem.room",
+    "pk": 2,
+    "fields": {
+      "name": "maymayrummet",
+      "description": "svedigt"
+    }
+  },
+  {
+    "model": "stregsystem.product",
+    "pk": 1,
+    "fields": {
+      "name": "Test \u00d8L",
+      "price": 100,
+      "active": true,
+      "start_date": null,
+      "quantity": 0,
+      "deactivate_date": null,
+      "alcohol_content_ml": 0.0,
+      "categories": [],
+      "rooms": []
+    }
+  },
+  {
+    "model": "stregsystem.product",
+    "pk": 2,
+    "fields": {
+      "name": "Kold Kaffe",
+      "price": 200,
+      "active": true,
+      "start_date": null,
+      "quantity": 0,
+      "deactivate_date": null,
+      "alcohol_content_ml": 0.0,
+      "categories": [],
+      "rooms": []
+    }
+  },
+  {
+    "model": "stregsystem.product",
+    "pk": 3,
+    "fields": {
+      "name": "Fad\u00f8l",
+      "price": 1500,
+      "active": true,
+      "start_date": null,
+      "quantity": 0,
+      "deactivate_date": null,
+      "alcohol_content_ml": 0.0,
+      "categories": [],
+      "rooms": [
+        1
+      ]
+    }
+  },
+  {
+    "model": "stregsystem.product",
+    "pk": 13,
+    "fields": {
+      "name": "Fake \u00d8L",
+      "price": 300,
+      "active": true,
+      "start_date": null,
+      "quantity": 0,
+      "deactivate_date": null,
+      "alcohol_content_ml": 0.0,
+      "categories": [],
+      "rooms": []
+    }
+  },
+  {
+    "model": "stregsystem.oldprice",
+    "pk": 1,
+    "fields": {
+      "product": 1,
+      "price": 100,
+      "changed_on": "2017-03-13T12:43:28.044Z"
+    }
+  },
+  {
+    "model": "stregsystem.oldprice",
+    "pk": 2,
+    "fields": {
+      "product": 2,
+      "price": 200,
+      "changed_on": "2017-03-13T12:43:40.784Z"
+    }
+  },
+  {
+    "model": "stregsystem.oldprice",
+    "pk": 3,
+    "fields": {
+      "product": 2,
+      "price": 200,
+      "changed_on": "2017-03-13T12:43:42.151Z"
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 1,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2017-03-13T12:52:52.142Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 2,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2017-03-13T12:54:12.423Z",
+      "price": 200
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 3,
+    "fields": {
+      "member": 1,
+      "product": 13,
+      "room": 1,
+      "timestamp": "2017-03-13T13:38:10.573Z",
+      "price": 300
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$30000$ivRA8qABWClG$pxi2R4uyotlGpwa66RQuDOXFaO9JElQutMFJqXmnOdI=",
+      "last_login": "2017-03-13T12:41:13.546+00:00",
+      "is_superuser": true,
+      "username": "tester",
+      "first_name": "test",
+      "last_name": "testsen",
+      "email": "",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2017-03-06T10:53:54+00:00",
+      "groups": [],
+      "user_permissions": []
+    }
+  }
+]

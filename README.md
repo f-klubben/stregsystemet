@@ -1,4 +1,4 @@
-Stregsystemet [![Build Status](https://travis-ci.org/f-klubben/stregsystemet.svg?branch=next)](https://travis-ci.org/f-klubben/stregsystemet) [![Coverage Status](https://coveralls.io/repos/github/f-klubben/stregsystemet/badge.svg?branch=next)](https://coveralls.io/github/f-klubben/stregsystemet?branch=next)
+Stregsystemet [![Django CI Actions Status](https://github.com/f-klubben/stregsystemet/workflows/Django%20CI/badge.svg)](https://github.com/f-klubben/stregsystemet/actions)  [![codecov](https://codecov.io/gh/f-klubben/stregsystemet/branch/next/graph/badge.svg)](https://codecov.io/gh/f-klubben/stregsystemet) 
 ========
 
 This is the current stregsystem in the F-Klub.
