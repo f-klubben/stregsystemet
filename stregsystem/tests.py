@@ -134,7 +134,7 @@ class SaleViewTests(TestCase):
         member_id = 1
         member_before = Member.objects.get(id=member_id)
 
-        response = self.client.get(reverse('menu_sale', args=(1, member_id, 1)))
+        response = self.client.post(reverse('menu', args=(1, member_id)), data={'product_id': 1})
 
         member_after = Member.objects.get(id=member_id)
 
@@ -148,7 +148,7 @@ class SaleViewTests(TestCase):
     def test_make_sale_menusale_success(self, fulfill, can_fulfill):
         can_fulfill.return_value = True
 
-        response = self.client.get(reverse('menu_sale', args=(1, 1, 1)))
+        response = self.client.post(reverse('menu', args=(1, 1)), data={'product_id': 1})
         self.assertTemplateUsed(response, "stregsystem/menu.html")
 
         self.assertEqual(response.status_code, 200)
@@ -317,7 +317,7 @@ class SaleViewTests(TestCase):
         before_product = Product.objects.get(id=4)
         before_member = Member.objects.get(username="jokke")
 
-        response = self.client.get(reverse('menu_sale', args=(1, before_member.id, 4)))
+        response = self.client.post(reverse('menu', args=(1, before_member.id)), data={'product_id': 4})
 
         after_product = Product.objects.get(id=4)
         after_member = Member.objects.get(username="jokke")

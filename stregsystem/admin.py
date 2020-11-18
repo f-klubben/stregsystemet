@@ -2,6 +2,7 @@ from django.contrib import admin
 from django import forms
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from django.contrib import messages
+from django.contrib.admin.models import LogEntry
 
 from stregsystem.models import (
     Category,
@@ -243,6 +244,7 @@ class PaymentAdmin(admin.ModelAdmin):
     get_amount_display.short_description = "Amount"
     get_amount_display.admin_order_field = "amount"
 
+
     def is_mobilepayment(self, obj):
         return MobilePayment.objects.filter(payment=obj.pk).exists()
 
@@ -282,6 +284,28 @@ class MobilePaymentAdmin(admin.ModelAdmin):
     really_delete_selected.short_description = "Delete and refund selected entries"
 
 
+class LogEntryAdmin(admin.ModelAdmin):
+    date_hierarchy = 'action_time'
+    list_filter = ['content_type', 'action_flag']
+    search_fields = ['object_repr', 'change_message', 'user__username']
+    list_display = ['action_time', 'user', 'content_type', 'object_id', 'action_flag', 'change_message', 'object_repr']
+
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    
+
+admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(Member, MemberAdmin)
 admin.site.register(Payment, PaymentAdmin)

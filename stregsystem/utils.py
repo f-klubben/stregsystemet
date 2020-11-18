@@ -6,11 +6,15 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.http import HttpResponse
 from django.test.runner import DiscoverRunner
 
 from django.db.models import Count, F, Q
 from django.utils import timezone
 from stregsystem.templatetags.stregsystem_extras import money
+
+import qrcode
+import qrcode.image.svg
 
 logger = logging.getLogger(__name__)
 
@@ -174,6 +178,14 @@ def mobile_payment_exact_match_member(comment):
     elif match.count() > 1:
         # something is very wrong, there should be no active users which are duplicates post PR #178
         raise RuntimeError("Duplicate usernames found at MobilePayment import. Should not exist post PR #178")
+
+        
+def qr_code(data):
+    response = HttpResponse(content_type="image/svg+xml")
+    qr = qrcode.make(data, image_factory=qrcode.image.svg.SvgPathFillImage)
+    qr.save(response)
+
+    return response
 
 
 class stregsystemTestRunner(DiscoverRunner):

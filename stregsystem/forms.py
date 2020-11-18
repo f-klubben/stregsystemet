@@ -1,4 +1,4 @@
-import django.forms
+from django import forms
 
 from stregsystem.models import MobilePayment, Member
 from django_select2 import forms as s2forms
@@ -9,12 +9,12 @@ class Select2MemberWidget(s2forms.ModelSelect2Widget):
     model = Member
 
 
-class MobilePayToolForm(django.forms.ModelForm):
+class MobilePayToolForm(forms.ModelForm):
     class Meta:
         model = MobilePayment
         fields = ('timestamp', 'amount', 'member', 'customer_name', 'comment', 'status')
         widgets = {"member": Select2MemberWidget,
-                   "status": django.forms.RadioSelect(choices=MobilePayment.STATUS_CHOICES)}
+                   "status": forms.RadioSelect(choices=MobilePayment.STATUS_CHOICES)}
 
     def __init__(self, *args, **kwargs):
         super(MobilePayToolForm, self).__init__(*args, **kwargs)
@@ -23,3 +23,12 @@ class MobilePayToolForm(django.forms.ModelForm):
             for field in self.fields:
                 if field in ['amount', 'customer_name', 'comment']:
                     self.fields[field].widget.attrs['readonly'] = True
+
+
+class QRPaymentForm(forms.Form):
+    member = forms.CharField(max_length=16)
+    amount = forms.IntegerField(min_value=50, required=False)
+
+    
+class PurchaseForm(forms.Form):
+    product_id = forms.IntegerField()

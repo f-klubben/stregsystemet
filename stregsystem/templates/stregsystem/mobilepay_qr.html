@@ -1,5 +1,5 @@
 {% if amount %}
-<img width="200" height="200" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=mobilepay%3A%2F%2Fsend%3Fphone%3D90601%26comment%3D{{username}}%26amount%3D{{amount | floatformat}}" />
+<img width="300" height="300" src="/api/member/payment/qr?member={{username | urlencode}}&amount={{amount | floatformat | urlencode}}" />
 {% else %}
-<img width="200" height="200" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=mobilepay%3A%2F%2Fsend%3Fphone%3D90601%26comment%3D{{username}}" />
+<img width="300" height="300" src="/api/member/payment/qr?member={{username | urlencode}}" />
 {% endif %}
