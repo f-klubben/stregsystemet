@@ -114,7 +114,9 @@ har {{member.balance|money}} kroner til gode!
 {% if give_multibuy_hint %}
     <center>
         <h1>psssst. multibuy er enabled.</h1>
+        {% autoescape off %}
         <b> Du kunne have skrevet: {{sale_hints}} </b>
+        {% endautoescape %}
     </center>
 {% endif %}
 <div style="clear: both;">&nbsp;</div>
