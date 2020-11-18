@@ -148,6 +148,10 @@ class GetTransaction(MoneyTransaction):
         return self.amount
 
 
+def get_current_year():
+    return str(timezone.now().year)
+
+
 class Member(models.Model):  # id automatisk...
     GENDER_CHOICES = (
         ('U', 'Unknown'),
@@ -156,7 +160,7 @@ class Member(models.Model):  # id automatisk...
     )
     active = models.BooleanField(default=True)
     username = models.CharField(max_length=16)
-    year = models.CharField(max_length=4, default="{}".format(timezone.now().year))  # Put the current year as default
+    year = models.CharField(max_length=4, default=get_current_year)  # Put the current year as default
     firstname = models.CharField(max_length=20)  # for 'firstname'
     lastname = models.CharField(max_length=30)  # for 'lastname'
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
