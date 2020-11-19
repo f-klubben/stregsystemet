@@ -13,8 +13,7 @@ class MobilePayToolForm(forms.ModelForm):
     class Meta:
         model = MobilePayment
         fields = ('timestamp', 'amount', 'member', 'customer_name', 'comment', 'status')
-        widgets = {"member": Select2MemberWidget,
-                   "status": forms.RadioSelect(choices=MobilePayment.STATUS_CHOICES)}
+        widgets = {"member": Select2MemberWidget, "status": forms.RadioSelect(choices=MobilePayment.STATUS_CHOICES)}
 
     def __init__(self, *args, **kwargs):
         super(MobilePayToolForm, self).__init__(*args, **kwargs)
@@ -29,6 +28,6 @@ class QRPaymentForm(forms.Form):
     member = forms.CharField(max_length=16)
     amount = forms.IntegerField(min_value=50, required=False)
 
-    
+
 class PurchaseForm(forms.Form):
     product_id = forms.IntegerField()

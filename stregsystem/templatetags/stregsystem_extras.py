@@ -18,5 +18,6 @@ register.filter('money', money)
 def show_candle():
     return {'date': timezone.now()}
 
+
 t = get_template('stregsystem/adventcandle.html')
 register.inclusion_tag(t)(show_candle)
