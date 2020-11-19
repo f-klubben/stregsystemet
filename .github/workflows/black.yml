@@ -1,0 +1,19 @@
+name: Black formatter check
+
+on:
+  push:
+    branches: [ next ]
+  pull_request:
+    branches: [ next ]
+
+
+jobs:
+  black:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Black Code Formatter
+      uses: lgeiger/black-action@v1.0.1
+      with:
+        args: " --check -t py36 -l 120 --exclude 'migrations' stregsystem stregreport kiosk"
+

@@ -2,7 +2,7 @@ name: Django CI
 
 on:
   push:
-    branches: [ next, cleanup ]
+    branches: [ next ]
   pull_request:
     branches: [ next ]
 
@@ -34,9 +34,4 @@ jobs:
         coverage report
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v1.0.14    
-    - name: Black Code Formatter
-      uses: lgeiger/black-action@v1.0.1
-      with:
-        args: " --check -t py36 -l 120 --exclude 'migrations' stregsystem stregreport kiosk"
-
 
