@@ -18,16 +18,19 @@ If you want to contribute code you should fork the project.
 
 The project only strives to be Python 3 compliant.
 
-### Coding standards
-We try to adhere to `flake8` whenever possible. Mostly to avoid any
+## Coding standards
+We try to adhere to the [black codestyle](https://github.com/psf/black) whenever possible. Mostly to avoid any
 discussions about coding style.
 
-You can run install `flake8` and run `flake8 --install-hook` to install
-a pre-commit hook.
+Run `tox` to both run tests, generate coverage for these, and auto-format with black. The options for black are:
+```
+black -t py36 -l 120 --exclude 'migrations' stregsystem stregreport kiosk
+```
 
 ### Branches
  - `master`: The running code on the live system.
  - `next`: The set of changes which will be included in the next release.
+ - `{feature, bugfix, hotfix}-<name>`: Preferred naming of branches
 
 ### Using test data
 In order to simplify development for all, we have included a test fixture.
