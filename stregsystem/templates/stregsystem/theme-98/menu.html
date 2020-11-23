@@ -1,0 +1,141 @@
+{% extends "stregsystem/theme-98/base.html" %}
+
+{% load stregsystem_extras %}
+{% load listutil %}
+
+{% block title %}Treoens stregsystem : Menu {% endblock %}
+
+{% block content %}
+
+<center><h3>{{member.firstname}} {{member.lastname}} ({{member.email}})</h3></center>
+
+<center><h4>Du
+{% if negative_balance %}
+skylder <span style="color: red;">{{member.balance|money|cut:"-"}}</span> kroner
+{% else %}
+har {{member.balance|money}} kroner til gode!
+{% endif %}
+</h4></center>
+
+<center>
+<table cellpadding="8px">
+   <tr>
+      <th>
+         <a href="/{{room.id}}/user/{{member.id}}">Bruger Info</a>
+      </th>
+      <th>
+        <a href="/{{room.id}}/user/{{member.id}}/pay">Indsæt penge</a>
+      </th>
+{% comment %}
+      <th>
+         <a href="/{{room.id}}/user/{{member.id}}/undo">Fortryd køb</a>
+      </th>
+{% endcomment %}
+
+{% comment %}
+      <th>
+         <a href="/index.php3?multiple=1&user_id=2024">Multi-køb</a>
+      </th>
+{% endcomment %}
+
+   </tr>
+</table>
+</center>
+<br />
+
+<center>Køb et produkt ved at trykke på et produktnavn i tabellerne nedenfor.</center>
+
+<br />
+
+<div id="message" style="text-align: center;">
+{% block message %}
+{% if bought %}
+<blink><b>Du har lige købt en {{bought.name}} til {{bought.price|money}} kr.</b></blink>
+{% endif %}
+{% if promille %}
+    {% if is_ballmer_peaking %}
+        <br />Du Ballmer-peaker!! Du kan producere god kode de næste: {{ bp_minutes|floatformat:0 }} minuter og {{ bp_seconds|floatformat:0 }} sekunder!
+    {% else %}
+        <br />Din alkohol promille er ca. <b>{{promille|floatformat:2}}‰</b>
+    {% endif %}
+{% endif %}
+
+<br />
+{% endblock %}
+</div>
+
+<center>
+<div id="productlist" style="12px; width: 100%; margin-left: auto; margin-right: auto;">
+{% block products %}
+{% autoescape off %}
+{% if product_list %}
+<table cellpadding="0" cellspacing="0" border="0">
+	<tr>
+		<td valign="top">
+			<table border="1" cellspacing="2" cellpadding="2">
+			  <tr>
+			    <th>Produkt</th>
+			    <th>Pris</th>
+			  </tr>
+			  {% for product in product_list|partition:"2"|first %}
+			  <tr>
+			    <td>
+                    <form method="post" action="/{{ room.id }}/sale/{{ member.id }}/">
+                        {% csrf_token %}
+                        <a href="" onclick="this.closest('form').submit();return false;">{{product.name}}</a>
+                        <input type="hidden" value="{{ product.id }}" name="product_id">
+                        <input type="hidden" value="{{ room.id }}" name="room_id">
+                        <input type="hidden" value="{{ member.id }}" name="member_id">
+                    </form>
+                </td>
+			    <td align="right">{{product.price|money}} kr</td>
+			  </tr>
+			  {% endfor %}
+			</table>
+		</td>
+        {% if product_list|partition:"2"|last %}
+            <td width="30">&nbsp;</td>
+            <td valign="top">
+                <table border="1" cellspacing="2" cellpadding="2">
+                  <tr>
+                    <th>Produkt</th>
+                    <th>Pris</th>
+                  </tr>
+                  {% for product in product_list|partition:"2"|last %}
+                  <tr>
+                    <td>
+                        <form method="post" action="/{{ room.id }}/sale/{{ member.id }}/">
+                            {% csrf_token %}
+                            <a href="" onclick="this.closest('form').submit();return false;">{{product.name}}</a>
+                            <input type="hidden" value="{{ product.id }}" name="product_id">
+                            <input type="hidden" value="{{ room.id }}" name="room_id">
+                            <input type="hidden" value="{{ member.id }}" name="member_id">
+                        </form>
+                    </td>
+                    <td align="right">{{product.price|money}} kr</td>
+                  </tr>
+                  {% endfor %}
+                </table>
+            </td>
+        {% endif %}
+	</tr>
+</table>
+{% else %}
+<p>Ingen produkter.</p>
+{% endif %}
+{% endautoescape %}
+{% endblock %}
+</center>
+<br />
+{% if give_multibuy_hint %}
+    <center>
+        <h1>psssst. multibuy er enabled.</h1>
+        {% autoescape off %}
+        <b> Du kunne have skrevet: {{sale_hints}} </b>
+        {% endautoescape %}
+    </center>
+{% endif %}
+<div style="clear: both;">&nbsp;</div>
+
+{% endblock %}
+

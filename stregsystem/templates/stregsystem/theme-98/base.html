@@ -1,0 +1,78 @@
+{% load static %}
+{% load stregsystem_extras %}
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>{% block title %}TREOENs STREGSYSTEM{% endblock %}</title>
+<link rel="stylesheet" type="text/css" media="screen" href="{% static "/stregsystem/98.css" %}" />
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link rel="stylesheet" type="text/css" media="screen" href="{% static "/stregsystem/bat.css" %}" />
+<script>
+    var static_url = "{% get_static_prefix %}";
+    var media_url = "{% get_media_prefix %}";
+</script>
+<style type="text/css">
+    font {
+        font-family: "Pixelated MS Sans Serif", serif;
+    }
+</style>
+</head>
+<body onLoad='if (document.focusform) {document.focusform.quickbuy.focus()}'>
+{% comment %}
+<pre>{% filter escape %}{% debug %}{% endfilter %}</pre>
+
+{% endcomment %}
+
+<center>
+<div class="window" style="width: auto; height: auto">
+    <div class="title-bar">
+      <div class="title-bar-text">
+        MENU
+      </div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+    </div>
+<table >
+    <tr>
+        <td>
+          <center>
+              <button onclick="location.href='/{{room.id}}';" tabindex="10">Genstart</button>
+          </center>
+        </td>
+        <td align=center>
+            <h2 style="margin-left: 10px; margin-right: 10px">{% block heading %}TREOENs STREGSYSTEM
+{% ifnotequal room.id 1 %}
+ : {{room.description}}
+{% endifnotequal %}
+{% endblock %}</h2>
+        </td>
+        <td>
+          <center>
+              <button onclick="location.href='/{{room.id}}';" tabindex="11">Menu</button>
+          </center>
+        </td>
+    </tr>
+</table>
+
+{% block content %}{% endblock %}
+</div>
+</center>
+<div id="news">
+{% block news %}
+{% if news %}
+<marquee><b>{{news.text}}</b></marquee>
+{% endif %}
+{% endblock %}
+</div>
+<script type="text/javascript" async src="{% static "/stregsystem/bat.js" %}"></script>
+<script type="text/javascript" async src="{% static "/stregsystem/gdpr.js" %}"></script>
+<div class="bat-container"></div>
+
+{% show_candle %}
+</body>
+</html>

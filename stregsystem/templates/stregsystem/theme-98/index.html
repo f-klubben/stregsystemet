@@ -1,19 +1,15 @@
+{% extends "stregsystem/theme-98/base.html" %}
 {% load stregsystem_extras %}
 {% load listutil %}
 
-{% block title %}
-{% ifnotequal room.id 1 %}
- : {{room.description}}
-{% endifnotequal %}
-{% endblock %}
-
 {% block content %}
 <body>
+<div>
 <center>
-<div class="window" style="width: max-content">
+<div class="window" style="width: min-content">
     <div class="title-bar">
       <div class="title-bar-text">
-        TREOENs STREGSYSTEM
+          [<span style="color: red">WARNING</span> USING FALLBACK VERSION] TREOENs STREGSYSTEM {% ifnotequal room.id 1 %} : {{room.description}} {% endifnotequal %}
       </div>
         <div class="title-bar-controls">
           <button aria-label="Minimize"></button>
@@ -26,15 +22,14 @@
 <p>
 <h4>Du kan "sætte streger" på to forskellige måder:</h4>
 <ol start="0">
-  <li>Indtast dit brugernavn nedenfor.
+  <li style="font-size: 14px">Indtast dit brugernavn nedenfor.
   Du vil så blive præsenteret for en interaktiv menu.</li>
-  <li>Indtast dit brugernavn <em>og</em> et eller flere produkt
+  <li style="font-size: 14px">Indtast dit brugernavn <em>og</em> et eller flere produkt
   ID{#'er#} (adskilt med "space").
   Købet vil blive direkte registreret uden yderligere input.
   Under feltet vil  der vises en bekræftelse af købet.</li>
 </ol>
 </p>
-
 
 <center>
 <div class="window" style="width: 350px">
@@ -137,6 +132,7 @@
     </div>
 </div>
 </center>
+</div>
 </body>
 {% endblock %}
 

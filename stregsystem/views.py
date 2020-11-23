@@ -59,11 +59,20 @@ def roomindex(request):
 #    room_list = Room.objects.all().order_by('name', 'description')
 #    return render(request, 'stregsystem/roomindex.html', {'room_list': room_list})
 
+def theme_chooser():
+    if 'testing':
+        template = 'stregsystem/theme-98/'
+    else:
+        template = 'stregsystem/'
+
+    return template
+
 def index(request, room_id):
     room = get_object_or_404(Room, pk=int(room_id))
     product_list = __get_productlist(room_id)
     news = __get_news()
-    return render(request, 'stregsystem/index.html', locals())
+
+    return render(request, theme_chooser() + 'index.html', locals())
 
 
 def sale(request, room_id):
@@ -163,7 +172,7 @@ def quicksale(request, room, member, bought_ids):
 
     give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
 
-    return render(request, 'stregsystem/index_sale.html', locals())
+    return render(request, theme_chooser() + 'index_sale.html', locals())
 
 
 def usermenu(request, room, member, bought, from_sale=False):
@@ -179,7 +188,7 @@ def usermenu(request, room, member, bought, from_sale=False):
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())
     else:
-        return render(request, 'stregsystem/menu.html', locals())
+        return render(request, theme_chooser() + 'menu.html', locals())
 
 
 def menu_userinfo(request, room_id, member_id):
