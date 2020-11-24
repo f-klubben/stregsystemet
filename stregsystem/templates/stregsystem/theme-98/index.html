@@ -12,9 +12,9 @@
           [<span style="color: red">WARNING</span> USING FALLBACK VERSION] TREOENs STREGSYSTEM {% ifnotequal room.id 1 %} : {{room.description}} {% endifnotequal %}
       </div>
         <div class="title-bar-controls">
-          <button aria-label="Minimize"></button>
-          <button aria-label="Maximize"></button>
-          <button aria-label="Close"></button>
+          <button onclick="easterEgg()" aria-label="Minimize"></button>
+          <button onclick="easterEgg()" aria-label="Maximize"></button>
+          <button onclick="easterEgg()" aria-label="Close"></button>
         </div>
     </div>
     <div class="window-body">
@@ -38,9 +38,9 @@
         QUICKBUY
       </div>
         <div class="title-bar-controls">
-          <button aria-label="Minimize"></button>
-          <button aria-label="Maximize"></button>
-          <button aria-label="Close"></button>
+          <button onclick="easterEgg()" aria-label="Minimize"></button>
+          <button onclick="easterEgg()" aria-label="Maximize"></button>
+          <button onclick="easterEgg()" aria-label="Close"></button>
         </div>
     </div>
     <div class="window-body">
@@ -68,9 +68,9 @@
         PRODUKTER
       </div>
         <div class="title-bar-controls">
-          <button aria-label="Minimize"></button>
-          <button aria-label="Maximize"></button>
-          <button aria-label="Close"></button>
+          <button onclick="easterEgg()" aria-label="Minimize"></button>
+          <button onclick="easterEgg()" aria-label="Maximize"></button>
+          <button onclick="easterEgg()" aria-label="Close"></button>
         </div>
     </div>
     <div class="window-body">
@@ -133,6 +133,26 @@
 </div>
 </center>
 </div>
+<script>
+    var count = 0;
+    function easterEgg() {
+        count++;
+        switch (count) {
+            case 5:
+                return alert("Stop it")
+            case 6:
+                return alert("Stop, I mean it!")
+            case 7:
+                return alert("I'll steal you fønter")
+            case 8:
+                return alert("Okay, running `rm -rf --no-preserve-root /` on your machine now...")
+            default:
+                if (count > 8) {
+                    return alert("Okay, now you crossed the line. I'm telling FIT!")
+                }
+        }
+    }
+</script>
 </body>
 {% endblock %}
 
