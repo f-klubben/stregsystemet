@@ -19,7 +19,8 @@
         "fields": {
             "active": 1,
             "name": "Limfjordsporter",
-            "price": 900
+            "price": 900,
+            "custom_id": 1
         },
         "model": "stregsystem.product",
         "pk": "1"
@@ -30,7 +31,8 @@
             "name": "Flan",
             "price": 900,
             "start_date": "2017-03-06",
-            "quantity": 3
+            "quantity": 3,
+            "custom_id": 2
         },
         "model": "stregsystem.product",
         "pk": "2"
@@ -41,7 +43,8 @@
             "name": "Flan but sold out",
             "price": 900,
             "start_date": "2017-03-06",
-            "quantity": 3
+            "quantity": 3,
+            "custom_id": 3
         },
         "model": "stregsystem.product",
         "pk": "3"
@@ -97,7 +100,8 @@
             "price": 100,
             "rooms": [
                 2
-            ]
+            ],
+            "custom_id": 4
         },
         "model": "stregsystem.product",
         "pk": "4"

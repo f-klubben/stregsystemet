@@ -32,7 +32,8 @@
             "active": 1,
             "name": "test 1",
             "price": 0,
-            "categories": [2]
+            "categories": [2],
+            "custom_id": 1
         },
         "model": "stregsystem.product",
         "pk": "1"
@@ -41,7 +42,8 @@
         "fields": {
             "active": 1,
             "name": "test 2",
-            "price": 0
+            "price": 0,
+            "custom_id": 2
         },
         "model": "stregsystem.product",
         "pk": "2"
@@ -51,7 +53,8 @@
             "active": 1,
             "name": "test 2",
             "price": 0,
-            "categories": [3,4]
+            "categories": [3,4],
+            "custom_id": 3
         },
         "model": "stregsystem.product",
         "pk": "3"
