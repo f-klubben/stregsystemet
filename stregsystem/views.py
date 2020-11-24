@@ -306,6 +306,7 @@ def batch_payment(request):
 
 
 @staff_member_required()
+@permission_required("stregsystem.mobilepaytool_access")
 def mobilepaytool(request):
     paytool_form_set = modelformset_factory(MobilePayment, form=MobilePayToolForm, extra=0, fields=(
         'timestamp', 'amount', 'member', 'comment', 'status'))  # TODO: 'customer_name' removed, MobilepayAPI does not
