@@ -15,5 +15,5 @@ jobs:
     - name: Black Code Formatter
       uses: lgeiger/black-action@v1.0.1
       with:
-        args: " --check -t py36 -l 120 --exclude 'migrations' stregsystem stregreport kiosk"
+        args: " --check --target-version py36 --line-length 120 --skip-string-normalization --exclude '(migrations|urls\.py)' stregsystem stregreport kiosk"
 

@@ -24,7 +24,7 @@ discussions about coding style.
 
 Run `tox` to both run tests, generate coverage for these, and auto-format with black. The options for black are:
 ```
-black -t py36 -l 120 --exclude 'migrations' stregsystem stregreport kiosk
+black --target-version py36 --line-length 120 --skip-string-normalization --exclude '(migrations|urls\.py)' stregsystem stregreport kiosk 
 ```
 
 ### Branches
