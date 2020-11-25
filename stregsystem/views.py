@@ -60,10 +60,11 @@ def roomindex(request):
 #    return render(request, 'stregsystem/roomindex.html', {'room_list': room_list})
 
 def theme_chooser():
+    themes = ["default", "win98"]
     if 'testing':
-        template = 'stregsystem/theme-98/'
+        template = f'stregsystem/{themes[1]}/'
     else:
-        template = 'stregsystem/'
+        template = f'stregsystem/{themes[0]}/'
 
     return template
 
