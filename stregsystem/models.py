@@ -335,9 +335,8 @@ class Payment(models.Model):  # id automatisk...
 
 class MobilePayment(models.Model):
     class Meta:
-        permissions = (
-            ("mobilepaytool_access", "MobilePaytool access"),
-        )
+        permissions = (("mobilepaytool_access", "MobilePaytool access"),)
+
     UNSET = 'U'
     APPROVED = 'A'
     IGNORED = 'I'
