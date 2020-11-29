@@ -144,12 +144,11 @@ class Reimbursement(object):
     @transaction.atomic
     def from_sale(sale_id):
         sale = Sale.objects.get(id=sale_id)
-        if not sale.is_reimbursable:
+        if not sale.is_reimbursable():
             return
         sale.is_reimbursed = True
         sale.save()
         Payment.objects.create(amount=sale.price, member=sale.member, is_reimbursement=True)
-
 
 class GetTransaction(MoneyTransaction):
     # The change to the users account
@@ -460,14 +459,8 @@ class Sale(models.Model):
     price_display.admin_order_field = 'price'
 
     def is_reimbursable(self):
-        if self.is_reimbursed:
-            return False
         from datetime import timedelta
-
-        now = timezone.now()
-        # Only reimbursable up to a certain time.
-        return timedelta(hours=Reimbursement.MAX_REIMBUSEMENT_HOURS) >= now - self.timestamp
-        
+        return (not self.is_reimbursed) and timedelta(hours=Reimbursement.MAX_REIMBUSEMENT_HOURS) >= timezone.now() - self.timestamp
 
     @deprecated
     def __unicode__(self):

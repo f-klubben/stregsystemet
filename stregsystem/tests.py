@@ -28,6 +28,7 @@ from stregsystem.models import (
     Payment,
     PayTransaction,
     Product,
+    Reimbursement,
     Room,
     Sale,
     StregForbudError,
@@ -768,9 +769,7 @@ class SaleTests(TestCase):
             price=100
         )
         sale.save()
-
-        with self.assertRaises(RuntimeError):
-            sale.save()
+        sale.save()
 
     def test_sale_delete_not_saved(self):
         sale = Sale(
@@ -794,6 +793,56 @@ class SaleTests(TestCase):
 
         self.assertIsNone(sale.id)
 
+class ReimbursementTests(TestCase):
+    @classmethod
+    def setUpTestData(self):
+        self.member = Member.objects.create(
+            username="jon",
+            balance=100
+        )
+        self.product = Product.objects.create(
+            name="beer",
+            price=1.0,
+            active=True,
+        )
+        with freeze_time(timezone.now() - datetime.timedelta(hours=11)):
+            self.almost_oldsale = Sale.objects.create(
+                member=self.member,
+                product=self.product,
+                price=200,
+            )
+        with freeze_time(timezone.now() - datetime.timedelta(hours=12, minutes=1)):
+            self.oldsale = Sale.objects.create(
+                member=self.member,
+                product=self.product,
+                price=300,
+            )
+        self.newsale = Sale.objects.create(
+            member=self.member,
+            product=self.product,
+            price=100,
+        )
+
+    def test_reimbursement_success(self):
+        self.assertFalse(Payment.objects.filter(is_reimbursement=True).exists())
+        self.assertFalse(Sale.objects.filter(is_reimbursed=True, id=self.newsale.id).exists())
+        Reimbursement.from_sale(self.newsale.id)
+        self.assertTrue(Payment.objects.filter(is_reimbursement=True).exists())
+        self.assertTrue(Sale.objects.filter(is_reimbursed=True, id=self.newsale.id).exists())
+
+    def test_reimbursement_later_success(self):
+        self.assertFalse(Payment.objects.filter(is_reimbursement=True).exists())
+        self.assertFalse(Sale.objects.filter(is_reimbursed=True, id=self.almost_oldsale.id).exists())
+        Reimbursement.from_sale(self.almost_oldsale.id)
+        self.assertTrue(Payment.objects.filter(is_reimbursement=True).exists())
+        self.assertTrue(Sale.objects.filter(is_reimbursed=True, id=self.almost_oldsale.id).exists())
+
+    def test_reimbursement_fail(self):
+        self.assertFalse(Payment.objects.filter(is_reimbursement=True).exists())
+        self.assertFalse(Sale.objects.filter(is_reimbursed=True, id=self.oldsale.id).exists())
+        Reimbursement.from_sale(self.oldsale.id)
+        self.assertFalse(Payment.objects.filter(is_reimbursement=True).exists())
+        self.assertFalse(Sale.objects.filter(is_reimbursed=True, id=self.oldsale.id).exists())
 
 class MemberTests(TestCase):
     def test_fulfill_pay_transaction(self):

@@ -181,8 +181,8 @@ def menu_userinfo(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
 
-    if request.method == 'POST':
-        Reimbursement.from_sale(request.POST['sale_id'])
+    if request.method == 'POST' and request.POST.get('action') is not None and request.POST['action'] == 'reimburse':
+        Reimbursement.from_sale(int(request.POST['sale_id']))
     member = Member.objects.get(pk=member_id, active=True)
 
     last_sale_list = member.sale_set.filter(is_reimbursed=False).order_by('-timestamp')[:10]
