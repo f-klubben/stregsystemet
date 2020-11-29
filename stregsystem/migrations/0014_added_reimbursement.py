@@ -4,7 +4,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stregsystem', '0010_auto_20200305_0917'),
+        ('stregsystem', '0013_mobilepayment_permission_20201123_1344'),
     ]
 
     operations = [
