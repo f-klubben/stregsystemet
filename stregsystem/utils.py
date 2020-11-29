@@ -1,13 +1,21 @@
 import logging
 import smtplib
+
+from django.utils.dateparse import parse_datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.http import HttpResponse
 from django.test.runner import DiscoverRunner
 
 from django.db.models import Count, F, Q
 from django.utils import timezone
 from stregsystem.templatetags.stregsystem_extras import money
+
+import qrcode
+import qrcode.image.svg
+
 logger = logging.getLogger(__name__)
 
 
@@ -70,6 +78,25 @@ def make_room_specific_query(room):
     )
 
 
+def make_unprocessed_mobilepayment_query():
+    from stregsystem.models import MobilePayment  # import locally to avoid circular import
+    return MobilePayment.objects.filter(Q(status__exact=MobilePayment.UNSET) | Q(payment__isnull=True)).order_by(
+        '-timestamp')
+
+
+def make_processed_mobilepayment_query():
+    from stregsystem.models import MobilePayment  # import locally to avoid circular import
+    return MobilePayment.objects.filter(
+        Q(payment__isnull=True) & Q(member__isnull=False) &
+        Q(status__in=[MobilePayment.APPROVED, MobilePayment.IGNORED]))
+
+
+def make_unprocessed_member_filled_mobilepayment_query():
+    from stregsystem.models import MobilePayment  # import locally to avoid circular import
+    return MobilePayment.objects.filter(
+        Q(payment__isnull=True) & Q(status=MobilePayment.UNSET) & Q(member__isnull=False))
+
+
 def date_to_midnight(date):
     """
     Converts a datetime.date to a datetime of the same date at midnight.
@@ -118,6 +145,49 @@ def send_payment_mail(member, amount):
         smtpObj.sendmail('treo@fklub.dk', member.email, msg.as_string())
     except Exception as e:
         logger.error(str(e))
+
+
+def parse_csv_and_create_mobile_payments(csv_file):
+    imported_transactions, duplicate_transactions = 0, 0
+    import csv
+    # get csv reader and ignore header
+    reader = csv.reader(csv_file[1:], delimiter=';', quotechar='"')
+    for row in reader:
+
+        from stregsystem.models import MobilePayment
+        mobile_payment = MobilePayment(member=None, amount=row[2].replace(',', ''),
+                                       timestamp=parse_datetime(row[3]), customer_name=row[4],
+                                       transaction_id=row[7], comment=row[6], payment=None)
+        try:
+            # unique constraint on transaction_id and payment-foreign key must hold before saving new object
+            mobile_payment.validate_unique()
+
+            # do case insensitive exact match on active members
+            mobile_payment.member = mobile_payment_exact_match_member(mobile_payment.comment)
+            mobile_payment.save()
+            imported_transactions += 1
+        except ValidationError:
+            duplicate_transactions += 1
+    return imported_transactions, duplicate_transactions
+
+
+def mobile_payment_exact_match_member(comment):
+    from stregsystem.models import Member
+    match = Member.objects.filter(username__iexact=comment.strip(), active=True)
+    if match.count() == 1:
+        return match.get()
+    elif match.count() > 1:
+        # something is very wrong, there should be no active users which are duplicates post PR #178
+        raise RuntimeError("Duplicate usernames found at MobilePayment import. Should not exist post PR #178")
+
+
+def qr_code(data):
+    response = HttpResponse(content_type="image/svg+xml")
+    qr = qrcode.make(data, image_factory=qrcode.image.svg.SvgPathFillImage)
+    qr.save(response)
+
+    return response
+
 
 class stregsystemTestRunner(DiscoverRunner):
     def __init__(self, *args, **kwargs):

@@ -1,0 +1,7 @@
+Event;Currency;Amount;Date and time;Customer name;MP-number;Comment;TransactionID;Payment point;MyShop-Number;Date;Time
+Payment;DKK;69,69;2019-11-29T13:51:08.8574424+01:00;Martin Larsen;xxxx 4926;"mlarsen indbetalt ";156E027485173228;F-klubben - Stregsystemet;90601;2019-11-29;13.51.08
+Payment;DKK;500,00;2019-11-28T17:40:55.7194894+01:00;Bobby Tables;xxxx 4215;tables eksdee;232E027452733666;F-klubben - Stregsystemet;90601;2019-11-28;17.40.55
+Payment;DKK;200,00;2019-11-28T15:30:58.3578294+01:00;Karl Marx;xxxx 8116;marx;241E027449465355;F-klubben - Stregsystemet;90601;2019-11-28;15.30.58
+Payment;DKK;500,00;2019-11-28T17:40:55.7194894+01:00;Bobby Tables;xxxx 4215;tables eksdee;232E027452733676;F-klubben - Stregsystemet;90601;2019-11-28;17.40.55
+Payment;DKK;150,00;2019-11-27T12:15:38.5290119+01:00;John Doe;xxxx 7656;jdoe;016E027417049990;F-klubben - Stregsystemet;90601;2019-11-27;12.15.38
+Payment;DKK;200,00;2019-11-26T12:54:37.5216501+01:00;Tester Testsen;xxxx 4215;tester;207E027395896809;F-klubben - Stregsystemet;90601;2019-11-26;12.54.37

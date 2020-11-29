@@ -11,9 +11,9 @@ def kiosk(request):
     return render(request, 'kiosk.html', locals())
 
 
-def find_random_image(request):
+def find_random_media(request):
     """
-    Randomly get an image and return the relative url
+    Randomly get a media and return the relative url
     """
     item = KioskItem.objects.filter(active=True).order_by('?').first()
     if item is None:
@@ -21,7 +21,8 @@ def find_random_image(request):
 
     response_data = {
         "id": item.id,
-        "url": item.image.url,
+        "url": item.media.url,
+        "is_image": item.is_image,
     }
     return HttpResponse(
         json.dumps(response_data),
@@ -29,7 +30,7 @@ def find_random_image(request):
     )
 
 
-def find_next_image_real(request, item_id):
+def find_next_media_real(request, item_id):
     item = KioskItem.objects.get(pk=item_id)
 
     item_count = KioskItem.objects.filter(active=True).count()
@@ -55,7 +56,8 @@ def find_next_image_real(request, item_id):
         )
     response_data = {
         "id": next_item.id,
-        "url": next_item.image.url,
+        "url": next_item.media.url,
+        "is_image": next_item.is_image,
     }
     return HttpResponse(
         json.dumps(response_data),
