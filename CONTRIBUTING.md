@@ -19,13 +19,18 @@ If you want to contribute code you should fork the project.
 The project only strives to be Python 3 compliant.
 
 ## Coding standards
-We try to adhere to the [black codestyle](https://github.com/psf/black) whenever possible. Mostly to avoid any
+We adhere to the [black codestyle](https://github.com/psf/black) whenever possible. Mostly to avoid any
 discussions about coding style.
 
 Run `tox` to both run tests, generate coverage for these, and auto-format with black. The options for black are:
 ```
 black --target-version py36 --line-length 120 --skip-string-normalization --exclude '(migrations|urls\.py)' stregsystem stregreport kiosk 
 ```
+
+Since Black has been applied during the lifespan of Stregsystemet, some commits may be misattributed to `cogitantium <falke.cs@gmail.com>`. 
+To ignore the application of Black, use `--ignore-revs-file .git-blame-black-application` when running `git blame`.
+
+Unfortunately, [Github and Gitlab does not currently support this feature](https://github.com/psf/black#migrating-your-code-style-without-ruining-git-blame).
 
 ### Branches
  - `master`: The running code on the live system.
