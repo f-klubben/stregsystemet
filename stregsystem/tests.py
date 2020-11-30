@@ -796,11 +796,10 @@ class SaleTests(TestCase):
         self.assertIsNone(sale.id)
 
 class ReimbursementTests(TestCase):
-    @classmethod
-    def setUpTestData(self):
+    def setUp(self):
         self.member = Member.objects.create(
             username="jon",
-            balance=100
+            balance=500
         )
         self.product = Product.objects.create(
             name="beer",
@@ -845,6 +844,24 @@ class ReimbursementTests(TestCase):
         Reimbursement.from_sale(self.oldsale.id)
         self.assertFalse(Payment.objects.filter(is_reimbursement=True).exists())
         self.assertFalse(Sale.objects.filter(is_reimbursed=True, id=self.oldsale.id).exists())
+
+    def test_reimbursement_balance_updated(self):
+        self.assertEqual(self.member.balance, 500)
+        Reimbursement.from_sale(self.newsale.id)
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.balance, 600)
+
+    def test_reimbursement_balance_updated_another(self):
+        self.assertEqual(self.member.balance, 500)
+        Reimbursement.from_sale(self.almost_oldsale.id)
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.balance, 700)
+
+    def test_reimbursement_balance_not_updated(self):
+        self.assertEqual(self.member.balance, 500)
+        Reimbursement.from_sale(self.oldsale.id)
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.balance, 500)
 
 class MemberTests(TestCase):
     def test_fulfill_pay_transaction(self):
