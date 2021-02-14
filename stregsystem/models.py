@@ -142,6 +142,18 @@ class Order(object):
         # We changed the user balance, so save that
         self.member.save()
 
+class Reimbursement(object):
+    #Limits the amount of hours a reimbursement is available.
+    MAX_REIMBUSEMENT_HOURS = 12
+
+    @transaction.atomic
+    def from_sale(sale_id):
+        sale = Sale.objects.get(id=sale_id)
+        if not sale.is_reimbursable():
+            return
+        sale.is_reimbursed = True
+        sale.save()
+        Payment.objects.create(amount=sale.price, member=sale.member, is_reimbursement=True)
 
 class GetTransaction(MoneyTransaction):
     # The change to the users account
@@ -295,6 +307,8 @@ class Payment(models.Model):  # id automatisk...
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     amount = models.IntegerField()  # penge, oere...
+    is_reimbursement = models.BooleanField(default=False, null=False,
+                                            help_text='Viser om en betaling er tilbageført')
 
     @deprecated
     def amount_display(self):
@@ -513,6 +527,8 @@ class Sale(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     price = models.IntegerField()
+    is_reimbursed = models.BooleanField(default=False, null=False, 
+                                        help_text='Viser om et salg er tilbageført',)
 
     class Meta:
         index_together = [
@@ -530,6 +546,10 @@ class Sale(models.Model):
     # XXX - django bug - kan ikke vaelge mellem desc og asc i admin, som ved normalt felt
     price_display.admin_order_field = 'price'
 
+    def is_reimbursable(self):
+        from datetime import timedelta
+        return (not self.is_reimbursed) and timedelta(hours=Reimbursement.MAX_REIMBUSEMENT_HOURS) >= timezone.now() - self.timestamp
+
     @deprecated
     def __unicode__(self):
         return self.__str__()
@@ -537,10 +557,10 @@ class Sale(models.Model):
     def __str__(self):
         return self.member.username + " " + self.product.name + " (" + money(self.price) + ") " + str(self.timestamp)
 
-    def save(self, *args, **kwargs):
-        if self.id:
-            raise RuntimeError("Updates of sales are not allowed")
-        super(Sale, self).save(*args, **kwargs)
+    #def save(self, *args, **kwargs):
+    #    if self.id:
+    #        raise RuntimeError("Updates of sales are not allowed")
+    #    super(Sale, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         if self.id:

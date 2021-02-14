@@ -39,6 +39,7 @@ Ingen indbetalinger!
       <th align=left>Dato og tidspunkt</th>
       <th align=left>Produkt</th>
       <th align=left>Pris</th>
+      <th align=left>Tilbagefør</th>
    </tr>
 {% autoescape off %}
 {% for sale in last_sale_list %}
@@ -46,6 +47,15 @@ Ingen indbetalinger!
       <td>{{sale.timestamp}}</td>
       <td>{{sale.product.name}}</td>
       <td align="right">{{sale.price|money}}</td>
+      <td>
+         {% if sale.is_reimbursable %}
+         <form action="" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="sale_id" value="{{ sale.pk }}"/>
+            <button name="action" value="reimburse" onclick="return confirm('Er du sikker på at du vil refundere salget på {{sale.product.name}} til en værdi af {{sale.price|money}} kr?')">Undo</button>
+         </form>
+         {% endif %}
+      </td>
    </tr>
 {% endfor %}
 {% endautoescape %}
