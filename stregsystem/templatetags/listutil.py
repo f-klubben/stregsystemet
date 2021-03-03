@@ -43,7 +43,7 @@ def partition(thelist, n):
     except (ValueError, TypeError):
         return [thelist]
     p = (len(thelist) + 1) // n
-    return [thelist[p * i:p * (i + 1)] for i in range(n - 1)] + [thelist[p * (n - 1):]]
+    return [thelist[p * i : p * (i + 1)] for i in range(n - 1)] + [thelist[p * (n - 1) :]]
 
 
 @register.filter
