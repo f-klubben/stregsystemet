@@ -20,16 +20,16 @@
         </tr>
         </thead>
         <tr></tr>
-        {% for m in total_sales_monthly %}
+        {% for entry in total_sales_monthly %}
             <tr>
                 <td>
-                    {{ m.0 }}
+                    {{ entry.year }}
                 </td>
                 <td>
-                    {{ m.1 }}
+                    {{ entry.month }}
                 </td>
                 <td>
-                    {{ m.2 }}
+                    {{ entry.sales_amount }}
                 </td>
             </tr>
         {% endfor %}

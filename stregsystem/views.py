@@ -1,3 +1,4 @@
+import calendar
 import datetime
 
 from django.core import management
@@ -394,7 +395,8 @@ def total_sales_monthly(request):
     months = [((m + current_month) % 12 + 1, last_year + (m + current_month) // 12) for m in range(0, 12)]
 
     # for each month, year pair, sum all sales in that period, and convert numeric month to text
-    data['total_sales_monthly'] = [(y, datetime.date(1970, m, 1).strftime('%B'), p) for y, m, p in
-                                   total_sales_monthly_query(months)]
+    data['total_sales_monthly'] = list()
+    for y, m, total in total_sales_monthly_query(months):
+        data['total_sales_monthly'].append({'year': y, 'month': calendar.month_name[m], 'sales_amount': total})
 
     return render(request, "admin/stregsystem/report/total_sales_monthly.html", data)
