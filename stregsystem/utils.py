@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.test.runner import DiscoverRunner
 
-from django.db.models import Count, F, Q
+from django.db.models import Count, F, Q, QuerySet
 from django.utils import timezone
 from stregsystem.templatetags.stregsystem_extras import money
 
@@ -19,7 +19,7 @@ import qrcode.image.svg
 logger = logging.getLogger(__name__)
 
 
-def make_active_productlist_query(queryset):
+def make_active_productlist_query(queryset) -> QuerySet:
     now = timezone.now()
     # Create a query for the set of products that MIGHT be active. Might
     # because they can be out of stock. Which we compute later
@@ -46,7 +46,7 @@ def make_active_productlist_query(queryset):
             & Q(id__in=candidates_out_of_stock)))
 
 
-def make_inactive_productlist_query(queryset):
+def make_inactive_productlist_query(queryset) -> QuerySet:
     now = timezone.now()
     # Create a query of things are definitively inactive. Some of the ones
     # filtered here might be out of stock, but we include that later.
@@ -72,26 +72,26 @@ def make_inactive_productlist_query(queryset):
     )
 
 
-def make_room_specific_query(room):
+def make_room_specific_query(room) -> QuerySet:
     return (
             Q(rooms__id=room) | Q(rooms=None)
     )
 
 
-def make_unprocessed_mobilepayment_query():
+def make_unprocessed_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
     return MobilePayment.objects.filter(Q(status__exact=MobilePayment.UNSET) | Q(payment__isnull=True)).order_by(
         '-timestamp')
 
 
-def make_processed_mobilepayment_query():
+def make_processed_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
     return MobilePayment.objects.filter(
         Q(payment__isnull=True) & Q(member__isnull=False) &
         Q(status__in=[MobilePayment.APPROVED, MobilePayment.IGNORED]))
 
 
-def make_unprocessed_member_filled_mobilepayment_query():
+def make_unprocessed_member_filled_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
     return MobilePayment.objects.filter(
         Q(payment__isnull=True) & Q(status=MobilePayment.UNSET) & Q(member__isnull=False))
