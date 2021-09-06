@@ -27,4 +27,6 @@ class Command(BaseCommand):
         MobilePayment.submit_processed_mobile_payments(auto_user)
         count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count() - before_count
 
-        self.stdout.write(self.style.SUCCESS(f'[autopayment] Successfully submitted {count} mobilepayments automatically'))
+        self.stdout.write(
+            self.style.SUCCESS(f'[autopayment] Successfully submitted {count} mobilepayments automatically')
+        )

@@ -53,9 +53,7 @@ def make_inactive_productlist_query(queryset) -> QuerySet:
 
 
 def make_room_specific_query(room) -> QuerySet:
-    return (
-            Q(rooms__id=room) | Q(rooms=None)
-    )
+    return Q(rooms__id=room) | Q(rooms=None)
 
 
 def make_unprocessed_mobilepayment_query() -> QuerySet:
