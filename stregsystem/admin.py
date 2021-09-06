@@ -4,30 +4,24 @@ from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
 
-from stregsystem.models import (
-    Category,
-    Member,
-    News,
-    Payment,
-    PayTransaction,
-    Product,
-    Room,
-    Sale,
-    MobilePayment
-)
+from stregsystem.models import Category, Member, News, Payment, PayTransaction, Product, Room, Sale, MobilePayment
 from stregsystem.templatetags.stregsystem_extras import money
-from stregsystem.utils import (
-    make_active_productlist_query,
-    make_inactive_productlist_query
-)
+from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
 
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
-    list_display = ('get_username', 'get_fullname', 'get_product_name', 'get_room_name', 'timestamp', 'get_price_display')
+    list_display = (
+        'get_username',
+        'get_fullname',
+        'get_product_name',
+        'get_room_name',
+        'timestamp',
+        'get_price_display',
+    )
     actions = ['refund']
     search_fields = ['^member__username', '=product__id', 'product__name']
-    valid_lookups = ('member')
+    valid_lookups = 'member'
     autocomplete_fields = ['member', 'product']
 
     class Media:
@@ -85,6 +79,7 @@ class SaleAdmin(admin.ModelAdmin):
             obj.member.rollback(transaction)
             obj.member.save()
         queryset.delete()
+
     refund.short_description = "Refund selected"
 
 
@@ -133,11 +128,9 @@ class ProductAdmin(admin.ModelAdmin):
         ("start_date", "quantity", "get_bought"),
         "categories",
         "rooms",
-        "alcohol_content_ml"
+        "alcohol_content_ml",
     )
-    readonly_fields = (
-        "get_bought",
-    )
+    readonly_fields = ("get_bought",)
 
     actions = [toggle_active_selected_products]
     filter_horizontal = ('categories', 'rooms')
@@ -146,16 +139,19 @@ class ProductAdmin(admin.ModelAdmin):
         if obj.price is None:
             obj.price = 0
         return "{0:.2f} kr.".format(obj.price / 100.0)
+
     get_price_display.short_description = "Price"
     get_price_display.admin_order_field = "price"
 
     def get_bought(self, obj):
         return obj.bought
+
     get_bought.short_description = "Bought"
     get_bought.admin_order_field = "bought"
 
     def activated(self, product):
         return product.is_active()
+
     activated.boolean = True
 
 
@@ -181,24 +177,27 @@ class MemberForm(forms.ModelForm):
 
 class MemberAdmin(admin.ModelAdmin):
     form = MemberForm
-    list_filter = ('want_spam', )
+    list_filter = ('want_spam',)
     search_fields = ('username', 'firstname', 'lastname', 'email')
     list_display = ('username', 'firstname', 'lastname', 'balance', 'email', 'notes')
 
     # fieldsets is like fields, except that they are grouped and with descriptions
     fieldsets = (
-        (None, {
-            'fields': ('username', 'firstname', 'lastname', 'year', 'gender', 'email'),
-            'description': "Basal information omkring fember"
-        }),
-        (None, {
-            'fields': ('notes',),
-            'description': "Studieretning + evt. andet i noter"
-        }),
-        (None, {
-            'fields': ('active', 'want_spam', 'balance', 'undo_count'),
-            'description': "Lad være med at rode med disse, med mindre du ved hvad du laver ..."
-        })
+        (
+            None,
+            {
+                'fields': ('username', 'firstname', 'lastname', 'year', 'gender', 'email'),
+                'description': "Basal information omkring fember",
+            },
+        ),
+        (None, {'fields': ('notes',), 'description': "Studieretning + evt. andet i noter"}),
+        (
+            None,
+            {
+                'fields': ('active', 'want_spam', 'balance', 'undo_count'),
+                'description': "Lad være med at rode med disse, med mindre du ved hvad du laver ...",
+            },
+        ),
     )
 
     def save_model(self, request, obj, form, change):
@@ -218,6 +217,7 @@ class MemberAdmin(admin.ModelAdmin):
         @HACK: We need to apply a filter to our AutoComplete (select2),
         we do this by overwriting the default behaviour, and apply our filter.
         """
+
         def get_queryset(self):
             qs = super().get_queryset()
             return qs.filter(active=True).order_by('username')
@@ -225,7 +225,7 @@ class MemberAdmin(admin.ModelAdmin):
 
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('get_username', 'timestamp', 'get_amount_display', 'is_mobilepayment')
-    valid_lookups = ('member')
+    valid_lookups = 'member'
     search_fields = ['member__username']
     autocomplete_fields = ['member']
 
@@ -244,7 +244,6 @@ class PaymentAdmin(admin.ModelAdmin):
     get_amount_display.short_description = "Amount"
     get_amount_display.admin_order_field = "amount"
 
-
     def is_mobilepayment(self, obj):
         return MobilePayment.objects.filter(payment=obj.pk).exists()
 
@@ -255,7 +254,14 @@ class PaymentAdmin(admin.ModelAdmin):
 
 class MobilePaymentAdmin(admin.ModelAdmin):
     list_display = (
-        'payment', 'customer_name', 'comment', 'timestamp', 'transaction_id', 'get_amount_display', 'status')
+        'payment',
+        'customer_name',
+        'comment',
+        'timestamp',
+        'transaction_id',
+        'get_amount_display',
+        'status',
+    )
     valid_lookups = 'member'
     search_fields = ['member__username']
     autocomplete_fields = ['member', 'payment']
@@ -290,7 +296,6 @@ class LogEntryAdmin(admin.ModelAdmin):
     search_fields = ['object_repr', 'change_message', 'user__username']
     list_display = ['action_time', 'user', 'content_type', 'object_id', 'action_flag', 'change_message', 'object_repr']
 
-
     def has_view_permission(self, request, obj=None):
         return request.user.is_superuser
 
@@ -299,11 +304,10 @@ class LogEntryAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
-    
+
     def has_delete_permission(self, request, obj=None):
         return False
 
-    
 
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)

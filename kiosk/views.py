@@ -24,10 +24,7 @@ def find_random_media(request):
         "url": item.media.url,
         "is_image": item.is_image,
     }
-    return HttpResponse(
-        json.dumps(response_data),
-        content_type="application/json"
-    )
+    return HttpResponse(json.dumps(response_data), content_type="application/json")
 
 
 def find_next_media_real(request, item_id):
@@ -40,26 +37,15 @@ def find_next_media_real(request, item_id):
     # Get the item at the index, trust that Django does this smartly.
     try:
         next_item = (
-            KioskItem.objects
-            .filter(active=True)
+            KioskItem.objects.filter(active=True)
             .order_by('ordering', 'id')
-            .filter(
-                Q(ordering__gt=item.ordering)
-                | (Q(ordering=item.ordering) & Q(id__gt=item.id))
-            )[0]
+            .filter(Q(ordering__gt=item.ordering) | (Q(ordering=item.ordering) & Q(id__gt=item.id)))[0]
         )
     except IndexError:
-        next_item = (
-            KioskItem.objects
-            .filter(active=True)
-            .order_by('ordering', 'id')[0]
-        )
+        next_item = KioskItem.objects.filter(active=True).order_by('ordering', 'id')[0]
     response_data = {
         "id": next_item.id,
         "url": next_item.media.url,
         "is_image": next_item.is_image,
     }
-    return HttpResponse(
-        json.dumps(response_data),
-        content_type="application/json"
-    )
+    return HttpResponse(json.dumps(response_data), content_type="application/json")

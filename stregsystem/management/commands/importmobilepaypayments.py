@@ -26,8 +26,13 @@ class Command(BaseCommand):
     days_back = None
 
     def add_arguments(self, parser):
-        parser.add_argument('days_back', nargs='?', type=int, default=7,
-                            help="Days back from today to look for MobilePay transactions (max 31 days)")
+        parser.add_argument(
+            'days_back',
+            nargs='?',
+            type=int,
+            default=7,
+            help="Days back from today to look for MobilePay transactions (max 31 days)",
+        )
 
     def handle(self, *args, **options):
         self.days_back = options['days_back'] if options['days_back'] <= 31 else 7
@@ -63,7 +68,7 @@ class Command(BaseCommand):
             "grant_type": "refresh_token",
             "refresh_token": self.tokens['refresh_token'],
             "client_id": self.tokens['zip-client-id'],
-            "client_secret": self.tokens['zip-client-secret']
+            "client_secret": self.tokens['zip-client-secret'],
         }
         response = requests.post(url, data=payload)
         response.raise_for_status()
@@ -86,12 +91,12 @@ class Command(BaseCommand):
         current_time = datetime.now(timezone.utc)
         params = {
             'from': self.format_datetime(current_time - timedelta(days=self.days_back)),
-            'to': self.format_datetime(current_time)
+            'to': self.format_datetime(current_time),
         }
         headers = {
             'x-ibm-client-secret': self.tokens['ibm-client-secret'],
             'x-ibm-client-id': self.tokens['ibm-client-id'],
-            'authorization': 'Bearer {}'.format(self.tokens['access_token'])
+            'authorization': 'Bearer {}'.format(self.tokens['access_token']),
         }
         response = requests.get(url, params=params, headers=headers)
         response.raise_for_status()
@@ -148,12 +153,13 @@ class Command(BaseCommand):
 
         payment_datetime = parse_datetime(transaction['timestamp'])
 
-        MobilePayment.objects.create(amount=amount * 100,  # convert to streg-ører
-                                     member=mobile_payment_exact_match_member(comment),
-                                     comment=comment,
-                                     timestamp=payment_datetime,
-                                     transaction_id=trans_id,
-                                     status=MobilePayment.UNSET
-                                     )
+        MobilePayment.objects.create(
+            amount=amount * 100,  # convert to streg-ører
+            member=mobile_payment_exact_match_member(comment),
+            comment=comment,
+            timestamp=payment_datetime,
+            transaction_id=trans_id,
+            status=MobilePayment.UNSET,
+        )
 
         self.write_info(f'Imported transaction id: {trans_id} for amount: {amount}')
