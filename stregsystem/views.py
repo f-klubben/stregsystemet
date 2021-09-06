@@ -25,14 +25,14 @@ from stregsystem.models import (
     Room,
     Sale,
     StregForbudError,
-    MobilePayment
+    MobilePayment,
 )
 from stregsystem.utils import (
     make_active_productlist_query,
     qr_code,
     make_room_specific_query,
     make_unprocessed_mobilepayment_query,
-    parse_csv_and_create_mobile_payments
+    parse_csv_and_create_mobile_payments,
 )
 
 from .booze import ballmer_peak
@@ -47,9 +47,7 @@ def __get_news():
 
 
 def __get_productlist(room_id):
-    return (
-        make_active_productlist_query(Product.objects).filter(make_room_specific_query(room_id))
-    )
+    return make_active_productlist_query(Product.objects).filter(make_room_specific_query(room_id))
 
 
 def roomindex(request):
@@ -58,6 +56,7 @@ def roomindex(request):
 
 #    room_list = Room.objects.all().order_by('name', 'description')
 #    return render(request, 'stregsystem/roomindex.html', {'room_list': room_list})
+
 
 def index(request, room_id):
     room = get_object_or_404(Room, pk=int(room_id))
@@ -84,7 +83,8 @@ def sale(request, room_id):
             'incorrect': err.failed_part,
             'error_ptr': '~' * (len(err.parsed_part)) + '^',
             'error_msg': ' ' * (len(err.parsed_part) - 4) + 'Fejl her',
-            'room': room}
+            'room': room,
+        }
         return render(request, 'stregsystem/error_invalidquickbuy.html', values)
     # Fetch member from DB
     try:
@@ -102,10 +102,7 @@ def _multibuy_hint(now, member):
     # Get a timestamp to fetch sales for the member for the last 60 sec
     earliest_recent_purchase = now - datetime.timedelta(seconds=60)
     # get the sales with this timestamp
-    recent_purchases = (
-        Sale.objects
-            .filter(member=member, timestamp__gt=earliest_recent_purchase)
-    )
+    recent_purchases = Sale.objects.filter(member=member, timestamp__gt=earliest_recent_purchase)
     number_of_recent_distinct_purchases = recent_purchases.values('timestamp').distinct().count()
 
     # add hint for multibuy
@@ -136,17 +133,17 @@ def quicksale(request, room, member, bought_ids):
     products = []
     try:
         for i in bought_ids:
-            product = Product.objects.get(Q(pk=i), Q(active=True), Q(deactivate_date__gte=now) | Q(
-                deactivate_date__isnull=True), Q(rooms__id=room.id) | Q(rooms=None))
+            product = Product.objects.get(
+                Q(pk=i),
+                Q(active=True),
+                Q(deactivate_date__gte=now) | Q(deactivate_date__isnull=True),
+                Q(rooms__id=room.id) | Q(rooms=None),
+            )
             products.append(product)
     except Product.DoesNotExist:
         return render(request, 'stregsystem/error_productdoesntexist.html', {'failedProduct': i, 'room': room})
 
-    order = Order.from_products(
-        member=member,
-        products=products,
-        room=room
-    )
+    order = Order.from_products(member=member, products=products, room=room)
 
     try:
         order.execute()
@@ -171,7 +168,11 @@ def usermenu(request, room, member, bought, from_sale=False):
     product_list = __get_productlist(room.id)
     news = __get_news()
     promille = member.calculate_alcohol_promille()
-    is_ballmer_peaking, bp_minutes, bp_seconds, = ballmer_peak(promille)
+    (
+        is_ballmer_peaking,
+        bp_minutes,
+        bp_seconds,
+    ) = ballmer_peak(promille)
 
     give_multibuy_hint, sale_hints = _multibuy_hint(timezone.now(), member)
     give_multibuy_hint = give_multibuy_hint and from_sale
@@ -213,7 +214,7 @@ def menu_userpay(request, room_id, member_id):
 
     negative_balance = member.balance < 0
     if negative_balance:
-        amounts.add(- member.balance / 100.0)
+        amounts.add(-member.balance / 100.0)
 
     amounts = sorted(amounts)
 
@@ -230,17 +231,18 @@ def menu_sale(request, room_id, member_id, product_id=None):
         purchase = PurchaseForm(request.POST)
         if not purchase.is_valid():
             return HttpResponseBadRequest(
-                "Cannot complete sale, get help at /dev/null or at mailto:[treo|fit]@fklub.dk")
+                "Cannot complete sale, get help at /dev/null or at mailto:[treo|fit]@fklub.dk"
+            )
 
         try:
-            product = Product.objects.get(Q(pk=purchase.cleaned_data['product_id']), Q(active=True), Q(rooms__id=room_id) | Q(rooms=None),
-                                          Q(deactivate_date__gte=timezone.now()) | Q(deactivate_date__isnull=True))
-
-            order = Order.from_products(
-                member=member,
-                room=room,
-                products=(product,)
+            product = Product.objects.get(
+                Q(pk=purchase.cleaned_data['product_id']),
+                Q(active=True),
+                Q(rooms__id=room_id) | Q(rooms=None),
+                Q(deactivate_date__gte=timezone.now()) | Q(deactivate_date__isnull=True),
             )
+
+            order = Order.from_products(member=member, room=room, products=(product,))
 
             order.execute()
 
@@ -252,7 +254,6 @@ def menu_sale(request, room_id, member_id, product_id=None):
             # @INCOMPLETE this should render with a different template
             return render(request, 'stregsystem/error_stregforbud.html', locals())
 
-
     # Refresh member, to get new amount
     member = Member.objects.get(pk=member_id, active=True)
     return usermenu(request, room, member, product, from_sale=True)
@@ -262,9 +263,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
 @permission_required("stregsystem.import_batch_payments")
 def batch_payment(request):
     PaymentFormSet = forms.modelformset_factory(
-        Payment,
-        fields=("member", "amount"),
-        widgets={"member": forms.Select(attrs={"class": "select2"})}
+        Payment, fields=("member", "amount"), widgets={"member": forms.Select(attrs={"class": "select2"})}
     )
     if request.method == "POST":
         formset = PaymentFormSet(request.POST, request.FILES)
@@ -291,25 +290,26 @@ def batch_payment(request):
             for payment in payments:
                 payment.save()
 
-            return render(
-                request,
-                "admin/stregsystem/batch_payment_done.html",
-                {}
-            )
+            return render(request, "admin/stregsystem/batch_payment_done.html", {})
     else:
         formset = PaymentFormSet(queryset=Payment.objects.none())
-    return render(request, "admin/stregsystem/batch_payment.html", {
-        "formset": formset,
-        "select2_js": settings.SELECT2_JS,
-        "select2_css": settings.SELECT2_CSS,
-    })
+    return render(
+        request,
+        "admin/stregsystem/batch_payment.html",
+        {
+            "formset": formset,
+            "select2_js": settings.SELECT2_JS,
+            "select2_css": settings.SELECT2_CSS,
+        },
+    )
 
 
 @staff_member_required()
 @permission_required("stregsystem.mobilepaytool_access")
 def mobilepaytool(request):
-    paytool_form_set = modelformset_factory(MobilePayment, form=MobilePayToolForm, extra=0, fields=(
-        'timestamp', 'amount', 'member', 'comment', 'status'))  # TODO: 'customer_name' removed, MobilepayAPI does not
+    paytool_form_set = modelformset_factory(
+        MobilePayment, form=MobilePayToolForm, extra=0, fields=('timestamp', 'amount', 'member', 'comment', 'status')
+    )  # TODO: 'customer_name' removed, MobilepayAPI does not
     # TODO-cont: have that information at this point in time - add back 'customer_name' if available in future
     data = dict()
     if request.method == "GET":
@@ -321,7 +321,8 @@ def mobilepaytool(request):
         csv_file.seek(0)
 
         data['imports'], data['duplicates'] = parse_csv_and_create_mobile_payments(
-            str(csv_file.read().decode('utf-8')).splitlines())
+            str(csv_file.read().decode('utf-8')).splitlines()
+        )
 
         # refresh form after submission
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
@@ -364,16 +365,13 @@ def mobilepaytool(request):
 
     return render(request, "admin/stregsystem/mobilepaytool.html", data)
 
-  
+
 def qr_payment(request):
     form = QRPaymentForm(request.GET)
     if not form.is_valid():
         return HttpResponseBadRequest("Invalid input for MobilePay QR code generation")
 
-    query = {
-        'phone': '90601',
-        'comment': form.cleaned_data.get('member')
-    }
+    query = {'phone': '90601', 'comment': form.cleaned_data.get('member')}
 
     if form.cleaned_data.get("amount") is not None:
         query['amount'] = form.cleaned_data.get("amount")
