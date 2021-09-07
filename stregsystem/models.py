@@ -351,7 +351,7 @@ class MobilePayment(models.Model):
     payment = models.OneToOneField(
         Payment, on_delete=models.CASCADE, null=True, blank=True, unique=True
     )  # Django does not consider null == null, so this works
-    customer_name = models.CharField(max_length=64)
+    customer_name = models.CharField(max_length=64, null=True, blank=True)
     timestamp = models.DateTimeField()
     amount = models.IntegerField()
     transaction_id = models.CharField(
