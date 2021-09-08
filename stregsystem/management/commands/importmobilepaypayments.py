@@ -10,7 +10,7 @@ import json
 import logging
 import requests
 
-from stregsystem.utils import mobile_payment_exact_match_member
+from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji
 
 
 class Command(BaseCommand):
@@ -149,7 +149,7 @@ class Command(BaseCommand):
 
         amount = transaction['amount']
 
-        comment = transaction['senderComment']
+        comment = strip_emoji(transaction['senderComment'])
 
         payment_datetime = parse_datetime(transaction['timestamp'])
 

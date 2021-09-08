@@ -9,9 +9,6 @@ class CategoryReportForm(forms.Form):
         required=True,
         label="Category",
         widget=s2forms.ModelSelect2MultipleWidget(
-            model=Category,
-            search_fields=["name__icontains"],
-            max_results=500,
-            queryset=Category.objects.all(),
+            model=Category, search_fields=["name__icontains"], max_results=500, queryset=Category.objects.all(),
         ),
     )

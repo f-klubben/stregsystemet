@@ -35,7 +35,7 @@ from stregsystem.models import (
     price_display,
     MobilePayment,
 )
-from stregsystem.utils import mobile_payment_exact_match_member
+from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji
 
 
 def assertCountEqual(case, *args, **kwargs):
@@ -287,9 +287,7 @@ class SaleViewTests(TestCase):
         member = Member.objects.get(username="jokke")
         coke = Product.objects.create(name="coke", price=100, active=True)
         Sale.objects.create(
-            member=member,
-            product=coke,
-            price=100,
+            member=member, product=coke, price=100,
         )
         give_multibuy_hint, sale_hints = stregsystem_views._multibuy_hint(timezone.now(), member)
         self.assertFalse(give_multibuy_hint)
@@ -301,9 +299,7 @@ class SaleViewTests(TestCase):
         with freeze_time(timezone.datetime(2018, 1, 1)) as frozen_time:
             for i in range(1, 3):
                 Sale.objects.create(
-                    member=member,
-                    product=coke,
-                    price=100,
+                    member=member, product=coke, price=100,
                 )
                 frozen_time.tick()
         give_multibuy_hint, sale_hints = stregsystem_views._multibuy_hint(
@@ -322,44 +318,27 @@ class UserInfoViewTests(TestCase):
         self.sales = []
         with freeze_time(timezone.datetime(2000, 1, 1)) as frozen_time:
             for i in range(1, 4):
-                self.sales.append(
-                    Sale.objects.create(
-                        member=self.jokke,
-                        product=self.coke,
-                        price=100,
-                    )
-                )
+                self.sales.append(Sale.objects.create(member=self.jokke, product=self.coke, price=100,))
                 frozen_time.tick()
         self.payments = []
         with freeze_time(timezone.datetime(2000, 1, 1)) as frozen_time:
             for i in range(1, 3):
-                self.payments.append(
-                    Payment.objects.create(
-                        member=self.jokke,
-                        amount=100,
-                    )
-                )
+                self.payments.append(Payment.objects.create(member=self.jokke, amount=100,))
                 frozen_time.tick()
 
     def test_renders(self):
-        response = self.client.post(
-            reverse('userinfo', args=(self.room.id, self.jokke.id)),
-        )
+        response = self.client.post(reverse('userinfo', args=(self.room.id, self.jokke.id)),)
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/menu_userinfo.html")
 
     def test_last_sale(self):
-        response = self.client.post(
-            reverse('userinfo', args=(self.room.id, self.jokke.id)),
-        )
+        response = self.client.post(reverse('userinfo', args=(self.room.id, self.jokke.id)),)
 
         self.assertSequenceEqual(response.context["last_sale_list"], self.sales[::-1])
 
     def test_last_payment(self):
-        response = self.client.post(
-            reverse('userinfo', args=(self.room.id, self.jokke.id)),
-        )
+        response = self.client.post(reverse('userinfo', args=(self.room.id, self.jokke.id)),)
 
         self.assertEqual(response.context["last_payment"], self.payments[-1])
 
@@ -392,12 +371,7 @@ class OrderTest(TestCase):
     def setUp(self):
         self.member = Member.objects.create(balance=100)
         self.room = Room.objects.create(name="room")
-        self.product = Product.objects.create(
-            id=1,
-            name="øl",
-            price=10,
-            active=True,
-        )
+        self.product = Product.objects.create(id=1, name="øl", price=10, active=True,)
 
     def test_order_fromproducts(self):
         products = [
@@ -533,15 +507,10 @@ class PaymentTests(TestCase):
 
 class ProductTests(TestCase):
     def setUp(self):
-        self.jeff = Member.objects.create(
-            username="Jeff",
-        )
+        self.jeff = Member.objects.create(username="Jeff",)
 
     def test_is_active_active(self):
-        product = Product.objects.create(
-            active=True,
-            price=100,
-        )
+        product = Product.objects.create(active=True, price=100,)
 
         self.assertTrue(product.is_active())
 
@@ -576,10 +545,7 @@ class ProductTests(TestCase):
         self.assertTrue(product.is_active())
 
     def test_is_active_deactive(self):
-        product = Product.objects.create(
-            active=False,
-            price=100,
-        )
+        product = Product.objects.create(active=False, price=100,)
 
         self.assertFalse(product.is_active())
 
@@ -610,11 +576,7 @@ class ProductTests(TestCase):
 class SaleTests(TestCase):
     def setUp(self):
         self.member = Member.objects.create(username="jon", balance=100)
-        self.product = Product.objects.create(
-            name="beer",
-            price=1.0,
-            active=True,
-        )
+        self.product = Product.objects.create(name="beer", price=1.0, active=True,)
 
     def test_sale_save_not_saved(self):
         sale = Sale(member=self.member, product=self.product, price=100)
@@ -1344,3 +1306,9 @@ class MobilePaymentTests(TestCase):
 
     def test_exact_guess(self):
         self.assertEqual(Member.objects.get(username__exact="marx"), mobile_payment_exact_match_member("marx"))
+
+    def test_emoji_strip(self):
+        self.assertEqual(strip_emoji("Tilmeld Lichi 😎"), "Tilmeld Lichi ")
+
+    def test_emoji_retain(self):
+        self.assertEqual(strip_emoji("Tilmeld Lichi"), "Tilmeld Lichi")
