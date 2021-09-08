@@ -35,7 +35,7 @@ from stregsystem.models import (
     price_display,
     MobilePayment,
 )
-from stregsystem.utils import mobile_payment_exact_match_member
+from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji
 
 
 def assertCountEqual(case, *args, **kwargs):
@@ -1344,3 +1344,9 @@ class MobilePaymentTests(TestCase):
 
     def test_exact_guess(self):
         self.assertEqual(Member.objects.get(username__exact="marx"), mobile_payment_exact_match_member("marx"))
+
+    def test_emoji_strip(self):
+        self.assertEqual(strip_emoji("Tilmeld Lichi 😎"), "Tilmeld Lichi ")
+
+    def test_emoji_retain(self):
+        self.assertEqual(strip_emoji("Tilmeld Lichi"), "Tilmeld Lichi")

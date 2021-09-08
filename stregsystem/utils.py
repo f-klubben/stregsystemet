@@ -1,4 +1,5 @@
 import logging
+import re
 import smtplib
 
 from django.utils.dateparse import parse_datetime
@@ -173,6 +174,17 @@ def mobile_payment_exact_match_member(comment):
     elif match.count() > 1:
         # something is very wrong, there should be no active users which are duplicates post PR #178
         raise RuntimeError("Duplicate usernames found at MobilePayment import. Should not exist post PR #178")
+
+
+def strip_emoji(text):
+    # yoinked from https://stackoverflow.com/questions/33404752/removing-emojis-from-a-string-in-python
+    regrex_pattern = re.compile(pattern="["
+                                        u"\U0001F600-\U0001F64F"  # emoticons
+                                        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                                        u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                                        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                                        "]+", flags=re.UNICODE)
+    return regrex_pattern.sub(r'', text)
 
 
 def qr_code(data):
