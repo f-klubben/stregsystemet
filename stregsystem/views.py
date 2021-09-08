@@ -168,11 +168,7 @@ def usermenu(request, room, member, bought, from_sale=False):
     product_list = __get_productlist(room.id)
     news = __get_news()
     promille = member.calculate_alcohol_promille()
-    (
-        is_ballmer_peaking,
-        bp_minutes,
-        bp_seconds,
-    ) = ballmer_peak(promille)
+    (is_ballmer_peaking, bp_minutes, bp_seconds,) = ballmer_peak(promille)
 
     give_multibuy_hint, sale_hints = _multibuy_hint(timezone.now(), member)
     give_multibuy_hint = give_multibuy_hint and from_sale
@@ -296,11 +292,7 @@ def batch_payment(request):
     return render(
         request,
         "admin/stregsystem/batch_payment.html",
-        {
-            "formset": formset,
-            "select2_js": settings.SELECT2_JS,
-            "select2_css": settings.SELECT2_CSS,
-        },
+        {"formset": formset, "select2_js": settings.SELECT2_JS, "select2_css": settings.SELECT2_CSS,},
     )
 
 
