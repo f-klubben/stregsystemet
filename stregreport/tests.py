@@ -59,7 +59,11 @@ class SalesReportTests(TestCase):
         self.client.login(username="tester", password="treotreo")
         response = self.client.get(
             reverse("salesreporting"),
-            {"products": "1", "from_date": "2007-30-07", "to_date": "2007-07-30",},
+            {
+                "products": "1",
+                "from_date": "2007-30-07",
+                "to_date": "2007-07-30",
+            },
             follow=True,
         )
 
