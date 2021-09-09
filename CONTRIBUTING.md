@@ -22,7 +22,7 @@ The project only strives to be Python 3 compliant.
 We adhere to the [black codestyle](https://github.com/psf/black) whenever possible. Mostly to avoid any
 discussions about coding style.
 
-Run `tox` to both run tests, generate coverage for these, and auto-format with black. The options for black are:
+Run `black`:
 ```
 black --target-version py36 --line-length 120 --skip-string-normalization --exclude '(migrations|urls\.py)' stregsystem stregreport kiosk 
 ```
