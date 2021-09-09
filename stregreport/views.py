@@ -460,7 +460,11 @@ def user_purchases_in_categories(request):
                     Member.objects.filter(sale__product__categories=c)
                     .annotate(sales=Count("*"))
                     .order_by("sale__product__categories")
-                    .values_list("id", "sales", "sale__product__categories__name",)
+                    .values_list(
+                        "id",
+                        "sales",
+                        "sale__product__categories__name",
+                    )
                 )
 
                 for user_id, sale_count, category_name in user_sales_per_category_q:
@@ -472,7 +476,11 @@ def user_purchases_in_categories(request):
                 Member.objects.filter(sale__product__categories__in=categories)
                 .annotate(total_sales=Count("*"))
                 .order_by("-total_sales")
-                .values_list("id", "username", "total_sales",)
+                .values_list(
+                    "id",
+                    "username",
+                    "total_sales",
+                )
             )
 
             header = categories.values_list("name", flat=True)
@@ -490,5 +498,9 @@ def user_purchases_in_categories(request):
     return render(
         request,
         'admin/stregsystem/report/user_purchases_in_categories.html',
-        {"form": form, "data": data, "header": header,},
+        {
+            "form": form,
+            "data": data,
+            "header": header,
+        },
     )
