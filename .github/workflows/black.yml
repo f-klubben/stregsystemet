@@ -8,9 +8,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Black Code Formatter
-        
-      uses: piotrpawlaczek/python-blacken@release/stable
+      uses: lgeiger/black-action@v1.0.1
       with:
-        line-length: '120'
-        path: 'stregsystem stregreport kiosk'
-
+        args: --check --target-version py36 --line-length 120 --skip-string-normalization --exclude '(migrations|urls\.py)' stregsystem stregreport kiosk
