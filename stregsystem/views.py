@@ -314,7 +314,6 @@ def mobilepaytool(request):
     data = dict()
     if request.method == "GET":
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
-
     elif request.method == "POST" and 'csv_file' in request.FILES and request.POST['action'] == "Import MobilePay CSV":
         # Prepare uploaded CSV to be read
         csv_file = request.FILES['csv_file']
@@ -348,7 +347,12 @@ def mobilepaytool(request):
         form = paytool_form_set(request.POST)
 
         if form.is_valid():
-            form.save()
+            # only save form if changed, otherwise just refresh formset
+            if form.has_changed():
+                form.save()
+            else:
+                data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+                return render(request, "admin/stregsystem/mobilepaytool.html", data)
 
             before_count = MobilePayment.objects.filter(payment__isnull=True).count()
             MobilePayment.submit_processed_mobile_payments(request.user)

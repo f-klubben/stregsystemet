@@ -4,6 +4,8 @@ from collections import Counter
 from unittest.mock import patch
 
 import pytz
+from concurrency.exceptions import RecordModifiedError
+
 import stregsystem.parser as parser
 from django.contrib.auth.models import User
 from django.contrib.admin.sites import AdminSite
@@ -1350,3 +1352,20 @@ class MobilePaymentTests(TestCase):
 
     def test_emoji_retain(self):
         self.assertEqual(strip_emoji("Tilmeld Lichi"), "Tilmeld Lichi")
+
+    def test_concurrency_mbpayment_fail(self):
+        # make two payments for member 1
+        m = Member.objects.get(pk=1)
+        p1 = Payment.objects.create(member=m, amount=42000)
+        p2 = Payment.objects.create(member=m, amount=6900)
+
+        # save two payments to same mbpayment
+        a = MobilePayment.objects.get(transaction_id="156E027485173228")
+        b = MobilePayment.objects.get(transaction_id="156E027485173228")
+
+        a.payment = p1
+        b.payment = p2
+
+        # assert that race-condition is disallowed
+        a.save()
+        self.assertRaises(RecordModifiedError, b.save)
