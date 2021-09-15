@@ -2,6 +2,7 @@ import logging
 import re
 import smtplib
 
+from django.db import transaction
 from django.utils.dateparse import parse_datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -60,7 +61,7 @@ def make_room_specific_query(room) -> QuerySet:
 def make_unprocessed_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
 
-    return MobilePayment.objects.filter(Q(status__exact=MobilePayment.UNSET) | Q(payment__isnull=True)).order_by(
+    return MobilePayment.objects.filter(Q(payment__isnull=True) & Q(status__exact=MobilePayment.UNSET)).order_by(
         '-timestamp'
     )
 
@@ -81,6 +82,20 @@ def make_unprocessed_member_filled_mobilepayment_query() -> QuerySet:
     return MobilePayment.objects.filter(
         Q(payment__isnull=True) & Q(status=MobilePayment.UNSET) & Q(member__isnull=False)
     )
+
+
+@transaction.atomic
+def fix_mbpayment_inconsistency():
+    from stregsystem.models import MobilePayment  # import locally to avoid circular import
+
+    # suboptimal fix: required since mobilepaytool 'submit' action overwrites status
+    # but not other fields if in race condition with autopayment
+    inconsistent_payments = MobilePayment.objects.filter(
+        Q(payment__isnull=False) & Q(status__exact=MobilePayment.UNSET)
+    )
+    for p in inconsistent_payments:
+        p.status = MobilePayment.APPROVED if p.payment.amount > 0 else MobilePayment.IGNORED
+        p.save()
 
 
 def date_to_midnight(date):

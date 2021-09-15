@@ -33,6 +33,7 @@ from stregsystem.utils import (
     make_room_specific_query,
     make_unprocessed_mobilepayment_query,
     parse_csv_and_create_mobile_payments,
+    fix_mbpayment_inconsistency,
 )
 
 from .booze import ballmer_peak
@@ -350,6 +351,8 @@ def mobilepaytool(request):
             # only save form if changed, otherwise just refresh formset
             if form.has_changed():
                 form.save()
+                # do fix of any race-conditions in status, if autopayment has run since request and submit
+                fix_mbpayment_inconsistency()
             else:
                 data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
                 return render(request, "admin/stregsystem/mobilepaytool.html", data)
