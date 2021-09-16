@@ -94,9 +94,6 @@
             <form method="post" class="js-formset"> {% csrf_token %}
                 {{ formset.management_form }}
                 {{ formset.non_form_errors.as_ul }}
-                {% if general_error %}
-                    {{ general_error }}
-                {% endif %}
                 <table id="formset" class="form">
                     {% for form in formset.forms %}
                         {% if forloop.first %}
