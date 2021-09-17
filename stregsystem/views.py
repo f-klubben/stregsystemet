@@ -319,7 +319,6 @@ def mobilepaytool(request):
     data = dict()
     if request.method == "GET":
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
-        data['general_error'] = "BAD STUFF HAPPENED"
     elif request.method == "POST" and 'csv_file' in request.FILES and request.POST['action'] == "Import MobilePay CSV":
         # Prepare uploaded CSV to be read
         csv_file = request.FILES['csv_file']
@@ -357,7 +356,7 @@ def mobilepaytool(request):
                 count = MobilePayment.process_submitted_mobile_payments(form.cleaned_data, request.user)
                 data['submitted_count'] = count
             except RuntimeError as r:
-                data['error'] = r.message
+                data['general_error'] = str(r)
 
             # refresh form after submission
             data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())

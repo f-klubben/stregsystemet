@@ -84,6 +84,10 @@
         <hr style="height: 3px">
         <br>
         <center>
+            {% if general_error %}
+                <h2 style="color:red"> {{ general_error }} </h2>
+            {% endif %}
+
             {% if not formset.forms and submitted_count %}
                 <h2> No more MobilePay transactions needs processing, submitted {{ submitted_count }} transactions </h2>
             {% elif not formset.forms %}
@@ -94,9 +98,6 @@
             <form method="post" class="js-formset"> {% csrf_token %}
                 {{ formset.management_form }}
                 {{ formset.non_form_errors.as_ul }}
-                {% if general_error %}
-                    {{ general_error }}
-                {% endif %}
                 <table id="formset" class="form">
                     {% for form in formset.forms %}
                         {% if forloop.first %}
