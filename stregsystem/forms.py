@@ -23,10 +23,6 @@ class MobilePayToolForm(forms.ModelForm):
                 if field in ['amount', 'customer_name', 'comment']:
                     self.fields[field].widget.attrs['readonly'] = True
 
-    def hullu_bulu(self, arg):
-        self.add_error(arg)
-        print('sup my man?!')
-
 
 class QRPaymentForm(forms.Form):
     member = forms.CharField(max_length=16)

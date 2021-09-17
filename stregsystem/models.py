@@ -2,11 +2,11 @@ from collections import Counter
 from email.utils import parseaddr
 
 from concurrency.fields import IntegerVersionField
-from django.contrib.admin.models import LogEntry, ADDITION
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 
 from stregsystem.deprecated import deprecated
@@ -323,6 +323,16 @@ class Payment(models.Model):  # id automatisk...
                 if '@' in parseaddr(self.member.email)[1] and self.member.want_spam:
                     send_payment_mail(self.member, self.amount)
 
+    def log_from_mobile_payment(self, processed_payment, admin_user: User):
+        LogEntry.objects.log_action(
+            user_id=admin_user.pk,
+            content_type_id=ContentType.objects.get_for_model(Payment).pk,
+            object_id=self.id,
+            object_repr=str(self),
+            action_flag=ADDITION,
+            change_message=f"{''}" f"MobilePayment (transaction_id: {processed_payment.transaction_id})",
+        )
+
     def delete(self, *args, **kwargs):
         if self.id:
             # TODO: Make atomic
@@ -378,32 +388,61 @@ class MobilePayment(models.Model):
         else:
             super(MobilePayment, self).delete(*args, **kwargs)
 
+    """
+    Takes a cleaned_form and processes them.
+    The return value is the number of rows procesesd.
+    If one of the MobilePayments have been altered compared to the data, a RuntimeError will be raised.
+    """
+
     @staticmethod
     @transaction.atomic
-    def submit_processed_mobile_payments(admin_user: User):
-        processed_payment: MobilePayment  # annotate iterated variable (PEP 526)
-        for processed_payment in make_processed_mobilepayment_query():
+    def process_submitted_mobile_payments(submitted_data, admin_user: User):
+        cleaned_data = []
+        for row in submitted_data:
+            if row['status'] == MobilePayment.UNSET:
+                continue
+            if row['status'] == MobilePayment.APPROVED and row['member'] is None:
+                continue
+            cleaned_data.append(row)
 
-            if processed_payment.status == MobilePayment.APPROVED:
-                payment = Payment(member=processed_payment.member, amount=processed_payment.amount)
-            else:
-                # otherwise it's an IGNORED payment
-                payment = Payment(member=processed_payment.member, amount=0)
+        mobile_payment_ids = [row['id'].id for row in cleaned_data]
+        database_payment_count = MobilePayment.objects.filter(
+            id__in=mobile_payment_ids, status=MobilePayment.UNSET
+        ).count()
+        if len(mobile_payment_ids) != database_payment_count:
+            raise RuntimeError('Some of the data has been processed')
 
-            # Save payment and foreign key to MobilePayment field
-            payment.save()
-            processed_payment.payment = payment
+        for row in cleaned_data:
+            processed_payment = MobilePayment.objects.get(id=row['id'].id)
+            payment_amount = 0
+            if row['status'] == MobilePayment.APPROVED:
+                payment_amount = processed_payment.amount
+                member = Member.objects.get(id=row['member'].id)
+
+                payment = Payment(member=member, amount=payment_amount)
+                payment.log_from_mobile_payment(processed_payment, admin_user)
+                payment.save()
+
+                processed_payment.payment = payment
+                processed_payment.member = member
+
+            elif row['status'] == MobilePayment.IGNORED:
+                processed_payment.log_ignored_payment(admin_user)
+
+            processed_payment.status = row['status']
             processed_payment.save()
 
-            LogEntry.objects.log_action(
-                user_id=admin_user.pk,
-                content_type_id=ContentType.objects.get_for_model(Payment).pk,
-                object_id=payment.id,
-                object_repr=str(payment),
-                action_flag=ADDITION,
-                change_message=f"{'Ignored' if processed_payment.status == MobilePayment.IGNORED else ''}"
-                f"MobilePayment (transaction_id: {processed_payment.transaction_id})",
-            )
+        return len(mobile_payment_ids)
+
+    def log_ignored_payment(self, admin_user: User):
+        LogEntry.objects.log_action(
+            user_id=admin_user.pk,
+            content_type_id=ContentType.objects.get_for_model(MobilePayment).pk,
+            object_id=self.id,
+            object_repr=str(self),
+            action_flag=CHANGE,
+            change_message='Ignored',
+        )
 
     @staticmethod
     @transaction.atomic

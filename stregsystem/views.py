@@ -353,49 +353,12 @@ def mobilepaytool(request):
         form = paytool_form_set(request.POST)
 
         if form.is_valid():
-            # only save form if changed, otherwise just refresh formset
-            arr = [{'id': r['id'].id, 'member': r['member'].id if r['member'] is not None else None, 'status': r['status']} for r in form.cleaned_data if r['status'] != MobilePayment.UNSET]
+            try:
+                count = MobilePayment.process_submitted_mobile_payments(form.cleaned_data, request.user)
+                data['submitted_count'] = count
+            except RuntimeError as r:
+                data['error'] = r.message
 
-            #if form.has_changed():
-            #    print(arr)#
-
-            #    raise Exception('STOP')
-            #    # do fix of any race-conditions in status, if autopayment has run since request and submit
-            #    fix_mbpayment_inconsistency()
-            #else:
-            #    data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
-            #    return render(request, "admin/stregsystem/mobilepaytool.html", data)
-
-            #before_count = MobilePayment.objects.filter(payment__isnull=True).count()
-            #MobilePayment.submit_processed_mobile_payments(request.user)
-            #count = before_count - MobilePayment.objects.filter(payment__isnull=True).count()
-            with transaction.atomic():
-                ids = [r['id'] for r in arr]
-                if MobilePayment.objects.filter(id__in=ids, payment__isnull=False).exists():
-                    print('print stuff happened')
-                else:
-                    count = len(ids)
-                    for row in arr:
-                        processed_payment = MobilePayment.objects.get(id=row['id'])
-                        new_amount = processed_payment.amount if row['status'] == MobilePayment.APPROVED else 0
-                        member = None if row['member'] is None else Member.objects.get(id=row['member'])
-                        payment = Payment(member=member, amount=new_amount)
-                        payment.save()
-                        processed_payment.payment = payment
-                        processed_payment.status = row['status']
-                        processed_payment.member = member
-                        processed_payment.save()
-                        LogEntry.objects.log_action(
-                            user_id=request.user.pk,
-                            content_type_id=ContentType.objects.get_for_model(Payment).pk,
-                            object_id=payment.id,
-                            object_repr=str(payment),
-                            action_flag=ADDITION,
-                            change_message=f"{'Ignored' if processed_payment.status == MobilePayment.IGNORED else ''}"
-                            f"MobilePayment (transaction_id: {processed_payment.transaction_id})",
-                        )
-
-            data['submitted_count'] = count
             # refresh form after submission
             data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
         else:
