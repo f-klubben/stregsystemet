@@ -323,14 +323,14 @@ class Payment(models.Model):  # id automatisk...
                 if '@' in parseaddr(self.member.email)[1] and self.member.want_spam:
                     send_payment_mail(self.member, self.amount)
 
-    def log_from_mobile_payment(self, processed_payment, admin_user: User):
+    def log_from_mobile_payment(self, processed_mobile_payment, admin_user: User):
         LogEntry.objects.log_action(
             user_id=admin_user.pk,
             content_type_id=ContentType.objects.get_for_model(Payment).pk,
             object_id=self.id,
             object_repr=str(self),
             action_flag=ADDITION,
-            change_message=f"{''}" f"MobilePayment (transaction_id: {processed_payment.transaction_id})",
+            change_message=f"{''}" f"MobilePayment (transaction_id: {processed_mobile_payment.transaction_id})",
         )
 
     def delete(self, *args, **kwargs):
@@ -390,10 +390,27 @@ class MobilePayment(models.Model):
 
     @staticmethod
     @transaction.atomic
+    def submit_processed_mobile_payments(admin_user: User):
+        processed_mobile_payment: MobilePayment  # annotate iterated variable (PEP 526)
+        for processed_mobile_payment in make_processed_mobilepayment_query():
+
+            if processed_mobile_payment.status == MobilePayment.APPROVED:
+                payment = Payment(member=processed_mobile_payment.member, amount=processed_mobile_payment.amount)
+                # Save payment and foreign key to MobilePayment field
+                payment.save()
+                payment.log_from_mobile_payment(processed_mobile_payment, admin_user)
+                processed_mobile_payment.payment = payment
+                processed_mobile_payment.save()
+
+            elif processed_mobile_payment.status == MobilePayment.IGNORED:
+                processed_mobile_payment.log_ignored_payment(admin_user)
+
+    @staticmethod
+    @transaction.atomic
     def process_submitted_mobile_payments(submitted_data, admin_user: User):
         """
-        Takes a cleaned_form and processes them.
-        The return value is the number of rows procesesd.
+        Takes a cleaned_form from a MobilePayToolFormSet and processes them.
+        The return value is the number of rows procesed.
         If one of the MobilePayments have been altered compared to the data, a RuntimeError will be raised.
         """
         cleaned_data = []
@@ -410,33 +427,38 @@ class MobilePayment(models.Model):
         # Find the id's of the remaining cleaned data.
         mobile_payment_ids = [row['id'].id for row in cleaned_data]
         # Count how many id of the id's who are set to status "unset".
-        database_payment_count = MobilePayment.objects.filter(
+        database_mobile_payment_count = MobilePayment.objects.filter(
             id__in=mobile_payment_ids, status=MobilePayment.UNSET
         ).count()
-        # If there's a decrepancy in the number of rows, the user must have an outdated image. Throw an error.
-        if len(mobile_payment_ids) != database_payment_count:
-            raise RuntimeError('Some of the data has already been processed. The view has been updated')
+        # If there's a discrepancy in the number of rows, the user must have an outdated image. Throw an error.
+        if len(mobile_payment_ids) != database_mobile_payment_count:
+            database_racy_mobile_payments = MobilePayment.objects.filter(
+                id__in=mobile_payment_ids, status__in=(MobilePayment.APPROVED, MobilePayment.IGNORED)
+            )
+            raise RuntimeError(
+                f"{database_racy_mobile_payments.count()} of the rows you are trying to submit, has already been "
+                f"processed. \nThe view has been updated and none of your changes has been applied. "
+            )
 
         for row in cleaned_data:
-            processed_payment = MobilePayment.objects.get(id=row['id'].id)
-            payment_amount = 0
-            # The user set the status to approved. Thus, we need to create a payment and relate said payment to the mobilepayment.
+            processed_mobile_payment = MobilePayment.objects.get(id=row['id'].id)
+            # If approved, we need to create a payment and relate said payment to the mobilepayment.
             if row['status'] == MobilePayment.APPROVED:
-                payment_amount = processed_payment.amount
+                payment_amount = processed_mobile_payment.amount
                 member = Member.objects.get(id=row['member'].id)
 
                 payment = Payment(member=member, amount=payment_amount)
-                payment.log_from_mobile_payment(processed_payment, admin_user)
+                payment.log_from_mobile_payment(processed_mobile_payment, admin_user)
                 payment.save()
 
-                processed_payment.payment = payment
-                processed_payment.member = member
-            # The user set the status to ignored. Thus, we need to log who did it.
+                processed_mobile_payment.payment = payment
+                processed_mobile_payment.member = member
+            # If ignored, we need to log who did it.
             elif row['status'] == MobilePayment.IGNORED:
-                processed_payment.log_ignored_payment(admin_user)
+                processed_mobile_payment.log_ignored_payment(admin_user)
 
-            processed_payment.status = row['status']
-            processed_payment.save()
+            processed_mobile_payment.status = row['status']
+            processed_mobile_payment.save()
 
         # Return how many records were modified.
         return len(mobile_payment_ids)
