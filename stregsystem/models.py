@@ -430,12 +430,14 @@ class MobilePayment(models.Model):
         ).count()
         # If there's a discrepancy in the number of rows, the user must have an outdated image. Throw an error.
         if len(mobile_payment_ids) != database_mobile_payment_count:
+            # get database mobilepayments matching cleaned ids and having been processed while form has been active
             database_racy_mobile_payments = MobilePayment.objects.filter(
                 id__in=mobile_payment_ids, status__in=(MobilePayment.APPROVED, MobilePayment.IGNORED)
             )
             raise RuntimeError(
                 f"{database_racy_mobile_payments.count()} of the rows you are trying to submit, has already been "
-                f"processed. \nThe view has been updated and none of your changes has been applied. "
+                f"processed. \nThe view has been updated and none of your changes has been applied. \n The "
+                f"inconsistent transaction_ids are: {[x.transaction_id for x in database_racy_mobile_payments]} "
             )
 
         for row in cleaned_data:

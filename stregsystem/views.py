@@ -356,7 +356,7 @@ def mobilepaytool(request):
                 count = MobilePayment.process_submitted_mobile_payments(form.cleaned_data, request.user)
                 data['submitted_count'] = count
             except RuntimeError as r:
-                data['general_error'] = str(r)
+                data['error'] = r
 
             # refresh form after submission
             data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())

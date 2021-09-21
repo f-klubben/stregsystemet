@@ -84,8 +84,8 @@
         <hr style="height: 3px">
         <br>
         <center>
-            {% if general_error %}
-                <h2 style="color:red"> {{ general_error }} </h2>
+            {% if error %}
+                <h2 style="color:red"> {{ error | linebreaks }} </h2>
             {% endif %}
 
             {% if not formset.forms and submitted_count %}
