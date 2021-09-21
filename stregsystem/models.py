@@ -1,12 +1,11 @@
 from collections import Counter
 from email.utils import parseaddr
 
-from concurrency.fields import IntegerVersionField
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.utils import timezone
 
 from stregsystem.deprecated import deprecated
@@ -370,8 +369,6 @@ class MobilePayment(models.Model):
     )  # trans_ids are at most 17 chars, assumed to be unique
     comment = models.CharField(max_length=128, blank=True, null=True)
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=UNSET)
-    # add version for django-concurrency to counter race-conditions in auto-payment and mobilepaytool
-    version = IntegerVersionField()
 
     def __str__(self):
         return (
