@@ -84,8 +84,16 @@
         <hr style="height: 3px">
         <br>
         <center>
-            {% if error %}
-                <h2 style="color:red"> {{ error | linebreaks }} </h2>
+            {% if error_count or error_transaction_ids %}
+                <h2 style="color:red">
+                    Error! {{ error_count }} of the rows you are trying to submit, has already been processed. <br>
+                    The view has been updated and none of your changes has been applied. The inconsistent MobilePay transaction_ids are:
+                    <ul>
+                        {% for id in error_transaction_ids %}
+                            <li>{{ id }}</li>
+                        {% endfor %}
+                    </ul>
+                </h2>
             {% endif %}
 
             {% if not formset.forms and submitted_count %}

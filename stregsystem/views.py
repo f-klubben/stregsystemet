@@ -33,6 +33,7 @@ from stregsystem.utils import (
     make_room_specific_query,
     make_unprocessed_mobilepayment_query,
     parse_csv_and_create_mobile_payments,
+    MobilePaytoolException,
 )
 
 from .booze import ballmer_peak
@@ -348,10 +349,12 @@ def mobilepaytool(request):
 
         if form.is_valid():
             try:
+                # Do custom validation on form to avoid race conditions with autopayment
                 count = MobilePayment.process_submitted_mobile_payments(form.cleaned_data, request.user)
                 data['submitted_count'] = count
-            except RuntimeError as r:
-                data['error'] = r
+            except MobilePaytoolException as e:
+                data['error_count'] = e.inconsistent_mbpayments_count
+                data['error_transaction_ids'] = e.inconsistent_transaction_ids
 
             # refresh form after submission
             data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
