@@ -37,7 +37,6 @@ from stregsystem.utils import (
     make_room_specific_query,
     make_unprocessed_mobilepayment_query,
     parse_csv_and_create_mobile_payments,
-    fix_mbpayment_inconsistency,
 )
 
 from .booze import ballmer_peak

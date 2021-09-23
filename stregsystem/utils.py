@@ -84,20 +84,6 @@ def make_unprocessed_member_filled_mobilepayment_query() -> QuerySet:
     )
 
 
-@transaction.atomic
-def fix_mbpayment_inconsistency():
-    from stregsystem.models import MobilePayment  # import locally to avoid circular import
-
-    # suboptimal fix: required since mobilepaytool 'submit' action overwrites status
-    # but not other fields if in race condition with autopayment
-    inconsistent_payments = MobilePayment.objects.filter(
-        Q(payment__isnull=False) & Q(status__exact=MobilePayment.UNSET)
-    )
-    for p in inconsistent_payments:
-        p.status = MobilePayment.APPROVED if p.payment.amount > 0 else MobilePayment.IGNORED
-        p.save()
-
-
 def date_to_midnight(date):
     """
     Converts a datetime.date to a datetime of the same date at midnight.
