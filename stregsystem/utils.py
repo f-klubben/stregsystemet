@@ -2,7 +2,6 @@ import logging
 import re
 import smtplib
 
-from django.db import transaction
 from django.utils.dateparse import parse_datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText

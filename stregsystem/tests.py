@@ -4,7 +4,6 @@ from collections import Counter
 from unittest.mock import patch
 
 import pytz
-
 import stregsystem.parser as parser
 from django.contrib.auth.models import User
 from django.contrib.admin.sites import AdminSite

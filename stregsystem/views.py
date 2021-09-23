@@ -7,10 +7,6 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.conf import settings
 from django.db.models import Q
-from django.db import transaction
-from django.core.exceptions import NON_FIELD_ERRORS
-from django.contrib.admin.models import LogEntry, ADDITION
-from django.contrib.contenttypes.models import ContentType
 from django import forms
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
