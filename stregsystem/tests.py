@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import datetime
 from collections import Counter
+from copy import deepcopy
 from unittest.mock import patch
 
 import pytz
+from django.utils.dateparse import parse_datetime
 import stregsystem.parser as parser
 from django.contrib.auth.models import User
 from django.contrib.admin.sites import AdminSite
@@ -35,7 +37,7 @@ from stregsystem.models import (
     price_display,
     MobilePayment,
 )
-from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji
+from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, MobilePaytoolException
 
 
 def assertCountEqual(case, *args, **kwargs):
@@ -1137,6 +1139,7 @@ class MobilePaymentTests(TestCase):
 
         # setup admin
         self.super_user = User.objects.create_superuser('superuser', 'test@example.com', "hunter2")
+        self.autopayment_user = User.objects.create_superuser('autopayment', 'foo@bar.com', 'hunter2')
 
         # Create members, directly mirrors fixture in 'stregsystem/fixtures/testdata-mobilepay.json'
         self.members = {
@@ -1189,6 +1192,65 @@ class MobilePaymentTests(TestCase):
 
         with open(self.fixture_path, "r") as csv_file:
             parse_csv_and_create_mobile_payments(csv_file.readlines())
+
+        # fixture for mobilepaytool form submission
+        self.fixture_form_data_no_change = [
+            {
+                "amount": 6969,
+                "comment": "mlarsen indbetalt",
+                "id": MobilePayment.objects.get(transaction_id="156E027485173228"),
+                "member": None,
+                "status": MobilePayment.UNSET,
+                "timestamp": parse_datetime("2019-11-29T13:51:08.8574424+01:00"),
+            },
+            {
+                "amount": 50000,
+                "comment": "tables eksdee",
+                "id": MobilePayment.objects.get(transaction_id="232E027452733666"),
+                "member": None,
+                "status": MobilePayment.UNSET,
+                "timestamp": parse_datetime("2019-11-28T17:40:55.7194894+01:00"),
+            },
+            {
+                "amount": 50000,
+                "comment": "tables eksdee",
+                "id": MobilePayment.objects.get(transaction_id="232E027452733676"),
+                "member": None,
+                "status": MobilePayment.UNSET,
+                "timestamp": parse_datetime("2019-11-28T17:40:55.7194894+01:00"),
+            },
+            {
+                "amount": 20000,
+                "comment": "marx",
+                "id": MobilePayment.objects.get(transaction_id="241E027449465355"),
+                "member": "+ marx: Karl Marx | kmarx@nsa.gov (69.00)",
+                "status": MobilePayment.UNSET,
+                "timestamp": parse_datetime("2019-11-28T15:30:58.3578294+01:00"),
+            },
+            {
+                "amount": 15000,
+                "comment": "jdoe",
+                "id": MobilePayment.objects.get(transaction_id="016E027417049990"),
+                "member": "+ jdoe: John Doe | jdoe@nsa.gov (420.00)",
+                "status": MobilePayment.UNSET,
+                "timestamp": parse_datetime("2019-11-27T12:15:38.5290119+01:00"),
+            },
+            {
+                "amount": 20000,
+                "comment": "tester",
+                "id": MobilePayment.objects.get(transaction_id="207E027395896809"),
+                "member": "+ tester: Test Testsen | plznospam@fklub.dk (133660.37)",
+                "status": MobilePayment.UNSET,
+                "timestamp": parse_datetime("2019-11-26T12:54:37.5216501+01:00"),
+            },
+        ]
+        # fixture where only marx is approved
+        self.fixture_form_data_marx_approved = deepcopy(self.fixture_form_data_no_change)
+        self.fixture_form_data_marx_approved[3]['status'] = MobilePayment.APPROVED
+
+        # fixture where both marx and jdoe is approved
+        self.fixture_form_data_marx_jdoe_approved = deepcopy(self.fixture_form_data_marx_approved)
+        self.fixture_form_data_marx_jdoe_approved[4]['status'] = MobilePayment.APPROVED
 
     def test_csv_parsing(self):
         self.assertEqual(MobilePayment.objects.count(), 6)
@@ -1350,3 +1412,42 @@ class MobilePaymentTests(TestCase):
 
     def test_emoji_retain(self):
         self.assertEqual(strip_emoji("Tilmeld Lichi"), "Tilmeld Lichi")
+
+    def test_mobilepaytool_race_no_error(self):
+        # do autopayment
+        MobilePayment.approve_member_filled_mobile_payments()
+        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+        # assert that no changes have been made, also that MobilePaytoolException is not thrown
+        self.assertEqual(
+            MobilePayment.process_submitted_mobile_payments(self.fixture_form_data_no_change, self.super_user), 0
+        )
+
+    def test_mobilepaytool_race_error_marx(self):
+        # do autopayment
+        MobilePayment.approve_member_filled_mobile_payments()
+        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+
+        # assert exception is thrown and values in exception are as expected
+        with self.assertRaises(MobilePaytoolException):
+            try:
+                MobilePayment.process_submitted_mobile_payments(self.fixture_form_data_marx_approved, self.super_user)
+            except MobilePaytoolException as e:
+                self.assertEqual(e.inconsistent_mbpayments_count, 1)
+                self.assertEqual(e.inconsistent_transaction_ids, ["241E027449465355"])
+                raise e
+
+    def test_mobilepaytool_race_error_marx_jdoe(self):
+        # do autopayment
+        MobilePayment.approve_member_filled_mobile_payments()
+        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+
+        # assert exception is thrown and values in exception are as expected
+        with self.assertRaises(MobilePaytoolException):
+            try:
+                MobilePayment.process_submitted_mobile_payments(
+                    self.fixture_form_data_marx_jdoe_approved, self.super_user
+                )
+            except MobilePaytoolException as e:
+                self.assertEqual(e.inconsistent_mbpayments_count, 2)
+                self.assertEqual(e.inconsistent_transaction_ids, ["241E027449465355", "016E027417049990"])
+                raise e

@@ -33,6 +33,7 @@ from stregsystem.utils import (
     make_room_specific_query,
     make_unprocessed_mobilepayment_query,
     parse_csv_and_create_mobile_payments,
+    MobilePaytoolException,
 )
 
 from .booze import ballmer_peak
@@ -314,7 +315,6 @@ def mobilepaytool(request):
     data = dict()
     if request.method == "GET":
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
-
     elif request.method == "POST" and 'csv_file' in request.FILES and request.POST['action'] == "Import MobilePay CSV":
         # Prepare uploaded CSV to be read
         csv_file = request.FILES['csv_file']
@@ -348,13 +348,14 @@ def mobilepaytool(request):
         form = paytool_form_set(request.POST)
 
         if form.is_valid():
-            form.save()
+            try:
+                # Do custom validation on form to avoid race conditions with autopayment
+                count = MobilePayment.process_submitted_mobile_payments(form.cleaned_data, request.user)
+                data['submitted_count'] = count
+            except MobilePaytoolException as e:
+                data['error_count'] = e.inconsistent_mbpayments_count
+                data['error_transaction_ids'] = e.inconsistent_transaction_ids
 
-            before_count = MobilePayment.objects.filter(payment__isnull=True).count()
-            MobilePayment.submit_processed_mobile_payments(request.user)
-            count = before_count - MobilePayment.objects.filter(payment__isnull=True).count()
-
-            data['submitted_count'] = count
             # refresh form after submission
             data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
         else:

@@ -60,7 +60,7 @@ def make_room_specific_query(room) -> QuerySet:
 def make_unprocessed_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
 
-    return MobilePayment.objects.filter(Q(status__exact=MobilePayment.UNSET) | Q(payment__isnull=True)).order_by(
+    return MobilePayment.objects.filter(Q(payment__isnull=True) & Q(status__exact=MobilePayment.UNSET)).order_by(
         '-timestamp'
     )
 
@@ -202,3 +202,14 @@ class stregsystemTestRunner(DiscoverRunner):
     def __init__(self, *args, **kwargs):
         settings.TEST_MODE = True
         super(stregsystemTestRunner, self).__init__(*args, **kwargs)
+
+
+class MobilePaytoolException(RuntimeError):
+    """
+    Structured exception for runtime error due to race condition during submission of MobilePaytool form
+    """
+
+    def __init__(self, racy_mbpayments: QuerySet):
+        self.racy_mbpayments = racy_mbpayments
+        self.inconsistent_mbpayments_count = self.racy_mbpayments.count()
+        self.inconsistent_transaction_ids = [x.transaction_id for x in self.racy_mbpayments]
