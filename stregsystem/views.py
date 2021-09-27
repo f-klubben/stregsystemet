@@ -1,5 +1,7 @@
 import datetime
 
+from stregreport.views import fjule_party
+
 from django.core import management
 from django.forms import modelformset_factory, formset_factory
 
@@ -38,7 +40,7 @@ from stregsystem.utils import (
 )
 
 from .booze import ballmer_peak
-from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm
+from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, RankingDateForm
 
 
 def __get_news():
@@ -227,30 +229,68 @@ def menu_userrank(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     member = Member.objects.get(pk=member_id, active=True)
 
-    def ranking(products, member_id):
+    def ranking(category_ids):
         qs = (
-            Member.objects.filter(sale__product__in=products)
+            Member.objects.filter(
+                sale__product__in=category_ids, sale__timestamp__gt=from_date, sale__timestamp__lte=to_date
+            )
             .annotate(Count('sale'))
             .order_by('-sale__count', 'username')
         )
         if member not in qs:
             return 0, qs.count()
-        return list(qs).index(Member.objects.get(id=member_id)) + 1, int(qs.count())
+        return list(qs).index(Member.objects.get(id=member.id)) + 1, int(qs.count())
 
-    def get_product_ids_for_category(category):
-        return {
-            category: list(
-                Product.objects.filter(categories__exact=Category.objects.get(name__exact=category)).values_list(
-                    'id', flat=True
-                )
+    def get_product_ids_for_category(category) -> list:
+        return list(
+            Product.objects.filter(categories__exact=Category.objects.get(name__exact=category)).values_list(
+                'id', flat=True
             )
-        }
+        )
 
+    def category_per_uni_day(category_ids):
+        qs = Member.objects.filter(
+            id=member.id,
+            sale__product__in=category_ids,
+            sale__timestamp__gt=from_date,
+            sale__timestamp__lte=to_date,
+        )
+        if member not in qs:
+            return 0
+        else:
+            return "{:.2f}".format(
+                qs.count() / ((to_date - from_date).days * 162.14 / 365)  # university workdays in 2021
+            )
+
+    # let user know when they first purchased a product
+    member_first_purchase = "Ikke endnu, køb en limfjordsporter!"
+    first_purchase = Sale.objects.filter(member=member_id).order_by('-timestamp')
+    if first_purchase.exists():
+        member_first_purchase = first_purchase.last().timestamp
+
+    form = RankingDateForm()
+    if request.method == "POST" and request.POST['custom-range']:
+        form = RankingDateForm(request.POST)
+        if form.is_valid():
+            to_date = form.cleaned_data['to_date']
+            from_date = form.cleaned_data['from_date']
+    else:
+        # setup initial dates for form and results
+        form = RankingDateForm(
+            initial={'from_date': fjule_party(timezone.now().year - 1), 'to_date': datetime.datetime.today()}
+        )
+        to_date = datetime.date.today()
+        from_date = fjule_party(timezone.now().year - 1).date()
+
+    # get prod_ids for each category as dict {cat: [key1, key2])}, then flatten list of singleton
+    # dicts into one dict, lastly calculate member_id rating and units/weekday for category_ids
     rankings = {
-        key: ranking(ids, member_id)
-        for key, ids in dict(
-            pair for d in list(map(get_product_ids_for_category, list(Category.objects.all()))) for pair in d.items()
-        ).items()
+        key: (ranking(category_ids), category_per_uni_day(category_ids))
+        for key, category_ids in {
+            k: v
+            for x in list(map(lambda x: {x: get_product_ids_for_category(x)}, list(Category.objects.all())))
+            for k, v in x.items()
+        }.items()
     }
 
     return render(request, 'stregsystem/menu_userrank.html', locals())

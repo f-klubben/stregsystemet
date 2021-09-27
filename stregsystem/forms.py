@@ -1,3 +1,5 @@
+import datetime
+
 from django import forms
 
 from stregsystem.models import MobilePayment, Member
@@ -31,3 +33,10 @@ class QRPaymentForm(forms.Form):
 
 class PurchaseForm(forms.Form):
     product_id = forms.IntegerField()
+
+
+class RankingDateForm(forms.Form):
+    from_date = forms.DateField(widget=forms.SelectDateWidget(years=range(2000, datetime.date.today().year + 1)))
+    to_date = forms.DateField(
+        initial=datetime.date.today(), widget=forms.SelectDateWidget(years=range(2000, datetime.date.today().year + 1))
+    )
