@@ -1,5 +1,4 @@
 import datetime
-import logging
 
 from django.core import management
 from django.forms import modelformset_factory, formset_factory
