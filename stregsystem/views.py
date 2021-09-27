@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from django.core import management
 from django.forms import modelformset_factory, formset_factory
@@ -6,7 +7,7 @@ from django.forms import modelformset_factory, formset_factory
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, Count
 from django import forms
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
@@ -26,6 +27,7 @@ from stregsystem.models import (
     Sale,
     StregForbudError,
     MobilePayment,
+    Category,
 )
 from stregsystem.utils import (
     make_active_productlist_query,
@@ -220,6 +222,39 @@ def menu_userpay(request, room_id, member_id):
     amounts = sorted(amounts)
 
     return render(request, 'stregsystem/menu_userpay.html', locals())
+
+
+def menu_userrank(request, room_id, member_id):
+    room = Room.objects.get(pk=room_id)
+    member = Member.objects.get(pk=member_id, active=True)
+
+    def ranking(products, member_id):
+        qs = (
+            Member.objects.filter(sale__product__in=products)
+            .annotate(Count('sale'))
+            .order_by('-sale__count', 'username')
+        )
+        if member not in qs:
+            return 0, qs.count()
+        return list(qs).index(Member.objects.get(id=member_id)) + 1, int(qs.count())
+
+    def get_product_ids_for_category(category):
+        return {
+            category: list(
+                Product.objects.filter(categories__exact=Category.objects.get(name__exact=category)).values_list(
+                    'id', flat=True
+                )
+            )
+        }
+
+    rankings = {
+        key: ranking(ids, member_id)
+        for key, ids in dict(
+            pair for d in list(map(get_product_ids_for_category, list(Category.objects.all()))) for pair in d.items()
+        ).items()
+    }
+
+    return render(request, 'stregsystem/menu_userrank.html', locals())
 
 
 def menu_sale(request, room_id, member_id, product_id=None):

@@ -1,0 +1,32 @@
+{% extends "stregsystem/base.html" %}
+
+{% block title %}Treoens stregsystem : Rangliste {% endblock %}
+
+{% block content %}
+
+    <style>
+        .ranking {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 5px;
+        }
+    </style>
+
+    <center>
+        <h3>{{ member.firstname }} {{ member.lastname }} ({{ member.email }})</h3>
+        <h3>Dine rankings er:</h3>
+        <table class="ranking">
+            <tr class="ranking">
+                {% for header in rankings.keys %}
+                    <th class="ranking">{{ header }}</th>
+                {% endfor %}
+            </tr>
+            <tr class="ranking">
+                {% for _, rank in rankings.items %}
+                    <td class="ranking">{{ rank.0 }}/{{ rank.1 }}</td>
+                {% endfor %}
+            </tr>
+        </table>
+    </center>
+{% endblock %}
+
