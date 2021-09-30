@@ -507,6 +507,12 @@ class Room(models.Model):
         return self.name
 
 
+class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på tab og indkøb
+    name = models.CharField(max_length=64)
+    price = models.PositiveIntegerField(default=0)
+    quantity = models.PositiveIntegerField(default=0)
+
+
 class Product(models.Model):  # id automatisk...
     name = models.CharField(max_length=64)
     price = models.IntegerField()  # penge, oere...
@@ -517,6 +523,8 @@ class Product(models.Model):  # id automatisk...
     categories = models.ManyToManyField(Category, blank=True)
     rooms = models.ManyToManyField(Room, blank=True)
     alcohol_content_ml = models.FloatField(default=0.0, null=True)
+    sub_items = models.ManyToManyField(InventoryItem, blank=True)
+
 
     @deprecated
     def __unicode__(self):
