@@ -575,10 +575,11 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
     @transaction.atomic
     def save(self, *args, **kwargs):
         product = Product.objects.get(id=self.products.pk)
-        if product.start_date is not None and product.start_date != date.today():
+        if product.start_date is not None and product.start_date != date.today():    
             product.start_date = date.today()
             product.quantity = 0
-
+            
+        # pls no abuse
         product.quantity += self.quantity
         product.save()
 
