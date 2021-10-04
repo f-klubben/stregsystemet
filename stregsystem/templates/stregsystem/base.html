@@ -11,7 +11,7 @@
 
 </style>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-<link rel="stylesheet" type="text/css" media="screen" href="{% static "/stregsystem/bat.css" %}" />
+<link rel="stylesheet" type="text/css" media="screen" href="{% static "/stregsystem/monthly.css" %}" />
 <script>
     var static_url = "{% get_static_prefix %}";
     var media_url = "{% get_media_prefix %}";
@@ -57,9 +57,9 @@
 {% endif %}
 {% endblock %}
 </div>
-<script type="text/javascript" async src="{% static "/stregsystem/bat.js" %}"></script>
+<script type="text/javascript" async src="{% static "/stregsystem/monthly.js" %}"></script>
 <script type="text/javascript" async src="{% static "/stregsystem/gdpr.js" %}"></script>
-<div class="bat-container"></div>
+<div class="monthly-sprite-container"></div>
 
 {% show_candle %}
 </body>
