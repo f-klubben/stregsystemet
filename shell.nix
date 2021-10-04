@@ -1,7 +1,7 @@
 { pkgs ? import <nixpkgs> {}
 , toLower ? pkgs.lib.toLower
-, python ? pkgs.python36
-, pythonPackages ? pkgs.python36Packages
+, python ? pkgs.python39
+, pythonPackages ? pkgs.python39Packages
 }:
 let
 	customPackages = {
