@@ -4,7 +4,18 @@ from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
 
-from stregsystem.models import Category, InventoryItem, Member, News, Payment, PayTransaction, Product, Room, Sale, MobilePayment
+from stregsystem.models import (
+    Category,
+    InventoryItem,
+    Member,
+    News,
+    Payment,
+    PayTransaction,
+    Product,
+    Room,
+    Sale,
+    MobilePayment,
+)
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
 
@@ -133,7 +144,10 @@ class ProductAdmin(admin.ModelAdmin):
     readonly_fields = ("get_bought",)
 
     actions = [toggle_active_selected_products]
-    filter_horizontal = ('categories', 'rooms',)
+    filter_horizontal = (
+        'categories',
+        'rooms',
+    )
 
     def get_price_display(self, obj):
         if obj.price is None:
@@ -157,8 +171,15 @@ class ProductAdmin(admin.ModelAdmin):
 
 class InventoryAdmin(admin.ModelAdmin):
     search_fields = ('name',)
-    list_display = ('name', 'quantity',)
-    fields = ('name', 'quantity','products',)
+    list_display = (
+        'name',
+        'quantity',
+    )
+    fields = (
+        'name',
+        'quantity',
+        'products',
+    )
 
 
 class CategoryAdmin(admin.ModelAdmin):

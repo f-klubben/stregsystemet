@@ -551,7 +551,7 @@ class Product(models.Model):  # id automatisk...
         ]
 
     def is_active(self):
-        
+
         expired = self.deactivate_date is not None and self.deactivate_date <= timezone.now()
 
         if self.start_date is not None:
@@ -578,12 +578,11 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
         if product.start_date is not None and product.start_date != date.today():
             product.start_date = date.today()
             product.quantity = 0
-        
+
         product.quantity += self.quantity
         product.save()
 
         super(InventoryItem, self).save(*args, **kwargs)
-
 
 
 class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statistik?
