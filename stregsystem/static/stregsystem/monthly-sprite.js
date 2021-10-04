@@ -33,11 +33,11 @@ spawn_sprite = function() {
         var y = animation_start_location(scaled_height, window.innerHeight);
         var animation_duration = Math.round(10 * Math.sqrt((scaled_width - x) * (scaled_width - x) + (scaled_height - y) * (scaled_height - y)));
         z_style.opacity = 1;
-        z_style.transitionDuration = z_style.transitionDuration = animation_duration + 'ms';
+        z_style.transitionDuration = animation_duration + 'ms';
         // zs.transform = zs.webkitTransform = 'translate(' + x + 'px, ' + y + 'px)';
         z_style.left = x + 'px';
         z_style.top = y + 'px';
-        video_element.style.transform = video_element.style.transform = (scaled_width > x) ? '' : 'scaleX(-1)';
+        video_element.style.transform = (scaled_width > x) ? '' : 'scaleX(-1)';
         scaled_width = x;
         scaled_height = y;
         setTimeout(sprite_animation,animation_duration);
