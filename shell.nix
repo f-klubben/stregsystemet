@@ -1,64 +1,45 @@
-{ pkgs ? import <nixpkgs> {} }:
-
+{ pkgs ? import <nixpkgs> {}
+, toLower ? pkgs.lib.toLower
+, python ? pkgs.python39
+, pythonPackages ? pkgs.python39Packages
+}:
 let
-  pythonEnv = pkgs.buildEnv {
-    name = "stregsystemEnv";
-    paths = [
-      (pkgs.python36.withPackages (
-        ps: with ps; let
-          djangoSelect2 = ps.buildPythonPackage rec {
-            pname = "django-select2";
-            version = "5.11.1";
-
-            src = pkgs.fetchFromGitHub {
-              owner = "codingjoe";
-              repo = "django-select2";
-              rev = version;
-              sha256 = "0qsyliarbz1lc4pwrvcpp5lg6cfl4c7fipdbhjf7wyp7scradmxq";
-            };
-
-            propagatedBuildInputs = [
-              ps.django_appconf
-            ];
-
-            doCheck = false;
-
-            meta = with pkgs.lib; {
-              description = "Select2 option fields for Django";
-              homepage = "https://github.com/codingjoe/django-select2";
-              license = licenses.mit;
-            };
-          };
-          djangoDebugToolbar = ps.buildPythonPackage rec {
-            pname = "django-debug-toolbar";
-            version = "1.11.1";
-
-            src = ps.fetchPypi {
-              inherit version pname;
-              sha256 = "0n4i1zpfxd7y0gnc4i25wki84822nr85hbmh0fw39bbzr5cyzx8h";
-            };
-
-            propagatedBuildInputs = [
-              ps.django_2
-            ];
-
-            doCheck = false;
-
-            meta = with pkgs.lib; {
-              description = "A configurable set of panels that display various debug information about the current request/response.";
-              homepage = "https://github.com/jazzband/django-debug-toolbar";
-              license = licenses.bsd3;
-            };
-          };
-        in [
-          django_2 djangoSelect2 djangoDebugToolbar
-        ]
-      ))
-    ];
-  };
+	customPackages = {
+    	django-select2 = import ./django-select2.nix { inherit pkgs pythonPackages; };
+    	django-debug-toolbar = import ./django-debug-toolbar.nix { inherit pkgs pythonPackages; };
+	};
+	reqs = builtins.readFile ./requirements.txt;
+	# We split the lines
+	split = builtins.split "\n" reqs;
+	# We remove empty lists and null values
+	lines = builtins.filter (x: builtins.isString x && x != "") split;
+	# Now we have tuples on the form [ name version ]
+	reqtuples = builtins.map (builtins.match "(.*)==(.*)") lines;
 in
-pkgs.mkShell {
-  buildInputs = [
-    pythonEnv
-  ];
+pkgs.mkShell rec {
+    name = "stregsystemet";
+    src = ./.;
+
+	# This makes the name lowercase
+	requirements = builtins.map (builtins.map toLower) reqtuples;
+	# We create a python that has our dependencies
+	# Here we assume the requirements have the same exact
+	# names in pypi and nixpkgs
+	pythonWithDeps = python.withPackages (pypkgs:
+		builtins.map (x:
+			let
+				name = builtins.head x;
+			in
+			if builtins.hasAttr name pypkgs
+			then pypkgs.${name}
+			else
+    			if builtins.hasAttr name customPackages
+    			then customPackages.${name}
+    			else throw "${name} doesn't exist in pythonPackages"
+		) requirements
+	);
+
+    buildInputs = [
+        pythonWithDeps
+    ];
 }
