@@ -126,7 +126,6 @@ class ProductAdmin(admin.ModelAdmin):
         "price",
         ("active", "deactivate_date"),
         ("start_date", "quantity", "get_bought"),
-        'sub_items',
         "categories",
         "rooms",
         "alcohol_content_ml",
@@ -134,7 +133,7 @@ class ProductAdmin(admin.ModelAdmin):
     readonly_fields = ("get_bought",)
 
     actions = [toggle_active_selected_products]
-    filter_horizontal = ('categories', 'rooms')
+    filter_horizontal = ('categories', 'rooms',)
 
     def get_price_display(self, obj):
         if obj.price is None:
@@ -157,9 +156,9 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 class InventoryAdmin(admin.ModelAdmin):
-    search_fields = ('name', 'price',)
-    list_display = ('name', 'quantity', 'price',)
-    fields = ('name', 'quantity', 'price',)
+    search_fields = ('name',)
+    list_display = ('name', 'quantity',)
+    fields = ('name', 'quantity','products',)
 
 
 class CategoryAdmin(admin.ModelAdmin):

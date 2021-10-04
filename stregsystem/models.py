@@ -1,4 +1,6 @@
 from collections import Counter
+from datetime import datetime
+from datetime import date
 from email.utils import parseaddr
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
@@ -507,12 +509,6 @@ class Room(models.Model):
         return self.name
 
 
-class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på tab og indkøb
-    name = models.CharField(max_length=64)
-    price = models.PositiveIntegerField(default=0)
-    quantity = models.PositiveIntegerField(default=0)
-
-
 class Product(models.Model):  # id automatisk...
     name = models.CharField(max_length=64)
     price = models.IntegerField()  # penge, oere...
@@ -523,8 +519,6 @@ class Product(models.Model):  # id automatisk...
     categories = models.ManyToManyField(Category, blank=True)
     rooms = models.ManyToManyField(Room, blank=True)
     alcohol_content_ml = models.FloatField(default=0.0, null=True)
-    sub_items = models.ManyToManyField(InventoryItem, blank=True)
-
 
     @deprecated
     def __unicode__(self):
@@ -533,6 +527,7 @@ class Product(models.Model):  # id automatisk...
     def __str__(self):
         return active_str(self.active) + " " + self.name + " (" + money(self.price) + ")"
 
+    @transaction.atomic
     def save(self, *args, **kwargs):
         price_changed = True
         if self.id:
@@ -556,6 +551,7 @@ class Product(models.Model):  # id automatisk...
         ]
 
     def is_active(self):
+        
         expired = self.deactivate_date is not None and self.deactivate_date <= timezone.now()
 
         if self.start_date is not None:
@@ -565,6 +561,29 @@ class Product(models.Model):  # id automatisk...
             out_of_stock = False
 
         return self.active and not expired and not out_of_stock
+
+
+class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på tab og indkøb
+    name = models.CharField(max_length=64)
+    quantity = models.PositiveIntegerField(default=0)
+    active = models.BooleanField(default=False)
+    products = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='inventory_items')
+
+    def __str__(self):
+        return active_str(self.active) + " " + self.name
+
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        product = Product.objects.get(id=self.products.pk)
+        if product.start_date is not None and product.start_date != date.today():
+            product.start_date = date.today()
+            product.quantity = 0
+        
+        product.quantity += self.quantity
+        product.save()
+
+        super(InventoryItem, self).save(*args, **kwargs)
+
 
 
 class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statistik?
