@@ -10,7 +10,7 @@ Branches
 
 Python Environment
 -------
-For windows using Anaconda and virtual environments:
+For Windows using Anaconda and virtual environments:
 1. Download and install Anaconda
 2. In a shell:
   - `conda create -n stregsystem python=3.6`
@@ -30,6 +30,11 @@ For Ubuntu with virtual envs:
  - `pip3 install -r requirements.txt`
 5. ???
 6. Profit
+
+For NixOS/Mac/Linux using nix-shell
+1. nix-shell
+2. ???
+3. Profit
 
 Using Testdata
 --------
