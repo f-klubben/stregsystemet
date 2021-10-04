@@ -18,7 +18,6 @@ let
 in
 pkgs.mkShell rec {
     name = "stregsystemet";
-    src = ./.;
 
 	# This makes the name lowercase
 	requirements = builtins.map (builtins.map toLower) reqtuples;
