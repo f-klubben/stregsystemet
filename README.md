@@ -61,3 +61,12 @@ From then on
 1. `python manage.py runserver`
 2. ???
 3. Profit
+
+Using containers???
+-------
+You will need `buildah` and your container runtime of choice (But still OCI compliant) to run Stregsystemet in a container
+Using `build_container.sh`, an image will be built with the name `stregsystem-container`.
+To run the image with Podman, use the following command: `podman run -p 8000:8000 stregsystem-container`
+Note that this will start Stregsystemet in production mode. If you want to start Stregsystemet with a test database, use the following command:
+`podman run -p 8000:8000 --entrypoint '[ "/bin/bash", "-c", "source venv/bin/activate && python manage.py testserver --addrport 0:8000 stregsystem/fixtures/testdata.json" ]'  stregsystem-container`
+
