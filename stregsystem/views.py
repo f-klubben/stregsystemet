@@ -189,7 +189,7 @@ def menu_userinfo(request, room_id, member_id):
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
 
-    last_sale_list = member.sale_set.order_by('-timestamp')[:10]
+    last_sale_list = member.sale_set.order_by('-timestamp')
     try:
         last_payment = member.payment_set.order_by('-timestamp')[0]
     except IndexError:
@@ -199,6 +199,15 @@ def menu_userinfo(request, room_id, member_id):
     stregforbud = member.has_stregforbud()
 
     return render(request, 'stregsystem/menu_userinfo.html', locals())
+
+
+def menu_ticketsview(request, room_id, member_id):
+    room = Room.objects.get(pk=room_id)
+    member = Member.objects.get(pk=member_id, active=True)
+
+    sale_list = member.sale_set.order_by('-timestamp')
+
+    return render(request, 'stregsystem/menu_ticketsview.html', locals())
 
 
 def menu_userpay(request, room_id, member_id):
