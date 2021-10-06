@@ -1,6 +1,5 @@
 from collections import Counter
-from datetime import datetime
-from datetime import date
+from datetime import datetime, date, timedelta
 from email.utils import parseaddr
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
@@ -131,6 +130,9 @@ class Order(object):
             for i in range(item.count):
                 s = Sale(member=self.member, product=item.product, room=self.room, price=item.product.price)
                 s.save()
+
+            if item.product.quantity == 0 and item.product.start_date is not None:
+                item.product.sold_out_date = date.today()
 
             # Bought (used above) is automatically calculated, so we don't need
             # to update it
@@ -564,29 +566,38 @@ class Product(models.Model):  # id automatisk...
 
 
 class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på tab og indkøb
+    # INFO: This model will keep track of inventory for every item in the system
+    # TODO Decide what to do when an item does not conform to a single category
+    # TODO Decide what to do when an item is only one category
+    # TODO Figure out how to extract data about loss in the system
+    # TODO Figure out how reimbursements will be handled, with the inventory system
     name = models.CharField(max_length=64)
     quantity = models.PositiveIntegerField(default=0)
     active = models.BooleanField(default=False)
     products = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='inventory_items')
 
     def __str__(self):
-        return active_str(self.active) + " " + self.name
+        return active_str(self.active) + " " + self.name + " : " + str(self.quantity)
 
     @transaction.atomic
     def save(self, *args, **kwargs):
         product = Product.objects.get(id=self.products.pk)
-        if product.start_date is not None and product.start_date != date.today():    
+
+        self.active = True if self.quantity > 0 else False 
+
+        if product.start_date is not None and product.start_date > date.today() - timedelta(days=5):
+            # We want to set the start date, to remove products from the product list, once they are no longer in stock
             product.start_date = date.today()
-            product.quantity = 0
-            
+
+        # Save own model before product list, to ensure active state is considered
+        super(InventoryItem, self).save(*args, **kwargs)
+
         # pls no abuse
         # 4/10-2021 - made it un-abusable
         product.quantity = sum(
             [item.quantity for item in InventoryItem.objects.filter(products=product.pk) if item.active]
         )
         product.save()
-
-        super(InventoryItem, self).save(*args, **kwargs)
 
 
 class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statistik?

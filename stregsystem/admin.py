@@ -172,11 +172,13 @@ class ProductAdmin(admin.ModelAdmin):
 class InventoryAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     list_display = (
+        'active',
         'name',
         'quantity',
     )
     fields = (
         'name',
+        'active',
         'quantity',
         'products',
     )
