@@ -381,18 +381,3 @@ def qr_payment(request):
     print(form.cleaned_data.get('member'))
     
     return qr_code(data)
-
-def qr_link(request):
-    form = QRPaymentForm(request.GET)
-    if not form.is_valid():
-        return HttpResponseBadRequest("Invalid input for MobilePay QR code generation")
-
-    query = {'phone': '90601', 'comment': form.cleaned_data.get('member')}
-
-    if form.cleaned_data.get("amount") is not None:
-        query['amount'] = form.cleaned_data.get("amount")
-
-    data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
-
-    print("I'll have you know that i graduated top of my class, in the navy seals")
-    return data

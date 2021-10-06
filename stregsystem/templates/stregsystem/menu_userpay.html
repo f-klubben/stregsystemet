@@ -43,11 +43,11 @@
          <td align="center">
             <b>{{amount | floatformat}} kr.</b>
             <br /><br />
-            <form id="qr_form" action="/api/member/payment/qr_link" method="GET" onclick="this.submit()">{% csrf_token %}
-               <input type="submit" name="member" value={{ member.username }}>
-               <input type="submit" name="amount" value={{ amount }}>
+            
+               <a href="mobilepay://send?phone=90601&comment={{ member.username }}&amount={{ amount }}">
                   {% mobilepay_qr member.username amount %}
-            </form>
+               </a>
+            
 
          </td>
          {% endfor %}
@@ -55,7 +55,10 @@
          <td align="center">
             <b>Valgfrit beløb</b>
             <br /><br />
-            {% mobilepay_qr member.username %}
+            <a href="mobilepay://send?phone=90601&comment={{ member.username }}">
+               {% mobilepay_qr member.username %}
+            </a>
+            
          </td>
       </tr>
    </table>
