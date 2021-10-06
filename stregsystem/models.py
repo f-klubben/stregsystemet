@@ -628,6 +628,7 @@ class InventoryItemHistory(models.Model):
     old_quantity = models.IntegerField(default=0)
     count_date = models.DateField(default=timezone.now)
     sold_out = models.BooleanField(default=False)
+    loss = models.IntegerField(default=0)
 
     class Meta:
         verbose_name_plural = "Inventory History"
@@ -635,11 +636,19 @@ class InventoryItemHistory(models.Model):
     def __str__(self) -> str:
         return f'{str(self.item)} ({self.old_quantity} -> {self.new_quantity})[{self.sold_out}] @ {self.count_date}'
 
+    def calculate_loss(self) -> int:
+        sales = Sale.objects.filter(timestamp__gt=self.item.products.start_date, product=self.item.products).count()
+        if self.old_quantity > self.new_quantity and self.old_quantity - self.new_quantity > sales:
+            return self.old_quantity - self.new_quantity - sales
+        
+        return 0
+
     def set_quantities(self, old_quantity: int, new_quantity: int) -> None:
         self.old_quantity = old_quantity
         self.new_quantity = new_quantity
 
     def save(self, *args, **kwargs):
+        self.loss = self.calculate_loss()
         self.sold_out = not (self.item.active and self.item.products.active)
 
         super(InventoryItemHistory, self).save(*args, **kwargs)

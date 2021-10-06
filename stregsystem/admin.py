@@ -202,6 +202,7 @@ class InventoryHistoryAdmin(admin.ModelAdmin):
         'item',
         'old_quantity',
         'new_quantity',
+        'loss',
         'count_date',
         'sold_out',
     )
