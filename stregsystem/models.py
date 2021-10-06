@@ -583,7 +583,7 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
     def save(self, *args, **kwargs):
         product = Product.objects.get(id=self.products.pk)
 
-        self.active = True if self.quantity > 0 else False 
+        self.active = True if self.quantity > 0 else False
 
         if product.start_date is not None and product.start_date > date.today() - timedelta(days=5):
             # We want to set the start date, to remove products from the product list, once they are no longer in stock
