@@ -1454,7 +1454,9 @@ class MobilePaymentTests(TestCase):
                 self.assertEqual(e.inconsistent_transaction_ids, ["241E027449465355", "016E027417049990"])
                 raise e
 
-    def test_inventory_item_is_not_active_if_quantity_is_zero(self):
+
+class InventoryItemTest(TestCase):
+        def test_inventory_item_is_not_active_if_quantity_is_zero(self):
         coke = Product.objects.create(name="coke", price=100, active=True)
         inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=1, products=coke)
         assert inventory_item.active is True
