@@ -80,7 +80,7 @@ X_FRAME_OPTIONS = cfg.get("general", "X_FRAME_OPTIONS")
 
 # We don't have any default hostnames for debug
 # But you really should have some when you are deploying
-ALLOWED_HOSTS = ["0.0.0.0"]
+ALLOWED_HOSTS = []
 
 for e in cfg.items("hostnames"):
     ALLOWED_HOSTS.append(e[1])
