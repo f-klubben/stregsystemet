@@ -1,6 +1,7 @@
 from collections import Counter
 from datetime import datetime, date, timedelta
 from email.utils import parseaddr
+from smtplib import OLDSTYLE_AUTH
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
@@ -574,13 +575,17 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
     name = models.CharField(max_length=64)
     quantity = models.PositiveIntegerField(default=0)
     active = models.BooleanField(default=False)
-    products = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='inventory_items')
+    products: Product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='inventory_items')
+
+    class Meta:
+        verbose_name_plural = "Inventory"
 
     def __str__(self):
         return active_str(self.active) + " " + self.name + " : " + str(self.quantity)
 
     @transaction.atomic
     def save(self, *args, **kwargs):
+        item: InventoryItem = InventoryItem.objects.get(id=self.pk)
         product = Product.objects.get(id=self.products.pk)
 
         self.active = True if self.quantity > 0 else False
@@ -588,6 +593,12 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
         if product.start_date is not None and product.start_date > date.today() - timedelta(days=5):
             # We want to set the start date, to remove products from the product list, once they are no longer in stock
             product.start_date = date.today()
+
+        inventory_history = InventoryItemHistory()
+        inventory_history.set_quantities(item.quantity, self.quantity)
+        inventory_history.item = self
+
+        inventory_history.save()
 
         # Save own model before product list, to ensure active state is considered
         super(InventoryItem, self).save(*args, **kwargs)
@@ -598,6 +609,31 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
             [item.quantity for item in InventoryItem.objects.filter(products=product.pk) if item.active]
         )
         product.save()
+
+
+class InventoryItemHistory(models.Model):
+    item: InventoryItem = models.ForeignKey(
+        InventoryItem, on_delete=models.CASCADE, related_name='inventory_item_history'
+    )
+    new_quantity = models.IntegerField(default=0)
+    old_quantity = models.IntegerField(default=0)
+    count_date = models.DateField(default=timezone.now)
+    sold_out = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name_plural = "Inventory History"
+
+    def __str__(self) -> str:
+        return f'{str(self.item)} ({self.old_quantity} -> {self.new_quantity})[{self.sold_out}] @ {self.count_date}'
+
+    def set_quantities(self, old_quantity: int, new_quantity: int) -> None:
+        self.old_quantity = old_quantity
+        self.new_quantity = new_quantity
+
+    def save(self, *args, **kwargs):
+        self.sold_out = not (self.item.active and self.item.products.active)
+
+        super(InventoryItemHistory, self).save(*args, **kwargs)
 
 
 class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statistik?

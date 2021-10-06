@@ -7,6 +7,7 @@ from django.contrib.admin.models import LogEntry
 from stregsystem.models import (
     Category,
     InventoryItem,
+    InventoryItemHistory,
     Member,
     News,
     Payment,
@@ -184,6 +185,24 @@ class InventoryAdmin(admin.ModelAdmin):
     )
 
 
+class InventoryHistoryAdmin(admin.ModelAdmin):
+    search_fields = ('count_date',)
+    list_display = (
+        'item',
+        'old_quantity',
+        'new_quantity',
+        'count_date',
+        'sold_out',
+    )
+    readonly_fields = (
+        'item',
+        'old_quantity',
+        'new_quantity',
+        'count_date',
+        'sold_out',
+    )
+
+
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'items_in_category')
 
@@ -343,6 +362,7 @@ admin.site.register(Sale, SaleAdmin)
 admin.site.register(Member, MemberAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(InventoryItem, InventoryAdmin)
+admin.site.register(InventoryItemHistory, InventoryHistoryAdmin)
 admin.site.register(News)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Category, CategoryAdmin)
