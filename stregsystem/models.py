@@ -580,7 +580,10 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
             product.quantity = 0
             
         # pls no abuse
-        product.quantity += self.quantity
+        # 4/10-2021 - made it un-abusable
+        product.quantity = sum(
+            [item.quantity for item in InventoryItem.objects.filter(products=product.pk) if item.active]
+        )
         product.save()
 
         super(InventoryItem, self).save(*args, **kwargs)
