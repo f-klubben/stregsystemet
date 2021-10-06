@@ -1501,6 +1501,8 @@ class InventoryItemTest(TestCase):
         inventory_item.quantity = 15
         inventory_item.save()
 
+        inventory_item = InventoryItem.objects.get(id=inventory_item.id)
+        
         inventory_item.quantity = 17
         inventory_item.save()
 

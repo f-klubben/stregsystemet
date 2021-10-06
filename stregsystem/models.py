@@ -590,7 +590,7 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
 
         self.active = True if self.quantity > 0 else False
 
-        if product.start_date is not None and product.start_date > date.today() - timedelta(days=5):
+        if product.start_date is None or product.start_date > date.today() - timedelta(days=5):
             # We want to set the start date, to remove products from the product list, once they are no longer in stock
             product.start_date = date.today()
 
@@ -600,12 +600,13 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
 
             # We do not wish to 💣 bomb 💣 the database with "non-important" log entries
             if InventoryItemHistory.objects.filter(count_date=date.today()).exists():
-                inventory_history = InventoryItemHistory.objects.get(count_date=date.today())
+                inventory_history: InventoryItemHistory = InventoryItemHistory.objects.get(count_date=date.today())
+                inventory_history.item = self
+                inventory_history.set_quantities(item.quantity, self.quantity)
+                inventory_history.calculate_loss(product)
             else:
                 inventory_history = InventoryItemHistory()
-
-            inventory_history.set_quantities(item.quantity, self.quantity)
-            inventory_history.item = self
+                inventory_history.item = self
 
             inventory_history.save()
 
@@ -636,19 +637,22 @@ class InventoryItemHistory(models.Model):
     def __str__(self) -> str:
         return f'{str(self.item)} ({self.old_quantity} -> {self.new_quantity})[{self.sold_out}] @ {self.count_date}'
 
-    def calculate_loss(self) -> int:
-        sales = Sale.objects.filter(timestamp__gt=self.item.products.start_date, product=self.item.products).count()
-        if self.old_quantity > self.new_quantity and self.old_quantity - self.new_quantity > sales:
-            return self.old_quantity - self.new_quantity - sales
+    def calculate_loss(self, product: Product) -> int:
+        if Sale.objects.filter(timestamp__gte=product.start_date, product=product).exists():
+            sales = Sale.objects.filter(timestamp__gte=product.start_date, product=product).count()
+            if self.old_quantity > self.new_quantity and self.old_quantity - self.new_quantity > sales:
+                self.loss = self.old_quantity - self.new_quantity - sales
 
-        return 0
+            self.loss = 0
+        else:
+            # If no sales are made, any difference in quantity is loss
+            self.loss = self.old_quantity - self.new_quantity if self.old_quantity > self.new_quantity else 0
 
     def set_quantities(self, old_quantity: int, new_quantity: int) -> None:
         self.old_quantity = old_quantity
         self.new_quantity = new_quantity
 
     def save(self, *args, **kwargs):
-        self.loss = self.calculate_loss()
         self.sold_out = not (self.item.active and self.item.products.active)
 
         super(InventoryItemHistory, self).save(*args, **kwargs)
