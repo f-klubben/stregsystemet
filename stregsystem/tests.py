@@ -24,6 +24,7 @@ from stregsystem.models import (
     Category,
     GetTransaction,
     InventoryItem,
+    InventoryItemHistory,
     Member,
     NoMoreInventoryError,
     Order,
@@ -1455,26 +1456,61 @@ class MobilePaymentTests(TestCase):
 
     def test_inventory_item_is_not_active_if_quantity_is_zero(self):
         coke = Product.objects.create(name="coke", price=100, active=True)
-        inventory_item = InventoryItem.objects.create(name='Slots?', active=True, quantity=1, products=coke)
+        inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=1, products=coke)
         assert inventory_item.active is True
 
         inventory_item.quantity = 0
         inventory_item.save()
 
-        inventory_item = InventoryItem.objects.get(name='Slots?')
+        inventory_item = InventoryItem.objects.get(id=inventory_item.pk)
 
         assert inventory_item.active is False
         assert inventory_item.quantity == 0
 
     def test_inventory_item_is_still_active_if_quantity_is_not_zero(self):
         coke = Product.objects.create(name="coke", price=100, active=True)
-        inventory_item = InventoryItem.objects.create(name='Slots?', active=True, quantity=20, products=coke)
+        inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
+
+        inventory_item.quantity = 15
+        inventory_item.save()
+
+        inventory_item = InventoryItem.objects.get(id=inventory_item.pk)
+
+        assert inventory_item.active is True
+        assert inventory_item.quantity == 15
+
+    def test_inventory_history_is_created_on_inventory_update(self):
+        coke = Product.objects.create(name="coke", price=100, active=True)
+        inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
         assert inventory_item.active is True
 
         inventory_item.quantity = 15
         inventory_item.save()
 
-        inventory_item = InventoryItem.objects.get(name='Slots?')
+        inventory_history = InventoryItemHistory.objects.filter(item=inventory_item)
 
-        assert inventory_item.active is not False
-        assert inventory_item.quantity == 15
+        assert len(inventory_history) == 1
+
+    def test_inventory_history_is_created_on_inventory_update_2(self):
+        coke = Product.objects.create(name="coke", price=100, active=True)
+        inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
+        assert inventory_item.active is True
+
+        inventory_item.quantity = 15
+        inventory_item.save()
+
+        inventory_item.quantity = 17
+        inventory_item.save()
+
+        inventory_history = InventoryItemHistory.objects.filter(item=inventory_item)
+
+        assert len(inventory_history) == 2
+
+    def test_inventory_history_is_not_created_on_initial_item_creation(self):
+        coke = Product.objects.create(name="coke", price=100, active=True)
+        inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
+        assert inventory_item.active is True
+
+        inventory_history = InventoryItemHistory.objects.filter(item=inventory_item)
+
+        assert len(inventory_history) == 0

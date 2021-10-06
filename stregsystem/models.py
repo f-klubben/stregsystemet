@@ -585,7 +585,6 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
 
     @transaction.atomic
     def save(self, *args, **kwargs):
-        item: InventoryItem = InventoryItem.objects.get(id=self.pk)
         product = Product.objects.get(id=self.products.pk)
 
         self.active = True if self.quantity > 0 else False
@@ -594,11 +593,16 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
             # We want to set the start date, to remove products from the product list, once they are no longer in stock
             product.start_date = date.today()
 
-        inventory_history = InventoryItemHistory()
-        inventory_history.set_quantities(item.quantity, self.quantity)
-        inventory_history.item = self
+        try:
+            # At initial creation we do not wish to create an inventory history record for the item
+            item: InventoryItem = InventoryItem.objects.get(id=self.pk)
+            inventory_history = InventoryItemHistory()
+            inventory_history.set_quantities(item.quantity, self.quantity)
+            inventory_history.item = self
 
-        inventory_history.save()
+            inventory_history.save()
+        except self.DoesNotExist:
+            pass
 
         # Save own model before product list, to ensure active state is considered
         super(InventoryItem, self).save(*args, **kwargs)
