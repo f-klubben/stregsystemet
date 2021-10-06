@@ -176,11 +176,15 @@ class InventoryAdmin(admin.ModelAdmin):
         'active',
         'name',
         'quantity',
+        'desired_amount',
     )
     fields = (
         'name',
         'active',
-        'quantity',
+        (
+            'desired_amount',
+            'quantity',
+        ),
         'products',
     )
 
@@ -226,15 +230,34 @@ class MemberForm(forms.ModelForm):
 class MemberAdmin(admin.ModelAdmin):
     form = MemberForm
     list_filter = ('want_spam',)
-    search_fields = ('username', 'firstname', 'lastname', 'email')
-    list_display = ('username', 'firstname', 'lastname', 'balance', 'email', 'notes')
+    search_fields = (
+        'username',
+        'firstname',
+        'lastname',
+        'email',
+    )
+    list_display = (
+        'username',
+        'firstname',
+        'lastname',
+        'balance',
+        'email',
+        'notes',
+    )
 
     # fieldsets is like fields, except that they are grouped and with descriptions
     fieldsets = (
         (
             None,
             {
-                'fields': ('username', 'firstname', 'lastname', 'year', 'gender', 'email'),
+                'fields': (
+                    'username',
+                    'firstname',
+                    'lastname',
+                    'year',
+                    'gender',
+                    'email',
+                ),
                 'description': "Basal information omkring fember",
             },
         ),
@@ -242,7 +265,12 @@ class MemberAdmin(admin.ModelAdmin):
         (
             None,
             {
-                'fields': ('active', 'want_spam', 'balance', 'undo_count'),
+                'fields': (
+                    'active',
+                    'want_spam',
+                    'balance',
+                    'undo_count',
+                ),
                 'description': "Lad være med at rode med disse, med mindre du ved hvad du laver ...",
             },
         ),

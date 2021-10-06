@@ -1504,7 +1504,8 @@ class MobilePaymentTests(TestCase):
 
         inventory_history = InventoryItemHistory.objects.filter(item=inventory_item)
 
-        assert len(inventory_history) == 2
+        # We do not create duplicate entries
+        assert len(inventory_history) == 1
 
     def test_inventory_history_is_not_created_on_initial_item_creation(self):
         coke = Product.objects.create(name="coke", price=100, active=True)
