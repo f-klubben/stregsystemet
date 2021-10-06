@@ -574,6 +574,7 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
     # TODO Figure out how reimbursements will be handled, with the inventory system
     name = models.CharField(max_length=64)
     quantity = models.PositiveIntegerField(default=0)
+    desired_amount = models.IntegerField(default=0)
     active = models.BooleanField(default=False)
     products: Product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='inventory_items')
 
@@ -593,16 +594,20 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
             # We want to set the start date, to remove products from the product list, once they are no longer in stock
             product.start_date = date.today()
 
-        try:
+        if InventoryItem.objects.filter(id=self.pk).exists():
             # At initial creation we do not wish to create an inventory history record for the item
             item: InventoryItem = InventoryItem.objects.get(id=self.pk)
-            inventory_history = InventoryItemHistory()
+
+            # We do not wish to 💣 bomb 💣 the database with "non-important" log entries
+            if InventoryItemHistory.objects.filter(count_date=date.today()).exists():
+                inventory_history = InventoryItemHistory.objects.get(count_date=date.today())
+            else:
+                inventory_history = InventoryItemHistory()
+
             inventory_history.set_quantities(item.quantity, self.quantity)
             inventory_history.item = self
 
             inventory_history.save()
-        except self.DoesNotExist:
-            pass
 
         # Save own model before product list, to ensure active state is considered
         super(InventoryItem, self).save(*args, **kwargs)
