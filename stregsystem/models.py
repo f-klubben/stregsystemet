@@ -640,7 +640,7 @@ class InventoryItemHistory(models.Model):
         sales = Sale.objects.filter(timestamp__gt=self.item.products.start_date, product=self.item.products).count()
         if self.old_quantity > self.new_quantity and self.old_quantity - self.new_quantity > sales:
             return self.old_quantity - self.new_quantity - sales
-        
+
         return 0
 
     def set_quantities(self, old_quantity: int, new_quantity: int) -> None:
