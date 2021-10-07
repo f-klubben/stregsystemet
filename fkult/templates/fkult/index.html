@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>F-Kult calendar season {{ data.current_season }}</title> {# TODO add data.current_season #}
+</head>
+<body>
+{% for event in data.current_season_movies %}
+
+    <h2>{{ event.theme }}</h2>
+    {% for movie in event.movies %}
+        {# todo; sanitise input putting relevant human-readable null-values for fields #}
+        <h3>{{ movie.title }}{{ movie.original_title }}</h3>
+        Release date: {{ movie.release_date }}
+        Summary: {{ movie.summary }}
+        {# todo; do CSS prettyness with poster_image #}
+        Link: <a href="imdb.com/{{ movie.id }}">IMDB of {{ movie.title }}</a>
+    {% endfor %}
+{% endfor %}
+</body>
+</html>
