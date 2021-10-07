@@ -1502,7 +1502,7 @@ class InventoryItemTest(TestCase):
         inventory_item.save()
 
         inventory_item = InventoryItem.objects.get(id=inventory_item.id)
-        
+
         inventory_item.quantity = 17
         inventory_item.save()
 
@@ -1519,3 +1519,131 @@ class InventoryItemTest(TestCase):
         inventory_history = InventoryItemHistory.objects.filter(item=inventory_item)
 
         assert len(inventory_history) == 0
+
+    def test_inventory_item_manages_history_first_entry_has_zero_old_quantity(self):
+        coke = Product.objects.create(name="coke", price=100, active=True)
+        inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
+        assert inventory_item.active is True
+
+        inventory_item.quantity = 15
+        inventory_item.save()
+
+        history_item = InventoryItemHistory.objects.get(item=inventory_item)
+        assert history_item.old_quantity == 0
+
+    def test_inventory_item_manages_history_first_entry_has_previous_quantity_set_as_old_quantity(self):
+        coke = Product.objects.create(name="coke", price=100, active=True)
+        inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
+        with freeze_time('2017-02-02'):
+            InventoryItemHistory.objects.create(item=inventory_item, new_quantity=20, old_quantity=0)
+
+        assert inventory_item.active is True
+
+        inventory_item.quantity = 15
+        inventory_item.save()
+
+        history_item = InventoryItemHistory.objects.filter(item=inventory_item).last()
+        assert history_item.old_quantity == 20
+
+    def test_inventory_item_manages_history_calculates_loss_correct(self):
+        coke = Product.objects.create(name="coke", price=100, active=True)
+        with freeze_time('2017-02-02'):
+            inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
+            inventory_item.save()
+
+        assert inventory_item.active is True
+
+        inventory_item.quantity = 15
+        inventory_item.save()
+
+        history_item = InventoryItemHistory.objects.filter(item=inventory_item).last()
+        assert history_item.loss == 5
+
+    def test_inventory_item_manages_history_calculates_loss_correct_2(self):
+        member = Member.objects.create(pk=1, username="jeff", firstname="jeff", lastname="jefferson", gender="M")
+        with freeze_time('2017-02-02') as frozen_time:
+            coke = Product.objects.create(name="coke", price=100, active=True, start_date=datetime.date.today())
+            inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
+            InventoryItemHistory.objects.create(item=inventory_item, new_quantity=20, old_quantity=0)
+            inventory_item.save()
+
+        with freeze_time('2018-02-02') as frozen_time:
+            for i in range(1, 3):
+                Sale.objects.create(
+                    member=member,
+                    product=coke,
+                    price=100,
+                )
+                frozen_time.tick()
+
+        assert inventory_item.active is True
+
+        inventory_item.quantity = 15
+        inventory_item.save()
+
+        history_item = InventoryItemHistory.objects.filter(item=inventory_item).latest('count_date')
+        assert history_item.old_quantity == 20
+        assert history_item.new_quantity == 15
+        assert history_item.item.products.bought == 2
+        assert history_item.loss == 3
+
+    def test_inventory_item_manages_history_calculates_loss_correct_3(self):
+        coke = Product.objects.create(name="coke", price=100, active=True)
+        inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
+        assert inventory_item.active is True
+
+        with freeze_time('2018-02-02'):
+            inventory_item.quantity = 15
+            inventory_item.save()
+
+        inventory_item = InventoryItem.objects.get(id=inventory_item.id)
+
+        inventory_item.quantity = 17
+        inventory_item.save()
+
+        inventory_history = InventoryItemHistory.objects.filter(item=inventory_item).latest('count_date')
+
+        # We do not create duplicate entries
+        assert inventory_history.loss == 0
+
+    def test_inventory_item_does_not_override_old_quantity_for_same_date_history_entries(self):
+        coke = Product.objects.create(name="coke", price=100, active=True)
+        inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
+        assert inventory_item.active is True
+
+        with freeze_time('2018-02-02'):
+            inventory_item.quantity = 15
+            inventory_item.save()
+
+        inventory_item = InventoryItem.objects.get(id=inventory_item.id)
+        inventory_item.quantity = 17
+        inventory_item.save()
+
+        inventory_history = InventoryItemHistory.objects.filter(item=inventory_item).latest('count_date')
+
+        # We do not create duplicate entries
+        assert inventory_history.old_quantity == 15
+        assert inventory_history.new_quantity == 17
+
+    def test_inventory_item_does_not_override_old_quantity_for_same_date_history_entries_2(self):
+        coke = Product.objects.create(name="coke", price=100, active=True)
+        inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
+        assert inventory_item.active is True
+
+        with freeze_time('2018-02-02'):
+            inventory_item.quantity = 15
+            inventory_item.save()
+
+        inventory_item = InventoryItem.objects.get(id=inventory_item.id)
+        inventory_item.quantity = 17
+        inventory_item.save()
+
+        inventory_item = InventoryItem.objects.get(id=inventory_item.id)
+        inventory_item.quantity = 17
+        inventory_item.save()
+
+        inventory_history = InventoryItemHistory.objects.filter(item=inventory_item).latest('count_date')
+
+        # We do not create duplicate entries
+        assert inventory_history.old_quantity == 15
+        assert inventory_history.new_quantity == 17

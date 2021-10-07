@@ -598,15 +598,22 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
             # At initial creation we do not wish to create an inventory history record for the item
             item: InventoryItem = InventoryItem.objects.get(id=self.pk)
 
+            if InventoryItemHistory.objects.filter(item=self).exists():
+                old_quantity = item.quantity
+            else:
+                old_quantity = 0
+
             # We do not wish to 💣 bomb 💣 the database with "non-important" log entries
             if InventoryItemHistory.objects.filter(count_date=date.today()).exists():
                 inventory_history: InventoryItemHistory = InventoryItemHistory.objects.get(count_date=date.today())
-                inventory_history.item = self
-                inventory_history.set_quantities(item.quantity, self.quantity)
-                inventory_history.calculate_loss(product)
+                old_quantity = inventory_history.old_quantity
             else:
                 inventory_history = InventoryItemHistory()
-                inventory_history.item = self
+
+            inventory_history.item = self
+            inventory_history.set_quantities(old_quantity, self.quantity)
+            if old_quantity:
+                inventory_history.calculate_loss(product)
 
             inventory_history.save()
 
@@ -638,15 +645,12 @@ class InventoryItemHistory(models.Model):
         return f'{str(self.item)} ({self.old_quantity} -> {self.new_quantity})[{self.sold_out}] @ {self.count_date}'
 
     def calculate_loss(self, product: Product) -> int:
-        if Sale.objects.filter(timestamp__gte=product.start_date, product=product).exists():
-            sales = Sale.objects.filter(timestamp__gte=product.start_date, product=product).count()
-            if self.old_quantity > self.new_quantity and self.old_quantity - self.new_quantity > sales:
-                self.loss = self.old_quantity - self.new_quantity - sales
+        if self.old_quantity > self.new_quantity and self.old_quantity - self.new_quantity > product.bought:
+            self.loss = self.old_quantity - self.new_quantity - product.bought
+            return
 
-            self.loss = 0
-        else:
-            # If no sales are made, any difference in quantity is loss
-            self.loss = self.old_quantity - self.new_quantity if self.old_quantity > self.new_quantity else 0
+        # If no sales are made, any difference in quantity is loss
+        self.loss = self.old_quantity - self.new_quantity if self.old_quantity > self.new_quantity else 0
 
     def set_quantities(self, old_quantity: int, new_quantity: int) -> None:
         self.old_quantity = old_quantity
