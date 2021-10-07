@@ -1,4 +1,5 @@
 import logging
+import re
 import smtplib
 
 from django.utils.dateparse import parse_datetime
@@ -9,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.test.runner import DiscoverRunner
 
-from django.db.models import Count, F, Q
+from django.db.models import Count, F, Q, QuerySet
 from django.utils import timezone
 from stregsystem.templatetags.stregsystem_extras import money
 
@@ -19,7 +20,7 @@ import qrcode.image.svg
 logger = logging.getLogger(__name__)
 
 
-def make_active_productlist_query(queryset):
+def make_active_productlist_query(queryset) -> QuerySet:
     now = timezone.now()
     # Create a query for the set of products that MIGHT be active. Might
     # because they can be out of stock. Which we compute later
@@ -36,7 +37,7 @@ def make_active_productlist_query(queryset):
     return active_candidates.exclude(Q(start_date__isnull=False) & Q(id__in=candidates_out_of_stock))
 
 
-def make_inactive_productlist_query(queryset):
+def make_inactive_productlist_query(queryset) -> QuerySet:
     now = timezone.now()
     # Create a query of things are definitively inactive. Some of the ones
     # filtered here might be out of stock, but we include that later.
@@ -52,19 +53,19 @@ def make_inactive_productlist_query(queryset):
     return queryset.filter(Q(id__in=inactive_candidates) | Q(id__in=inactive_out_of_stock))
 
 
-def make_room_specific_query(room):
+def make_room_specific_query(room) -> QuerySet:
     return Q(rooms__id=room) | Q(rooms=None)
 
 
-def make_unprocessed_mobilepayment_query():
+def make_unprocessed_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
 
-    return MobilePayment.objects.filter(Q(status__exact=MobilePayment.UNSET) | Q(payment__isnull=True)).order_by(
+    return MobilePayment.objects.filter(Q(payment__isnull=True) & Q(status__exact=MobilePayment.UNSET)).order_by(
         '-timestamp'
     )
 
 
-def make_processed_mobilepayment_query():
+def make_processed_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
 
     return MobilePayment.objects.filter(
@@ -74,7 +75,7 @@ def make_processed_mobilepayment_query():
     )
 
 
-def make_unprocessed_member_filled_mobilepayment_query():
+def make_unprocessed_member_filled_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
 
     return MobilePayment.objects.filter(
@@ -175,6 +176,20 @@ def mobile_payment_exact_match_member(comment):
         raise RuntimeError("Duplicate usernames found at MobilePayment import. Should not exist post PR #178")
 
 
+def strip_emoji(text):
+    # yoinked from https://stackoverflow.com/questions/33404752/removing-emojis-from-a-string-in-python
+    regrex_pattern = re.compile(
+        pattern="["
+        u"\U0001F600-\U0001F64F"  # emoticons
+        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+        u"\U0001F680-\U0001F6FF"  # transport & map symbols
+        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+        "]+",
+        flags=re.UNICODE,
+    )
+    return regrex_pattern.sub(r'', text)
+
+
 def qr_code(data):
     response = HttpResponse(content_type="image/svg+xml")
     qr = qrcode.make(data, image_factory=qrcode.image.svg.SvgPathFillImage)
@@ -187,3 +202,14 @@ class stregsystemTestRunner(DiscoverRunner):
     def __init__(self, *args, **kwargs):
         settings.TEST_MODE = True
         super(stregsystemTestRunner, self).__init__(*args, **kwargs)
+
+
+class MobilePaytoolException(RuntimeError):
+    """
+    Structured exception for runtime error due to race condition during submission of MobilePaytool form
+    """
+
+    def __init__(self, racy_mbpayments: QuerySet):
+        self.racy_mbpayments = racy_mbpayments
+        self.inconsistent_mbpayments_count = self.racy_mbpayments.count()
+        self.inconsistent_transaction_ids = [x.transaction_id for x in self.racy_mbpayments]

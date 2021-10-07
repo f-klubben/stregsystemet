@@ -323,5 +323,23 @@
       "groups": [],
       "user_permissions": []
     }
+  },
+  {
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$150000$iTYq6tgl0wkZ$sayKG1202U4C7vm6zdtogsSP+OxVoQZtoxtO1cXFWdg=",
+      "last_login": null,
+      "is_superuser": true,
+      "username": "autopayment",
+      "first_name": "auto",
+      "last_name": "payment",
+      "email": "",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2021-09-13T13:43:22Z",
+      "groups": [],
+      "user_permissions": []
+    }
   }
 ]
