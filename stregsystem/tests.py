@@ -1693,4 +1693,3 @@ class InventoryItemTest(TestCase):
         inventory_history = InventoryItemHistory.objects.filter(item=inventory_item).latest('count_date')
 
         assert inventory_history.sold_out_date != datetime.date(2018, 2, 3)
-        
