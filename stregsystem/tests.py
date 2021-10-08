@@ -1647,3 +1647,50 @@ class InventoryItemTest(TestCase):
         # We do not create duplicate entries
         assert inventory_history.old_quantity == 15
         assert inventory_history.new_quantity == 17
+
+    def test_inventory_item_history_sold_out_sets_sold_out_date(self):
+        member = Member.objects.create(pk=1, username="jeff", firstname="jeff", lastname="jefferson", gender="M")
+        coke = Product.objects.create(name="coke", price=100, active=True)
+        inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=5, products=coke)
+        assert inventory_item.active is True
+
+        with freeze_time('2018-02-02') as frozen_time:
+            for i in range(0, 5):
+                Sale.objects.create(
+                    member=member,
+                    product=coke,
+                    price=100,
+                )
+                frozen_time.tick()
+
+        inventory_item = InventoryItem.objects.get(id=inventory_item.id)
+        inventory_item.quantity = 0
+        inventory_item.save()
+
+        inventory_history = InventoryItemHistory.objects.filter(item=inventory_item).latest('count_date')
+
+        assert inventory_history.sold_out_date == datetime.date(2018, 2, 2)
+
+    def test_inventory_item_history_sold_out_sets_sold_out_date_but_not_wrong_date(self):
+        member = Member.objects.create(pk=1, username="jeff", firstname="jeff", lastname="jefferson", gender="M")
+        coke = Product.objects.create(name="coke", price=100, active=True)
+        inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=5, products=coke)
+        assert inventory_item.active is True
+
+        with freeze_time('2018-02-02') as frozen_time:
+            for i in range(0, 5):
+                Sale.objects.create(
+                    member=member,
+                    product=coke,
+                    price=100,
+                )
+                frozen_time.tick()
+
+        inventory_item = InventoryItem.objects.get(id=inventory_item.id)
+        inventory_item.quantity = 0
+        inventory_item.save()
+
+        inventory_history = InventoryItemHistory.objects.filter(item=inventory_item).latest('count_date')
+
+        assert inventory_history.sold_out_date != datetime.date(2018, 2, 3)
+        
