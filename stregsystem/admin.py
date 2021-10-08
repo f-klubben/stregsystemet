@@ -205,6 +205,7 @@ class InventoryHistoryAdmin(admin.ModelAdmin):
         'loss',
         'count_date',
         'sold_out',
+        'sold_out_date',
     )
 
 
