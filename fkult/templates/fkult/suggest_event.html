@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>F-kult: Suggest event</title>
+</head>
+<body>
+<h2>Suggest movie</h2>
+<form method="post" action="">
+    {% csrf_token %}
+    <table>
+        {{ movie_form.as_table }}
+    </table>
+    <input type="submit" value="Submit movie">
+</form>
+</body>
+</html>
