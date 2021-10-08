@@ -590,10 +590,6 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
 
         self.active = True if self.quantity > 0 else False
 
-        if product.start_date is None or product.start_date > date.today() - timedelta(days=5):
-            # We want to set the start date, to remove products from the product list, once they are no longer in stock
-            product.start_date = date.today()
-
         if InventoryItem.objects.filter(id=self.pk).exists():
             # At initial creation we do not wish to create an inventory history record for the item
             item: InventoryItem = InventoryItem.objects.get(id=self.pk)
