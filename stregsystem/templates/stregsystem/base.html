@@ -32,9 +32,9 @@
         </td>
         <td align=center>
             <h1>{% block heading %}TREOENs STREGSYSTEM
-{% ifnotequal room.id 1 %}
+{% if room.id != 1 %}
  : {{room.description}}
-{% endifnotequal %}
+{% endif %}
 {% endblock %}</h1>
         </td>
         <td>
