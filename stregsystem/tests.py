@@ -1408,7 +1408,14 @@ class MobilePaymentTests(TestCase):
         self.assertEqual(Member.objects.get(username__exact="marx"), mobile_payment_exact_match_member("marx"))
 
     def test_emoji_strip(self):
-        self.assertEqual(strip_emoji("Tilmeld Lichi 😎"), "Tilmeld Lichi ")
+        self.assertEqual(strip_emoji("Tilmeld Lichi 😎"), "Tilmeld Lichi")
+
+    def test_emoji_strip_electric_boogaloo(self):
+        # Laurits bør få næse for at fremprovokoere dette case
+        self.assertEqual(strip_emoji("♂️Laurits♂️"), "Laurits")
+
+    def test_emoji_retain_nordic(self):
+        self.assertEqual(strip_emoji("æøåäëö"), "æøåäëö")
 
     def test_emoji_retain(self):
         self.assertEqual(strip_emoji("Tilmeld Lichi"), "Tilmeld Lichi")
