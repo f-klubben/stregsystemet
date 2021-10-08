@@ -41,4 +41,11 @@ pkgs.mkShell rec {
     buildInputs = [
         pythonWithDeps
     ];
+
+    shellHook = ''
+    	echo
+		echo -e "\e[1mHEY! This shell uses Python 3.9, but the running system uses Python 3.6\e[0m"
+		echo "So make sure you have tested any bug on Python 3.6 before reporting it"
+		echo "(or tag it with 3.9 since we want to upgrade some time in the future)"
+    '';
 }
