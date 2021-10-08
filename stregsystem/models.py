@@ -590,13 +590,15 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
 
         self.active = True if self.quantity > 0 else False
 
-        if product.start_date is not None:
+        # We only want to update the start date if at least once day has passed to ensure updated inventory
+        if product.start_date is None or product.start_date > date.today() - timedelta(days=1):
             product.start_date = date.today()
 
-        if InventoryItem.objects.filter(id=self.pk).exists():
+        if self.id:
             # At initial creation we do not wish to create an inventory history record for the item
             item: InventoryItem = InventoryItem.objects.get(id=self.pk)
 
+            # If a history item exists, use the previous quantity
             if InventoryItemHistory.objects.filter(item=self).exists():
                 old_quantity = item.quantity
             else:
