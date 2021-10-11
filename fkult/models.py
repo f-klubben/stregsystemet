@@ -27,6 +27,7 @@ class Movie(models.Model):
     @staticmethod
     def create_from_id(m_id):
         from tmdbv3api import TMDb, exceptions, Movie as TMDbMovie
+
         tmdb = TMDb()
         tmdb.api_key = cfg.get("tmdb", "API_KEY")
         tmdb.language = 'en'

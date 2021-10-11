@@ -1,7 +1,7 @@
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
 
-from fkult.forms import MovieForm
+from fkult.forms import MovieForm, EventForm
 from fkult.models import Movie, Event, Season
 
 
@@ -20,6 +20,7 @@ def index(request):
 
 def suggest_event(request):
     movie_form = MovieForm()
+    event_form = EventForm()
 
     # todo check that suggestions have not been accepted within the previous 7 years
     #   (correct for startup of fkult, assuming 1st feb/1st sep yearly)
@@ -34,6 +35,4 @@ def suggest_event(request):
             # if movie is valid, create Movie object from input id
             Movie.create_from_id(movie_form.cleaned_data['id'])
 
-
     return render(request, "fkult/suggest_event.html", locals())
-

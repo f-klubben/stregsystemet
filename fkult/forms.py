@@ -1,11 +1,21 @@
 from django import forms
 
-from fkult.models import Movie
+from fkult.models import Movie, Event
+from stregsystem.models import Member
 from treo.settings import cfg
+from django_select2 import forms as s2forms
 
 
-class EventForm(forms.Form):
-    theme = forms.CharField(label="The theme of your event suggestion")
+class Select2MemberWidget(s2forms.ModelSelect2Widget):
+    search_fields = ['username__icontains', 'firstname__icontains', 'lastname__icontains', 'email__icontains']
+    model = Member
+
+
+class EventForm(forms.ModelForm):
+    class Meta:
+        model = Event
+        exclude = []
+        widgets = {"proposer": Select2MemberWidget}
 
 
 class MovieForm(forms.ModelForm):
@@ -27,6 +37,8 @@ class MovieForm(forms.ModelForm):
         try:
             _ = tmdb_movie.details(movie_id=cleaned_id)
         except exceptions.TMDbException:
-            raise forms.ValidationError(f'{cleaned_id} is not a valid IMDB/TMDb id')
+            raise forms.ValidationError(
+                f'"{cleaned_id}" IMDB/TMDb id could not be found. Check your given ID on imdb.com or themoviedb.org'
+            )
 
         return cleaned_id

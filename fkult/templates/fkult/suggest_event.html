@@ -1,17 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>F-kult: Suggest event</title>
-</head>
-<body>
-<h2>Suggest movie</h2>
-<form method="post" action="">
-    {% csrf_token %}
-    <table>
-        {{ movie_form.as_table }}
-    </table>
-    <input type="submit" value="Submit movie">
-</form>
-</body>
-</html>
+{% load static %}
+
+{% block extrahead %}
+    <link rel="stylesheet" type="text/css" href="{% static '/stregsystem/select2-stregsystem.css' %}"/>
+{% endblock %}
+
+{% block title %}F-kult: Suggest event{% endblock %}
+
+{% block content %}
+    <h2>Suggest movie</h2>
+    <form method="post" action="">
+        {% csrf_token %}
+        <table>
+            {{ movie_form }}<br>
+            {{ event_form }}
+        </table>
+        <input type="submit" value="Submit movie">
+    </form>
+
+{% endblock %}
