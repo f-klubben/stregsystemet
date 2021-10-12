@@ -322,9 +322,7 @@ class Payment(models.Model):  # id automatisk...
             self.member.save()
             if self.member.email != "" and self.amount != 0:
                 if '@' in parseaddr(self.member.email)[1] and self.member.want_spam:
-                    send_payment_mail(
-                        self.member, self.amount, mbpayment.comment if mbpayment else None
-                    )
+                    send_payment_mail(self.member, self.amount, mbpayment.comment if mbpayment else None)
 
     def log_from_mobile_payment(self, processed_mobile_payment, admin_user: User):
         LogEntry.objects.log_action(
