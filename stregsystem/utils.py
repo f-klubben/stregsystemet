@@ -93,7 +93,7 @@ def date_to_midnight(date):
     return timezone.make_aware(timezone.datetime(date.year, date.month, date.day, 0, 0))
 
 
-def send_payment_mail(member, amount):
+def send_payment_mail(member, amount, mobilepay_comment):
     if hasattr(settings, 'TEST_MODE'):
         return
     msg = MIMEMultipart()
@@ -103,7 +103,7 @@ def send_payment_mail(member, amount):
 
     formatted_amount = money(amount)
 
-    html = f"""
+    normal_html = f"""
     <html>
         <head></head>
         <body>
@@ -124,7 +124,32 @@ def send_payment_mail(member, amount):
     </html>
     """
 
-    msg.attach(MIMEText(html, 'html'))
+    shame_html = f"""
+        <html>
+            <head></head>
+            <body>
+                <p>
+                   Hej {member.firstname}!<br><br>
+                   Vi har med stort besvær indsat pokkers {formatted_amount} stregdollars på din konto: "{member.username}". <br><br>
+                   Da du ikke skrev dit brugernavn korrekt, men i stedet skrev '{mobilepay_comment}' var de stakkels TREOer desværre nødt til at tage flere minutter ud af deres dag for at indsætte dine penge manuelt.
+                   Vil du nyde godt af vores automatiske indbetaling kan du i fremtiden med fordel skrive dit brugernavn korrekt i kommentaren: '{member.username}'.
+                   Udnytter du vores QR-kode generator klarer den også denne komplicerede process for dig.
+                   
+                   Hvis du ikke ønsker at modtage flere mails som denne kan du skrive en mail til: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
+                   Mvh,<br>
+                   TREOen<br>
+                   ====================================================================<br>
+                   Hello {member.firstname}!<br><br>
+                   We've inserted {formatted_amount} stregdollars on your account: "{member.username}". <br><br>
+                   If you do not desire to receive any more mails of this sort, please file a complaint to: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
+                   Kind regards,<br>
+                   TREOen
+                </p>
+            </body>
+        </html>
+        """
+
+    msg.attach(MIMEText(shame_html if mobilepay_comment else normal_html, 'html'))
 
     try:
         smtpObj = smtplib.SMTP('localhost', 25)
