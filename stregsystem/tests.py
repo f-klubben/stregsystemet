@@ -1561,13 +1561,15 @@ class InventoryItemTest(TestCase):
 
     def test_inventory_item_manages_history_calculates_loss_correct_2(self):
         member = Member.objects.create(pk=1, username="jeff", firstname="jeff", lastname="jefferson", gender="M")
-        with freeze_time('2017-02-02') as frozen_time:
+        coke = None
+        with freeze_time('2020-02-02') as frozen_time:
             coke = Product.objects.create(name="coke", price=100, active=True, start_date=datetime.date.today())
             inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
             InventoryItemHistory.objects.create(item=inventory_item, new_quantity=20, old_quantity=0)
             inventory_item.save()
 
-        with freeze_time('2018-02-02') as frozen_time:
+        with freeze_time('2021-02-02') as frozen_time:
+            # We sell two products
             for i in range(1, 3):
                 Sale.objects.create(
                     member=member,
@@ -1575,6 +1577,7 @@ class InventoryItemTest(TestCase):
                     price=100,
                 )
                 frozen_time.tick()
+        assert len(Sale.objects.filter(product=coke)) == 2
 
         assert inventory_item.active is True
 
@@ -1584,17 +1587,21 @@ class InventoryItemTest(TestCase):
         history_item = InventoryItemHistory.objects.filter(item=inventory_item).latest('count_date')
         assert history_item.old_quantity == 20
         assert history_item.new_quantity == 15
-        assert history_item.item.products.bought == 2
         assert history_item.loss == 3
 
     def test_inventory_item_manages_history_calculates_loss_correct_3(self):
         coke = Product.objects.create(name="coke", price=100, active=True)
-        inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
+        inventory_item: InventoryItem = InventoryItem.objects.create(
+            name='Slots', active=True, quantity=20, products=coke
+        )
         assert inventory_item.active is True
+        assert inventory_item.products.pk
 
         with freeze_time('2018-02-02'):
             inventory_item.quantity = 15
             inventory_item.save()
+
+        assert inventory_item.products.start_date == datetime.date.today()
 
         inventory_item = InventoryItem.objects.get(id=inventory_item.id)
 
@@ -1674,7 +1681,9 @@ class InventoryItemTest(TestCase):
     def test_inventory_item_history_sold_out_sets_sold_out_date_but_not_wrong_date(self):
         member = Member.objects.create(pk=1, username="jeff", firstname="jeff", lastname="jefferson", gender="M")
         coke = Product.objects.create(name="coke", price=100, active=True)
-        inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=5, products=coke)
+        inventory_item: InventoryItem = InventoryItem.objects.create(
+            name='Slots', active=True, quantity=5, products=coke
+        )
         assert inventory_item.active is True
 
         with freeze_time('2018-02-02') as frozen_time:
@@ -1693,3 +1702,26 @@ class InventoryItemTest(TestCase):
         inventory_history = InventoryItemHistory.objects.filter(item=inventory_item).latest('count_date')
 
         assert inventory_history.sold_out_date != datetime.date(2018, 2, 3)
+
+    def test_inventory_item_sets_start_date_on_save(self):
+        with freeze_time('2018-02-02'):
+            coke = Product.objects.create(name="coke", price=100, active=True)
+            inventory_item: InventoryItem = InventoryItem.objects.create(
+                name='Slots', active=True, quantity=20, products=coke
+            )
+            assert inventory_item.active is True
+            inventory_item.quantity = 15
+            inventory_item.save()
+            assert inventory_item.products.start_date == datetime.date.today()
+
+        with freeze_time('2018-02-03'):
+            inventory_item = InventoryItem.objects.get(id=inventory_item.id)
+            inventory_item.quantity = 17
+            inventory_item.save()
+            assert inventory_item.products.start_date == datetime.date(2018, 2, 3)
+
+        with freeze_time('2018-02-04'):
+            inventory_item = InventoryItem.objects.get(id=inventory_item.id)
+            inventory_item.quantity = 17
+            inventory_item.save()
+            assert inventory_item.products.start_date == datetime.date(2018, 2, 4)

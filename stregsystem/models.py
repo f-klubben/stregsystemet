@@ -586,13 +586,8 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
 
     @transaction.atomic
     def save(self, *args, **kwargs):
-        product = Product.objects.get(id=self.products.pk)
 
         self.active = True if self.quantity > 0 else False
-
-        # We only want to update the start date if at least once day has passed to ensure updated inventory
-        if product.start_date is None or product.start_date > date.today() - timedelta(days=1):
-            product.start_date = date.today()
 
         if self.id:
             # At initial creation we do not wish to create an inventory history record for the item
@@ -614,19 +609,26 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
             inventory_history.item = self
             inventory_history.set_quantities(old_quantity, self.quantity)
             if old_quantity:
-                inventory_history.calculate_loss(product)
+                inventory_history.calculate_loss()
 
             inventory_history.save()
+
+        # We only want to update the start date if at least once day has passed to ensure updated inventory
+        if self.products.pk and (
+            self.products.start_date is None or self.products.start_date <= date.today() - timedelta(days=1)
+        ):
+            self.products.start_date = date.today()
 
         # Save own model before product list, to ensure active state is considered
         super(InventoryItem, self).save(*args, **kwargs)
 
         # pls no abuse
         # 4/10-2021 - made it un-abusable
-        product.quantity = sum(
-            [item.quantity for item in InventoryItem.objects.filter(products=product.pk) if item.active]
+        self.products.quantity = sum(
+            [item.quantity for item in InventoryItem.objects.filter(products=self.products.pk) if item.active]
         )
-        product.save()
+
+        self.products.save()
 
 
 class InventoryItemHistory(models.Model):
@@ -646,9 +648,15 @@ class InventoryItemHistory(models.Model):
     def __str__(self) -> str:
         return f'{self.item.name} ({self.old_quantity} -> {self.new_quantity})[{self.sold_out}] @ {self.count_date}'
 
-    def calculate_loss(self, product: Product) -> int:
-        if self.old_quantity > self.new_quantity and self.old_quantity - self.new_quantity > product.bought:
-            self.loss = self.old_quantity - self.new_quantity - product.bought
+    def calculate_loss(
+        self,
+    ) -> None:
+        if self.item is None or self.item.products is None or self.item.products.start_date is None:
+            self.loss = 0
+            return
+
+        if self.old_quantity > self.new_quantity and self.old_quantity - self.new_quantity > self.item.products.bought:
+            self.loss = self.old_quantity - self.new_quantity - self.item.products.bought
             return
 
         # If no sales are made, any difference in quantity is loss
@@ -660,7 +668,7 @@ class InventoryItemHistory(models.Model):
 
     def save(self, *args, **kwargs):
         self.sold_out = not (self.item.active and self.item.products.active)
-
+        self.item = InventoryItem.objects.get(id=self.item.pk)
         if self.sold_out:
             if Sale.objects.filter(product=self.item.products).exists():
                 self.sold_out_date = Sale.objects.filter(product=self.item.products).last().timestamp
