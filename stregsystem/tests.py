@@ -1701,7 +1701,7 @@ class InventoryItemTest(TestCase):
 
         inventory_history = InventoryItemHistory.objects.filter(item=inventory_item).latest('count_date')
 
-        assert inventory_history.sold_out_date != datetime.date(2018, 2, 3)
+        assert inventory_history.sold_out_date == datetime.date(2018, 2, 2)
 
     def test_inventory_item_sets_start_date_on_save(self):
         with freeze_time('2018-02-02'):
