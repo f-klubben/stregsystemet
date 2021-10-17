@@ -1,4 +1,5 @@
 from django import forms
+from django.forms import TextInput
 
 from fkult.models import Movie, Event
 from stregsystem.models import Member
@@ -12,11 +13,29 @@ class Select2MemberWidget(s2forms.ModelSelect2Widget):
 
 
 class EventForm(forms.ModelForm):
+    fember = forms.CharField()
     class Meta:
         model = Event
-        exclude = []
-        widgets = {"proposer": Select2MemberWidget}
+        fields = ["theme"]
+        widgets = {"proposer": TextInput}
 
+    def clean_fember(self):
+        # check if exist, otherwise raise validation error
+        cleaned_proposer = self.cleaned_data['fember']
+        try:
+            return Member.objects.get(username__iexact=cleaned_proposer)
+        except Member.DoesNotExist:
+            raise forms.ValidationError(
+                f"'{cleaned_proposer}' is not a username, please try again - it's not a case sensitive input"
+            )
+
+    # todo override save function
+
+
+class EventVoteForm(forms.ModelForm):
+    class Meta:
+        model = Event
+        exclude = ['']
 
 class MovieForm(forms.ModelForm):
     # movie_id = forms.CharField(label='The TMDB ID of movie', max_length=20)

@@ -1,8 +1,10 @@
 {% load static %}
 
-{% block title %}<h1>F-kult: Suggest event</h1>{% endblock %}
+{% block title %}<h1>F-kult: Vote for season {{ curr_season.season_str }}</h1>{% endblock %}
 
 {% block content %}
+    Current season
+
     <form method="post" action="">
         {% csrf_token %}
         <table>

@@ -1,38 +1,43 @@
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.forms import modelformset_factory
 from django.shortcuts import render
 
 from fkult.forms import MovieForm, EventForm
 from fkult.models import Movie, Event, Season
 
+CURR_SEASON = Season.objects.order_by('-id').first()
 
 def index(request):
+    curr_season = CURR_SEASON
     # todo show calendar view of accepted events in current season
-    curr_season = Season.objects.order_by('-id').first()
-    events = Event.objects.filter(season=curr_season)
-    # todo; get (calculate) current season
-    #           get all events
-    #           for each event, check for any None fields and try populate+save by API, on failure, put human-readablle unknown value
-    #       put Object([Event{Movie}]) into data for template
-    #   *fuck* this should actually be done post-save of movie objectl
+    # events = Event.objects.filter(season=curr_season)
+    events = Event.objects.all()
 
     return render(request, "fkult/index.html", locals())
 
 
 def suggest_event(request):
-    movie_form = MovieForm()
+    movie_formset_factory = modelformset_factory(Movie, form=MovieForm, extra=2, max_num=2)
+    movie_formset = movie_formset_factory(queryset=Movie.objects.none())  # this is probably bad form
     event_form = EventForm()
 
-    # todo check that suggestions have not been accepted within the previous 7 years
-    #   (correct for startup of fkult, assuming 1st feb/1st sep yearly)
-    #   (check for at least fember status, maybespecial permission?)
-
-    # todo create movies (check for exists), add to event and save
-
-    # handle submitted form
     if request.method == 'POST':
-        movie_form = MovieForm(request.POST)
-        if movie_form.is_valid():
-            # if movie is valid, create Movie object from input id
-            Movie.create_from_id(movie_form.cleaned_data['id'])
+        movie_formset = movie_formset_factory(request.POST)
+        event_form = EventForm(request.POST)
+        if movie_formset.is_valid():
+            # todo check that suggestions have not been accepted within the previous 7 years
+            if event_form.is_valid():
+                # get but don't save modelforms
+                event = event_form.save(commit=False)
+                movies = movie_formset.save(commit=False)
+                movies = [Movie.create_from_id(movie.id) for movie in movies]
+
+                # create event
+                e = Event.objects.create(theme=event.theme, proposer=event.proposer)
+                [e.movies.add(m) for m in movies]
 
     return render(request, "fkult/suggest_event.html", locals())
+
+
+def vote_event(request):
+    curr_season = CURR_SEASON
+    return render(request, "fkult/vote_season.html", locals())

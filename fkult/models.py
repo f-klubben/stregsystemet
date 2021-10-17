@@ -38,7 +38,7 @@ class Movie(models.Model):
         except exceptions.TMDbException:
             return RuntimeError("TMDb lookup failed although ID was verified earlier")
 
-        Movie.objects.create(
+        return Movie.objects.create(
             id=m_id,
             title=m.title,
             summary=m.overview,
@@ -52,7 +52,8 @@ class Season(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
 
-    def __str__(self):
+    @property
+    def season_str(self):
         return f"{'Spring' if self.start_date.month <= 6 else 'Fall'} {self.start_date.year}"
 
 
