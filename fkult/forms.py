@@ -14,6 +14,7 @@ class Select2MemberWidget(s2forms.ModelSelect2Widget):
 
 class EventForm(forms.ModelForm):
     fember = forms.CharField()
+
     class Meta:
         model = Event
         fields = ["theme"]
@@ -36,6 +37,7 @@ class EventVoteForm(forms.ModelForm):
     class Meta:
         model = Event
         exclude = ['']
+
 
 class MovieForm(forms.ModelForm):
     # movie_id = forms.CharField(label='The TMDB ID of movie', max_length=20)

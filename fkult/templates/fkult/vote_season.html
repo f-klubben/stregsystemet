@@ -1,9 +1,20 @@
+{% load fkult_extras %}
+
 {% load static %}
 
-{% block title %}<h1>F-kult: Vote for season {{ curr_season.season_str }}</h1>{% endblock %}
+
+{% block extrahead %}
+
+    <head>
+        <meta charset="UTF-8">
+        <title>F-Kult calendar season: {{ curr_season.season_str }}</title> {# TODO add data.current_season #}
+    </head>
+
+{% endblock %}
+
+{% block title %}<h1>F-kult vote for season: {{ curr_season.season_str }}</h1>{% endblock %}
 
 {% block content %}
-    Current season
 
     <form method="post" action="">
         {% csrf_token %}

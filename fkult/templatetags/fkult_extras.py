@@ -5,6 +5,7 @@ register = template.Library()
 
 def proposer_format(member):
     from stregsystem.models import Member
+
     if isinstance(member, Member):
         return f"{member.firstname}, fra {member.year}"
     else:

@@ -6,6 +6,7 @@ from fkult.models import Movie, Event, Season
 
 CURR_SEASON = Season.objects.order_by('-id').first()
 
+
 def index(request):
     curr_season = CURR_SEASON
     # todo show calendar view of accepted events in current season
