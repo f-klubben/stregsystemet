@@ -1,15 +1,9 @@
 from django import forms
-from django.forms import TextInput
+from django.forms import TextInput, HiddenInput
 
 from fkult.models import Movie, Event
 from stregsystem.models import Member
 from treo.settings import cfg
-from django_select2 import forms as s2forms
-
-
-class Select2MemberWidget(s2forms.ModelSelect2Widget):
-    search_fields = ['username__icontains', 'firstname__icontains', 'lastname__icontains', 'email__icontains']
-    model = Member
 
 
 class EventForm(forms.ModelForm):
@@ -21,7 +15,7 @@ class EventForm(forms.ModelForm):
         widgets = {"proposer": TextInput}
 
     def clean_fember(self):
-        # check if exist, otherwise raise validation error
+        # checks if proposer username exists and returns it, otherwise raise validation error
         cleaned_proposer = self.cleaned_data['fember']
         try:
             return Member.objects.get(username__iexact=cleaned_proposer)
@@ -30,13 +24,29 @@ class EventForm(forms.ModelForm):
                 f"'{cleaned_proposer}' is not a username, please try again - it's not a case sensitive input"
             )
 
-    # todo override save function
+    # todo override save function - why?
 
 
 class EventVoteForm(forms.ModelForm):
     class Meta:
         model = Event
-        exclude = ['']
+        fields = ['id', 'theme', 'movies', 'proposer', 'votes']
+        widgets = {"proposer": TextInput}
+
+    def __init__(self, *args, **kwargs):
+        super(EventVoteForm, self).__init__(*args, **kwargs)
+        # Make fields not meant for editing by user readonly (note that this is prevented in template as well)
+        if self.instance.id:
+            for field in self.fields:
+                if field in ['id', 'event_date', 'theme', 'movies', 'proposer', 'accepted', 'season']:
+                    self.fields[field].widget.attrs['readonly'] = True
+
+    def clean_id(self):
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            return instance.id
+        else:
+            return self.cleaned_data['id']
 
 
 class MovieForm(forms.ModelForm):

@@ -1,7 +1,12 @@
+from pprint import pprint
+
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import permission_required
+from django.db import transaction
 from django.forms import modelformset_factory
 from django.shortcuts import render
 
-from fkult.forms import MovieForm, EventForm
+from fkult.forms import MovieForm, EventForm, EventVoteForm
 from fkult.models import Movie, Event, Season
 
 CURR_SEASON = Season.objects.order_by('-id').first()
@@ -35,10 +40,27 @@ def suggest_event(request):
                 # create event
                 e = Event.objects.create(theme=event.theme, proposer=event.proposer)
                 [e.movies.add(m) for m in movies]
+                e.save()
 
-    return render(request, "fkult/suggest_event.html", locals())
+    return render(request, "fkult/suggest.html", locals())
 
 
+@staff_member_required()
+@permission_required("fkult.admin") # todo, make fkult permission
 def vote_event(request):
     curr_season = CURR_SEASON
-    return render(request, "fkult/vote_season.html", locals())
+
+    vote_formset_factory = modelformset_factory(Event, form=EventVoteForm, extra=0)
+    vote_formset = vote_formset_factory(queryset=Event.objects.filter(season__isnull=True))  # this is probably bad form
+
+    if request.method == 'POST':
+        vote_formset = vote_formset_factory(request.POST or None)
+        if vote_formset.is_valid():
+            print('yar')
+            vote_formset.save()
+        else:
+            print('nar')
+        pprint(vote_formset)
+
+
+    return render(request, "fkult/vote.html", locals())

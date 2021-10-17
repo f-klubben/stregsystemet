@@ -56,9 +56,11 @@ class Season(models.Model):
     def season_str(self):
         return f"{'Spring' if self.start_date.month <= 6 else 'Fall'} {self.start_date.year}"
 
+    def __str__(self):
+        return self.season_str
+
 
 class Event(models.Model):
-    id = models.AutoField(primary_key=True)
     event_date = models.DateField(blank=True, null=True)
     theme = models.CharField(max_length=128)
     movies = models.ManyToManyField(Movie, help_text="pair of movies for the event")  # todo; add select2 to this field
@@ -68,8 +70,8 @@ class Event(models.Model):
         null=True,
         blank=True,
         help_text="proposer of event, given as fklub member to derive name",
-    )  # todo; add select2 to this field
-    votes = models.IntegerField(blank=True, null=True, help_text="number of fkult votes received on season initiation")
+    )  # todo add select2 only for admin
+    votes = models.IntegerField(default=0, help_text="number of fkult votes received on season initiation")
     accepted = models.BooleanField(blank=True, null=True, help_text="accepted at fkult season initiation")
     season = models.ForeignKey(Season, on_delete=models.SET_NULL, null=True, blank=True)
 
