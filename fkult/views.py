@@ -4,9 +4,10 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
 from django.forms import modelformset_factory
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
-from fkult.forms import MovieForm, EventForm, EventVoteForm
+from fkult.forms import MovieForm, EventForm, EventVoteForm, GenerateSeasonNumberForm, SeasonForm
 from fkult.models import Movie, Event, Season
 
 CURR_SEASON = Season.objects.order_by('-id').first()
@@ -32,21 +33,25 @@ def suggest_event(request):
         if movie_formset.is_valid():
             # todo check that suggestions have not been accepted within the previous 7 years
             if event_form.is_valid():
-                # get but don't save modelforms
-                event = event_form.save(commit=False)
-                movies = movie_formset.save(commit=False)
-                movies = [Movie.create_from_id(movie.id) for movie in movies]
+                movies = [Movie.get_or_create_from_id(movie['movie_id']) for movie in movie_formset.cleaned_data]
 
                 # create event
-                e = Event.objects.create(theme=event.theme, proposer=event.proposer)
+                e = Event.objects.create(
+                    theme=event_form.cleaned_data['theme'], proposer=event_form.cleaned_data['fember'], accepted=False
+                )
                 [e.movies.add(m) for m in movies]
                 e.save()
+                status = ("Submitted", e.__str__())
+
+                # refresh form
+                movie_formset = movie_formset_factory(queryset=Movie.objects.none())
+                event_form = EventForm()
 
     return render(request, "fkult/suggest.html", locals())
 
 
 @staff_member_required()
-@permission_required("fkult.admin") # todo, make fkult permission
+@permission_required("fkult.admin")  # todo, make fkult permission
 def vote_event(request):
     curr_season = CURR_SEASON
 
@@ -56,11 +61,22 @@ def vote_event(request):
     if request.method == 'POST':
         vote_formset = vote_formset_factory(request.POST or None)
         if vote_formset.is_valid():
-            print('yar')
             vote_formset.save()
-        else:
-            print('nar')
-        pprint(vote_formset)
-
+            return HttpResponseRedirect('/fkult/generate')
 
     return render(request, "fkult/vote.html", locals())
+
+
+@staff_member_required()
+@permission_required("fkult.admin")  # todo, make fkult permission
+def generate_season(request):
+    form = GenerateSeasonNumberForm()
+
+    if request.method == 'POST':
+        form = GenerateSeasonNumberForm(request.POST)
+        if form.is_valid():
+            s = Season.create_season(form.cleaned_data['start_date'], form.cleaned_data['end_date'])
+            # todo, redirect to list of events for season and let admin reorder/fix stuff
+            season = SeasonForm(initial=s)
+
+    return render(request, "fkult/generate.html", locals())

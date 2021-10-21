@@ -20,6 +20,7 @@ def proposer_format(member):
 
 def movie_imdb_link(movie):
     from fkult.models import Movie
+
     if isinstance(movie, Movie):
         return f'<a href="https://www.imdb.com/title/{movie.id}/">{movie.__str__()}</a>'
     else:

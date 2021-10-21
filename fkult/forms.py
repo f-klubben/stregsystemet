@@ -1,7 +1,9 @@
+import datetime
+
 from django import forms
 from django.forms import TextInput, HiddenInput
 
-from fkult.models import Movie, Event
+from fkult.models import Movie, Event, Season
 from stregsystem.models import Member
 from treo.settings import cfg
 
@@ -50,13 +52,14 @@ class EventVoteForm(forms.ModelForm):
 
 
 class MovieForm(forms.ModelForm):
-    # movie_id = forms.CharField(label='The TMDB ID of movie', max_length=20)
+    movie_id = forms.CharField(label='The IMDB ID of movie', max_length=20)
+
     class Meta:
         model = Movie
-        fields = ['id']
+        fields = []
 
-    def clean_id(self):
-        cleaned_id = self.cleaned_data['id']
+    def clean_movie_id(self):
+        cleaned_id = self.cleaned_data['movie_id']
         from tmdbv3api import TMDb, exceptions, Movie as TMDbMovie
 
         tmdb = TMDb()
@@ -73,3 +76,14 @@ class MovieForm(forms.ModelForm):
             )
 
         return cleaned_id
+
+
+class GenerateSeasonNumberForm(forms.Form):
+    start_date = forms.DateField(initial=datetime.datetime.now() + datetime.timedelta(days=14))
+    end_date = forms.DateField(initial=datetime.datetime.now() + datetime.timedelta(days=365 / 2))
+
+
+class SeasonForm(forms.ModelForm):
+    class Meta:
+        model = Season
+        exclude = []
