@@ -24,6 +24,7 @@ from stregsystem.models import (
     Product,
     Room,
     Sale,
+    Event,
     StregForbudError,
     MobilePayment,
 )
@@ -189,7 +190,7 @@ def menu_userinfo(request, room_id, member_id):
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
 
-    last_sale_list = member.sale_set.order_by('-timestamp')
+    last_sale_list = member.sale_set.order_by('-timestamp')[:10]
     try:
         last_payment = member.payment_set.order_by('-timestamp')[0]
     except IndexError:
@@ -201,9 +202,12 @@ def menu_userinfo(request, room_id, member_id):
     return render(request, 'stregsystem/menu_userinfo.html', locals())
 
 
+# Used to see active tickets
 def menu_ticketsview(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     member = Member.objects.get(pk=member_id, active=True)
+    event_list = Event.objects.all()
+    kek = 2
 
     sale_list = member.sale_set.order_by('-timestamp')
 
