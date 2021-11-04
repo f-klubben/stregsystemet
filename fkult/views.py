@@ -1,13 +1,14 @@
 from pprint import pprint
 
+import requests
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
-from django.db import transaction
 from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
-from fkult.forms import MovieForm, EventForm, EventVoteForm, GenerateSeasonNumberForm, SeasonForm
+from fkult.forms import MovieForm, EventForm, EventVoteForm, GenerateSeasonNumberForm, JsonForm, LookupForm
+from fkult.import_json import import_fkult_from_json
 from fkult.models import Movie, Event, Season
 
 CURR_SEASON = Season.objects.order_by('-id').first()
@@ -15,9 +16,7 @@ CURR_SEASON = Season.objects.order_by('-id').first()
 
 def index(request):
     curr_season = CURR_SEASON
-    # todo show calendar view of accepted events in current season
-    # events = Event.objects.filter(season=curr_season)
-    events = Event.objects.all()
+    events = Event.objects.filter(season=CURR_SEASON)
 
     return render(request, "fkult/index.html", locals())
 
@@ -75,8 +74,33 @@ def generate_season(request):
     if request.method == 'POST':
         form = GenerateSeasonNumberForm(request.POST)
         if form.is_valid():
-            s = Season.create_season(form.cleaned_data['start_date'], form.cleaned_data['end_date'])
-            # todo, redirect to list of events for season and let admin reorder/fix stuff
-            season = SeasonForm(initial=s)
+            season, created = Season.create_season(form.cleaned_data['start_date'], form.cleaned_data['end_date'])
+            return HttpResponseRedirect('/fkult/')
 
     return render(request, "fkult/generate.html", locals())
+
+
+@staff_member_required()
+@permission_required("fkult.admin")  # todo, make fkult permission
+def import_json(request):
+    if request.method == 'POST':
+        form = JsonForm(request.POST, request.FILES)
+        if form.is_valid():
+            res = import_fkult_from_json(form.cleaned_data['json'])
+            pprint(res)
+    else:
+        form = JsonForm()
+
+    return render(request, "fkult/import_json.html", locals())
+
+
+def lookup(request):
+    if request.method == 'POST':
+        form = LookupForm(request.POST)
+        if form.is_valid():
+            # return result
+            pass
+    else:
+        form = LookupForm()
+
+    return render(request, "fkult/lookup.html", locals())

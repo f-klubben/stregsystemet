@@ -7,6 +7,8 @@ from fkult.models import Movie, Event, Season
 from stregsystem.models import Member
 from treo.settings import cfg
 
+from django_select2 import forms as s2forms
+
 
 class EventForm(forms.ModelForm):
     fember = forms.CharField()
@@ -83,7 +85,17 @@ class GenerateSeasonNumberForm(forms.Form):
     end_date = forms.DateField(initial=datetime.datetime.now() + datetime.timedelta(days=365 / 2))
 
 
-class SeasonForm(forms.ModelForm):
+class JsonForm(forms.Form):
+    json = forms.FileField(label='JSON file', help_text='Upload a JSON file of Fkult movies to import')
+
+
+class Select2MovieWidget(s2forms.ModelSelect2Widget):
+    search_fields = ['title__icontains']
+    model = Movie
+
+
+class LookupForm(forms.ModelForm):
     class Meta:
-        model = Season
-        exclude = []
+        model = Movie
+        fields = ['title']
+        widgets = {'title': Select2MovieWidget}

@@ -39,7 +39,7 @@ class Movie(models.Model):
         try:
             m = tmdb_movie.details(movie_id=m_id)
         except exceptions.TMDbException:
-            return RuntimeError("TMDb lookup failed although ID was verified earlier")
+            raise RuntimeError("TMDb lookup failed although ID was verified earlier")
 
         movie_obj, _ = Movie.objects.get_or_create(id=m_id)
 
@@ -57,6 +57,28 @@ class Season(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
 
+    def save(self, *args, **kwargs):
+        if self.end_date < self.start_date:
+            raise RuntimeError("End date cannot be before start date")
+        elif self.end_date == self.start_date:
+            raise RuntimeError("End date cannot be the same as start date")
+        # check for overlap in season if not already constructed
+        elif not self.pk and self.overlaps:
+            raise RuntimeError("Season overlaps with existing season")
+        else:
+            super().save(*args, **kwargs)
+
+    @property
+    def overlaps(self):
+        """
+        Checks if a season start and end date overlaps with an existing season
+        :return: True if overlap, False otherwise
+        """
+        return Season.objects.filter(
+            Q(start_date__lte=self.end_date, end_date__gte=self.start_date)
+            | Q(start_date__gte=self.start_date, end_date__lte=self.end_date)
+        ).exists()
+
     @property
     def season_str(self):
         return f"{'Spring' if self.start_date.month <= 6 else 'Fall'} {self.start_date.year}"
@@ -67,27 +89,31 @@ class Season(models.Model):
     @staticmethod
     def create_season(start: datetime.datetime, end: datetime.datetime):
         # create season if does not exist
-        season = Season.objects.get_or_create()
+        season, created = Season.objects.get_or_create(start_date=start, end_date=end)
+        if not created:
+            return season, created
 
         # calc events between dates
         n_events = (end - start).days // 14
 
         # get n_events from top sorted events that has non-zero number of votes
-        e = Event.objects.filter(Q(votes__gt=0) & Q(accepted=False))
+        e = Event.objects.filter(Q(votes__gt=0) & Q(accepted__in=(False, None)))
         if e.count() < n_events:
             season_events = e
         else:
-            season_events = sorted(Event.objects.filter(votes__gt=0), key=lambda x: x.votes)[:n_events]
+            season_events = sorted(e, key=lambda x: -x.votes)[:n_events]
 
-        # attach events to this season
-        for event in season_events:
+        # attach events to this season and set date
+        for i, event in enumerate(season_events):
             event.season = season
+            event.event_date = start + datetime.timedelta(days=14 * (i + 1))  # space events out by 14 days, offset
+            event.accepted = True
             event.save()
 
         season.save()
 
         # return current season object
-        return season
+        return season, created
 
 
 class Event(models.Model):
