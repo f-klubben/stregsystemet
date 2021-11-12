@@ -311,7 +311,8 @@ class Payment(models.Model):  # id automatisk...
     def __str__(self):
         return self.member.username + " " + str(self.timestamp) + ": " + money(self.amount)
 
-    def save(self, *args, **kwargs):
+    @transaction.atomic
+    def save(self, mbpayment=None, *args, **kwargs):
         if self.id:
             return  # update -- should not be allowed
         else:
@@ -321,7 +322,7 @@ class Payment(models.Model):  # id automatisk...
             self.member.save()
             if self.member.email != "" and self.amount != 0:
                 if '@' in parseaddr(self.member.email)[1] and self.member.want_spam:
-                    send_payment_mail(self.member, self.amount)
+                    send_payment_mail(self.member, self.amount, mbpayment.comment if mbpayment else None)
 
     def log_from_mobile_payment(self, processed_mobile_payment, admin_user: User):
         LogEntry.objects.log_action(
@@ -447,7 +448,7 @@ class MobilePayment(models.Model):
 
                 payment = Payment(member=member, amount=payment_amount)
                 payment.log_from_mobile_payment(processed_mobile_payment, admin_user)
-                payment.save()
+                payment.save(mbpayment=processed_mobile_payment)
 
                 processed_mobile_payment.payment = payment
                 processed_mobile_payment.member = member
