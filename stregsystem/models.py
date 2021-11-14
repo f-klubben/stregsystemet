@@ -1,3 +1,5 @@
+import urllib.parse
+import uuid
 from collections import Counter
 from email.utils import parseaddr
 
@@ -629,3 +631,18 @@ class News(models.Model):
 
     def __str__(self):
         return self.title + " -- " + str(self.pub_date)
+
+
+class PendingSignup(models.Model):
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    due = models.IntegerField(default=200)
+    token = models.UUIDField(default=uuid.uuid4, db_index=True)
+
+    def get_mobilepay_comment(self):
+        return "Tilmelding;Username:{};Token:{}".format(self.member.username, self.token)
+
+    def generate_mobilepay_url(self):
+        comment = self.get_mobilepay_comment()
+        query = {'phone': '90601', 'comment': comment, 'amount': self.due}
+        return 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
+

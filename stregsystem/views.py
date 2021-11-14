@@ -1,5 +1,8 @@
 import datetime
+import io
 
+import qrcode
+import qrcode.image.svg
 from django.core import management
 from django.forms import modelformset_factory, formset_factory
 
@@ -9,7 +12,7 @@ from django.conf import settings
 from django.db.models import Q
 from django import forms
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django_select2 import forms as s2forms
 import urllib.parse
@@ -26,6 +29,7 @@ from stregsystem.models import (
     Sale,
     StregForbudError,
     MobilePayment,
+    PendingSignup,
 )
 from stregsystem.utils import (
     make_active_productlist_query,
@@ -37,7 +41,7 @@ from stregsystem.utils import (
 )
 
 from .booze import ballmer_peak
-from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm
+from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, SignupForm
 
 
 def __get_news():
@@ -380,3 +384,37 @@ def qr_payment(request):
     data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
 
     return qr_code(data)
+
+
+def signup(request):
+    is_post = request.method == "POST"
+    form = SignupForm(request.POST) if is_post else SignupForm()
+
+    if is_post and form.is_valid():
+        member = Member(active=False,
+                        username=form.cleaned_data.get('username'), firstname=form.cleaned_data.get('firstname'),
+                        lastname=form.cleaned_data.get('lastname'), email=form.cleaned_data.get('email'), gender='U')
+        member.save()
+        signup_request = PendingSignup(member=member)
+        signup_request.save()
+
+        return redirect('signup_status', signup_id=signup_request.id)
+
+    return render(request, "stregsystem/signup.html", locals())
+
+
+def signup_status(request, signup_id):
+    try:
+        pending_signup = PendingSignup.objects.get(pk=signup_id)
+    except PendingSignup.DoesNotExist:
+        return redirect('signup')
+
+    mobilepay_url = pending_signup.generate_mobilepay_url()
+
+    qr = io.BytesIO()
+    qrcode.make(mobilepay_url, image_factory=qrcode.image.svg.SvgPathFillImage).save(qr)
+
+    mobilepay_qr_svg = qr.getvalue().decode('utf-8').splitlines()[1]
+    qr.close()
+
+    return render(request, "stregsystem/signup_status.html", locals())
