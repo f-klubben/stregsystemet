@@ -634,15 +634,31 @@ class News(models.Model):
 
 
 class PendingSignup(models.Model):
-    member = models.ForeignKey(Member, on_delete=models.CASCADE)
-    due = models.IntegerField(default=200)
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, null=False)
+    due = models.IntegerField(default=200 * 100)
     token = models.UUIDField(default=uuid.uuid4, db_index=True)
 
     def get_mobilepay_comment(self):
-        return "Tilmelding;Username:{};Token:{}".format(self.member.username, self.token)
+        return "signup:{}+{}".format(self.token, self.member.username)
 
     def generate_mobilepay_url(self):
         comment = self.get_mobilepay_comment()
-        query = {'phone': '90601', 'comment': comment, 'amount': self.due}
+        query = {'phone': '90601', 'comment': comment, 'amount': "{0:.2f}".format(self.due/100.0)}
         return 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
 
+    @transaction.atomic
+    def complete(self, payment: MobilePayment):
+        # If the user payed more than their due add it to their balance
+        if self.due < 0:
+            payment.payment = Payment.objects.create(member=self.member, amount=-self.due)  # TODO idk
+        payment.save()
+
+        self.member.active = True  # TODO ensure that this is actually a viable solution
+        self.member.save()
+        self.delete()
+        # TODO send mail?
+
+    @transaction.atomic
+    def save(self, payment: MobilePayment, *args, **kwargs):
+        payment.save()
+        super(PendingSignup, self).save(args, kwargs)

@@ -391,10 +391,16 @@ def signup(request):
     form = SignupForm(request.POST) if is_post else SignupForm()
 
     if is_post and form.is_valid():
-        member = Member(active=False,
-                        username=form.cleaned_data.get('username'), firstname=form.cleaned_data.get('firstname'),
-                        lastname=form.cleaned_data.get('lastname'), email=form.cleaned_data.get('email'), gender='U')
-        member.save()
+        if Member.objects.filter(username=form.cleaned_data.get('username')).all().count() > 0:
+            form.add_error("username", "Brugernavn allerede i brug")
+            return render(request, "stregsystem/signup.html", locals())
+
+        member = Member.objects.create(username=form.cleaned_data.get('username'),
+                                       firstname=form.cleaned_data.get('firstname'),
+                                       lastname=form.cleaned_data.get('lastname'),
+                                       email=form.cleaned_data.get('email'),
+                                       gender='U',
+                                       active=False)
         signup_request = PendingSignup(member=member)
         signup_request.save()
 

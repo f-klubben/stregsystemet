@@ -7,7 +7,7 @@
 {% block content %}
     <center>
         <p>
-            Du mangler at betale {{ pending_signup.due }}.- kr. for at fulføre din tilmelding. <br/>
+            Du mangler at betale {{ pending_signup.due|money }}.- kr. for at fulføre din tilmelding. <br/>
             Scan nedenstående QR-kode med din Mobilepay app for at betale.
             Mobile brugere kan trykke på QR-koden i stedet.<br/><br/>
         </p>

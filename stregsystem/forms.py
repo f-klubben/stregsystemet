@@ -40,7 +40,7 @@ class SignupForm(forms.Form):
     email = forms.EmailField(label='E-Mail')
     firstname = forms.CharField(max_length=20, label='Fornavn',
                                 error_messages={'required': 'Udfyldning af `Fornavn` er påkrævet.',
-                                               'max_length': 'Længden af `Fornavn må ikke overstige 16 tegn.`'})
+                                                'max_length': 'Længden af `Fornavn må ikke overstige 16 tegn.`'})
     lastname = forms.CharField(max_length=30, label='Efternavn',
                                error_messages={'required': 'Udfyldning af `Efternavn` er påkrævet.',
                                                'max_length': 'Længden af `Efternavn må ikke overstige 16 tegn.`'})

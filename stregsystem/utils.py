@@ -28,9 +28,9 @@ def make_active_productlist_query(queryset) -> QuerySet:
     # This query selects all the candidates that are out of stock.
     candidates_out_of_stock = (
         active_candidates.filter(sale__timestamp__gt=F("start_date"))
-        .annotate(c=Count("sale__id"))
-        .filter(c__gte=F("quantity"))
-        .values("id")
+            .annotate(c=Count("sale__id"))
+            .filter(c__gte=F("quantity"))
+            .values("id")
     )
     # We can now create a query that selects all the candidates which are not
     # out of stock.
@@ -46,9 +46,9 @@ def make_inactive_productlist_query(queryset) -> QuerySet:
     ).values("id")
     inactive_out_of_stock = (
         queryset.filter(sale__timestamp__gt=F("start_date"))
-        .annotate(c=Count("sale__id"))
-        .filter(c__gte=F("quantity"))
-        .values("id")
+            .annotate(c=Count("sale__id"))
+            .filter(c__gte=F("quantity"))
+            .values("id")
     )
     return queryset.filter(Q(id__in=inactive_candidates) | Q(id__in=inactive_out_of_stock))
 
@@ -80,6 +80,15 @@ def make_unprocessed_member_filled_mobilepayment_query() -> QuerySet:
 
     return MobilePayment.objects.filter(
         Q(payment__isnull=True) & Q(status=MobilePayment.UNSET) & Q(member__isnull=False)
+    )
+
+
+def make_unprocessed_membership_payment_query() -> QuerySet:
+    from stregsystem.models import MobilePayment
+
+    return MobilePayment.objects.filter(
+        Q(payment__isnull=True) & Q(status=MobilePayment.UNSET) & Q(member__isnull=True)
+        & Q(comment__regex=r'^signup:[0-9a-fA-F-]{36}\+.{1,16}$')
     )
 
 
