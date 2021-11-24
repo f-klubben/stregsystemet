@@ -173,7 +173,7 @@ class ProductAdmin(admin.ModelAdmin):
 class InventoryAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     list_display = (
-        'active',
+        'activated',
         'name',
         'quantity',
         'desired_amount',
@@ -187,6 +187,11 @@ class InventoryAdmin(admin.ModelAdmin):
         ),
         'products',
     )
+
+    def activated(self, inventory_item: InventoryItem) -> bool:
+        return inventory_item.is_active()
+
+    activated.boolean = True
 
 
 class InventoryHistoryAdmin(admin.ModelAdmin):

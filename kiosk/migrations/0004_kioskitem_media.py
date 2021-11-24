@@ -14,6 +14,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='kioskitem',
             name='media',
-            field=models.FileField(default='static/kiosk/kioskbg.png', upload_to='kiosk', validators=[kiosk.validators.validate_file_extension]),
+            field=models.FileField(
+                default='static/kiosk/kioskbg.png',
+                upload_to='kiosk',
+                validators=[kiosk.validators.validate_file_extension],
+            ),
         ),
     ]

@@ -20,9 +20,24 @@ class Migration(migrations.Migration):
                 ('amount', models.IntegerField()),
                 ('transaction_id', models.CharField(max_length=32, unique=True)),
                 ('comment', models.CharField(blank=True, max_length=128, null=True)),
-                ('status', models.CharField(choices=[('U', 'Unset'), ('A', 'Approved'), ('I', 'Ignored')], default='U', max_length=1)),
-                ('member', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='stregsystem.Member')),
-                ('payment', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='stregsystem.Payment')),
+                (
+                    'status',
+                    models.CharField(
+                        choices=[('U', 'Unset'), ('A', 'Approved'), ('I', 'Ignored')], default='U', max_length=1
+                    ),
+                ),
+                (
+                    'member',
+                    models.ForeignKey(
+                        blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='stregsystem.Member'
+                    ),
+                ),
+                (
+                    'payment',
+                    models.OneToOneField(
+                        blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='stregsystem.Payment'
+                    ),
+                ),
             ],
         ),
     ]

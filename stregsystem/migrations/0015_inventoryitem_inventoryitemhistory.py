@@ -20,7 +20,14 @@ class Migration(migrations.Migration):
                 ('quantity', models.PositiveIntegerField(default=0)),
                 ('desired_amount', models.IntegerField(default=0)),
                 ('active', models.BooleanField(default=False)),
-                ('products', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='inventory_items', to='stregsystem.Product')),
+                (
+                    'products',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='inventory_items',
+                        to='stregsystem.Product',
+                    ),
+                ),
             ],
             options={
                 'verbose_name_plural': 'Inventory',
@@ -36,7 +43,14 @@ class Migration(migrations.Migration):
                 ('sold_out', models.BooleanField(default=False)),
                 ('sold_out_date', models.DateField(blank=True, null=True)),
                 ('loss', models.IntegerField(default=0)),
-                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='inventory_item_history', to='stregsystem.InventoryItem')),
+                (
+                    'item',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='inventory_item_history',
+                        to='stregsystem.InventoryItem',
+                    ),
+                ),
             ],
             options={
                 'verbose_name_plural': 'Inventory History',

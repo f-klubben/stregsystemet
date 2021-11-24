@@ -1511,31 +1511,28 @@ class InventoryItemTest(TestCase):
         # We do not create duplicate entries
         assert len(inventory_history) == 1
 
-    def test_inventory_history_is_not_created_on_initial_item_creation(self):
+    def test_inventory_history_is_created_on_initial_item_creation(self):
         coke = Product.objects.create(name="coke", price=100, active=True)
         inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
         assert inventory_item.active is True
 
         inventory_history = InventoryItemHistory.objects.filter(item=inventory_item)
 
-        assert len(inventory_history) == 0
+        self.assertEqual(len(inventory_history), 1, 'Creation should create a history entry')
 
     def test_inventory_item_manages_history_first_entry_has_zero_old_quantity(self):
         coke = Product.objects.create(name="coke", price=100, active=True)
         inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
         assert inventory_item.active is True
 
-        inventory_item.quantity = 15
-        inventory_item.save()
-
         history_item = InventoryItemHistory.objects.get(item=inventory_item)
-        assert history_item.old_quantity == 0
+        self.assertEqual(history_item.old_quantity, 0, 'Old quantity should be set on creation')
 
     def test_inventory_item_manages_history_first_entry_has_previous_quantity_set_as_old_quantity(self):
         coke = Product.objects.create(name="coke", price=100, active=True)
-        inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
-        with freeze_time('2017-02-02'):
-            InventoryItemHistory.objects.create(item=inventory_item, new_quantity=20, old_quantity=0)
+        inventory_item: InventoryItem = InventoryItem.objects.create(
+            name='Slots', active=True, quantity=20, products=coke
+        )
 
         assert inventory_item.active is True
 
@@ -1543,7 +1540,7 @@ class InventoryItemTest(TestCase):
         inventory_item.save()
 
         history_item = InventoryItemHistory.objects.filter(item=inventory_item).last()
-        assert history_item.old_quantity == 20
+        self.assertEqual(history_item.old_quantity, 20)
 
     def test_inventory_item_manages_history_calculates_loss_correct(self):
         coke = Product.objects.create(name="coke", price=100, active=True)
@@ -1565,8 +1562,6 @@ class InventoryItemTest(TestCase):
         with freeze_time('2020-02-02') as frozen_time:
             coke = Product.objects.create(name="coke", price=100, active=True, start_date=datetime.date.today())
             inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
-            InventoryItemHistory.objects.create(item=inventory_item, new_quantity=20, old_quantity=0)
-            inventory_item.save()
 
         with freeze_time('2021-02-02') as frozen_time:
             # We sell two products
@@ -1633,27 +1628,31 @@ class InventoryItemTest(TestCase):
         assert inventory_history.new_quantity == 17
 
     def test_inventory_item_does_not_override_old_quantity_for_same_date_history_entries_2(self):
-        coke = Product.objects.create(name="coke", price=100, active=True)
-        inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
+        with freeze_time('1999-02-02'):
+            coke = Product.objects.create(name="coke", price=100, active=True)
+            inventory_item = InventoryItem.objects.create(name='Slots', active=True, quantity=20, products=coke)
         assert inventory_item.active is True
 
         with freeze_time('2018-02-02'):
             inventory_item.quantity = 15
             inventory_item.save()
 
-        inventory_item = InventoryItem.objects.get(id=inventory_item.id)
-        inventory_item.quantity = 17
-        inventory_item.save()
+        with freeze_time('2019-02-02'):
+            inventory_item = InventoryItem.objects.get(id=inventory_item.id)
+            inventory_item.quantity = 17
+            inventory_item.save()
 
-        inventory_item = InventoryItem.objects.get(id=inventory_item.id)
-        inventory_item.quantity = 17
-        inventory_item.save()
+        with freeze_time('2020-02-02'):
+            inventory_item = InventoryItem.objects.get(id=inventory_item.id)
+            self.assertEqual(inventory_item.quantity, 17)
+            inventory_item.quantity = 17
+            inventory_item.save()
 
         inventory_history = InventoryItemHistory.objects.filter(item=inventory_item).latest('count_date')
 
         # We do not create duplicate entries
-        assert inventory_history.old_quantity == 15
-        assert inventory_history.new_quantity == 17
+        self.assertEqual(inventory_history.old_quantity, 17, 'Old quantity should be set on save')
+        self.assertEqual(inventory_history.new_quantity, 17, 'New quantity should be set on save')
 
     def test_inventory_item_history_sold_out_sets_sold_out_date(self):
         member = Member.objects.create(pk=1, username="jeff", firstname="jeff", lastname="jefferson", gender="M")
@@ -1687,7 +1686,7 @@ class InventoryItemTest(TestCase):
         assert inventory_item.active is True
 
         with freeze_time('2018-02-02') as frozen_time:
-            for i in range(0, 5):
+            for i in range(0, 6):
                 Sale.objects.create(
                     member=member,
                     product=coke,
@@ -1701,7 +1700,11 @@ class InventoryItemTest(TestCase):
 
         inventory_history = InventoryItemHistory.objects.filter(item=inventory_item).latest('count_date')
 
-        assert inventory_history.sold_out_date == datetime.date(2018, 2, 2)
+        self.assertEqual(
+            inventory_history.sold_out_date,
+            datetime.date(2018, 2, 2),
+            'Sold out should be set for when no more items are left',
+        )
 
     def test_inventory_item_sets_start_date_on_save(self):
         with freeze_time('2018-02-02'):
@@ -1725,3 +1728,221 @@ class InventoryItemTest(TestCase):
             inventory_item.quantity = 17
             inventory_item.save()
             assert inventory_item.products.start_date == datetime.date(2018, 2, 4)
+
+    def test_inventory_item_sold_out_date_is_set_when_sold_out(self):
+        with freeze_time('2018-02-02'):
+            member = Member.objects.create(pk=1, username="jeff", firstname="jeff", lastname="jefferson", gender="M")
+            coke = Product.objects.create(
+                name="coke", price=100, active=True, quantity=15, start_date=datetime.date.today()
+            )
+            inventory_item: InventoryItem = InventoryItem.objects.create(
+                name='Slots', active=True, quantity=20, products=coke
+            )
+            assert inventory_item.active is True
+            inventory_item.quantity = 15
+            inventory_item.save()
+            assert inventory_item.products.start_date == datetime.date.today()
+            assert inventory_item.products.quantity == 15
+
+        with freeze_time('2020-01-01') as frozen_time:
+            for i in range(0, 16):  # Range is end-exclusive
+                Sale.objects.create(
+                    member=member,
+                    product=coke,
+                    price=100,
+                )
+                frozen_time.tick()
+            self.assertFalse(coke.is_active(), 'Product does not disable on sold out')
+
+        with freeze_time('2021-02-04'):
+            inventory_item = InventoryItem.objects.get(id=inventory_item.id)
+            inventory_item.quantity = 30
+            inventory_item.save()
+
+        inventory_history: InventoryItemHistory = InventoryItemHistory.objects.filter(item=inventory_item).latest(
+            'count_date'
+        )
+        self.assertEqual(
+            inventory_history.sold_out_date,
+            datetime.date(2020, 1, 1),
+            f'Sold out date should be the date the item sold out. Was {inventory_history.sold_out_date}',
+        )
+
+    def test_inventory_item_is_active_on_creation(self):
+        with freeze_time('2018-02-02'):
+            coke = Product.objects.create(name="coke", price=100, active=True)
+            inventory_item: InventoryItem = InventoryItem.objects.create(
+                name='Slots', active=True, quantity=20, products=coke
+            )
+            inventory_item_2: InventoryItem = InventoryItem.objects.create(
+                name='Lettuce', active=True, quantity=10, products=coke
+            )
+
+        self.assertTrue(coke.is_active(), 'Product should be active on creation')
+        self.assertTrue(inventory_item.is_active(), 'Inventory item (1) should be active on creation')
+        self.assertTrue(inventory_item_2.is_active(), 'Inventory item (2) should be active on creation')
+
+    def test_inventory_item_is_not_active_on_sold_out(self):
+        with freeze_time('2018-02-02'):
+            member = Member.objects.create(pk=1, username="jeff", firstname="jeff", lastname="jefferson", gender="M")
+            coke = Product.objects.create(name="coke", price=100, active=True)
+            inventory_item: InventoryItem = InventoryItem.objects.create(
+                name='Slots', active=True, quantity=20, products=coke
+            )
+            inventory_item_2: InventoryItem = InventoryItem.objects.create(
+                name='Lettuce', active=True, quantity=10, products=coke
+            )
+
+        for i in range(0, 31):
+            Sale.objects.create(
+                member=member,
+                product=coke,
+                price=100,
+            )
+
+        self.assertFalse(coke.is_active(), 'Product should be active on creation')
+        self.assertFalse(inventory_item.is_active(), 'Inventory item (1) should be active on creation')
+        self.assertFalse(inventory_item_2.is_active(), 'Inventory item (2) should be active on creation')
+
+    def test_inventory_item_is_reactivated_on_restock(self):
+        with freeze_time('2018-02-02'):
+            member = Member.objects.create(pk=1, username="jeff", firstname="jeff", lastname="jefferson", gender="M")
+            coke = Product.objects.create(name="coke", price=100, active=True)
+            inventory_item: InventoryItem = InventoryItem.objects.create(
+                name='Slots', active=True, quantity=20, products=coke
+            )
+            inventory_item_2: InventoryItem = InventoryItem.objects.create(
+                name='Lettuce', active=True, quantity=10, products=coke
+            )
+        with freeze_time('2020-01-01'):
+            for i in range(0, 31):
+                Sale.objects.create(
+                    member=member,
+                    product=coke,
+                    price=100,
+                )
+
+        inventory_item.quantity = 20
+        inventory_item.save()
+
+        self.assertTrue(inventory_item.is_active())
+
+    def test_inventory_item_is_registered_on_restock(self):
+        with freeze_time('2018-02-02'):
+            member = Member.objects.create(pk=1, username="jeff", firstname="jeff", lastname="jefferson", gender="M")
+            coke = Product.objects.create(name="coke", price=100, active=True)
+            inventory_item: InventoryItem = InventoryItem.objects.create(
+                name='Slots', active=True, quantity=20, products=coke
+            )
+            inventory_item_2: InventoryItem = InventoryItem.objects.create(
+                name='Lettuce', active=True, quantity=10, products=coke
+            )
+        with freeze_time('2020-01-01'):
+            for i in range(0, 31):
+                Sale.objects.create(
+                    member=member,
+                    product=coke,
+                    price=100,
+                )
+
+        inventory_item.quantity = 20
+        inventory_item.save()
+
+        item_1_histories = InventoryItemHistory.objects.filter(item=inventory_item).all()
+        item_2_histories = InventoryItemHistory.objects.filter(item=inventory_item_2).all()
+        self.assertEqual(len(item_1_histories), 2)
+        self.assertEqual(len(item_2_histories), 1)
+
+        inventory_item_2.quantity = 20
+        inventory_item_2.save()
+
+        item_2_histories = InventoryItemHistory.objects.filter(item=inventory_item_2).all()
+        self.assertEqual(len(item_1_histories), 2)
+        self.assertEqual(len(item_2_histories), 2)
+
+    def test_inventory_item_is_registered_on_restock_with_sold_out_date(self):
+        with freeze_time('2018-02-02'):
+            member = Member.objects.create(pk=1, username="jeff", firstname="jeff", lastname="jefferson", gender="M")
+            coke = Product.objects.create(name="coke", price=100, active=True)
+            inventory_item: InventoryItem = InventoryItem.objects.create(
+                name='Slots', active=True, quantity=20, products=coke
+            )
+            inventory_item_2: InventoryItem = InventoryItem.objects.create(
+                name='Lettuce', active=True, quantity=10, products=coke
+            )
+            self.assertEqual(30, coke.quantity, 'Creating a new product should set quantity')
+            self.assertEqual(datetime.date.today(), coke.start_date, 'Start date should be set with quantity change')
+        for i in range(0, 31):
+            Sale.objects.create(
+                member=member,
+                product=coke,
+                price=100,
+            )
+
+        inventory_item.quantity = 20
+        inventory_item.save()
+        inventory_item_2.quantity = 20
+        inventory_item_2.save()
+
+        history_1 = InventoryItemHistory.objects.filter(item=inventory_item).latest('id')
+        history_2 = InventoryItemHistory.objects.filter(item=inventory_item_2).latest('id')
+
+        self.assertEqual(history_1.sold_out_date, datetime.date.today(), 'Item 1 failed')
+        self.assertEqual(history_2.sold_out_date, datetime.date.today(), 'Item 2 failed')
+
+    def test_inventory_item_is_registered_on_restock_with_sold_out_date_2(self):
+        with freeze_time('2018-02-02'):
+            member = Member.objects.create(pk=1, username="jeff", firstname="jeff", lastname="jefferson", gender="M")
+            coke = Product.objects.create(name="coke", price=100, active=True)
+            slots: InventoryItem = InventoryItem.objects.create(
+                name='Slots', active=True, quantity=10, products=coke
+            )
+            lettuce: InventoryItem = InventoryItem.objects.create(
+                name='Lettuce', active=True, quantity=10, products=coke
+            )
+            cucumber: InventoryItem = InventoryItem.objects.create(
+                name='Cucumber', active=True, quantity=10, products=coke
+            )
+            carrot: InventoryItem = InventoryItem.objects.create(
+                name='Carrot', active=True, quantity=10, products=coke
+            )
+            wine: InventoryItem = InventoryItem.objects.create(
+                name='Wine', active=True, quantity=10, products=coke
+            )
+            self.assertEqual(50, coke.quantity, 'Creating a new product should set quantity')
+            self.assertEqual(datetime.date.today(), coke.start_date, 'Start date should be set with quantity change')
+            
+        for i in range(0, 51):
+            Sale.objects.create(
+                member=member,
+                product=coke,
+                price=100,
+            )
+
+        slots = InventoryItem.objects.get(id=1)
+        slots.quantity = 20
+        slots.save()
+        lettuce = InventoryItem.objects.get(id=2)
+        lettuce.quantity = 20
+        lettuce.save()
+        # cucumber = InventoryItem.objects.get(id=3)
+        # cucumber.quantity = 20
+        # cucumber.save()
+        # carrot = InventoryItem.objects.get(id=4)
+        # carrot.quantity = 20
+        # carrot.save()
+        # wine = InventoryItem.objects.get(id=5)
+        # wine.quantity = 20
+        # wine.save()
+
+        slots_hist = InventoryItemHistory.objects.filter(item=slots).latest('id')
+        lettuce_hist = InventoryItemHistory.objects.filter(item=lettuce).latest('id')
+        cucumber_hist = InventoryItemHistory.objects.filter(item=cucumber).latest('id')
+        carrot_hist = InventoryItemHistory.objects.filter(item=carrot).latest('id')
+        wine_hist = InventoryItemHistory.objects.filter(item=wine).latest('id')
+
+        self.assertEqual(slots_hist.sold_out_date, datetime.date.today(), 'Item 1 failed')
+        self.assertEqual(lettuce_hist.sold_out_date, datetime.date.today(), 'Item 2 failed')
+        self.assertEqual(cucumber_hist.sold_out_date, datetime.date.today(), 'Item 3 failed')
+        self.assertEqual(carrot_hist.sold_out_date, datetime.date.today(), 'Item 4 failed')
+        self.assertEqual(wine_hist.sold_out_date, datetime.date.today(), 'Item 5 failed')

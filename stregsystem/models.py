@@ -2,12 +2,14 @@ from collections import Counter
 from datetime import datetime, date, timedelta
 from email.utils import parseaddr
 from smtplib import OLDSTYLE_AUTH
+from unittest.case import expectedFailure
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.db.models import Count
+from django.db.models.query_utils import Q
 from django.utils import timezone
 
 from stregsystem.deprecated import deprecated
@@ -586,23 +588,21 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
 
     @transaction.atomic
     def save(self, *args, **kwargs):
-
-        self.active = True if self.quantity > 0 else False
+        self.active = self.quantity > 0
+        __can_create = False
 
         if self.id:
+            __can_create = True
             # At initial creation we do not wish to create an inventory history record for the item
             item: InventoryItem = InventoryItem.objects.get(id=self.pk)
 
-            # If a history item exists, use the previous quantity
-            if InventoryItemHistory.objects.filter(item=self).exists():
-                old_quantity = item.quantity
-            else:
-                old_quantity = 0
+            old_quantity = item.quantity
 
             # We do not wish to 💣 bomb 💣 the database with "non-important" log entries
-            if InventoryItemHistory.objects.filter(count_date=date.today()).exists():
-                inventory_history: InventoryItemHistory = InventoryItemHistory.objects.get(count_date=date.today())
-                old_quantity = inventory_history.old_quantity
+            if InventoryItemHistory.objects.filter(count_date=date.today(), item=self).exists():
+                inventory_history: InventoryItemHistory = InventoryItemHistory.objects.get(
+                    count_date=date.today(), item=self
+                )
             else:
                 inventory_history = InventoryItemHistory()
 
@@ -621,6 +621,11 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
 
         # Save own model before product list, to ensure active state is considered
         super(InventoryItem, self).save(*args, **kwargs)
+        if not __can_create:
+            inventory_history = InventoryItemHistory()
+            inventory_history.item = self
+            inventory_history.set_quantities(0, self.quantity)
+            inventory_history.save()
 
         # pls no abuse
         # 4/10-2021 - made it un-abusable
@@ -629,6 +634,9 @@ class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på 
         )
 
         self.products.save()
+
+    def is_active(self):
+        return self.products.is_active()
 
 
 class InventoryItemHistory(models.Model):
@@ -666,14 +674,19 @@ class InventoryItemHistory(models.Model):
         self.old_quantity = old_quantity
         self.new_quantity = new_quantity
 
+    @transaction.atomic
     def save(self, *args, **kwargs):
-        self.sold_out = not (self.item.active and self.item.products.active)
+        self.sold_out = not (self.item.active and self.item.products.is_active())
         self.item = InventoryItem.objects.get(id=self.item.pk)
         if self.sold_out:
-            if Sale.objects.filter(product=self.item.products).exists():
-                self.sold_out_date = Sale.objects.filter(product=self.item.products).last().timestamp
+            self.old_quantity = 0
+            try:
+                self.sold_out_date = Sale.objects.filter(product=self.item.products).latest('id').timestamp
+            except Exception:
+                self.sold_out_date = date.today()
 
         super(InventoryItemHistory, self).save(*args, **kwargs)
+        assert self.pk
 
 
 class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statistik?
