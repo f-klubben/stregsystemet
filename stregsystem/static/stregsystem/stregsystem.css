@@ -1,7 +1,17 @@
 body {
-       color: black;
-       background-color: white;
-/*       text-align: center;*/
+       color: white;
+       padding: 0;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+    background-image: url("background.jpg");
+    background-repeat: repeat-x;
+    background-size: contain;
+  /*background: linear-gradient(#123, #111);*/
+  /*       text-align: center;*/
+
 }
 
 h1 { color: red }
