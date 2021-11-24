@@ -20,6 +20,9 @@
             Til: {{ form.to_date }}<br>
             <input type="submit" name="custom-range" value="Vis ranking i interval">
         </form>
+        {% if form.errors %}
+            <h3 style="color: red">{{ form.errors }}</h3>
+        {% endif %}
         <h3>Din rangliste fra {{ from_date | date:'d-m-Y' }} til {{ to_date | date:'d-m-Y' }}:</h3>
         <table class="ranking">
             <tr class="ranking">

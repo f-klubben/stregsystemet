@@ -1,5 +1,8 @@
 import datetime
 
+import pytz
+from pytz import UTC
+
 from stregreport.views import fjule_party
 
 from django.core import management
@@ -226,14 +229,14 @@ def menu_userpay(request, room_id, member_id):
 
 
 def menu_userrank(request, room_id, member_id):
+    from_date = fjule_party(datetime.datetime.today().year - 1)
+    to_date = datetime.datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
     room = Room.objects.get(pk=room_id)
     member = Member.objects.get(pk=member_id, active=True)
 
-    def ranking(category_ids):
+    def ranking(category_ids, from_d, to_d):
         qs = (
-            Member.objects.filter(
-                sale__product__in=category_ids, sale__timestamp__gt=from_date, sale__timestamp__lte=to_date
-            )
+            Member.objects.filter(sale__product__in=category_ids, sale__timestamp__gt=from_d, sale__timestamp__lte=to_d)
             .annotate(Count('sale'))
             .order_by('-sale__count', 'username')
         )
@@ -248,19 +251,17 @@ def menu_userrank(request, room_id, member_id):
             )
         )
 
-    def category_per_uni_day(category_ids):
+    def category_per_uni_day(category_ids, from_d, to_d):
         qs = Member.objects.filter(
             id=member.id,
             sale__product__in=category_ids,
-            sale__timestamp__gt=from_date,
-            sale__timestamp__lte=to_date,
+            sale__timestamp__gt=from_d,
+            sale__timestamp__lte=to_d,
         )
         if member not in qs:
             return 0
         else:
-            return "{:.2f}".format(
-                qs.count() / ((to_date - from_date).days * 162.14 / 365)  # university workdays in 2021
-            )
+            return "{:.2f}".format(qs.count() / ((to_d - from_d).days * 162.14 / 365))  # university workdays in 2021
 
     # let user know when they first purchased a product
     member_first_purchase = "Ikke endnu, køb en limfjordsporter!"
@@ -272,20 +273,19 @@ def menu_userrank(request, room_id, member_id):
     if request.method == "POST" and request.POST['custom-range']:
         form = RankingDateForm(request.POST)
         if form.is_valid():
-            to_date = form.cleaned_data['to_date']
             from_date = form.cleaned_data['from_date']
+            to_date = form.cleaned_data['to_date']
     else:
         # setup initial dates for form and results
-        form = RankingDateForm(
-            initial={'from_date': fjule_party(timezone.now().year - 1), 'to_date': datetime.datetime.today()}
-        )
-        to_date = datetime.date.today()
-        from_date = fjule_party(timezone.now().year - 1).date()
+        form = RankingDateForm(initial={'from_date': from_date, 'to_date': to_date})
 
     # get prod_ids for each category as dict {cat: [key1, key2])}, then flatten list of singleton
     # dicts into one dict, lastly calculate member_id rating and units/weekday for category_ids
     rankings = {
-        key: (ranking(category_ids), category_per_uni_day(category_ids))
+        key: (
+            ranking(category_ids, from_date, to_date),
+            category_per_uni_day(category_ids, from_date, to_date),
+        )
         for key, category_ids in {
             k: v
             for x in list(map(lambda x: {x: get_product_ids_for_category(x)}, list(Category.objects.all())))
