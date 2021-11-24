@@ -31,6 +31,7 @@ from stregsystem.models import (
     PayTransaction,
     Product,
     Room,
+    Event,
     Sale,
     StregForbudError,
     active_str,

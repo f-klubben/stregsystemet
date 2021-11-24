@@ -13,17 +13,19 @@
 <b>Aktive billeter</b>
 <table border=1 width="60%">
    <tr>
-      <th align=left>Dato og tidspunkt</th>
-      <th align=left>Produkt</th>
-      <th align=left>Pris</th>
+       <th align=left>Event</th>
+       <th align=left>Produkt</th>
+       <th align=left>Pris</th>
+       <th align=left>Start Tidspunkt</th>
    </tr>
 {% autoescape off %}
-{% for sale in sale_list %}
-   <tr>
-      <td>{{sale.timestamp}}</td>
-      <td>{{sale.product.name}}</td>
-      <td align="right">{{sale.price|money}}</td>
-   </tr>
+{% for event in bought_events_list %}
+<tr>
+    <td>{{event.name}}</td>
+    <td>{{event.product.name}}</td>
+    <td>{{event.product.price|money}}</td>
+    <td>{{event.time}}</td>
+</tr>
 {% endfor %}
 {% endautoescape %}
 </table>

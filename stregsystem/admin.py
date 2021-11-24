@@ -4,7 +4,7 @@ from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
 
-from stregsystem.models import Category, Member, News, Payment, PayTransaction, Product, Room, Sale, MobilePayment
+from stregsystem.models import Category, Member, News, Payment, PayTransaction, Product, Room, Sale, MobilePayment, Event
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
 
@@ -309,6 +309,18 @@ class LogEntryAdmin(admin.ModelAdmin):
         return False
 
 
+class EventEntryAdmin(admin.ModelAdmin):
+    search_fields = ('name', 'id')
+    list_display = (
+        'activated',
+        'id',
+        'name',
+    )
+
+    def activated(self, event):
+        return event.is_active()
+
+
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(Member, MemberAdmin)
@@ -318,3 +330,4 @@ admin.site.register(Product, ProductAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Room)
 admin.site.register(MobilePayment, MobilePaymentAdmin)
+admin.site.register(Event, EventEntryAdmin)
