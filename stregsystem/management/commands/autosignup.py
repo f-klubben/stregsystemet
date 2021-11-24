@@ -41,6 +41,10 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.NOTICE("[autosignup] Payment for non-existing signup found"))
                 continue
 
+            if signup.member.username != info[1]:
+                self.stdout.write(self.style.NOTICE("[autosignup] signup token and user do not match"))
+                continue
+
             signup.due -= payment.amount
             payment.status = MobilePayment.APPROVED
 
@@ -49,7 +53,3 @@ class Command(BaseCommand):
                 signup.complete(payment)
             else:
                 signup.save(payment)
-
-
-
-
