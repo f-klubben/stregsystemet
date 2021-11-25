@@ -187,18 +187,18 @@ class Member(models.Model):  # id automatisk...
 
     def __str__(self):
         return (
-            active_str(self.active)
-            + " "
-            + self.username
-            + ": "
-            + self.firstname
-            + " "
-            + self.lastname
-            + " | "
-            + self.email
-            + " ("
-            + money(self.balance)
-            + ")"
+                active_str(self.active)
+                + " "
+                + self.username
+                + ": "
+                + self.firstname
+                + " "
+                + self.lastname
+                + " | "
+                + self.email
+                + " ("
+                + money(self.balance)
+                + ")"
         )
 
     # XXX - virker ikke
@@ -314,24 +314,29 @@ class Member(models.Model):  # id automatisk...
 
         return in_blood
 
-    def calculate_caffiene_in_body(self):
+    def calculate_caffeine_in_body(self):
         from datetime import timedelta
 
         now = timezone.now()
         calculation_start = now - timedelta(hours=12)
 
-        caffine_sales = self.sale_set.filter(
+        caffeine_sales = self.sale_set.filter(
             timestamp__gt=calculation_start, product__caffeine_content_mg__gt=0
         ).order_by('timestamp')
 
-        caffine_timeline = [self.Intake(s.product.caffeine_content_mg, s.timestamp) for s in caffine_sales]
+        caffeine_timeline = [self.Intake(s.product.caffeine_content_mg, s.timestamp) for s in caffeine_sales]
 
-        bac = self.caffeine_bcc_timeline(now, caffine_timeline)
+        bcc = self.caffeine_bcc_timeline(now, caffeine_timeline)
 
-        return bac
+        return bcc
 
-
-
+    @staticmethod
+    def calc_caffeine_str(caffeine):
+        CAFFEINE_IN_COFFEE = 70
+        coffee_str = ""
+        for coffee_cup in range(0, int(caffeine / CAFFEINE_IN_COFFEE)):
+            coffee_str += "☕"
+        return coffee_str
 
 
 class Payment(models.Model):  # id automatisk...

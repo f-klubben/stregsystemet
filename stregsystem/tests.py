@@ -1466,13 +1466,13 @@ class CaffeineCalculatorTest(TestCase):
 
         self.assertEqual(product.caffeine_content_mg, 0)
 
-    def test_calculate_is_zero_if_no_caffine_is_consumed(self):
+    def test_calculate_is_zero_if_no_caffeine_is_consumed(self):
         user = Member.objects.create(username="test", gender='M', balance=100)
         NOTcoffee = Product.objects.create(name="koffeinfri kaffe", price=2.0, caffeine_content_mg=0, active=True)
 
         user.sale_set.create(product=NOTcoffee, price=NOTcoffee.price)
 
-        self.assertEqual(0, user.calculate_caffiene_in_body())
+        self.assertEqual(0, user.calculate_caffeine_in_body())
 
     def test_caffeine_half_time_is_5_hours(self):
 
@@ -1485,4 +1485,15 @@ class CaffeineCalculatorTest(TestCase):
 
             frozen_datetime.tick(delta=datetime.timedelta(hours=5))
 
-            self.assertAlmostEqual(30, user.calculate_caffiene_in_body(), delta=0.00) # There could be a rounding error
+            self.assertAlmostEqual(30, user.calculate_caffeine_in_body(), delta=0.001) # There could be a rounding error
+
+    def test_caffeine_str_is_correct_length(self):
+        user = Member.objects.create(username="test", gender='F', balance=100)
+        coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=71, active=True)
+
+        for sales in range(0,5):
+            user.sale_set.create(product=coffee, price=coffee.price)
+
+        caffeine_str = "☕☕☕☕☕"
+        caffeine = user.calculate_caffeine_in_body()
+        self.assertEqual(caffeine_str, user.calc_caffeine_str(caffeine))

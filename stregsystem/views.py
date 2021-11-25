@@ -155,8 +155,9 @@ def quicksale(request, room, member: Member, bought_ids):
         return render(request, 'stregsystem/error_stregforbud.html', locals())
 
     promille = member.calculate_alcohol_promille()
-    caffeine = member.calculate_caffiene_in_body()
+    caffeine = member.calculate_caffeine_in_body()
     is_ballmer_peaking, bp_minutes, bp_seconds = ballmer_peak(promille)
+    caffeine_str = member.calc_caffeine_str(caffeine)
 
     cost = order.total
 
