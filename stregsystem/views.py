@@ -125,7 +125,7 @@ def _multibuy_hint(now, member):
     return (False, None)
 
 
-def quicksale(request, room, member, bought_ids):
+def quicksale(request, room, member: Member, bought_ids):
     news = __get_news()
     product_list = __get_productlist(room.id)
     now = timezone.now()
@@ -155,6 +155,7 @@ def quicksale(request, room, member, bought_ids):
         return render(request, 'stregsystem/error_stregforbud.html', locals())
 
     promille = member.calculate_alcohol_promille()
+    caffeine = member.calculate_caffiene_in_body()
     is_ballmer_peaking, bp_minutes, bp_seconds = ballmer_peak(promille)
 
     cost = order.total

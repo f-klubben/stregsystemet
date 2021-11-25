@@ -16,7 +16,7 @@
 for tilsammen {{cost|money}} kr.
 </b>
 {% if give_multibuy_hint %}
-    <h1>psssst. multibuy er enabled.</h1> 
+    <h1>psssst. multibuy er enabled.</h1>
     <b> Du kunne have skrevet: {{sale_hints}} </b>
 {% endif %}
 </blink>
@@ -26,6 +26,10 @@ for tilsammen {{cost|money}} kr.
     {% else %}
         <br />Din alkohol promille er ca. <b>{{promille|floatformat:2}}‰</b>
     {% endif %}
+{% endif %}
+{% if caffeine %}
+    <br /> ☕☕☕☕☕☕☕☕☕☕☕☕☕☕☕☕☕☕☕☕☕☕☕☕☕☕☕☕☕☕☕
+    <br /> Shit der er kaffe i kroppen! :D ☕ <b>{{caffine | floatformat:2}}‰</b>
 {% endif %}
 {% endautoescape %}
 <br />

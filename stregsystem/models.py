@@ -1,5 +1,8 @@
 from collections import Counter
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from email.utils import parseaddr
+from typing import List
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
@@ -287,6 +290,49 @@ class Member(models.Model):  # id automatisk...
 
         return bac
 
+    @dataclass
+    class Intake:
+        mg: int
+        time: datetime
+
+    @staticmethod
+    def caffeine_bcc_timeline(now, intakes: List[Intake]):
+        from dateutil.rrule import rrule, HOURLY
+
+        CAFFEINE_DEGRADATION_PR_HOUR = 0.12945
+
+        previous_day = now - timedelta(days=1)
+
+        in_blood = 0
+        hour: datetime
+        for hour in rrule(HOURLY, dtstart=previous_day, until=now):
+            in_blood -= in_blood * CAFFEINE_DEGRADATION_PR_HOUR
+
+            intake_this_hour = filter(lambda i: i.time.hour == hour.hour, intakes)
+            sum_this_hour = sum(i.mg for i in intake_this_hour)
+            in_blood += sum_this_hour
+
+        return in_blood
+
+    def calculate_caffiene_in_body(self):
+        from datetime import timedelta
+
+        now = timezone.now()
+        calculation_start = now - timedelta(hours=12)
+
+        caffine_sales = self.sale_set.filter(
+            timestamp__gt=calculation_start, product__caffeine_content_mg__gt=0
+        ).order_by('timestamp')
+
+        caffine_timeline = [self.Intake(s.product.caffeine_content_mg, s.timestamp) for s in caffine_sales]
+
+        bac = self.caffeine_bcc_timeline(now, caffine_timeline)
+
+        return bac
+
+
+
+
 
 class Payment(models.Model):  # id automatisk...
     class Meta:
@@ -518,6 +564,7 @@ class Product(models.Model):  # id automatisk...
     categories = models.ManyToManyField(Category, blank=True)
     rooms = models.ManyToManyField(Room, blank=True)
     alcohol_content_ml = models.FloatField(default=0.0, null=True)
+    caffeine_content_mg = models.IntegerField(default=0)
 
     @deprecated
     def __unicode__(self):

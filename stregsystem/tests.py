@@ -1458,3 +1458,31 @@ class MobilePaymentTests(TestCase):
                 self.assertEqual(e.inconsistent_mbpayments_count, 2)
                 self.assertEqual(e.inconsistent_transaction_ids, ["241E027449465355", "016E027417049990"])
                 raise e
+
+
+class CaffeineCalculatorTest(TestCase):
+    def test_default_caffeine_is_zero(self):
+        product = Product.objects.create(name="some product", price=420.0, active=True)
+
+        self.assertEqual(product.caffeine_content_mg, 0)
+
+    def test_calculate_is_zero_if_no_caffine_is_consumed(self):
+        user = Member.objects.create(username="test", gender='M', balance=100)
+        NOTcoffee = Product.objects.create(name="koffeinfri kaffe", price=2.0, caffeine_content_mg=0, active=True)
+
+        user.sale_set.create(product=NOTcoffee, price=NOTcoffee.price)
+
+        self.assertEqual(0, user.calculate_caffiene_in_body())
+
+    def test_caffeine_half_time_is_5_hours(self):
+
+        with freeze_time() as frozen_datetime:
+            user = Member.objects.create(username="test", gender='M', balance=100)
+            coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=30, active=True)
+
+            user.sale_set.create(product=coffee, price=coffee.price)
+            user.sale_set.create(product=coffee, price=coffee.price)
+
+            frozen_datetime.tick(delta=datetime.timedelta(hours=5))
+
+            self.assertAlmostEqual(30, user.calculate_caffiene_in_body(), delta=0.00) # There could be a rounding error
