@@ -7,7 +7,7 @@
     -ms-user-select: none;
     user-select: none;
     animation-name: play;
-    animation-duration: 50s;
+    animation-duration: 60s;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
     animation-play-state: running;

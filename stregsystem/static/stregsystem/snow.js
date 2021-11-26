@@ -1,5 +1,5 @@
 d = new Date();
-if(d.getMonth() === 11){
+if(d.getMonth() === 10){
     for(let snowflakes=0; snowflakes < d.getDate(); snowflakes++){
         spawn_snowflake();
     }
@@ -15,6 +15,11 @@ if(d.getMonth() === 11){
     bodyStyle.backgroundImage="url(\""+media_url+"stregsystem/background.jpg\")";
     bodyStyle.backgroundRepeat="repeat-x";
     bodyStyle.backgroundSize="auto 100%";
+    bodyStyle.padding="0";
+    bodyStyle.margin="0";
+    bodyStyle.width="100vw";
+    bodyStyle.height="100vh";
+    bodyStyle.position="relative"
 }
 
 function spawn_snowflake () {
