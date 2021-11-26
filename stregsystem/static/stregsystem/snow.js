@@ -12,7 +12,6 @@ if(d.getMonth() === 11){
 
     const bodyStyle =document.body.style;
     bodyStyle.color="white";
-
     bodyStyle.backgroundImage="url(\""+media_url+"stregsystem/background.jpg\")";
     bodyStyle.backgroundRepeat="repeat-x";
     bodyStyle.backgroundSize="auto 100%";
