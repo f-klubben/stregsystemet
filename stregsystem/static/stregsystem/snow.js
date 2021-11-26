@@ -2,7 +2,7 @@ d = new Date();
 
 if(d.getMonth() === 11){
     for(let snowflakes=0; snowflakes < d.getDate(); snowflakes++){
-        spawn_snowflake();
+        SpawnSnowflake();
     }
 
     const santa = document.createElement('div');
@@ -15,7 +15,7 @@ if(d.getMonth() === 11){
     SetBodyChristmasStyle();
 }
 
-function spawn_snowflake () {
+function SpawnSnowflake () {
     const snowflake = document.createElement('div');
     snowflake.classList.add("snowflake");
     document.body.querySelector(".snow-container").appendChild(snowflake);
