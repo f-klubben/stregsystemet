@@ -26,16 +26,6 @@
     pointer-events: none;
 }
 
-.snowflake {
-    --size: 1vw;
-    width: var(--size);
-    height: var(--size);
-    background: white;
-    border-radius: 50%;
-    position: absolute;
-    top: -5vh;
-}
-
 @keyframes snowflakes-fall {
     0% {
         top: -10%
@@ -58,6 +48,11 @@
 }
 
 .snowflake {
+    --size: 1vw;
+    width: var(--size);
+    height: var(--size);
+    background: white;
+    border-radius: 50%;
     position: fixed;
     top: -10%;
     z-index: 9999;
