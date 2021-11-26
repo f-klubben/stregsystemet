@@ -288,7 +288,7 @@ def menu_userrank(request, room_id, member_id):
         )
         for key, category_ids in {
             k: v
-            for x in list(map(lambda x: {x: get_product_ids_for_category(x)}, list(Category.objects.all())))
+            for x in map(lambda x: {x: get_product_ids_for_category(x)}, list(Category.objects.all()))
             for k, v in x.items()
         }.items()
     }
