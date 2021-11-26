@@ -1,5 +1,5 @@
 d = new Date();
-if(d.getMonth() === 10){
+if(d.getMonth() === 11){
     for(let snowflakes=0; snowflakes < d.getDate(); snowflakes++){
         spawn_snowflake();
     }
