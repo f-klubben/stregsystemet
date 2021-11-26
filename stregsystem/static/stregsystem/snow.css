@@ -7,15 +7,15 @@
     -ms-user-select: none;
     user-select: none;
     animation-name: play;
-    animation-duration: 30s;
+    animation-duration: 50s;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
     animation-play-state: running;
 }
 
 @-webkit-keyframes play {
-    0%,80% {right:-40%;}
-    100%{right:140%;}
+    0%,80% {right:-80%;}
+    100%{right:180%;}
 }
 .snow-container {
     position: absolute;
@@ -34,30 +34,6 @@
     border-radius: 50%;
     position: absolute;
     top: -5vh;
-}
-
-@-webkit-keyframes snowflakes-fall {
-    0% {
-        top: -10%
-    }
-    100% {
-        top: 100%
-    }
-}
-
-@-webkit-keyframes snowflakes-shake {
-    0% {
-        -webkit-transform: translateX(0px);
-        transform: translateX(0px)
-    }
-    50% {
-        -webkit-transform: translateX(80px);
-        transform: translateX(80px)
-    }
-    100% {
-        -webkit-transform: translateX(0px);
-        transform: translateX(0px)
-    }
 }
 
 @keyframes snowflakes-fall {
@@ -85,16 +61,7 @@
     position: fixed;
     top: -10%;
     z-index: 9999;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
     cursor: default;
-    -webkit-animation-name: snowflakes-fall, snowflakes-shake;
-    -webkit-animation-duration: 10s, 3s;
-    -webkit-animation-timing-function: linear, ease-in-out;
-    -webkit-animation-iteration-count: infinite, infinite;
-    -webkit-animation-play-state: running, running;
     animation-name: snowflakes-fall, snowflakes-shake;
     animation-duration: 10s, 3s;
     animation-timing-function: linear, ease-in-out;
