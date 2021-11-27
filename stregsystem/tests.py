@@ -1494,6 +1494,6 @@ class CaffeineCalculatorTest(TestCase):
         for sales in range(0,5):
             user.sale_set.create(product=coffee, price=coffee.price)
 
-        caffeine_str = "☕☕☕☕☕"
+        caffeine_str = "&#9749;&#9749;&#9749;&#9749;&#9749;" #fuck det er ugli
         caffeine = user.calculate_caffeine_in_body()
         self.assertEqual(caffeine_str, user.calc_caffeine_str(caffeine))
