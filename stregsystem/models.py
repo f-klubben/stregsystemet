@@ -335,7 +335,7 @@ class Member(models.Model):  # id automatisk...
         CAFFEINE_IN_COFFEE = 70
         coffee_str = ""
         for coffee_cup in range(0, int(caffeine / CAFFEINE_IN_COFFEE)):
-            coffee_str += "☕"
+            coffee_str += "&#9749;"  # HTML-code for ☕
         return coffee_str
 
 
