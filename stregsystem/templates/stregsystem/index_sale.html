@@ -30,7 +30,6 @@ for tilsammen {{cost|money}} kr.
 {% if caffeine %}
     <br /> <b> Shit der er {{caffeine | floatformat:0}} mg koffein i kroppen</b>
     <br /> <b> Det svarer til at drikke {{caffeine | caffeine_emoji_render}} {{ cups|pluralize:'kop kaffe,kopper kaffe i streg!' }}</b>
-{#    Virker det? {{ caffeine_str|caffeine_render }}.#}
 {% endif %}
 {% endautoescape %}
 <br />
