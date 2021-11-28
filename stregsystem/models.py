@@ -1,3 +1,4 @@
+import datetime
 from collections import Counter
 from email.utils import parseaddr
 
@@ -151,6 +152,23 @@ def get_current_year():
     return str(timezone.now().year)
 
 
+def find_start_of_semester(now: datetime.datetime) -> datetime.datetime:
+    february = 2
+    september = 9
+    january = 1
+
+    year = now.year
+    month = 0
+    if september > now.month >= february:
+        month = february
+    else:
+        month = september
+        if now.month is january:
+            year -= 1
+
+    return datetime.datetime(year=year, month=month, day=1)
+
+
 class Member(models.Model):  # id automatisk...
     GENDER_CHOICES = (
         ('U', 'Unknown'),
@@ -300,6 +318,23 @@ class Member(models.Model):  # id automatisk...
         mg = current_caffeine_mg_level(now, caffeine_intakes)
 
         return mg
+
+    def is_leading_coffee_addict(self):
+        coffee_products = [32, 35, 36, 39, 1, 2]
+
+        start_of_semester = find_start_of_semester(timezone.now())
+        user_with_most_coffees_bought = (
+            Member.objects.filter(
+                sale__timestamp__gt=start_of_semester,
+                sale__timestamp__lte=timezone.now(),
+                sale__product__in=coffee_products,
+            )
+            .annotate(Count('sale'))
+            .order_by('-sale__count', 'username')
+            .first()
+        )
+
+        return user_with_most_coffees_bought == self
 
 
 class Payment(models.Model):  # id automatisk...
