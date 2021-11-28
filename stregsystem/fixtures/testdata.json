@@ -33,7 +33,8 @@
       "name": "Kold Kaffe",
       "price": 200,
       "active": true,
-      "deactivate_date": null
+      "deactivate_date": null,
+      "caffeine_content_mg": 70
     }
   },
   {
