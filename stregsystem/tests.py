@@ -1486,13 +1486,15 @@ class CaffeineCalculatorTest(TestCase):
 
             frozen_datetime.tick(delta=datetime.timedelta(hours=5))
 
-            self.assertAlmostEqual(30, user.calculate_caffeine_in_body(), delta=0.001) # There could be a rounding error
+            self.assertAlmostEqual(
+                30, user.calculate_caffeine_in_body(), delta=0.001
+            )  # There could be a rounding error
 
     def test_caffeine_str_is_correct_length(self):
         user = Member.objects.create(username="test", gender='F', balance=100)
         coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=71, active=True)
 
-        for sales in range(0,5):
+        for sales in range(0, 5):
             user.sale_set.create(product=coffee, price=coffee.price)
 
         caffeine_str = "☕☕☕☕☕"

@@ -169,7 +169,6 @@ def quicksale(request, room, member: Member, bought_ids):
     return render(request, 'stregsystem/index_sale.html', locals())
 
 
-
 def usermenu(request, room, member, bought, from_sale=False):
     negative_balance = member.balance < 0
     product_list = __get_productlist(room.id)

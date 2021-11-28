@@ -129,7 +129,7 @@ class ProductAdmin(admin.ModelAdmin):
         "categories",
         "rooms",
         "alcohol_content_ml",
-        "caffeine_content_mg"
+        "caffeine_content_mg",
     )
     readonly_fields = ("get_bought",)
 

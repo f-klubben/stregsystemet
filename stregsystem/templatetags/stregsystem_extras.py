@@ -6,6 +6,7 @@ from stregsystem.caffeine import caffeine_mg_to_coffee_cups
 
 register = template.Library()
 
+
 @register.filter
 def caffeine_emoji_render(caffeine: int):
     coffee_str = ""
@@ -15,7 +16,6 @@ def caffeine_emoji_render(caffeine: int):
         coffee_str += '☕'  # HTML-code for ☕
 
     return coffee_str
-
 
 
 def money(value):
