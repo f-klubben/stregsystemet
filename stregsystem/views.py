@@ -7,9 +7,10 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.conf import settings
 from django.db.models import Q
-from django import forms
+from django import forms, template
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
+from django.template.defaultfilters import stringfilter
 from django.utils import timezone
 from django_select2 import forms as s2forms
 import urllib.parse
@@ -155,17 +156,16 @@ def quicksale(request, room, member: Member, bought_ids):
         return render(request, 'stregsystem/error_stregforbud.html', locals())
 
     promille = member.calculate_alcohol_promille()
-    caffeine = member.calculate_caffeine_in_body()
     is_ballmer_peaking, bp_minutes, bp_seconds = ballmer_peak(promille)
-    caffeine_str = member.calc_caffeine_str(caffeine)
-    caffeine_len = caffeine_str.count(';')
 
+    caffeine, cups = member.calculate_caffeine_in_body()
 
     cost = order.total
 
     give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
 
     return render(request, 'stregsystem/index_sale.html', locals())
+
 
 
 def usermenu(request, room, member, bought, from_sale=False):
