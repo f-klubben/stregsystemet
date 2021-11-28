@@ -1505,6 +1505,10 @@ class CaffeineCalculatorTest(TestCase):
         coffee_addict = Member.objects.create(username="Anders", gender='M', balance=100)
         average_developer = Member.objects.create(username="my-guy", gender='M', balance=50)
         coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=71, active=True)
+        # matches coffee id in production. Will be implemented with categories later, when production have a coffee
+        # category
+        coffee.id = 32
+        coffee.save()
         coffee_category = Category.objects.create(name='coffee')
 
         coffee_category.save()

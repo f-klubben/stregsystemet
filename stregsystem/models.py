@@ -320,7 +320,7 @@ class Member(models.Model):  # id automatisk...
         return mg
 
     def is_leading_coffee_addict(self):
-        coffee_products = [32, 35, 36, 39, 1, 2]
+        coffee_products = [32, 35, 36, 39]
 
         start_of_semester = find_start_of_semester(timezone.now())
         user_with_most_coffees_bought = (
