@@ -38,6 +38,7 @@ from stregsystem.utils import (
 )
 
 from .booze import ballmer_peak
+from .caffeine import caffeine_mg_to_coffee_cups
 from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm
 
 
@@ -158,7 +159,8 @@ def quicksale(request, room, member: Member, bought_ids):
     promille = member.calculate_alcohol_promille()
     is_ballmer_peaking, bp_minutes, bp_seconds = ballmer_peak(promille)
 
-    caffeine, cups = member.calculate_caffeine_in_body()
+    caffeine = member.calculate_caffeine_in_body()
+    cups = caffeine_mg_to_coffee_cups(caffeine)
 
     cost = order.total
 

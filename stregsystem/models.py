@@ -288,7 +288,7 @@ class Member(models.Model):  # id automatisk...
 
         return bac
 
-    def calculate_caffeine_in_body(self):
+    def calculate_caffeine_in_body(self) -> int:
         now = timezone.now()
         calculation_start = now - CAFFEINE_TIME_INTERVAL
 
@@ -297,9 +297,9 @@ class Member(models.Model):  # id automatisk...
         ).order_by('timestamp')
 
         caffeine_intakes = [Intake(s.product.caffeine_content_mg, s.timestamp) for s in caffeine_sales]
-        mg, cups = current_caffeine_mg_level(now, caffeine_intakes)
+        mg = current_caffeine_mg_level(now, caffeine_intakes)
 
-        return mg, cups
+        return mg
 
 
 class Payment(models.Model):  # id automatisk...

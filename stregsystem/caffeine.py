@@ -25,7 +25,7 @@ def calc_caffeine_str(caffeine):
     return coffee_str
 
 
-def current_caffeine_mg_level(now, intakes: List[Intake]):
+def current_caffeine_mg_level(now: datetime, intakes: List[Intake]) -> int:
     from dateutil.rrule import rrule, HOURLY
 
     previous_day = now - CAFFEINE_TIME_INTERVAL

@@ -37,6 +37,7 @@ from stregsystem.models import (
     price_display,
     MobilePayment,
 )
+from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
 from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, MobilePaytoolException
 
 
@@ -1494,6 +1495,6 @@ class CaffeineCalculatorTest(TestCase):
         for sales in range(0,5):
             user.sale_set.create(product=coffee, price=coffee.price)
 
-        caffeine_str = "&#9749;&#9749;&#9749;&#9749;&#9749;" #fuck det er ugli
+        caffeine_str = "☕☕☕☕☕"
         caffeine = user.calculate_caffeine_in_body()
-        self.assertEqual(caffeine_str, user.calc_caffeine_str(caffeine))
+        self.assertEqual(caffeine_str, caffeine_emoji_render(caffeine))

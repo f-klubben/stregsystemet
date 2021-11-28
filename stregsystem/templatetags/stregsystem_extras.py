@@ -1,7 +1,6 @@
 from django import template
 from django.template.loader import get_template
 from django.utils import timezone
-from stregsystem.models import Member
 
 register = template.Library()
 
