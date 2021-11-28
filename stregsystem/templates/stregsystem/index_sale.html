@@ -28,11 +28,11 @@ for tilsammen {{cost|money}} kr.
     {% endif %}
 {% endif %}
 {% if caffeine %}
-    <br /> Shit der er <b>{{caffine | floatformat:2}} mg koffein i kroppen</b>
-    {% if caffeine.lenght >= 2 %}
-        <br /> Det svarer til at drikke <b>{{coffeine_str}} kopper kaffe i streg! </b>
+    <br /> <b> Shit der er {{caffeine | floatformat:0}} mg koffein i kroppen</b>
+    {% if caffeine_len >= 1 %}
+        <br />  <b> Det svarer til at drikke {{caffeine_str}} kopper kaffe i streg! </b>
     {% endif %}
-    {% if caffeine.lenght == 1 %}
+    {% if caffeine_len == 1 %}
         <br /> Det svarer til at drikke <b>{{coffeine_str}} kop kaffe!</b>
     {% endif %}
 {% endif %}

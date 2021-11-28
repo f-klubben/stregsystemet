@@ -158,6 +158,8 @@ def quicksale(request, room, member: Member, bought_ids):
     caffeine = member.calculate_caffeine_in_body()
     is_ballmer_peaking, bp_minutes, bp_seconds = ballmer_peak(promille)
     caffeine_str = member.calc_caffeine_str(caffeine)
+    caffeine_len = caffeine_str.count(';')
+
 
     cost = order.total
 
