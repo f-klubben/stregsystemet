@@ -1,0 +1,6 @@
+[tool.black]
+target-version = ['py36']
+line-length = 120
+exclude ='(migrations|urls\.py)'
+
+skip-string-normalization = true
