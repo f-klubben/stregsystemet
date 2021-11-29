@@ -163,6 +163,7 @@ def quicksale(request, room, member: Member, bought_ids):
     caffeine = member.calculate_caffeine_in_body()
     cups = caffeine_mg_to_coffee_cups(caffeine)
     product_contains_caffeine = any(product.caffeine_content_mg > 0 for product in products)
+    is_coffee_master = member.is_leading_coffee_addict()
 
     cost = order.total
 

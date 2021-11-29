@@ -18,13 +18,6 @@ def caffeine_mg_to_coffee_cups(mg: int) -> int:
     return int(mg / CAFFEINE_IN_COFFEE)
 
 
-def calc_caffeine_str(caffeine):
-    coffee_str = ""
-    for coffee_cup in range(0, int(caffeine / CAFFEINE_IN_COFFEE)):
-        coffee_str += "&#9749;"  # HTML-code for ☕
-    return coffee_str
-
-
 def current_caffeine_mg_level(now: datetime, intakes: List[Intake]) -> int:
     from dateutil.rrule import rrule, HOURLY
 

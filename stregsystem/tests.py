@@ -36,7 +36,6 @@ from stregsystem.models import (
     active_str,
     price_display,
     MobilePayment,
-    find_start_of_semester,
 )
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
 from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, MobilePaytoolException
@@ -1509,10 +1508,6 @@ class CaffeineCalculatorTest(TestCase):
         # category
         coffee.id = 32
         coffee.save()
-        coffee_category = Category.objects.create(name='coffee')
-
-        coffee_category.save()
-        coffee.categories.add(coffee_category)
 
         [coffee_addict.sale_set.create(product=coffee, price=coffee.price) for _ in range(5)]
         [average_developer.sale_set.create(product=coffee, price=coffee.price) for _ in range(2)]
@@ -1520,26 +1515,23 @@ class CaffeineCalculatorTest(TestCase):
         self.assertTrue(coffee_addict.is_leading_coffee_addict())
         self.assertFalse(average_developer.is_leading_coffee_addict())
 
-    def test_fall_semester_starts_in_september(self):
-        december = 12
-        now = datetime.datetime(year=2021, month=december, day=12)
-        september = 9
-        semester_start = datetime.datetime(year=2021, month=september, day=1)
+    def test_if_sunday_is_in_week(self):
+        coffee_addict = Member.objects.create(username="Ida", gender='F', balance=100)
+        average_developer = Member.objects.create(username="my-gal", gender='F', balance=50)
+        coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=71, active=True)
+        # matches coffee id in production. Will be implemented with categories later, when production have a coffee
+        # category
+        coffee.id = 32
+        coffee.save()
 
-        self.assertAlmostEqual(find_start_of_semester(now), semester_start, delta=datetime.timedelta(hours=1))
+        with freeze_time(timezone.datetime(year=2021,day=29,month=11,hour=8)) as monday:
+            coffee_addict.sale_set.create(product=coffee, price=coffee.price)
 
-    def test_january_starts_in_september(self):
-        january = 1
-        now = datetime.datetime(year=2022, month=january, day=31)
-        september = 9
-        semester_start = datetime.datetime(year=2021, month=september, day=1)
+        with freeze_time(timezone.datetime(year=2021, day=5, month=12, hour=8)) as sunday:
 
-        self.assertAlmostEqual(find_start_of_semester(now), semester_start, delta=datetime.timedelta(hours=1))
+            coffee_addict.sale_set.create(product=coffee, price=coffee.price)
+            average_developer.sale_set.create(product=coffee, price=coffee.price)
 
-    def test_spring_semester_starts_in_februray(self):
-        april = 4
-        now = datetime.datetime(year=2021, month=april, day=20)
-        february = 2
-        semester_start = datetime.datetime(year=2021, month=february, day=1)
+        self.assertTrue(coffee_addict.is_leading_coffee_addict())
+        self.assertFalse(average_developer.is_leading_coffee_addict())
 
-        self.assertAlmostEqual(find_start_of_semester(now), semester_start, delta=datetime.timedelta(hours=1))

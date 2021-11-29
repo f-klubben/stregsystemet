@@ -152,23 +152,6 @@ def get_current_year():
     return str(timezone.now().year)
 
 
-def find_start_of_semester(now: datetime.datetime) -> datetime.datetime:
-    february = 2
-    september = 9
-    january = 1
-
-    year = now.year
-    month = 0
-    if september > now.month >= february:
-        month = february
-    else:
-        month = september
-        if now.month is january:
-            year -= 1
-
-    return datetime.datetime(year=year, month=month, day=1)
-
-
 class Member(models.Model):  # id automatisk...
     GENDER_CHOICES = (
         ('U', 'Unknown'),
@@ -322,11 +305,12 @@ class Member(models.Model):  # id automatisk...
     def is_leading_coffee_addict(self):
         coffee_products = [32, 35, 36, 39]
 
-        start_of_semester = find_start_of_semester(timezone.now())
+        now = timezone.now()
+        start_of_week = now - datetime.timedelta(days=now.weekday()) - datetime.timedelta(hours=now.hour)
         user_with_most_coffees_bought = (
             Member.objects.filter(
-                sale__timestamp__gt=start_of_semester,
-                sale__timestamp__lte=timezone.now(),
+                sale__timestamp__gt=start_of_week,
+                sale__timestamp__lte=now,
                 sale__product__in=coffee_products,
             )
             .annotate(Count('sale'))
