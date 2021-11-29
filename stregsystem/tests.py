@@ -1524,7 +1524,7 @@ class CaffeineCalculatorTest(TestCase):
         coffee.id = 32
         coffee.save()
 
-        with freeze_time(timezone.datetime(year=2021,day=29,month=11,hour=8)) as monday:
+        with freeze_time(timezone.datetime(year=2021, day=29, month=11, hour=8)) as monday:
             coffee_addict.sale_set.create(product=coffee, price=coffee.price)
 
         with freeze_time(timezone.datetime(year=2021, day=5, month=12, hour=8)) as sunday:
@@ -1534,4 +1534,3 @@ class CaffeineCalculatorTest(TestCase):
 
         self.assertTrue(coffee_addict.is_leading_coffee_addict())
         self.assertFalse(average_developer.is_leading_coffee_addict())
-
