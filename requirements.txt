@@ -8,3 +8,4 @@ Django-Select2==5.11.1
 django-debug-toolbar==1.11.1
 requests==2.24.0
 qrcode==6.1
+black==21.11b1
