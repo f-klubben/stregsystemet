@@ -1,4 +1,5 @@
 import datetime
+from typing import List
 
 from django.core import management
 from django.forms import modelformset_factory, formset_factory
@@ -133,7 +134,7 @@ def quicksale(request, room, member: Member, bought_ids):
     now = timezone.now()
 
     # Retrieve products and construct transaction
-    products = []
+    products: List[Product] = []
     try:
         for i in bought_ids:
             product = Product.objects.get(
@@ -161,6 +162,7 @@ def quicksale(request, room, member: Member, bought_ids):
 
     caffeine = member.calculate_caffeine_in_body()
     cups = caffeine_mg_to_coffee_cups(caffeine)
+    product_contains_caffeine = any(product.caffeine_content_mg > 0 for product in products)
 
     cost = order.total
 
