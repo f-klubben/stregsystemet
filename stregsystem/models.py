@@ -1,8 +1,6 @@
+import datetime
 from collections import Counter
-from dataclasses import dataclass
-from datetime import datetime, timedelta
 from email.utils import parseaddr
-from typing import List
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
@@ -11,6 +9,7 @@ from django.db import models, transaction
 from django.db.models import Count
 from django.utils import timezone
 
+from stregsystem.caffeine import Intake, current_caffeine_mg_level, CAFFEINE_TIME_INTERVAL
 from stregsystem.deprecated import deprecated
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -153,6 +152,23 @@ def get_current_year():
     return str(timezone.now().year)
 
 
+def find_start_of_semester(now: datetime.datetime) -> datetime.datetime:
+    february = 2
+    september = 9
+    january = 1
+
+    year = now.year
+    month = 0
+    if september > now.month >= february:
+        month = february
+    else:
+        month = september
+        if now.month is january:
+            year -= 1
+
+    return datetime.datetime(year=year, month=month, day=1)
+
+
 class Member(models.Model):  # id automatisk...
     GENDER_CHOICES = (
         ('U', 'Unknown'),
@@ -187,18 +203,18 @@ class Member(models.Model):  # id automatisk...
 
     def __str__(self):
         return (
-                active_str(self.active)
-                + " "
-                + self.username
-                + ": "
-                + self.firstname
-                + " "
-                + self.lastname
-                + " | "
-                + self.email
-                + " ("
-                + money(self.balance)
-                + ")"
+            active_str(self.active)
+            + " "
+            + self.username
+            + ": "
+            + self.firstname
+            + " "
+            + self.lastname
+            + " | "
+            + self.email
+            + " ("
+            + money(self.balance)
+            + ")"
         )
 
     # XXX - virker ikke
@@ -290,53 +306,35 @@ class Member(models.Model):  # id automatisk...
 
         return bac
 
-    @dataclass
-    class Intake:
-        mg: int
-        time: datetime
-
-    @staticmethod
-    def caffeine_bcc_timeline(now, intakes: List[Intake]):
-        from dateutil.rrule import rrule, HOURLY
-
-        CAFFEINE_DEGRADATION_PR_HOUR = 0.12945
-
-        previous_day = now - timedelta(days=1)
-
-        in_blood = 0
-        hour: datetime
-        for hour in rrule(HOURLY, dtstart=previous_day, until=now):
-            in_blood -= in_blood * CAFFEINE_DEGRADATION_PR_HOUR
-
-            intake_this_hour = filter(lambda i: i.time.hour == hour.hour, intakes)
-            sum_this_hour = sum(i.mg for i in intake_this_hour)
-            in_blood += sum_this_hour
-
-        return in_blood
-
-    def calculate_caffeine_in_body(self):
-        from datetime import timedelta
-
+    def calculate_caffeine_in_body(self) -> int:
         now = timezone.now()
-        calculation_start = now - timedelta(hours=12)
+        calculation_start = now - CAFFEINE_TIME_INTERVAL
 
         caffeine_sales = self.sale_set.filter(
             timestamp__gt=calculation_start, product__caffeine_content_mg__gt=0
         ).order_by('timestamp')
 
-        caffeine_timeline = [self.Intake(s.product.caffeine_content_mg, s.timestamp) for s in caffeine_sales]
+        caffeine_intakes = [Intake(s.product.caffeine_content_mg, s.timestamp) for s in caffeine_sales]
+        mg = current_caffeine_mg_level(now, caffeine_intakes)
 
-        bcc = self.caffeine_bcc_timeline(now, caffeine_timeline)
+        return mg
 
-        return bcc
+    def is_leading_coffee_addict(self):
+        coffee_products = [32, 35, 36, 39]
 
-    @staticmethod
-    def calc_caffeine_str(caffeine):
-        CAFFEINE_IN_COFFEE = 70
-        coffee_str = ""
-        for coffee_cup in range(0, int(caffeine / CAFFEINE_IN_COFFEE)):
-            coffee_str += "&#9749;"  # HTML-code for ☕
-        return coffee_str
+        start_of_semester = find_start_of_semester(timezone.now())
+        user_with_most_coffees_bought = (
+            Member.objects.filter(
+                sale__timestamp__gt=start_of_semester,
+                sale__timestamp__lte=timezone.now(),
+                sale__product__in=coffee_products,
+            )
+            .annotate(Count('sale'))
+            .order_by('-sale__count', 'username')
+            .first()
+        )
+
+        return user_with_most_coffees_bought == self
 
 
 class Payment(models.Model):  # id automatisk...
