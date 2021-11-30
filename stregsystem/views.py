@@ -8,10 +8,9 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.conf import settings
 from django.db.models import Q
-from django import forms, template
+from django import forms
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
-from django.template.defaultfilters import stringfilter
 from django.utils import timezone
 from django_select2 import forms as s2forms
 import urllib.parse
