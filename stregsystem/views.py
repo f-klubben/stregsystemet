@@ -44,21 +44,17 @@ from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm
 
 def __get_news():
     try:
-        return News.objects.filter(
-            stop_date__gte=timezone.now(), pub_date__lte=timezone.now()
-        ).get()
+        return News.objects.filter(stop_date__gte=timezone.now(), pub_date__lte=timezone.now()).get()
     except News.DoesNotExist:
         return None
 
 
 def __get_productlist(room_id):
-    return make_active_productlist_query(Product.objects).filter(
-        make_room_specific_query(room_id)
-    )
+    return make_active_productlist_query(Product.objects).filter(make_room_specific_query(room_id))
 
 
 def roomindex(request):
-    return HttpResponsePermanentRedirect("/1/")
+    return HttpResponsePermanentRedirect('/1/')
 
 
 #    room_list = Room.objects.all().order_by('name', 'description')
@@ -69,7 +65,7 @@ def index(request, room_id):
     room = get_object_or_404(Room, pk=int(room_id))
     product_list = __get_productlist(room_id)
     news = __get_news()
-    return render(request, "stregsystem/index.html", locals())
+    return render(request, 'stregsystem/index.html', locals())
 
 
 def sale(request, room_id):
@@ -77,27 +73,27 @@ def sale(request, room_id):
     news = __get_news()
     product_list = __get_productlist(room_id)
 
-    buy_string = request.POST["quickbuy"].strip()
+    buy_string = request.POST['quickbuy'].strip()
     # Handle empty line
     if buy_string == "":
-        return render(request, "stregsystem/index.html", locals())
+        return render(request, 'stregsystem/index.html', locals())
     # Extract username and product ids
     try:
         username, bought_ids = parser.parse(buy_string)
     except parser.QuickBuyError as err:
         values = {
-            "correct": err.parsed_part,
-            "incorrect": err.failed_part,
-            "error_ptr": "~" * (len(err.parsed_part)) + "^",
-            "error_msg": " " * (len(err.parsed_part) - 4) + "Fejl her",
-            "room": room,
+            'correct': err.parsed_part,
+            'incorrect': err.failed_part,
+            'error_ptr': '~' * (len(err.parsed_part)) + '^',
+            'error_msg': ' ' * (len(err.parsed_part) - 4) + 'Fejl her',
+            'room': room,
         }
-        return render(request, "stregsystem/error_invalidquickbuy.html", values)
+        return render(request, 'stregsystem/error_invalidquickbuy.html', values)
     # Fetch member from DB
     try:
         member = Member.objects.get(username=username, active=True)
     except Member.DoesNotExist:
-        return render(request, "stregsystem/error_usernotfound.html", locals())
+        return render(request, 'stregsystem/error_usernotfound.html', locals())
 
     if len(bought_ids):
         return quicksale(request, room, member, bought_ids)
@@ -109,12 +105,8 @@ def _multibuy_hint(now, member):
     # Get a timestamp to fetch sales for the member for the last 60 sec
     earliest_recent_purchase = now - datetime.timedelta(seconds=60)
     # get the sales with this timestamp
-    recent_purchases = Sale.objects.filter(
-        member=member, timestamp__gt=earliest_recent_purchase
-    )
-    number_of_recent_distinct_purchases = (
-        recent_purchases.values("timestamp").distinct().count()
-    )
+    recent_purchases = Sale.objects.filter(member=member, timestamp__gt=earliest_recent_purchase)
+    number_of_recent_distinct_purchases = recent_purchases.values('timestamp').distinct().count()
 
     # add hint for multibuy
     if number_of_recent_distinct_purchases > 1:
@@ -124,13 +116,13 @@ def _multibuy_hint(now, member):
                 sale_dict[str(sale.product.id)] = 1
             else:
                 sale_dict[str(sale.product.id)] = sale_dict[str(sale.product.id)] + 1
-        sale_hints = ['<span class="username">{}</span>'.format(member.username)]
+        sale_hints = ["<span class=\"username\">{}</span>".format(member.username)]
         for key in sale_dict:
             if sale_dict[key] > 1:
                 sale_hints.append("{}:{}".format(key, sale_dict[key]))
             else:
                 sale_hints.append(key)
-        return (True, " ".join(sale_hints))
+        return (True, ' '.join(sale_hints))
 
     return (False, None)
 
@@ -152,39 +144,31 @@ def quicksale(request, room, member: Member, bought_ids):
             )
             products.append(product)
     except Product.DoesNotExist:
-        return render(
-            request,
-            "stregsystem/error_productdoesntexist.html",
-            {"failedProduct": i, "room": room},
-        )
+        return render(request, 'stregsystem/error_productdoesntexist.html', {'failedProduct': i, 'room': room})
 
     order = Order.from_products(member=member, products=products, room=room)
 
     try:
         order.execute()
     except StregForbudError:
-        return render(
-            request, "stregsystem/error_stregforbud.html", locals(), status=402
-        )
+        return render(request, 'stregsystem/error_stregforbud.html', locals(), status=402)
     except NoMoreInventoryError:
         # @INCOMPLETE this should render with a different template
-        return render(request, "stregsystem/error_stregforbud.html", locals())
+        return render(request, 'stregsystem/error_stregforbud.html', locals())
 
     promille = member.calculate_alcohol_promille()
     is_ballmer_peaking, bp_minutes, bp_seconds = ballmer_peak(promille)
 
     caffeine = member.calculate_caffeine_in_body()
     cups = caffeine_mg_to_coffee_cups(caffeine)
-    product_contains_caffeine = any(
-        product.caffeine_content_mg > 0 for product in products
-    )
+    product_contains_caffeine = any(product.caffeine_content_mg > 0 for product in products)
     is_coffee_master = member.is_leading_coffee_addict()
 
     cost = order.total
 
     give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
 
-    return render(request, "stregsystem/index_sale.html", locals())
+    return render(request, 'stregsystem/index_sale.html', locals())
 
 
 def usermenu(request, room, member, bought, from_sale=False):
@@ -202,9 +186,9 @@ def usermenu(request, room, member, bought, from_sale=False):
     give_multibuy_hint = give_multibuy_hint and from_sale
 
     if member.has_stregforbud():
-        return render(request, "stregsystem/error_stregforbud.html", locals())
+        return render(request, 'stregsystem/error_stregforbud.html', locals())
     else:
-        return render(request, "stregsystem/menu.html", locals())
+        return render(request, 'stregsystem/menu.html', locals())
 
 
 def menu_userinfo(request, room_id, member_id):
@@ -212,16 +196,16 @@ def menu_userinfo(request, room_id, member_id):
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
 
-    last_sale_list = member.sale_set.order_by("-timestamp")[:10]
+    last_sale_list = member.sale_set.order_by('-timestamp')[:10]
     try:
-        last_payment = member.payment_set.order_by("-timestamp")[0]
+        last_payment = member.payment_set.order_by('-timestamp')[0]
     except IndexError:
         last_payment = None
 
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()
 
-    return render(request, "stregsystem/menu_userinfo.html", locals())
+    return render(request, 'stregsystem/menu_userinfo.html', locals())
 
 
 def menu_userpay(request, room_id, member_id):
@@ -231,7 +215,7 @@ def menu_userpay(request, room_id, member_id):
     amounts = {100, 200}
 
     try:
-        last_payment = member.payment_set.order_by("-timestamp")[0]
+        last_payment = member.payment_set.order_by('-timestamp')[0]
         amounts.add(last_payment.amount / 100.0)
     except IndexError:
         last_payment = None
@@ -242,7 +226,7 @@ def menu_userpay(request, room_id, member_id):
 
     amounts = sorted(amounts)
 
-    return render(request, "stregsystem/menu_userpay.html", locals())
+    return render(request, 'stregsystem/menu_userpay.html', locals())
 
 
 def menu_sale(request, room_id, member_id, product_id=None):
@@ -251,7 +235,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
     member = Member.objects.get(pk=member_id, active=True)
 
     product = None
-    if request.method == "POST":
+    if request.method == 'POST':
         purchase = PurchaseForm(request.POST)
         if not purchase.is_valid():
             return HttpResponseBadRequest(
@@ -260,11 +244,10 @@ def menu_sale(request, room_id, member_id, product_id=None):
 
         try:
             product = Product.objects.get(
-                Q(pk=purchase.cleaned_data["product_id"]),
+                Q(pk=purchase.cleaned_data['product_id']),
                 Q(active=True),
                 Q(rooms__id=room_id) | Q(rooms=None),
-                Q(deactivate_date__gte=timezone.now())
-                | Q(deactivate_date__isnull=True),
+                Q(deactivate_date__gte=timezone.now()) | Q(deactivate_date__isnull=True),
             )
 
             order = Order.from_products(member=member, room=room, products=(product,))
@@ -274,10 +257,10 @@ def menu_sale(request, room_id, member_id, product_id=None):
         except Product.DoesNotExist:
             pass
         except StregForbudError:
-            return render(request, "stregsystem/error_stregforbud.html", locals())
+            return render(request, 'stregsystem/error_stregforbud.html', locals())
         except NoMoreInventoryError:
             # @INCOMPLETE this should render with a different template
-            return render(request, "stregsystem/error_stregforbud.html", locals())
+            return render(request, 'stregsystem/error_stregforbud.html', locals())
 
     # Refresh member, to get new amount
     member = Member.objects.get(pk=member_id, active=True)
@@ -288,9 +271,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
 @permission_required("stregsystem.import_batch_payments")
 def batch_payment(request):
     PaymentFormSet = forms.modelformset_factory(
-        Payment,
-        fields=("member", "amount"),
-        widgets={"member": forms.Select(attrs={"class": "select2"})},
+        Payment, fields=("member", "amount"), widgets={"member": forms.Select(attrs={"class": "select2"})}
     )
     if request.method == "POST":
         formset = PaymentFormSet(request.POST, request.FILES)
@@ -335,91 +316,60 @@ def batch_payment(request):
 @permission_required("stregsystem.mobilepaytool_access")
 def mobilepaytool(request):
     paytool_form_set = modelformset_factory(
-        MobilePayment,
-        form=MobilePayToolForm,
-        extra=0,
-        fields=("timestamp", "amount", "member", "comment", "status"),
+        MobilePayment, form=MobilePayToolForm, extra=0, fields=('timestamp', 'amount', 'member', 'comment', 'status')
     )  # TODO: 'customer_name' removed, MobilepayAPI does not
     # TODO-cont: have that information at this point in time - add back 'customer_name' if available in future
     data = dict()
     if request.method == "GET":
-        data["formset"] = paytool_form_set(
-            queryset=make_unprocessed_mobilepayment_query()
-        )
-    elif (
-        request.method == "POST"
-        and "csv_file" in request.FILES
-        and request.POST["action"] == "Import MobilePay CSV"
-    ):
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+    elif request.method == "POST" and 'csv_file' in request.FILES and request.POST['action'] == "Import MobilePay CSV":
         # Prepare uploaded CSV to be read
-        csv_file = request.FILES["csv_file"]
+        csv_file = request.FILES['csv_file']
         csv_file.seek(0)
 
-        data["imports"], data["duplicates"] = parse_csv_and_create_mobile_payments(
-            str(csv_file.read().decode("utf-8")).splitlines()
+        data['imports'], data['duplicates'] = parse_csv_and_create_mobile_payments(
+            str(csv_file.read().decode('utf-8')).splitlines()
         )
 
         # refresh form after submission
-        data["formset"] = paytool_form_set(
-            queryset=make_unprocessed_mobilepayment_query()
-        )
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
-    elif (
-        request.method == "POST"
-        and request.POST["action"] == "Import via MobilePay API"
-    ):
+    elif request.method == "POST" and request.POST['action'] == "Import via MobilePay API":
         before_count = MobilePayment.objects.count()
-        management.call_command("importmobilepaypayments")
+        management.call_command('importmobilepaypayments')
         count = MobilePayment.objects.count() - before_count
 
-        data["api"] = f"Successfully imported {count} MobilePay transactions"
-        data["formset"] = paytool_form_set(
-            queryset=make_unprocessed_mobilepayment_query()
-        )
+        data['api'] = f"Successfully imported {count} MobilePay transactions"
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
-    elif (
-        request.method == "POST" and request.POST["action"] == "Submit matched payments"
-    ):
-        before_count = MobilePayment.objects.filter(
-            status=MobilePayment.APPROVED
-        ).count()
+    elif request.method == "POST" and request.POST['action'] == "Submit matched payments":
+        before_count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count()
         MobilePayment.approve_member_filled_mobile_payments()
         MobilePayment.submit_processed_mobile_payments(request.user)
-        count = (
-            MobilePayment.objects.filter(status=MobilePayment.APPROVED).count()
-            - before_count
-        )
+        count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count() - before_count
 
-        data["submitted_count"] = count
-        data["formset"] = paytool_form_set(
-            queryset=make_unprocessed_mobilepayment_query()
-        )
+        data['submitted_count'] = count
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
-    elif request.method == "POST" and request.POST["action"] == "Submit payments":
+    elif request.method == "POST" and request.POST['action'] == "Submit payments":
         form = paytool_form_set(request.POST)
 
         if form.is_valid():
             try:
                 # Do custom validation on form to avoid race conditions with autopayment
-                count = MobilePayment.process_submitted_mobile_payments(
-                    form.cleaned_data, request.user
-                )
-                data["submitted_count"] = count
+                count = MobilePayment.process_submitted_mobile_payments(form.cleaned_data, request.user)
+                data['submitted_count'] = count
             except MobilePaytoolException as e:
-                data["error_count"] = e.inconsistent_mbpayments_count
-                data["error_transaction_ids"] = e.inconsistent_transaction_ids
+                data['error_count'] = e.inconsistent_mbpayments_count
+                data['error_transaction_ids'] = e.inconsistent_transaction_ids
 
             # refresh form after submission
-            data["formset"] = paytool_form_set(
-                queryset=make_unprocessed_mobilepayment_query()
-            )
+            data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
         else:
             # update form with errors
-            data["formset"] = form
+            data['formset'] = form
     else:
-        data["formset"] = paytool_form_set(
-            queryset=make_unprocessed_mobilepayment_query()
-        )
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
     return render(request, "admin/stregsystem/mobilepaytool.html", data)
 
@@ -429,11 +379,11 @@ def qr_payment(request):
     if not form.is_valid():
         return HttpResponseBadRequest("Invalid input for MobilePay QR code generation")
 
-    query = {"phone": "90601", "comment": form.cleaned_data.get("member")}
+    query = {'phone': '90601', 'comment': form.cleaned_data.get('member')}
 
     if form.cleaned_data.get("amount") is not None:
-        query["amount"] = form.cleaned_data.get("amount")
+        query['amount'] = form.cleaned_data.get("amount")
 
-    data = "mobilepay://send?{}".format(urllib.parse.urlencode(query))
+    data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
 
     return qr_code(data)
