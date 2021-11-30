@@ -1501,28 +1501,30 @@ class CaffeineCalculatorTest(TestCase):
         self.assertEqual(caffeine_str, caffeine_emoji_render(caffeine))
 
     def test_rich_guy_is_leading_coffee_addict(self):
-        coffee_addict = Member.objects.create(username="Anders", gender='M', balance=100)
-        average_developer = Member.objects.create(username="my-guy", gender='M', balance=50)
+        coffee_addict = Member.objects.create(username="Anders", gender="M", balance=100)
+        average_developer = Member.objects.create(username="my-guy", gender="M", balance=50)
+        coffee_category = Category.objects.create(name="Caffeine☕☕☕", pk=6)
+        coffee_category.save()
         coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=71, active=True)
-        # matches coffee id in production. Will be implemented with categories later, when production have a coffee
-        # category
-        coffee.id = 32
         coffee.save()
+        coffee.categories.add(coffee_category)
 
-        [coffee_addict.sale_set.create(product=coffee, price=coffee.price) for _ in range(5)]
+        [coffee_addict.sale_set.create(product=coffee, price=coffee.price)for _ in range(5)]
         [average_developer.sale_set.create(product=coffee, price=coffee.price) for _ in range(2)]
 
         self.assertTrue(coffee_addict.is_leading_coffee_addict())
         self.assertFalse(average_developer.is_leading_coffee_addict())
 
     def test_if_sunday_is_in_week(self):
-        coffee_addict = Member.objects.create(username="Ida", gender='F', balance=100)
-        average_developer = Member.objects.create(username="my-gal", gender='F', balance=50)
+        coffee_addict = Member.objects.create(username="Ida", gender="F", balance=100)
+        average_developer = Member.objects.create(username="my-gal", gender="F", balance=50)
+        coffee_category = Category.objects.create(name="Caffeine☕☕☕", pk=6)
+        coffee_category.save()
         coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=71, active=True)
         # matches coffee id in production. Will be implemented with categories later, when production have a coffee
         # category
-        coffee.id = 32
         coffee.save()
+        coffee.categories.add(coffee_category)
 
         with freeze_time(timezone.datetime(year=2021, day=29, month=11, hour=8)) as monday:
             coffee_addict.sale_set.create(product=coffee, price=coffee.price)

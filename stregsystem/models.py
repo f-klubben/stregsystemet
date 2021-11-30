@@ -303,7 +303,7 @@ class Member(models.Model):  # id automatisk...
         return mg
 
     def is_leading_coffee_addict(self):
-        coffee_products = [32, 35, 36, 39]
+        coffee_category = [6]
 
         now = timezone.now()
         start_of_week = now - datetime.timedelta(days=now.weekday()) - datetime.timedelta(hours=now.hour)
@@ -311,7 +311,7 @@ class Member(models.Model):  # id automatisk...
             Member.objects.filter(
                 sale__timestamp__gt=start_of_week,
                 sale__timestamp__lte=now,
-                sale__product__in=coffee_products,
+                sale__product__categories__in=coffee_category
             )
             .annotate(Count('sale'))
             .order_by('-sale__count', 'username')

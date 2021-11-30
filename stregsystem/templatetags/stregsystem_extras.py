@@ -13,7 +13,7 @@ def caffeine_emoji_render(caffeine: int):
 
     cups = caffeine_mg_to_coffee_cups(caffeine)
     for coffee_cup in range(cups):
-        coffee_str += '☕'  # HTML-code for ☕
+        coffee_str += "☕"
 
     return coffee_str
 
