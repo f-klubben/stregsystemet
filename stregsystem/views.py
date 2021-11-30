@@ -45,13 +45,17 @@ from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm
 
 def __get_news():
     try:
-        return News.objects.filter(stop_date__gte=timezone.now(), pub_date__lte=timezone.now()).get()
+        return News.objects.filter(
+            stop_date__gte=timezone.now(), pub_date__lte=timezone.now()
+        ).get()
     except News.DoesNotExist:
         return None
 
 
 def __get_productlist(room_id):
-    return make_active_productlist_query(Product.objects).filter(make_room_specific_query(room_id))
+    return make_active_productlist_query(Product.objects).filter(
+        make_room_specific_query(room_id)
+    )
 
 
 def roomindex(request):
@@ -106,8 +110,12 @@ def _multibuy_hint(now, member):
     # Get a timestamp to fetch sales for the member for the last 60 sec
     earliest_recent_purchase = now - datetime.timedelta(seconds=60)
     # get the sales with this timestamp
-    recent_purchases = Sale.objects.filter(member=member, timestamp__gt=earliest_recent_purchase)
-    number_of_recent_distinct_purchases = recent_purchases.values("timestamp").distinct().count()
+    recent_purchases = Sale.objects.filter(
+        member=member, timestamp__gt=earliest_recent_purchase
+    )
+    number_of_recent_distinct_purchases = (
+        recent_purchases.values("timestamp").distinct().count()
+    )
 
     # add hint for multibuy
     if number_of_recent_distinct_purchases > 1:
@@ -156,7 +164,9 @@ def quicksale(request, room, member: Member, bought_ids):
     try:
         order.execute()
     except StregForbudError:
-        return render(request, "stregsystem/error_stregforbud.html", locals(), status=402)
+        return render(
+            request, "stregsystem/error_stregforbud.html", locals(), status=402
+        )
     except NoMoreInventoryError:
         # @INCOMPLETE this should render with a different template
         return render(request, "stregsystem/error_stregforbud.html", locals())
@@ -166,7 +176,9 @@ def quicksale(request, room, member: Member, bought_ids):
 
     caffeine = member.calculate_caffeine_in_body()
     cups = caffeine_mg_to_coffee_cups(caffeine)
-    product_contains_caffeine = any(product.caffeine_content_mg > 0 for product in products)
+    product_contains_caffeine = any(
+        product.caffeine_content_mg > 0 for product in products
+    )
     is_coffee_master = member.is_leading_coffee_addict()
 
     cost = order.total
@@ -252,7 +264,8 @@ def menu_sale(request, room_id, member_id, product_id=None):
                 Q(pk=purchase.cleaned_data["product_id"]),
                 Q(active=True),
                 Q(rooms__id=room_id) | Q(rooms=None),
-                Q(deactivate_date__gte=timezone.now()) | Q(deactivate_date__isnull=True),
+                Q(deactivate_date__gte=timezone.now())
+                | Q(deactivate_date__isnull=True),
             )
 
             order = Order.from_products(member=member, room=room, products=(product,))
@@ -331,8 +344,14 @@ def mobilepaytool(request):
     # TODO-cont: have that information at this point in time - add back 'customer_name' if available in future
     data = dict()
     if request.method == "GET":
-        data["formset"] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
-    elif request.method == "POST" and "csv_file" in request.FILES and request.POST["action"] == "Import MobilePay CSV":
+        data["formset"] = paytool_form_set(
+            queryset=make_unprocessed_mobilepayment_query()
+        )
+    elif (
+        request.method == "POST"
+        and "csv_file" in request.FILES
+        and request.POST["action"] == "Import MobilePay CSV"
+    ):
         # Prepare uploaded CSV to be read
         csv_file = request.FILES["csv_file"]
         csv_file.seek(0)
@@ -342,24 +361,40 @@ def mobilepaytool(request):
         )
 
         # refresh form after submission
-        data["formset"] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+        data["formset"] = paytool_form_set(
+            queryset=make_unprocessed_mobilepayment_query()
+        )
 
-    elif request.method == "POST" and request.POST["action"] == "Import via MobilePay API":
+    elif (
+        request.method == "POST"
+        and request.POST["action"] == "Import via MobilePay API"
+    ):
         before_count = MobilePayment.objects.count()
         management.call_command("importmobilepaypayments")
         count = MobilePayment.objects.count() - before_count
 
         data["api"] = f"Successfully imported {count} MobilePay transactions"
-        data["formset"] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+        data["formset"] = paytool_form_set(
+            queryset=make_unprocessed_mobilepayment_query()
+        )
 
-    elif request.method == "POST" and request.POST["action"] == "Submit matched payments":
-        before_count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count()
+    elif (
+        request.method == "POST" and request.POST["action"] == "Submit matched payments"
+    ):
+        before_count = MobilePayment.objects.filter(
+            status=MobilePayment.APPROVED
+        ).count()
         MobilePayment.approve_member_filled_mobile_payments()
         MobilePayment.submit_processed_mobile_payments(request.user)
-        count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count() - before_count
+        count = (
+            MobilePayment.objects.filter(status=MobilePayment.APPROVED).count()
+            - before_count
+        )
 
         data["submitted_count"] = count
-        data["formset"] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+        data["formset"] = paytool_form_set(
+            queryset=make_unprocessed_mobilepayment_query()
+        )
 
     elif request.method == "POST" and request.POST["action"] == "Submit payments":
         form = paytool_form_set(request.POST)
@@ -367,19 +402,25 @@ def mobilepaytool(request):
         if form.is_valid():
             try:
                 # Do custom validation on form to avoid race conditions with autopayment
-                count = MobilePayment.process_submitted_mobile_payments(form.cleaned_data, request.user)
+                count = MobilePayment.process_submitted_mobile_payments(
+                    form.cleaned_data, request.user
+                )
                 data["submitted_count"] = count
             except MobilePaytoolException as e:
                 data["error_count"] = e.inconsistent_mbpayments_count
                 data["error_transaction_ids"] = e.inconsistent_transaction_ids
 
             # refresh form after submission
-            data["formset"] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+            data["formset"] = paytool_form_set(
+                queryset=make_unprocessed_mobilepayment_query()
+            )
         else:
             # update form with errors
             data["formset"] = form
     else:
-        data["formset"] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+        data["formset"] = paytool_form_set(
+            queryset=make_unprocessed_mobilepayment_query()
+        )
 
     return render(request, "admin/stregsystem/mobilepaytool.html", data)
 
