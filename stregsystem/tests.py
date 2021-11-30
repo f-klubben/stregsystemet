@@ -1509,7 +1509,7 @@ class CaffeineCalculatorTest(TestCase):
         coffee.save()
         coffee.categories.add(coffee_category)
 
-        [coffee_addict.sale_set.create(product=coffee, price=coffee.price)for _ in range(5)]
+        [coffee_addict.sale_set.create(product=coffee, price=coffee.price) for _ in range(5)]
         [average_developer.sale_set.create(product=coffee, price=coffee.price) for _ in range(2)]
 
         self.assertTrue(coffee_addict.is_leading_coffee_addict())

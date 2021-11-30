@@ -311,7 +311,7 @@ class Member(models.Model):  # id automatisk...
             Member.objects.filter(
                 sale__timestamp__gt=start_of_week,
                 sale__timestamp__lte=now,
-                sale__product__categories__in=coffee_category
+                sale__product__categories__in=coffee_category,
             )
             .annotate(Count('sale'))
             .order_by('-sale__count', 'username')
