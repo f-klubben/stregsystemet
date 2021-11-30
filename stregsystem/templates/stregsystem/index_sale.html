@@ -29,10 +29,12 @@ for tilsammen {{cost|money}} kr.
 {% endif %}
 {% if product_contains_caffeine %}
     <br />  Shit der er {{caffeine | floatformat:0}} mg koffein i kroppen
-    {%  if is_coffee_master %}
+    {%  if is_coffee_master%}
         <br />  🏆Du er kaffemester i dag. Sygt gået🏆
     {% else %}
-        <br />  Det svarer til at drikke {{caffeine | caffeine_emoji_render}} {{ cups|pluralize:'kop kaffe,kopper kaffe i streg!' }}
+        {%  if cups is not 0 %}
+            <br />  Det svarer til at drikke {{caffeine | caffeine_emoji_render}} {{ cups|pluralize:'kop kaffe,kopper kaffe i streg!' }}
+        {% endif %}
     {% endif %}
 {% endif %}
 {% endautoescape %}
