@@ -4,9 +4,9 @@
 {% load listutil %}
 
 {% block title %}TREOENs STREGSYSTEM
-{% ifnotequal room.id 1 %}
+{% if room.id != 1 %}
  : {{room.description}}
-{% endifnotequal %}
+{% endif %}
 {% endblock %}
 
 {% block content %}

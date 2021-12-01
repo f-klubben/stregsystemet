@@ -234,7 +234,8 @@ LOGGING = {
             'level': 'INFO',
             'class': 'logging.FileHandler',
             'formatter': 'file',
-            'filename': cfg.get('logging', 'FILE')
+            'filename': cfg.get('logging', 'FILE'),
+            'delay': True 
         }
     },
     'loggers': {
@@ -244,3 +245,5 @@ LOGGING = {
         }
     }
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
