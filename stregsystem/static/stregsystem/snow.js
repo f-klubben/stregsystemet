@@ -1,14 +1,14 @@
 d = new Date();
 
 if(d.getMonth() === 11){
-    for(let snowflakes=0; snowflakes < d.getDate(); snowflakes++){
+    for(let snowflakes=0; Math.min(snowflakes < d.getDate(), 24); snowflakes++){
         SpawnSnowflake();
     }
 
     const santa = document.createElement('div');
     santa.classList.add("santa");
     const gif = document.createElement("img")
-    gif.src="https://www.animatedimages.org/data/media/359/animated-santa-claus-image-0420.gif";
+    gif.src="/static/stregsystem/santa-sled.gif";
     santa.appendChild(gif);
     document.body.querySelector(".snow-container").appendChild(santa);
 
