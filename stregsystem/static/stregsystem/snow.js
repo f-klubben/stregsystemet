@@ -1,7 +1,7 @@
 d = new Date();
 
 if(d.getMonth() === 11){
-    for(let snowflakes=0; snowflakes <= Math.min(d.getDate(), 24); snowflakes++){
+    for(let snowflakes=0; snowflakes < Math.min(d.getDate(), 24); snowflakes++){
         SpawnSnowflake();
     }
 
