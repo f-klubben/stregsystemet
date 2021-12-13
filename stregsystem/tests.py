@@ -20,7 +20,7 @@ from stregsystem import admin
 from stregsystem import views as stregsystem_views
 from stregsystem.admin import CategoryAdmin, ProductAdmin, MemberForm, MemberAdmin
 from stregsystem.booze import ballmer_peak
-from stregsystem.caffeine import CAFFEINE_DEGRADATION_PR_HOUR
+from stregsystem.caffeine import CAFFEINE_DEGRADATION_PR_HOUR, CAFFEINE_IN_COFFEE
 from stregsystem.models import (
     Category,
     GetTransaction,
@@ -1478,70 +1478,130 @@ class CaffeineCalculatorTest(TestCase):
 
     def test_calculate_is_non_zero_if_some_caffeine_is_consumed(self):
         user = Member.objects.create(username="test", gender='M', balance=100)
-        coffee = Product.objects.create(name="koffeinholdig kaffe", price=2.0, caffeine_content_mg=30, active=True)
+        coffee = Product.objects.create(
+            name="koffeinholdig kaffe", price=2.0, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True
+        )
 
         user.sale_set.create(product=coffee, price=coffee.price)
 
-        self.assertAlmostEqual(30, user.calculate_caffeine_in_body(), delta=0.001)
+        self.assertAlmostEqual(CAFFEINE_IN_COFFEE, user.calculate_caffeine_in_body(), delta=0.001)
 
     def test_caffeine_1_hour(self):
         with freeze_time() as frozen_datetime:
             user = Member.objects.create(username="test", gender='M', balance=100)
-            coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=70, active=True)
+            coffee = Product.objects.create(
+                name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True
+            )
 
             user.sale_set.create(product=coffee, price=coffee.price)
 
             frozen_datetime.tick(delta=datetime.timedelta(hours=1))
 
             self.assertAlmostEqual(
-                70 * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 1, user.calculate_caffeine_in_body(), delta=0.001
+                CAFFEINE_IN_COFFEE * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 1,
+                user.calculate_caffeine_in_body(),
+                delta=0.001,
             )  # There could be a rounding error
 
     def test_caffeine_degradation_for_1_to_10_hours(self):
         for hours in range(1, 10):
             with freeze_time() as frozen_datetime:
                 user = Member.objects.create(username="test", gender='M', balance=100)
-                coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=70, active=True)
+                coffee = Product.objects.create(
+                    name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True
+                )
 
                 user.sale_set.create(product=coffee, price=coffee.price)
 
                 frozen_datetime.tick(delta=datetime.timedelta(hours=hours))
                 self.assertAlmostEqual(
-                    70 * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** hours, user.calculate_caffeine_in_body(), delta=0.001
-                )  # There could be a rounding error
+                    CAFFEINE_IN_COFFEE * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** hours,
+                    user.calculate_caffeine_in_body(),
+                    delta=0.001,
+                )
 
     def test_caffeine_half_time_twice_with_two_cups(self):
         with freeze_time() as frozen_datetime:
             user = Member.objects.create(username="test", gender='M', balance=100)
-            coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=30, active=True)
+            coffee = Product.objects.create(
+                name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True
+            )
 
             user.sale_set.create(product=coffee, price=coffee.price)
             frozen_datetime.tick(delta=datetime.timedelta(hours=5))
 
             self.assertAlmostEqual(
-                30 * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 5, user.calculate_caffeine_in_body(), delta=0.001
-            )  # There could be a rounding error
-
-            user.sale_set.create(product=coffee, price=coffee.price)
-            frozen_datetime.tick(delta=datetime.timedelta(hours=5))
-
-            # expected value is compound interest of 30mg for 5h, then rest + 30mg for additional 5h
-            self.assertAlmostEqual(
-                ((30 * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 5) + 30) * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 5,
+                CAFFEINE_IN_COFFEE * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 5,
                 user.calculate_caffeine_in_body(),
                 delta=0.001,
-            )  # There could be a rounding error
+            )
+
+            user.sale_set.create(product=coffee, price=coffee.price)
+            frozen_datetime.tick(delta=datetime.timedelta(hours=5))
+
+            # expected value is compound interest of 1 cup in mg for 5h, then rest + 1 cup in mg for additional 5h
+            self.assertAlmostEqual(
+                ((CAFFEINE_IN_COFFEE * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 5) + CAFFEINE_IN_COFFEE)
+                * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 5,
+                user.calculate_caffeine_in_body(),
+                delta=0.001,
+            )
+
+    def test_multiple_caffeine_intake_at_odd_times(self):
+        tick_one = datetime.timedelta(hours=2, minutes=24)
+        tick_two = datetime.timedelta(hours=1, minutes=13, seconds=16)
+
+        with freeze_time() as frozen_datetime:
+            user = Member.objects.create(username="test", gender='M', balance=100)
+            coffee = Product.objects.create(
+                name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True
+            )
+
+            # do sale and tick_one
+            user.sale_set.create(product=coffee, price=coffee.price)
+            frozen_datetime.tick(delta=tick_one)
+
+            # calc and assert degradation of 1 cup during tick_one
+            expected_caffeine_in_body = float(
+                CAFFEINE_IN_COFFEE * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** (tick_one / datetime.timedelta(hours=1)),
+            )
+
+            self.assertAlmostEqual(
+                expected_caffeine_in_body,
+                user.calculate_caffeine_in_body(),
+                delta=0.001,
+            )
+
+            # do another sale and tick_two
+            user.sale_set.create(product=coffee, price=coffee.price)
+            frozen_datetime.tick(delta=tick_two)
+
+            # first add consumed caffeine from second sale, then degrade, since no time passes after last consume
+            expected_caffeine_in_body += CAFFEINE_IN_COFFEE
+
+            expected_caffeine_in_body = float(
+                expected_caffeine_in_body
+                * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** (tick_two / datetime.timedelta(hours=1)),
+            )
+
+            self.assertAlmostEqual(
+                expected_caffeine_in_body,
+                user.calculate_caffeine_in_body(),
+                delta=0.001,
+            )
 
     def test_caffeine_str_is_correct_length(self):
         user = Member.objects.create(username="test", gender='F', balance=100)
-        coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=70, active=True)
+        coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True)
+
+        # do five sales of coffee and assert that emoji renderer returns same amount of emoji
+        sales = 5
         with freeze_time() as _:
-            for sales in range(0, 5):
+            for _ in range(0, sales):
                 user.sale_set.create(product=coffee, price=coffee.price)
 
-            caffeine_str = "☕☕☕☕☕"
-            caffeine = user.calculate_caffeine_in_body()
-            self.assertEqual(caffeine_str, caffeine_emoji_render(caffeine))
+            # keep assert within scope of freeze_time to ensure degradation is not applied
+            self.assertEqual("☕" * sales, caffeine_emoji_render(user.calculate_caffeine_in_body()))
 
     def test_rich_guy_is_leading_coffee_addict(self):
         coffee_addict = Member.objects.create(username="Anders", gender="M", balance=100)
@@ -1563,7 +1623,7 @@ class CaffeineCalculatorTest(TestCase):
         average_developer = Member.objects.create(username="my-gal", gender="F", balance=50)
         coffee_category = Category.objects.create(name="Caffeine☕☕☕", pk=6)
         coffee_category.save()
-        coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=71, active=True)
+        coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True)
         # matches coffee id in production. Will be implemented with categories later, when production have a coffee
         # category
         coffee.save()

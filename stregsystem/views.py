@@ -188,6 +188,10 @@ def usermenu(request, room, member, bought, from_sale=False):
         bp_seconds,
     ) = ballmer_peak(promille)
 
+    caffeine = member.calculate_caffeine_in_body()
+    cups = caffeine_mg_to_coffee_cups(caffeine)
+    is_coffee_master = member.is_leading_coffee_addict()
+
     give_multibuy_hint, sale_hints = _multibuy_hint(timezone.now(), member)
     give_multibuy_hint = give_multibuy_hint and from_sale
 

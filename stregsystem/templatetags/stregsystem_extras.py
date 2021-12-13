@@ -9,13 +9,7 @@ register = template.Library()
 
 @register.filter
 def caffeine_emoji_render(caffeine: int):
-    coffee_str = ""
-
-    cups = caffeine_mg_to_coffee_cups(caffeine)
-    for coffee_cup in range(cups):
-        coffee_str += "☕"
-
-    return coffee_str
+    return "☕" * caffeine_mg_to_coffee_cups(caffeine)
 
 
 def money(value):
