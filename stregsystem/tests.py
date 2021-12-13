@@ -1534,5 +1534,5 @@ class CaffeineCalculatorTest(TestCase):
             coffee_addict.sale_set.create(product=coffee, price=coffee.price)
             average_developer.sale_set.create(product=coffee, price=coffee.price)
 
-        self.assertTrue(coffee_addict.is_leading_coffee_addict())
-        self.assertFalse(average_developer.is_leading_coffee_addict())
+            self.assertTrue(coffee_addict.is_leading_coffee_addict())
+            self.assertFalse(average_developer.is_leading_coffee_addict())
