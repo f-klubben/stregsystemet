@@ -9,7 +9,7 @@ from django.db import models, transaction
 from django.db.models import Count
 from django.utils import timezone
 
-from stregsystem.caffeine import Intake, current_caffeine_mg_level, CAFFEINE_TIME_INTERVAL
+from stregsystem.caffeine import Intake, CAFFEINE_TIME_INTERVAL, current_caffeine_in_body_compound_interest
 from stregsystem.deprecated import deprecated
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -289,18 +289,16 @@ class Member(models.Model):  # id automatisk...
 
         return bac
 
-    def calculate_caffeine_in_body(self) -> int:
-        now = timezone.now()
-        calculation_start = now - CAFFEINE_TIME_INTERVAL
-
-        caffeine_sales = self.sale_set.filter(
-            timestamp__gt=calculation_start, product__caffeine_content_mg__gt=0
-        ).order_by('timestamp')
-
-        caffeine_intakes = [Intake(s.product.caffeine_content_mg, s.timestamp) for s in caffeine_sales]
-        mg = current_caffeine_mg_level(now, caffeine_intakes)
-
-        return mg
+    def calculate_caffeine_in_body(self) -> float:
+        # get list of last 24h caffeine intakes and calculate current body caffeine content
+        return current_caffeine_in_body_compound_interest(
+            [
+                Intake(x.timestamp, x.product.caffeine_content_mg)
+                for x in self.sale_set.filter(
+                    timestamp__gt=timezone.now() - CAFFEINE_TIME_INTERVAL, product__caffeine_content_mg__gt=0
+                ).order_by('timestamp')
+            ]
+        )
 
     def is_leading_coffee_addict(self):
         coffee_category = [6]
