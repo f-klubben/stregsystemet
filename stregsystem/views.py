@@ -1,4 +1,5 @@
 import datetime
+from typing import List
 
 import pytz
 from pytz import UTC
@@ -43,6 +44,7 @@ from stregsystem.utils import (
 )
 
 from .booze import ballmer_peak
+from .caffeine import caffeine_mg_to_coffee_cups
 from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, RankingDateForm
 
 
@@ -131,13 +133,13 @@ def _multibuy_hint(now, member):
     return (False, None)
 
 
-def quicksale(request, room, member, bought_ids):
+def quicksale(request, room, member: Member, bought_ids):
     news = __get_news()
     product_list = __get_productlist(room.id)
     now = timezone.now()
 
     # Retrieve products and construct transaction
-    products = []
+    products: List[Product] = []
     try:
         for i in bought_ids:
             product = Product.objects.get(
@@ -162,6 +164,11 @@ def quicksale(request, room, member, bought_ids):
 
     promille = member.calculate_alcohol_promille()
     is_ballmer_peaking, bp_minutes, bp_seconds = ballmer_peak(promille)
+
+    caffeine = member.calculate_caffeine_in_body()
+    cups = caffeine_mg_to_coffee_cups(caffeine)
+    product_contains_caffeine = any(product.caffeine_content_mg > 0 for product in products)
+    is_coffee_master = member.is_leading_coffee_addict()
 
     cost = order.total
 

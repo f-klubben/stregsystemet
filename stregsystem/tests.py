@@ -20,6 +20,7 @@ from stregsystem import admin
 from stregsystem import views as stregsystem_views
 from stregsystem.admin import CategoryAdmin, ProductAdmin, MemberForm, MemberAdmin
 from stregsystem.booze import ballmer_peak
+from stregsystem.caffeine import CAFFEINE_DEGRADATION_PR_HOUR
 from stregsystem.models import (
     Category,
     GetTransaction,
@@ -37,6 +38,7 @@ from stregsystem.models import (
     price_display,
     MobilePayment,
 )
+from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
 from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, MobilePaytoolException
 
 
@@ -1458,3 +1460,122 @@ class MobilePaymentTests(TestCase):
                 self.assertEqual(e.inconsistent_mbpayments_count, 2)
                 self.assertEqual(e.inconsistent_transaction_ids, ["241E027449465355", "016E027417049990"])
                 raise e
+
+
+class CaffeineCalculatorTest(TestCase):
+    def test_default_caffeine_is_zero(self):
+        product = Product.objects.create(name="some product", price=420.0, active=True)
+
+        self.assertEqual(product.caffeine_content_mg, 0)
+
+    def test_calculate_is_zero_if_no_caffeine_is_consumed(self):
+        user = Member.objects.create(username="test", gender='M', balance=100)
+        NOTcoffee = Product.objects.create(name="koffeinfri kaffe", price=2.0, caffeine_content_mg=0, active=True)
+
+        user.sale_set.create(product=NOTcoffee, price=NOTcoffee.price)
+
+        self.assertEqual(0, user.calculate_caffeine_in_body())
+
+    def test_calculate_is_non_zero_if_some_caffeine_is_consumed(self):
+        user = Member.objects.create(username="test", gender='M', balance=100)
+        coffee = Product.objects.create(name="koffeinholdig kaffe", price=2.0, caffeine_content_mg=30, active=True)
+
+        user.sale_set.create(product=coffee, price=coffee.price)
+
+        self.assertAlmostEqual(30, user.calculate_caffeine_in_body(), delta=0.001)
+
+    def test_caffeine_1_hour(self):
+        with freeze_time() as frozen_datetime:
+            user = Member.objects.create(username="test", gender='M', balance=100)
+            coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=70, active=True)
+
+            user.sale_set.create(product=coffee, price=coffee.price)
+
+            frozen_datetime.tick(delta=datetime.timedelta(hours=1))
+
+            self.assertAlmostEqual(
+                70 * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 1, user.calculate_caffeine_in_body(), delta=0.001
+            )  # There could be a rounding error
+
+    def test_caffeine_degradation_for_1_to_10_hours(self):
+        for hours in range(1, 10):
+            with freeze_time() as frozen_datetime:
+                user = Member.objects.create(username="test", gender='M', balance=100)
+                coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=70, active=True)
+
+                user.sale_set.create(product=coffee, price=coffee.price)
+
+                frozen_datetime.tick(delta=datetime.timedelta(hours=hours))
+                self.assertAlmostEqual(
+                    70 * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** hours, user.calculate_caffeine_in_body(), delta=0.001
+                )  # There could be a rounding error
+
+    def test_caffeine_half_time_twice_with_two_cups(self):
+        with freeze_time() as frozen_datetime:
+            user = Member.objects.create(username="test", gender='M', balance=100)
+            coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=30, active=True)
+
+            user.sale_set.create(product=coffee, price=coffee.price)
+            frozen_datetime.tick(delta=datetime.timedelta(hours=5))
+
+            self.assertAlmostEqual(
+                30 * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 5, user.calculate_caffeine_in_body(), delta=0.001
+            )  # There could be a rounding error
+
+            user.sale_set.create(product=coffee, price=coffee.price)
+            frozen_datetime.tick(delta=datetime.timedelta(hours=5))
+
+            # expected value is compound interest of 30mg for 5h, then rest + 30mg for additional 5h
+            self.assertAlmostEqual(
+                ((30 * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 5) + 30) * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 5,
+                user.calculate_caffeine_in_body(),
+                delta=0.001,
+            )  # There could be a rounding error
+
+    def test_caffeine_str_is_correct_length(self):
+        user = Member.objects.create(username="test", gender='F', balance=100)
+        coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=70, active=True)
+        with freeze_time() as _:
+            for sales in range(0, 5):
+                user.sale_set.create(product=coffee, price=coffee.price)
+
+            caffeine_str = "☕☕☕☕☕"
+            caffeine = user.calculate_caffeine_in_body()
+            self.assertEqual(caffeine_str, caffeine_emoji_render(caffeine))
+
+    def test_rich_guy_is_leading_coffee_addict(self):
+        coffee_addict = Member.objects.create(username="Anders", gender="M", balance=100)
+        average_developer = Member.objects.create(username="my-guy", gender="M", balance=50)
+        coffee_category = Category.objects.create(name="Caffeine☕☕☕", pk=6)
+        coffee_category.save()
+        coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=70, active=True)
+        coffee.save()
+        coffee.categories.add(coffee_category)
+
+        [coffee_addict.sale_set.create(product=coffee, price=coffee.price) for _ in range(5)]
+        [average_developer.sale_set.create(product=coffee, price=coffee.price) for _ in range(2)]
+
+        self.assertTrue(coffee_addict.is_leading_coffee_addict())
+        self.assertFalse(average_developer.is_leading_coffee_addict())
+
+    def test_if_sunday_is_in_week(self):
+        coffee_addict = Member.objects.create(username="Ida", gender="F", balance=100)
+        average_developer = Member.objects.create(username="my-gal", gender="F", balance=50)
+        coffee_category = Category.objects.create(name="Caffeine☕☕☕", pk=6)
+        coffee_category.save()
+        coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=71, active=True)
+        # matches coffee id in production. Will be implemented with categories later, when production have a coffee
+        # category
+        coffee.save()
+        coffee.categories.add(coffee_category)
+
+        with freeze_time(timezone.datetime(year=2021, day=29, month=11, hour=8)) as monday:
+            coffee_addict.sale_set.create(product=coffee, price=coffee.price)
+
+        with freeze_time(timezone.datetime(year=2021, day=5, month=12, hour=8)) as sunday:
+
+            coffee_addict.sale_set.create(product=coffee, price=coffee.price)
+            average_developer.sale_set.create(product=coffee, price=coffee.price)
+
+            self.assertTrue(coffee_addict.is_leading_coffee_addict())
+            self.assertFalse(average_developer.is_leading_coffee_addict())
