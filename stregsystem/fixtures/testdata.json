@@ -17,6 +17,13 @@
     }
   },
   {
+        "fields": {
+            "name": "kaffe"
+        },
+        "model": "stregsystem.category",
+        "pk": "6"
+    },
+  {
     "model": "stregsystem.product",
     "pk": 1,
     "fields": {
@@ -28,12 +35,14 @@
   },
   {
     "model": "stregsystem.product",
-    "pk": 2,
+    "pk": 32,
     "fields": {
       "name": "Kold Kaffe",
       "price": 200,
       "active": true,
-      "deactivate_date": null
+      "deactivate_date": null,
+      "caffeine_content_mg": 70,
+      "categories": [6]
     }
   },
   {
@@ -72,7 +81,7 @@
     "model": "stregsystem.oldprice",
     "pk": 2,
     "fields": {
-      "product": 2,
+      "product": 32,
       "price": 200,
       "changed_on": "2017-03-13T12:43:40.784+00:00"
     }
@@ -81,7 +90,7 @@
     "model": "stregsystem.oldprice",
     "pk": 3,
     "fields": {
-      "product": 2,
+      "product": 32,
       "price": 200,
       "changed_on": "2017-03-13T12:43:42.151+00:00"
     }
@@ -118,7 +127,7 @@
     "pk": 2,
     "fields": {
       "member": 1,
-      "product": 2,
+      "product": 32,
       "room": 1,
       "timestamp": "2017-03-13T12:54:12.423+00:00",
       "price": 200
