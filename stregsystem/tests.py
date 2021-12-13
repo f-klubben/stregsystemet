@@ -1527,7 +1527,9 @@ class CaffeineCalculatorTest(TestCase):
 
             # expected value is compound interest of 30mg for 5h, then rest + 30mg for additional 5h
             self.assertAlmostEqual(
-                ((30 * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 5) + 30) * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 5, user.calculate_caffeine_in_body(), delta=0.001
+                ((30 * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 5) + 30) * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 5,
+                user.calculate_caffeine_in_body(),
+                delta=0.001,
             )  # There could be a rounding error
 
     def test_caffeine_str_is_correct_length(self):
