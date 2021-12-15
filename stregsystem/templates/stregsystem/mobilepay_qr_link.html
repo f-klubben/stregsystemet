@@ -1,5 +1,0 @@
-{% if amount %}
-<a href="/api/member/payment/qr?member={{username | urlencode}}&amount={{amount | floatformat | urlencode}}" />
-{% else %}
-<a href="/api/member/payment/qr?member={{username | urlencode}}" />
-{% endif %}
