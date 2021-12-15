@@ -2,7 +2,14 @@ from django import template
 from django.template.loader import get_template
 from django.utils import timezone
 
+from stregsystem.caffeine import caffeine_mg_to_coffee_cups
+
 register = template.Library()
+
+
+@register.filter
+def caffeine_emoji_render(caffeine: int):
+    return "☕" * caffeine_mg_to_coffee_cups(caffeine)
 
 
 def money(value):

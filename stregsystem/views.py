@@ -1,4 +1,10 @@
 import datetime
+from typing import List
+
+import pytz
+from pytz import UTC
+
+from stregreport.views import fjule_party
 
 from django.core import management
 from django.forms import modelformset_factory, formset_factory
@@ -6,7 +12,7 @@ from django.forms import modelformset_factory, formset_factory
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, Count
 from django import forms
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
@@ -26,6 +32,7 @@ from stregsystem.models import (
     Sale,
     StregForbudError,
     MobilePayment,
+    Category,
 )
 from stregsystem.utils import (
     make_active_productlist_query,
@@ -37,7 +44,8 @@ from stregsystem.utils import (
 )
 
 from .booze import ballmer_peak
-from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm
+from .caffeine import caffeine_mg_to_coffee_cups
+from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, RankingDateForm
 
 
 def __get_news():
@@ -125,13 +133,13 @@ def _multibuy_hint(now, member):
     return (False, None)
 
 
-def quicksale(request, room, member, bought_ids):
+def quicksale(request, room, member: Member, bought_ids):
     news = __get_news()
     product_list = __get_productlist(room.id)
     now = timezone.now()
 
     # Retrieve products and construct transaction
-    products = []
+    products: List[Product] = []
     try:
         for i in bought_ids:
             product = Product.objects.get(
@@ -157,6 +165,11 @@ def quicksale(request, room, member, bought_ids):
     promille = member.calculate_alcohol_promille()
     is_ballmer_peaking, bp_minutes, bp_seconds = ballmer_peak(promille)
 
+    caffeine = member.calculate_caffeine_in_body()
+    cups = caffeine_mg_to_coffee_cups(caffeine)
+    product_contains_caffeine = any(product.caffeine_content_mg > 0 for product in products)
+    is_coffee_master = member.is_leading_coffee_addict()
+
     cost = order.total
 
     give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
@@ -174,6 +187,10 @@ def usermenu(request, room, member, bought, from_sale=False):
         bp_minutes,
         bp_seconds,
     ) = ballmer_peak(promille)
+
+    caffeine = member.calculate_caffeine_in_body()
+    cups = caffeine_mg_to_coffee_cups(caffeine)
+    is_coffee_master = member.is_leading_coffee_addict()
 
     give_multibuy_hint, sale_hints = _multibuy_hint(timezone.now(), member)
     give_multibuy_hint = give_multibuy_hint and from_sale
@@ -220,6 +237,74 @@ def menu_userpay(request, room_id, member_id):
     amounts = sorted(amounts)
 
     return render(request, 'stregsystem/menu_userpay.html', locals())
+
+
+def menu_userrank(request, room_id, member_id):
+    from_date = fjule_party(datetime.datetime.today().year - 1)
+    to_date = datetime.datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
+    room = Room.objects.get(pk=room_id)
+    member = Member.objects.get(pk=member_id, active=True)
+
+    def ranking(category_ids, from_d, to_d):
+        qs = (
+            Member.objects.filter(sale__product__in=category_ids, sale__timestamp__gt=from_d, sale__timestamp__lte=to_d)
+            .annotate(Count('sale'))
+            .order_by('-sale__count', 'username')
+        )
+        if member not in qs:
+            return 0, qs.count()
+        return list(qs).index(Member.objects.get(id=member.id)) + 1, int(qs.count())
+
+    def get_product_ids_for_category(category) -> list:
+        return list(
+            Product.objects.filter(categories__exact=Category.objects.get(name__exact=category)).values_list(
+                'id', flat=True
+            )
+        )
+
+    def category_per_uni_day(category_ids, from_d, to_d):
+        qs = Member.objects.filter(
+            id=member.id,
+            sale__product__in=category_ids,
+            sale__timestamp__gt=from_d,
+            sale__timestamp__lte=to_d,
+        )
+        if member not in qs:
+            return 0
+        else:
+            return "{:.2f}".format(qs.count() / ((to_d - from_d).days * 162.14 / 365))  # university workdays in 2021
+
+    # let user know when they first purchased a product
+    member_first_purchase = "Ikke endnu, køb en limfjordsporter!"
+    first_purchase = Sale.objects.filter(member=member_id).order_by('-timestamp')
+    if first_purchase.exists():
+        member_first_purchase = first_purchase.last().timestamp
+
+    form = RankingDateForm()
+    if request.method == "POST" and request.POST['custom-range']:
+        form = RankingDateForm(request.POST)
+        if form.is_valid():
+            from_date = form.cleaned_data['from_date']
+            to_date = form.cleaned_data['to_date']
+    else:
+        # setup initial dates for form and results
+        form = RankingDateForm(initial={'from_date': from_date, 'to_date': to_date})
+
+    # get prod_ids for each category as dict {cat: [key1, key2])}, then flatten list of singleton
+    # dicts into one dict, lastly calculate member_id rating and units/weekday for category_ids
+    rankings = {
+        key: (
+            ranking(category_ids, from_date, to_date),
+            category_per_uni_day(category_ids, from_date, to_date),
+        )
+        for key, category_ids in {
+            k: v
+            for x in map(lambda x: {x: get_product_ids_for_category(x)}, list(Category.objects.all()))
+            for k, v in x.items()
+        }.items()
+    }
+
+    return render(request, 'stregsystem/menu_userrank.html', locals())
 
 
 def menu_sale(request, room_id, member_id, product_id=None):
