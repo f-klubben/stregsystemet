@@ -1,5 +1,5 @@
 Django==2.2.24
-Pillow==8.3.2
+Pillow==9.0.0
 Coverage==4.4.1
 pytz==2018.3
 regex==2017.07.28
