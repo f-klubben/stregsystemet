@@ -105,6 +105,9 @@ def sale(request, room_id):
     except Member.DoesNotExist:
         return render(request, 'stregsystem/error_usernotfound.html', locals())
 
+    if not member.signup_due_paid:
+        return render(request, 'stregsystem/error_signupdue.html', locals())
+
     if len(bought_ids):
         return quicksale(request, room, member, bought_ids)
     else:
@@ -485,7 +488,7 @@ def signup(request):
                                        lastname=form.cleaned_data.get('lastname'),
                                        email=form.cleaned_data.get('email'),
                                        gender='U',
-                                       active=False)
+                                       signup_due_paid=False)
         signup_request = PendingSignup(member=member)
         signup_request.save()
 

@@ -1,3 +1,4 @@
+import typing
 import urllib.parse
 import uuid
 import datetime
@@ -21,6 +22,7 @@ from stregsystem.utils import (
     MobilePaytoolException,
 )
 from stregsystem.utils import send_payment_mail
+from stregsystem.mail import send_welcome_mail
 
 
 def price_display(value):
@@ -171,6 +173,7 @@ class Member(models.Model):  # id automatisk...
     balance = models.IntegerField(default=0)  # hvor mange oerer vedkommende har til gode
     undo_count = models.IntegerField(default=0)  # for 'undos' i alt
     notes = models.TextField(blank=True)
+    signup_due_paid = models.BooleanField(default=True)
 
     stregforbud_override = False
 
@@ -682,15 +685,11 @@ class PendingSignup(models.Model):
     def complete(self, payment: MobilePayment):
         # If the user payed more than their due add it to their balance
         if self.due < 0:
-            payment.payment = Payment.objects.create(member=self.member, amount=-self.due)  # TODO idk
+            payment.payment = Payment.objects.create(member=self.member, amount=-self.due)
         payment.save()
 
-        self.member.active = True  # TODO ensure that this is actually a viable solution
+        self.member.signup_due_paid = True
         self.member.save()
         self.delete()
-        # TODO send mail?
 
-    @transaction.atomic
-    def save(self, payment: MobilePayment, *args, **kwargs):
-        payment.save()
-        super(PendingSignup, self).save(args, kwargs)
+        send_welcome_mail(self.member)

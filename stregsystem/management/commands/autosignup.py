@@ -3,10 +3,9 @@ import uuid
 from typing import Optional, Tuple
 
 from django.core.management import BaseCommand
-from django.utils.timezone import now
 
 from stregsystem.utils import make_unprocessed_membership_payment_query
-from stregsystem.models import MobilePayment, Payment, PendingSignup
+from stregsystem.models import MobilePayment, PendingSignup
 
 
 def scan_comment(payment: MobilePayment) -> Optional[Tuple[uuid.UUID, str]]:
@@ -52,4 +51,5 @@ class Command(BaseCommand):
             if signup.due <= 0:
                 signup.complete(payment)
             else:
-                signup.save(payment)
+                payment.save()
+                signup.save()
