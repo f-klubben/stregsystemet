@@ -592,6 +592,17 @@ class Product(models.Model):  # id automatisk...
         return self.active and not expired and not out_of_stock
 
 
+class NamedProduct(models.Model):
+    name = models.CharField(max_length=50)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='named_id')
+
+    def __str__(self):
+        return self.name + " -> " + self.product.name
+
+    def save(self, *args, **kwargs):
+        super(NamedProduct, self).save(*args, **kwargs)
+
+
 class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statistik?
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='old_prices')
     price = models.IntegerField()  # penge, oere...

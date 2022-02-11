@@ -4,7 +4,7 @@ from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
 
-from stregsystem.models import Category, Member, News, Payment, PayTransaction, Product, Room, Sale, MobilePayment
+from stregsystem.models import Category, Member, News, Payment, PayTransaction, Product, Room, Sale, MobilePayment, NamedProduct
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
 
@@ -155,6 +155,13 @@ class ProductAdmin(admin.ModelAdmin):
 
     activated.boolean = True
 
+
+class NamedProductAdmin(admin.ModelAdmin):
+    search_fields = ('name', 'product',)
+    list_display = ('name', 'product',)
+    fields = ('name', 'product',)
+    autocomplete_fields = ['product',]
+    
 
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'items_in_category')
@@ -316,6 +323,7 @@ admin.site.register(Member, MemberAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(News)
 admin.site.register(Product, ProductAdmin)
+admin.site.register(NamedProduct, NamedProductAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Room)
 admin.site.register(MobilePayment, MobilePaymentAdmin)
