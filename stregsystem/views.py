@@ -78,13 +78,13 @@ def index(request, room_id):
 def dump_named_items(request):
     items = NamedProduct.objects.all()
     items_dict = {item.name: item.product.id for item in items}
-    return JsonResponse(items_dict,json_dumps_params={'ensure_ascii': False})
+    return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
 
 
 def _pre_process(buy_string):
     items = buy_string.split(' ')
     _items = [items[0]]
-    
+
     for item in items[1:]:
         if type(item) is not int:
             _item = NamedProduct.objects.filter(name=item.lower())
