@@ -87,9 +87,9 @@ def _pre_process(buy_string):
 
     for item in items[1:]:
         if type(item) is not int:
-            _item = NamedProduct.objects.filter(name=item.lower())
+            _item = NamedProduct.objects.filter(name=item.split(':')[0].lower() if ':' in item else item)
             if _item:
-                item = _item.get().product.pk
+                item = item.replace(item.split(':')[0], str(_item.get().product.pk))
         _items.append(str(item))
 
     return ' '.join(_items)

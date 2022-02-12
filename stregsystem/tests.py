@@ -37,6 +37,7 @@ from stregsystem.models import (
     active_str,
     price_display,
     MobilePayment,
+    NamedProduct,
 )
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
 from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, MobilePaytoolException
@@ -85,6 +86,40 @@ class SaleViewTests(TestCase):
 
     @patch('stregsystem.models.Member.can_fulfill')
     @patch('stregsystem.models.Member.fulfill')
+    def test_make_sale_quickbuy_success_for_multiple_named_product(self, fulfill, can_fulfill):
+        can_fulfill.return_value = True
+        item = Product.objects.get(id=1)
+        NamedProduct.objects.create(name='test1', product=item)
+
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke test1:2"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/index_sale.html")
+
+        assertCountEqual(self, response.context["products"], [Product.objects.get(id=1), Product.objects.get(id=1)])
+        self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
+
+        fulfill.assert_called_once_with(PayTransaction(1800))
+
+    @patch('stregsystem.models.Member.can_fulfill')
+    @patch('stregsystem.models.Member.fulfill')
+    def test_make_sale_quickbuy_success_for_named_product(self, fulfill, can_fulfill):
+        can_fulfill.return_value = True
+        item = Product.objects.get(id=1)
+        NamedProduct.objects.create(name='test1', product=item)
+
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke test1"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/index_sale.html")
+
+        assertCountEqual(self, response.context["products"], {Product.objects.get(id=1)})
+        self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
+
+        fulfill.assert_called_once_with(PayTransaction(900))
+
+    @patch('stregsystem.models.Member.can_fulfill')
+    @patch('stregsystem.models.Member.fulfill')
     def test_make_sale_quickbuy_success(self, fulfill, can_fulfill):
         can_fulfill.return_value = True
 
@@ -97,6 +132,15 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))
+
+    def test_make_sale_quickbuy_wrong_product(self):
+        item = Product.objects.get(id=1)
+        NamedProduct.objects.create(name='test1', product=item)
+
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke gnu99"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/error_productdoesntexist.html")
 
     def test_make_sale_quickbuy_fail(self):
         member_username = 'jan'
