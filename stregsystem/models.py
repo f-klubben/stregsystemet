@@ -1,4 +1,5 @@
 import datetime
+import re
 from collections import Counter
 from email.utils import parseaddr
 
@@ -600,8 +601,9 @@ class NamedProduct(models.Model):
         return self.name + " -> " + self.product.name
 
     def save(self, *args, **kwargs):
-        if ':' in self.name or ' ' in self.name:
-            raise RuntimeError("Name can not include spaces or ':'")
+        self.name = self.name.strip()
+        if re.match(r'(^\d+$|.*?\s|.*?:)', self.name):
+            raise RuntimeError("Name can not include spaces, ':' or be a number")
         super(NamedProduct, self).save(*args, **kwargs)
 
 
