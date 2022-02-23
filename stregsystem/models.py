@@ -600,6 +600,8 @@ class NamedProduct(models.Model):
         return self.name + " -> " + self.product.name
 
     def save(self, *args, **kwargs):
+        if ':' in self.name or ' ' in self.name:
+            raise RuntimeError("Name can not include spaces or ':'")
         super(NamedProduct, self).save(*args, **kwargs)
 
 

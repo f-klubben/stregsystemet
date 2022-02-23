@@ -205,7 +205,9 @@ INTERNAL_IPS = [
 ]
 
 SELECT2_JS = '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/js/select2.min.js'
-SELECT2_CSS = '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/css/select2.min.css'
+SELECT2_CSS = (
+    '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/css/select2.min.css'
+)
 
 TEST_RUNNER = 'stregsystem.utils.stregsystemTestRunner'
 
@@ -216,17 +218,29 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'console': {'format': '%(name)-12s %(levelname)-8s %(message)s'},
-        'file': {'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'},
+        'console': {
+            'format': '%(name)-12s %(levelname)-8s %(message)s'
+        },
+        'file': {
+            'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+        }
     },
     'handlers': {
-        'console': {'class': 'logging.StreamHandler', 'formatter': 'console'},
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'console'
+        },
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
             'formatter': 'file',
-            'filename': cfg.get('logging', 'FILE'),
-        },
+            'filename': cfg.get('logging', 'FILE')
+        }
     },
-    'loggers': {'': {'level': cfg.get('logging', 'LEVEL'), 'handlers': json.loads(cfg.get('logging', 'HANDLERS'))}},
+    'loggers': {
+        '': {
+            'level': cfg.get('logging', 'LEVEL'),
+            'handlers': json.loads(cfg.get('logging', 'HANDLERS'))
+        }
+    }
 }
