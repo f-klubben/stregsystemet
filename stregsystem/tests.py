@@ -143,13 +143,11 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/error_invalidquickbuy.html")
 
-
     def test_create_named_product_fails_for_invalid_name(self):
         item = Product.objects.get(id=1)
         prod = NamedProduct(name='11', product=item)
         with self.assertRaises(ValidationError):
             prod.full_clean()
-
 
     def test_create_named_product_fails_for_invalid_name_2(self):
         item = Product.objects.get(id=1)
@@ -157,13 +155,11 @@ class SaleViewTests(TestCase):
         with self.assertRaises(ValidationError):
             prod.full_clean()
 
-
     def test_create_named_product_fails_for_invalid_name_3(self):
         item = Product.objects.get(id=1)
         prod = NamedProduct(name='øl:2', product=item)
         with self.assertRaises(ValidationError):
             prod.full_clean()
-
 
     def test_create_named_product_fails_for_invalid_name_4(self):
         item = Product.objects.get(id=1)
@@ -171,30 +167,25 @@ class SaleViewTests(TestCase):
         with self.assertRaises(ValidationError):
             prod.full_clean()
 
-
     def test_create_named_product_succeed_for_valid_name(self):
         item = Product.objects.get(id=1)
         prod = NamedProduct(name='øl', product=item)
-        prod.full_clean() 
-
+        prod.full_clean()
 
     def test_create_named_product_succeed_for_valid_name_2(self):
         item = Product.objects.get(id=1)
         prod = NamedProduct(name='monster-mango', product=item)
         prod.full_clean()
 
-
     def test_create_named_product_succeed_for_valid_name_3(self):
         item = Product.objects.get(id=1)
         prod = NamedProduct(name='ale16', product=item)
         prod.full_clean()
 
-
     def test_create_named_product_succeed_for_valid_name_4(self):
         item = Product.objects.get(id=1)
         prod = NamedProduct(name='månedens-øl', product=item)
         prod.full_clean()
-
 
     def test_make_sale_quickbuy_fail(self):
         member_username = 'jan'
