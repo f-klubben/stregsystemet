@@ -5,6 +5,7 @@ from email.utils import parseaddr
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
+from django.core.validators import RegexValidator
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.db.models import Count
@@ -594,17 +595,11 @@ class Product(models.Model):  # id automatisk...
 
 
 class NamedProduct(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, validators=[RegexValidator(regex=r'^[^\d:\-_][\w\-]+$')])
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='named_id')
 
     def __str__(self):
         return self.name + " -> " + self.product.name
-
-    def save(self, *args, **kwargs):
-        self.name = self.name.strip()
-        if re.match(r'(^\d+$|.*?\s|.*?:)', self.name):
-            raise RuntimeError("Name can not include spaces, ':' or be a number")
-        super(NamedProduct, self).save(*args, **kwargs)
 
 
 class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statistik?
