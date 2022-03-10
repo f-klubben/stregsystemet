@@ -52,13 +52,15 @@
         <td valign="top">
             <table border="1" cellspacing="2" cellpadding="2">
               <tr>
-              <th>ID</th>
+              <th>Alias -> ID</th>
                 <th>Produkt</th>
                 <th>Pris</th>
             </tr>
             {% for product in product_list|partition:"2"|first %}
             <tr>
-            <td>{{product.id}}</td>
+            <td>
+                {{ product.id|product_id_and_alias_string }}
+            </td>
               <td>{{product.name}}</td>
             <td align="right">{{product.price|money}} kr</td>
               </tr>
@@ -70,13 +72,13 @@
             <td valign="top">
                 <table border="1" cellspacing="2" cellpadding="2">
                   <tr>
-                    <th>ID</th>
+                    <th>Alias -> ID</th>
                     <th>Produkt</th>
                     <th>Pris</th>
                   </tr>
                   {% for product in product_list|partition:"2"|last %}
                   <tr>
-                    <td>{{product.id}}</td>
+                    <td>{{product.id|product_id_and_alias_string }}</td>
                     <td>{{product.name}}</td>
                     <td align="right">{{product.price|money}} kr</td>
                   </tr>

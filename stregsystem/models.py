@@ -601,6 +601,9 @@ class NamedProduct(models.Model):
     def __str__(self):
         return self.name + " -> " + self.product.name
 
+    def map_str(self):
+        return self.name + " -> " + str(self.product.id)
+
 
 class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statistik?
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='old_prices')
