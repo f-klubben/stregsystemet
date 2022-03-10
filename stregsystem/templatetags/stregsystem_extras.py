@@ -29,6 +29,7 @@ def show_candle():
 t = get_template('stregsystem/adventcandle.html')
 register.inclusion_tag(t)(show_candle)
 
+
 @register.filter
 def product_id_and_alias_string(product_id):
     from stregsystem.models import NamedProduct
