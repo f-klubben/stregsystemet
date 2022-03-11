@@ -1670,7 +1670,7 @@ class SignupTest(TestCase):
 
     def test_signup_completion(self):
         member = Member.objects.create(username='john', signup_due_paid=False)
-        signup = PendingSignup.objects.create(member=member, due=0)
+        signup = PendingSignup.objects.create(member=member)
         signup.complete(self.mock_mobile_payment)
 
         # Assert that the signup due payment status has been updated correctly
@@ -1679,7 +1679,7 @@ class SignupTest(TestCase):
 
         # Assert that the PendingSignup instance has been deleted
         with self.assertRaises(PendingSignup.DoesNotExist):
-            signup = PendingSignup.objects.get(member=member)
+            _ = PendingSignup.objects.get(member=member)
 
     def test_excess_payment_balance(self):
         member = Member.objects.create(username='john', signup_due_paid=False)
@@ -1691,7 +1691,7 @@ class SignupTest(TestCase):
         self.assertEqual(member.balance, 50000)
 
     def test_comment_scanning(self):
-        from stregsystem.management.commands.autosignup import scan_comment, Command
+        from stregsystem.management.commands.autosignup import scan_comment
         member = Member.objects.create(username='john', signup_due_paid=False)
         signup = PendingSignup.objects.create(member=member)
 
@@ -1700,4 +1700,71 @@ class SignupTest(TestCase):
         token, username = scan_comment(self.mock_mobile_payment)
         self.assertEqual(member.username, username)
         self.assertEqual(signup.token, token)
+
+    def test_autosignup_command(self):
+        from stregsystem.management.commands.autosignup import Command
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        signup = PendingSignup.objects.create(member=member)
+
+        self.mock_mobile_payment.comment = signup.get_mobilepay_comment()
+        self.mock_mobile_payment.save()
+
+        cmd = Command()
+        cmd.handle()
+
+        # Assert that the signup due payment status has been updated correctly
+        member = Member.objects.get(pk=member.pk)
+        self.assertTrue(member.signup_due_paid)
+
+        # Assert that the payment status has been set correctly
+        payment = MobilePayment.objects.get(pk=self.mock_mobile_payment.pk)
+        self.assertEqual(payment.status, MobilePayment.APPROVED)
+
+        # Assert that the PendingSignup instance has been deleted
+        with self.assertRaises(PendingSignup.DoesNotExist):
+            _ = PendingSignup.objects.get(member=member)
+
+    # tests that signup payments that are split over more than one
+    # mobile payment work properly
+    def test_autosignup_command_split_payment(self):
+        from stregsystem.management.commands.autosignup import Command
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        signup = PendingSignup.objects.create(member=member, due=self.mock_mobile_payment.amount*2)
+
+        self.mock_mobile_payment.comment = signup.get_mobilepay_comment()
+        self.mock_mobile_payment.save()
+
+        second_payment = MobilePayment(
+            timestamp=timezone.now(),
+            amount=20000,
+            transaction_id="2",
+            comment=signup.get_mobilepay_comment()
+        )
+
+        cmd = Command()
+        cmd.handle()
+
+        # Assert that the signup due payment status remains false
+        member = Member.objects.get(pk=member.pk)
+        self.assertFalse(member.signup_due_paid)
+
+        # Assert that the payment status has been set correctly
+        payment = MobilePayment.objects.get(pk=self.mock_mobile_payment.pk)
+        self.assertEqual(payment.status, MobilePayment.APPROVED)
+
+        # Register second payment and rerun command
+        second_payment.save()
+        cmd.handle()
+
+        # Assert that the signup due payment status has been updated correctly
+        member = Member.objects.get(pk=member.pk)
+        self.assertTrue(member.signup_due_paid)
+
+        # Assert that the payment status has been set correctly
+        payment = MobilePayment.objects.get(pk=second_payment.pk)
+        self.assertEqual(payment.status, MobilePayment.APPROVED)
+
+        # Assert that the PendingSignup instance has been deleted
+        with self.assertRaises(PendingSignup.DoesNotExist):
+            _ = PendingSignup.objects.get(member=member)
 
