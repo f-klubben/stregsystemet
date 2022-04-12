@@ -610,6 +610,100 @@ class ProductTests(TestCase):
         self.assertFalse(product.is_active())
 
 
+class EventTests(TestCase):
+    def setUp(self):
+        self.jeff = Member.objects.create(
+            username="Jeff",
+        )
+
+    def test_is_active_active_not_expired(self):
+        product = Product.objects.create(
+            active=True,
+            price=100,
+        )
+        event = Event.objects.create(
+            name="testEvent",
+            active=True,
+            product=product,
+            time=timezone.now() + datetime.timedelta(hours=1),
+            ticket_start_threshold=timezone.now() - datetime.timedelta(hours=1),
+            ticket_end_threshold=timezone.now() + datetime.timedelta(hours=1)
+        )
+
+        self.assertTrue(event.is_active())
+
+    def test_is_active_active_expired_after(self):
+        product = Product.objects.create(
+            active=True,
+            price=100,
+        )
+        event = Event.objects.create(
+            name="testEvent",
+            active=True,
+            product=product,
+            time=timezone.now() + datetime.timedelta(hours=1),
+            ticket_start_threshold=timezone.now() - datetime.timedelta(hours=10),
+            ticket_end_threshold=timezone.now() - datetime.timedelta(hours=1)
+        )
+
+        self.assertFalse(event.is_active())
+
+    def test_is_active_active_before_active(self):
+        product = Product.objects.create(
+            active=True,
+            price=100,
+        )
+        event = Event.objects.create(
+            name="testEvent",
+            active=True,
+            product=product,
+            time=timezone.now() + datetime.timedelta(hours=1),
+            ticket_start_threshold=timezone.now() + datetime.timedelta(hours=2),
+            ticket_end_threshold=timezone.now() + datetime.timedelta(hours=5)
+        )
+
+        self.assertFalse(event.is_active())
+
+    def test_is_active_inactive(self):
+        product = Product.objects.create(
+            active=True,
+            price=100,
+        )
+        event = Event.objects.create(
+            name="testEvent",
+            active=False,
+            product=product,
+            time=timezone.now() + datetime.timedelta(hours=1),
+            ticket_start_threshold=timezone.now() - datetime.timedelta(hours=10),
+            ticket_end_threshold=timezone.now() - datetime.timedelta(hours=1)
+        )
+
+        self.assertFalse(event.is_active())
+
+    def test_is_active_inactive_expired(self):
+        product = Product.objects.create(
+            active=False, price=100, deactivate_date=(timezone.now() - datetime.timedelta(hours=1))
+        )
+
+        self.assertFalse(product.is_active())
+
+    def test_is_active_deactive_out_of_stock(self):
+        product = Product.objects.create(
+            active=False, price=100, quantity=1, start_date=datetime.date(year=2017, month=12, day=1)
+        )
+        product.sale_set.create(price=100, member=self.jeff)
+
+        self.assertFalse(product.is_active())
+
+    def test_is_active_deactive_in_stock(self):
+        product = Product.objects.create(
+            active=False, price=100, quantity=2, start_date=datetime.date(year=2017, month=12, day=1)
+        )
+        product.sale_set.create(price=100, member=self.jeff)
+
+        self.assertFalse(product.is_active())
+
+
 class SaleTests(TestCase):
     def setUp(self):
         self.member = Member.objects.create(username="jon", balance=100)
