@@ -1,3 +1,4 @@
+import datetime
 from collections import Counter
 from email.utils import parseaddr
 
@@ -8,6 +9,7 @@ from django.db import models, transaction
 from django.db.models import Count
 from django.utils import timezone
 
+from stregsystem.caffeine import Intake, CAFFEINE_TIME_INTERVAL, current_caffeine_in_body_compound_interest
 from stregsystem.deprecated import deprecated
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -287,6 +289,35 @@ class Member(models.Model):  # id automatisk...
 
         return bac
 
+    def calculate_caffeine_in_body(self) -> float:
+        # get list of last 24h caffeine intakes and calculate current body caffeine content
+        return current_caffeine_in_body_compound_interest(
+            [
+                Intake(x.timestamp, x.product.caffeine_content_mg)
+                for x in self.sale_set.filter(
+                    timestamp__gt=timezone.now() - CAFFEINE_TIME_INTERVAL, product__caffeine_content_mg__gt=0
+                ).order_by('timestamp')
+            ]
+        )
+
+    def is_leading_coffee_addict(self):
+        coffee_category = [6]
+
+        now = timezone.now()
+        start_of_week = now - datetime.timedelta(days=now.weekday()) - datetime.timedelta(hours=now.hour)
+        user_with_most_coffees_bought = (
+            Member.objects.filter(
+                sale__timestamp__gt=start_of_week,
+                sale__timestamp__lte=now,
+                sale__product__categories__in=coffee_category,
+            )
+            .annotate(Count('sale'))
+            .order_by('-sale__count', 'username')
+            .first()
+        )
+
+        return user_with_most_coffees_bought == self
+
 
 class Payment(models.Model):  # id automatisk...
     class Meta:
@@ -311,7 +342,8 @@ class Payment(models.Model):  # id automatisk...
     def __str__(self):
         return self.member.username + " " + str(self.timestamp) + ": " + money(self.amount)
 
-    def save(self, *args, **kwargs):
+    @transaction.atomic
+    def save(self, mbpayment=None, *args, **kwargs):
         if self.id:
             return  # update -- should not be allowed
         else:
@@ -321,7 +353,7 @@ class Payment(models.Model):  # id automatisk...
             self.member.save()
             if self.member.email != "" and self.amount != 0:
                 if '@' in parseaddr(self.member.email)[1] and self.member.want_spam:
-                    send_payment_mail(self.member, self.amount)
+                    send_payment_mail(self.member, self.amount, mbpayment.comment if mbpayment else None)
 
     def log_from_mobile_payment(self, processed_mobile_payment, admin_user: User):
         LogEntry.objects.log_action(
@@ -447,7 +479,7 @@ class MobilePayment(models.Model):
 
                 payment = Payment(member=member, amount=payment_amount)
                 payment.log_from_mobile_payment(processed_mobile_payment, admin_user)
-                payment.save()
+                payment.save(mbpayment=processed_mobile_payment)
 
                 processed_mobile_payment.payment = payment
                 processed_mobile_payment.member = member
@@ -517,6 +549,7 @@ class Product(models.Model):  # id automatisk...
     categories = models.ManyToManyField(Category, blank=True)
     rooms = models.ManyToManyField(Room, blank=True)
     alcohol_content_ml = models.FloatField(default=0.0, null=True)
+    caffeine_content_mg = models.IntegerField(default=0)
 
     @deprecated
     def __unicode__(self):

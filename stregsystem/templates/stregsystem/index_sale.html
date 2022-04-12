@@ -16,7 +16,7 @@
 for tilsammen {{cost|money}} kr.
 </b>
 {% if give_multibuy_hint %}
-    <h1>psssst. multibuy er enabled.</h1> 
+    <h1>psssst. multibuy er enabled.</h1>
     <b> Du kunne have skrevet: {{sale_hints}} </b>
 {% endif %}
 </blink>
@@ -25,6 +25,15 @@ for tilsammen {{cost|money}} kr.
         <br />Du Ballmer-peaker!! Du kan producere god kode de næste: {{ bp_minutes|floatformat:0 }} minuter og {{ bp_seconds|floatformat:0 }} sekunder!
     {% else %}
         <br />Din alkohol promille er ca. <b>{{promille|floatformat:2}}‰</b>
+    {% endif %}
+{% endif %}
+{% if product_contains_caffeine %}
+    {%  if is_coffee_master%}
+        <br />🏆Du er kaffemester i denne uge!🏆
+    {% endif %}
+    <br />Du har {{caffeine | floatformat:0}}mg koffein i kroppen.
+    {%  if cups is not 0 %}
+        <br />Det svarer til at drikke {{caffeine | caffeine_emoji_render}} {{ cups|pluralize:'kop kaffe,kopper kaffe i streg!' }}
     {% endif %}
 {% endif %}
 {% endautoescape %}

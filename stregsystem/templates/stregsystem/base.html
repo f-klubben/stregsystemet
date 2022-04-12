@@ -12,6 +12,8 @@
 </style>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <link rel="stylesheet" type="text/css" media="screen" href="{% static "/stregsystem/bat.css" %}" />
+<link rel="stylesheet" type="text/css" media="screen" href="{% static "/stregsystem/snow.css" %}" />
+<link rel="stylesheet" type="text/css" media="screen" href="{% static "/stregsystem/easter.css" %}" />
 <script>
     var static_url = "{% get_static_prefix %}";
     var media_url = "{% get_media_prefix %}";
@@ -58,9 +60,12 @@
 {% endblock %}
 </div>
 <script type="text/javascript" async src="{% static "/stregsystem/bat.js" %}"></script>
+<script type="text/javascript" async src="{% static "/stregsystem/snow.js" %}"></script>
+<script type="text/javascript" async src="{% static "/stregsystem/easter.js" %}"></script>
 <script type="text/javascript" async src="{% static "/stregsystem/gdpr.js" %}"></script>
 <div class="bat-container"></div>
-
+<div class="snow-container"></div>
+<div class="easter-container"></div>
 {% show_candle %}
 </body>
 </html>
