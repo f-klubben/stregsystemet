@@ -4,7 +4,18 @@ from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
 
-from stregsystem.models import Category, Member, News, Payment, PayTransaction, Product, Room, Sale, MobilePayment, Event
+from stregsystem.models import (
+    Category,
+    Member,
+    News,
+    Payment,
+    PayTransaction,
+    Product,
+    Room,
+    Sale,
+    MobilePayment,
+    Event,
+)
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
 
