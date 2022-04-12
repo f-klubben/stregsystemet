@@ -93,7 +93,7 @@ def date_to_midnight(date):
     return timezone.make_aware(timezone.datetime(date.year, date.month, date.day, 0, 0))
 
 
-def send_payment_mail(member, amount):
+def send_payment_mail(member, amount, mobilepay_comment):
     if hasattr(settings, 'TEST_MODE'):
         return
     msg = MIMEMultipart()
@@ -103,7 +103,7 @@ def send_payment_mail(member, amount):
 
     formatted_amount = money(amount)
 
-    html = f"""
+    normal_html = f"""
     <html>
         <head></head>
         <body>
@@ -124,7 +124,38 @@ def send_payment_mail(member, amount):
     </html>
     """
 
-    msg.attach(MIMEText(html, 'html'))
+    from django.utils.html import escape
+
+    shame_html = f"""
+        <html>
+            <head></head>
+            <body>
+                <p>
+                   Hej {member.firstname}!<br><br>
+                   Vi har med stort besvær indsat pokkers {formatted_amount} stregdollars på din konto: "{member.username}". <br><br>
+                   Da du ikke skrev dit brugernavn korrekt, men i stedet skrev '{escape(mobilepay_comment)}' var de stakkels TREOer desværre nødt til at tage flere minutter ud af deres dag for at indsætte dine penge manuelt.
+                   Vil du nyde godt af vores automatiske indbetaling kan du i fremtiden med fordel skrive dit brugernavn korrekt i MobilePay kommentaren: '{member.username}'.
+                   Udnytter du vores QR-kode generator klarer den også denne komplicerede process for dig.
+                   
+                   Hvis du ikke ønsker at modtage flere mails som denne kan du skrive en mail til: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
+                   Mvh,<br>
+                   TREOen<br>
+                   ====================================================================<br>
+                   Hello {member.firstname}!<br><br>
+                   We've had great trouble inserting {formatted_amount} stregdollars on your account: "{member.username}". <br><br>
+                   This is due to you not you not writing your username correctly, and instead writing '{escape(mobilepay_comment)}'. The poor TREOs had to take multiple minutes out of their day to insert your money manually.
+                   If you want to utilise our automatic fill-up in future, you can write your username correctly in the MobilePay comment: '{member.username}'
+                   Our QR-code generator also handles this very complicated process for you. 
+                   
+                   If you do not desire to receive any more mails of this sort, please file a complaint to: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
+                   Kind regards,<br>
+                   TREOen
+                </p>
+            </body>
+        </html>
+        """
+
+    msg.attach(MIMEText(shame_html if mobilepay_comment else normal_html, 'html'))
 
     try:
         smtpObj = smtplib.SMTP('localhost', 25)
@@ -178,16 +209,30 @@ def mobile_payment_exact_match_member(comment):
 
 def strip_emoji(text):
     # yoinked from https://stackoverflow.com/questions/33404752/removing-emojis-from-a-string-in-python
-    regrex_pattern = re.compile(
-        pattern="["
+    emoj = re.compile(
+        "["
         u"\U0001F600-\U0001F64F"  # emoticons
         u"\U0001F300-\U0001F5FF"  # symbols & pictographs
         u"\U0001F680-\U0001F6FF"  # transport & map symbols
         u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+        u"\U00002500-\U00002BEF"  # chinese char
+        u"\U00002702-\U000027B0"
+        u"\U00002702-\U000027B0"
+        u"\U000024C2-\U0001F251"
+        u"\U0001f926-\U0001f937"
+        u"\U00010000-\U0010ffff"
+        u"\u2640-\u2642"
+        u"\u2600-\u2B55"
+        u"\u200d"
+        u"\u23cf"
+        u"\u23e9"
+        u"\u231a"
+        u"\ufe0f"  # dingbats
+        u"\u3030"
         "]+",
-        flags=re.UNICODE,
+        re.UNICODE,
     )
-    return regrex_pattern.sub(r'', text)
+    return re.sub(emoj, '', text).strip()
 
 
 def qr_code(data):

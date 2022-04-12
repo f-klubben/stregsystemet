@@ -301,7 +301,7 @@ def ranks_for_year(request, year):
         1859,
     ]
     coffee = [32, 35, 36, 39]
-    vitamin = [1850, 1851, 1852, 1863]
+    vitamin = [1850, 1851, 1852, 1863, 1880]
 
     FORMAT = '%d/%m/%Y kl. %H:%M'
     last_year = year - 1

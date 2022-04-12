@@ -1,7 +1,7 @@
 Django==2.2.24
 Pillow==8.3.2
 Coverage==4.4.1
-pytz==2018.3
+pytz==2021.3
 regex==2017.07.28
 freezegun==0.3.15
 Django-Select2==5.11.1
