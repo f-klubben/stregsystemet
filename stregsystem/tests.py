@@ -629,7 +629,7 @@ class EventTests(TestCase):
             product=product,
             time=timezone.now() + datetime.timedelta(hours=1),
             ticket_start_threshold=timezone.now() - datetime.timedelta(hours=1),
-            ticket_end_threshold=timezone.now() + datetime.timedelta(hours=1)
+            ticket_end_threshold=timezone.now() + datetime.timedelta(hours=1),
         )
 
         self.assertTrue(event.is_active())
@@ -645,7 +645,7 @@ class EventTests(TestCase):
             product=product,
             time=timezone.now() + datetime.timedelta(hours=1),
             ticket_start_threshold=timezone.now() - datetime.timedelta(hours=10),
-            ticket_end_threshold=timezone.now() - datetime.timedelta(hours=1)
+            ticket_end_threshold=timezone.now() - datetime.timedelta(hours=1),
         )
 
         self.assertFalse(event.is_active())
@@ -661,7 +661,7 @@ class EventTests(TestCase):
             product=product,
             time=timezone.now() + datetime.timedelta(hours=1),
             ticket_start_threshold=timezone.now() + datetime.timedelta(hours=2),
-            ticket_end_threshold=timezone.now() + datetime.timedelta(hours=5)
+            ticket_end_threshold=timezone.now() + datetime.timedelta(hours=5),
         )
 
         self.assertFalse(event.is_active())
@@ -677,7 +677,7 @@ class EventTests(TestCase):
             product=product,
             time=timezone.now() + datetime.timedelta(hours=1),
             ticket_start_threshold=timezone.now() - datetime.timedelta(hours=10),
-            ticket_end_threshold=timezone.now() - datetime.timedelta(hours=1)
+            ticket_end_threshold=timezone.now() - datetime.timedelta(hours=1),
         )
 
         self.assertFalse(event.is_active())
