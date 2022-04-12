@@ -223,21 +223,7 @@ def menu_userinfo(request, room_id, member_id):
 def menu_ticketsview(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     member = Member.objects.get(pk=member_id, active=True)
-    event_list = Event.objects.all()
-    kek = 2
-
-    sale_list = member.sale_set.order_by('-timestamp')
-    bought_product_list = []
-    bought_events_list = []
-
-    for sale in sale_list:
-        if sale.product not in bought_product_list:
-            bought_product_list.append(sale.product)
-
-    for event in event_list:
-        if event.product in bought_product_list and event.is_active():
-            bought_events_list.append(event)
-
+    bought_events_list = Event.objects.filter(product__in=member.sale_set.values('product'))
 
     return render(request, 'stregsystem/menu_ticketsview.html', locals())
 
