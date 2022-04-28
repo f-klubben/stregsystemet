@@ -2,11 +2,11 @@ d = new Date();
 
 if(d.getMonth() === 3){
     if(d.getHours() === 13 && d.getMinutes() === 37){
-        for(let beerflakes=0; beerflakes < Math.min(d.getDate(), 24); beerflakes++){
+        for(let beerflakes=0; beerflakes < Math.min(d.getDate(), 3); beerflakes++){
             SpawnBeerflakeCursed();
         }
     }else{
-        for(let beerflakes=0; beerflakes < Math.min(d.getDate(), 24); beerflakes++){
+        for(let beerflakes=0; beerflakes < Math.min(d.getDate(), 3); beerflakes++){
             SpawnBeerflake();
         }
     }
