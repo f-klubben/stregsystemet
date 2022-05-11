@@ -599,7 +599,7 @@ class NamedProduct(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='named_id')
 
     def __str__(self):
-        return self.name + " -> " + self.product.name
+        return self.name
 
     def map_str(self):
         return self.name + " -> " + str(self.product.id)

@@ -39,14 +39,15 @@ def product_id_and_alias_string(product_id):
     aliases = NamedProduct.objects.filter(product__exact=product_id)
 
     if aliases.exists():
+        res = str(product_id) + " / "
         if aliases.count() > 1:
             # pick random alias
 
             alias: NamedProduct = choice(aliases)
-            return alias.map_str()
+            return res + str(alias)
         else:
             # else we've got one alias
-            return aliases.first().map_str()
+            return res + str(aliases.first())
     else:
         #
-        return "N/A -> " + str(product_id)
+        return str(product_id)
