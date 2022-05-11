@@ -595,7 +595,7 @@ class Product(models.Model):  # id automatisk...
 
 
 class NamedProduct(models.Model):
-    name = models.CharField(max_length=50, validators=[RegexValidator(regex=r'^[^\d:\-_][\w\-]+$')])
+    name = models.CharField(max_length=50, unique=True, validators=[RegexValidator(regex=r'^[^\d:\-_][\w\-]+$')])
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='named_id')
 
     def __str__(self):
