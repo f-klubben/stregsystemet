@@ -14,7 +14,7 @@ from django.contrib.auth.decorators import permission_required
 from django.conf import settings
 from django.db.models import Q, Count
 from django import forms
-from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest
+from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django_select2 import forms as s2forms
@@ -33,6 +33,7 @@ from stregsystem.models import (
     StregForbudError,
     MobilePayment,
     Category,
+    NamedProduct,
 )
 from stregsystem.utils import (
     make_active_productlist_query,
@@ -74,6 +75,26 @@ def index(request, room_id):
     return render(request, 'stregsystem/index.html', locals())
 
 
+def dump_named_items(request):
+    items = NamedProduct.objects.all()
+    items_dict = {item.name: item.product.id for item in items}
+    return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
+
+
+def _pre_process(buy_string):
+    items = buy_string.split(' ')
+    _items = [items[0]]
+
+    for item in items[1:]:
+        if type(item) is not int:
+            _item = NamedProduct.objects.filter(name=item.split(':')[0].lower() if ':' in item else item)
+            if _item:
+                item = item.replace(item.split(':')[0], str(_item.get().product.pk))
+        _items.append(str(item))
+
+    return ' '.join(_items)
+
+
 def sale(request, room_id):
     room = get_object_or_404(Room, pk=room_id)
     news = __get_news()
@@ -85,7 +106,8 @@ def sale(request, room_id):
         return render(request, 'stregsystem/index.html', locals())
     # Extract username and product ids
     try:
-        username, bought_ids = parser.parse(buy_string)
+
+        username, bought_ids = parser.parse(_pre_process(buy_string))
     except parser.QuickBuyError as err:
         values = {
             'correct': err.parsed_part,
