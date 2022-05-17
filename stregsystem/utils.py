@@ -79,7 +79,7 @@ def make_unprocessed_member_filled_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
 
     return MobilePayment.objects.filter(
-        Q(payment__isnull=True) & Q(status=MobilePayment.UNSET) & Q(member__isnull=False)
+        Q(payment__isnull=True) & Q(status=MobilePayment.UNSET) & Q(amount__gte=5000) & Q(member__isnull=False)
     )
 
 

@@ -1551,6 +1551,79 @@ class MobilePaymentTests(TestCase):
                 raise e
 
 
+class AutoPaymentTests(TestCase):
+    def setUp(self):
+
+        self.autopayment_user = User.objects.create_superuser('autopayment', 'foo@bar.com', 'hunter2')
+        Member.objects.create(
+            username='tester', firstname='Test', lastname='Testsen', email='tables@nsa.gov', balance=178
+        )
+
+    def test_ignore_lt_50_20(self):
+        comment = 'tester'
+        MobilePayment.objects.create(
+            amount=2000,
+            comment=comment,
+            timestamp=parse_datetime("2022-05-16T13:51:08.8574424+01:00"),
+            transaction_id='156E027485173228',
+            member=mobile_payment_exact_match_member(comment),
+        )
+
+        MobilePayment.approve_member_filled_mobile_payments()
+        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+
+        ignored = MobilePayment.objects.get(transaction_id='156E027485173228')
+        self.assertEqual(ignored.status, MobilePayment.UNSET)
+
+    def test_ignore_lt_50_49(self):
+        comment = 'tester'
+        MobilePayment.objects.create(
+            amount=4999,
+            comment=comment,
+            timestamp=parse_datetime("2022-05-16T13:51:08.8574424+01:00"),
+            transaction_id='156E027485173228',
+            member=mobile_payment_exact_match_member(comment),
+        )
+
+        MobilePayment.approve_member_filled_mobile_payments()
+        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+
+        ignored = MobilePayment.objects.get(transaction_id='156E027485173228')
+        self.assertEqual(ignored.status, MobilePayment.UNSET)
+
+    def test_approve_gte_50(self):
+        comment = 'tester'
+        MobilePayment.objects.create(
+            amount=5000,
+            comment=comment,
+            timestamp=parse_datetime("2022-05-16T13:51:09.8574424+01:00"),
+            transaction_id='156E027485173229',
+            member=mobile_payment_exact_match_member(comment),
+        )
+
+        MobilePayment.approve_member_filled_mobile_payments()
+        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+
+        approved = MobilePayment.objects.get(transaction_id='156E027485173229')
+        self.assertEqual(approved.status, MobilePayment.APPROVED)
+
+    def test_approve_gte_50_big(self):
+        comment = 'tester'
+        MobilePayment.objects.create(
+            amount=500000,
+            comment=comment,
+            timestamp=parse_datetime("2022-05-16T13:51:09.8574424+01:00"),
+            transaction_id='156E027485173229',
+            member=mobile_payment_exact_match_member(comment),
+        )
+
+        MobilePayment.approve_member_filled_mobile_payments()
+        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+
+        approved = MobilePayment.objects.get(transaction_id='156E027485173229')
+        self.assertEqual(approved.status, MobilePayment.APPROVED)
+
+
 class CaffeineCalculatorTest(TestCase):
     def test_default_caffeine_is_zero(self):
         product = Product.objects.create(name="some product", price=420.0, active=True)
