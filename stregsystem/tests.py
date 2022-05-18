@@ -1502,7 +1502,7 @@ class MobilePaymentTests(TestCase):
         self.assertEqual(strip_emoji("Tilmeld Lichi 😎"), "Tilmeld Lichi")
 
     def test_emoji_strip_electric_boogaloo(self):
-        # Laurits bør få næse for at fremprovokoere dette case
+        # Laurits bør få næse for at fremprovokere dette case
         self.assertEqual(strip_emoji("♂️Laurits♂️"), "Laurits")
 
     def test_emoji_retain_nordic(self):
@@ -1510,6 +1510,16 @@ class MobilePaymentTests(TestCase):
 
     def test_emoji_retain(self):
         self.assertEqual(strip_emoji("Tilmeld Lichi"), "Tilmeld Lichi")
+
+    def test_allowlist(self):
+        self.assertEqual(
+            strip_emoji("a-zA-Z0-9äåæéëöø!#$%&()*+,\-./:;<=>?@\^`\]{|}~£§¶Ø"),
+            "a-zA-Z0-9äåæéëöø!#$%&()*+,\-./:;<=>?@\^`\]{|}~£§¶Ø",
+        )
+
+    def test_esoteric_chars(self):
+        # Weirsøe bør få næse for at fremprovokere dette case
+        self.assertEqual(strip_emoji("tilmeld ἂ"), "tilmeld")
 
     def test_mobilepaytool_race_no_error(self):
         # do autopayment
