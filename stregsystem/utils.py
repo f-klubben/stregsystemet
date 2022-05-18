@@ -95,7 +95,7 @@ def date_to_midnight(date):
     return timezone.make_aware(timezone.datetime(date.year, date.month, date.day, 0, 0))
 
 
-class EmailType(enum):
+class EmailType(Enum):
     STANDARD = 0
     SHAME = 1
     LOW_AMOUNT = 2
