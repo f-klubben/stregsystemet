@@ -30,4 +30,5 @@ urlpatterns = [
     re_path(r'^(?P<room_id>\d+)/user/(?P<member_id>\d+)/pay$', views.menu_userpay, name="userpay"),
     re_path(r'^(?P<room_id>\d+)/user/(?P<member_id>\d+)/rank$', views.menu_userrank, name="userrank"),
     re_path(r'^api/member/payment/qr$', views.qr_payment, name="payment_qr"),
+    re_path(r'^api/products/named_products$', views.dump_named_items, name="named_products"),
 ]
