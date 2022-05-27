@@ -431,7 +431,6 @@ class MobilePayment(models.Model):
                 # Save payment and foreign key to MobilePayment field
                 payment.save()
                 payment.log_from_mobile_payment(processed_mobile_payment, admin_user)
-                processed_mobile_payment.log_mobile_payment(admin_user, "Approved")
                 processed_mobile_payment.payment = payment
                 processed_mobile_payment.save()
 
