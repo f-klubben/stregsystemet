@@ -1513,13 +1513,16 @@ class MobilePaymentTests(TestCase):
 
     def test_allowlist(self):
         self.assertEqual(
-            strip_emoji("a-zA-Z0-9äåæéëöø!#$%&()*+,\-./:;<=>?@\^`\]{|}~£§¶Ø"),
-            "a-zA-Z0-9äåæéëöø!#$%&()*+,\-./:;<=>?@\^`\]{|}~£§¶Ø",
+            strip_emoji("a-zA-Z0-9äåæéëöø!#$%&()*+,\-_./:;<=>?@\^`\]{|}~£§¶Ø"),
+            "a-zA-Z0-9äåæéëöø!#$%&()*+,\-_./:;<=>?@\^`\]{|}~£§¶Ø",
         )
 
     def test_esoteric_chars(self):
         # Weirsøe bør få næse for at fremprovokere dette case
         self.assertEqual(strip_emoji("tilmeld ἂ"), "tilmeld")
+
+    def test_underscore_char(self):
+        self.assertEqual(strip_emoji("_"), "_")
 
     def test_mobilepaytool_race_no_error(self):
         # do autopayment

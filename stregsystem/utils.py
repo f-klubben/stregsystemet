@@ -210,7 +210,7 @@ def mobile_payment_exact_match_member(comment):
 def strip_emoji(text):
     # allowlist decided by string.printables and all unique chars from usernames
     return re.sub(
-        '[^a-zA-Z0-9äåæéëöø!"#$%&()*+,\-./:;<=>?@\\\^`\]{|}~£§¶Ø\s]',
+        '[^a-zA-Z0-9äåæéëöø!"#$%&()*+,\-_./:;<=>?@\\\^`\]{|}~£§¶Ø\s]',
         '',
         text,
     ).strip()
