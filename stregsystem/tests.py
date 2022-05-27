@@ -1585,8 +1585,8 @@ class AutoPaymentTests(TestCase):
         MobilePayment.approve_member_filled_mobile_payments()
         MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
 
-        ignored = MobilePayment.objects.get(transaction_id='156E027485173228')
-        self.assertEqual(ignored.status, MobilePayment.UNSET)
+        unset = MobilePayment.objects.get(transaction_id='156E027485173228')
+        self.assertEqual(unset.status, MobilePayment.UNSET)
 
     def test_ignore_lt_50_49(self):
         comment = 'tester'
