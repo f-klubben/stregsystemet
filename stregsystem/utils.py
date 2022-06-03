@@ -62,7 +62,7 @@ def make_room_specific_query(room) -> QuerySet:
 def make_unprocessed_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
 
-    return MobilePayment.objects.filter(Q(payment__isnull=True) & Q(status__exact=MobilePayment.UNSET)).order_by(
+    return MobilePayment.objects.filter(Q(payment__isnull=True) & Q(status__in=[MobilePayment.UNSET, MobilePayment.LOW_AMOUNT])).order_by(
         '-timestamp'
     )
 
@@ -174,7 +174,38 @@ def send_payment_mail(member, amount, email_type: EmailType, comment=None):
             )
         )
     elif email_type is EmailType.LOW_AMOUNT:
-        msg.attach(MIMEText("TODO", 'html'))
+        msg.attach(
+            MIMEText(
+                f"""
+        <html>
+            <head></head>
+            <body>
+                <p>
+                   Hej {member.firstname}!<br><br>
+                   Vi har indsat {formatted_amount} stregdollars på din konto: "{member.username}". <br><br>
+                   <b>Bemærk at du har sendt mindre end minimumsgrænsen (50 DKK) i din indbetaling , hvilket vi ikke tillader på grund af høje gebyrer.</b>
+                   Din indbetaling er ekstraordinært blevet manuelt accepteret, men ved gentagne overførsler under minimumsgrænsen vil vi afvise din indbetaling.
+                   Hvis du ikke ønsker at modtage flere mails som denne kan du skrive en mail til: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
+                   Mvh,<br>
+                   TREOen<br>
+                   ====================================================================<br>
+                   Hello {member.firstname}!<br><br>
+                   We've inserted {formatted_amount} stregdollars on your account: "{member.username}". <br><br>
+                   <b> Notice that you have sent less than the lower bound for top-ups (50 DKK) in you payment, which is against our rules due to high fees.</b>
+                   Your payment has been extraordinarily manually accepted, but with repeat transactions under the lower bound we may decline your payment.
+                   If you do not desire to receive any more mails of this sort, please file a complaint to: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
+                   Kind regards,<br>
+                   TREOen
+                </p>
+            </body>
+        </html>
+        """,
+                'html',
+            )
+        )
+    else:
+        logger.error("Could not match type of payment mail to send user. Skipping")
+        return
 
     try:
         smtpObj = smtplib.SMTP('localhost', 25)

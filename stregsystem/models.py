@@ -386,11 +386,13 @@ class MobilePayment(models.Model):
 
     UNSET = 'U'
     APPROVED = 'A'
+    LOW_AMOUNT = 'L'
     IGNORED = 'I'
 
     STATUS_CHOICES = (
         (UNSET, 'Unset'),
         (APPROVED, 'Approved'),
+        (LOW_AMOUNT, 'Low amount'),
         (IGNORED, 'Ignored'),
     )
     member = models.ForeignKey(
@@ -480,8 +482,9 @@ class MobilePayment(models.Model):
 
         for row in cleaned_data:
             processed_mobile_payment = MobilePayment.objects.get(id=row['id'].id)
+            status = row['status']
             # If approved, we need to create a payment and relate said payment to the mobilepayment.
-            if row['status'] == MobilePayment.APPROVED:
+            if status == MobilePayment.APPROVED or status == MobilePayment.LOW_AMOUNT:
                 payment_amount = processed_mobile_payment.amount
                 member = Member.objects.get(id=row['member'].id)
 
@@ -493,8 +496,12 @@ class MobilePayment(models.Model):
                 processed_mobile_payment.member = member
                 processed_mobile_payment.log_mobile_payment(admin_user, "Approved")
 
-                # send shame mail
-                send_payment_mail(member, payment_amount, EmailType.SHAME, processed_mobile_payment.comment)
+                if status is MobilePayment.APPROVED:
+                    # send shame mail
+                    send_payment_mail(member, payment_amount, EmailType.SHAME, processed_mobile_payment.comment)
+                elif status is MobilePayment.LOW_AMOUNT:
+                    # send low amount mail
+                    send_payment_mail(member, payment_amount, EmailType.LOW_AMOUNT, processed_mobile_payment.comment)
 
             # If ignored, we need to log who did it.
             elif row['status'] == MobilePayment.IGNORED:
