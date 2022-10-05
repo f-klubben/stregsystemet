@@ -133,3 +133,9 @@ table h2, table h3 {
       -webkit-transform: scale(1,1) translate(0, -2px) rotate(.2deg);
   }
 }
+
+/* Ensures that bats/"flakes" don't interfere with qr-code scanning */
+.qr-code {
+    position: relative;
+    z-index: 2147483647;
+}
