@@ -17,6 +17,7 @@ from django import forms
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 from django_select2 import forms as s2forms
 import urllib.parse
 
@@ -48,6 +49,7 @@ from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
 from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, RankingDateForm
 
+import json
 
 def __get_news():
     try:
@@ -73,12 +75,6 @@ def index(request, room_id):
     product_list = __get_productlist(room_id)
     news = __get_news()
     return render(request, 'stregsystem/index.html', locals())
-
-
-def dump_named_items(request):
-    items = NamedProduct.objects.all()
-    items_dict = {item.name: item.product.id for item in items}
-    return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
 
 
 def _pre_process(buy_string):
@@ -487,3 +483,174 @@ def qr_payment(request):
     data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
 
     return qr_code(data)
+
+# API views
+
+
+def dump_active_items(request):
+    room_id = request.GET.get('room_id') or None
+    if room_id is None:
+        return HttpResponseBadRequest("Missing room_id")
+    elif not room_id.isdigit():
+        return HttpResponseBadRequest("Invalid room_id")
+    items = __get_productlist(room_id)
+    items_dict = {item.id: (item.name,item.price) for item in items}
+    return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
+
+
+def check_user_active(request):
+    member_id = request.GET.get('member_id') or None
+    if member_id is None:
+        return HttpResponseBadRequest("Missing member_id")
+    elif not member_id.isdigit():
+        return HttpResponseBadRequest("Invalid member_id")
+    member = Member.objects.get(pk=member_id, active=True)
+    return JsonResponse({'active': member.active})
+
+
+def convert_username_to_id(request):
+    username = request.GET.get('username') or None
+    if username is None:
+        return HttpResponseBadRequest("Missing username")
+    member = Member.objects.get(username=username)
+    return JsonResponse({'member_id': member.id})
+
+
+def dump_product_category_mappings(request):
+    return JsonResponse({p.id: [(cat.id, cat.name) for cat in p.categories.all()] for p in Product.objects.all()})
+
+
+def get_user_sales(request):
+    member_id = request.GET.get('member_id') or None
+    if member_id is None:
+        return HttpResponseBadRequest("Missing member_id")
+    elif not member_id.isdigit():
+        return HttpResponseBadRequest("Invalid member_id")
+    count = 10 if request.GET.get('count') is None else int(request.GET.get('count') or 10)
+    sales = Sale.objects.filter(member=member_id).order_by('-timestamp')[:count]
+    return JsonResponse({'sales': [{'timestamp': s.timestamp, 'product': s.product.name, 'price': s.product.price} for s in sales]})
+
+
+def get_user_balance(request):
+    member_id = request.GET.get('member_id') or None
+    if member_id is None:
+        return HttpResponseBadRequest("Missing member_id")
+    elif not member_id.isdigit():
+        return HttpResponseBadRequest("Invalid member_id")
+    member = Member.objects.get(pk=member_id)
+    return JsonResponse({'balance': member.balance})
+
+
+def get_user_info(request):
+    member_id = request.GET.get('member_id') or None
+    if member_id is None:
+        return HttpResponseBadRequest("Missing member_id")
+    elif not member_id.isdigit():
+        return HttpResponseBadRequest("Invalid member_id")
+    member = Member.objects.get(pk=member_id)
+    return JsonResponse({'balance': member.balance, 'username': member.username, 'active': member.active, 'name': f'{member.firstname} {member.lastname}'})
+
+
+def dump_named_items(request):
+    items = NamedProduct.objects.all()
+    items_dict = {item.name: item.product.id for item in items}
+    return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
+
+
+@csrf_exempt
+def api_sale(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        buy_string = data['buystring'].strip()
+        room = data['room'] or None
+        member_id = data['member_id'] or None
+
+        if not type(room) is int:
+            return HttpResponseBadRequest("Invalid room")
+
+        if buy_string is None:
+            return HttpResponseBadRequest("Missing buystring")
+        if member_id is None:
+            return HttpResponseBadRequest("Missing member_id")
+        elif not member_id.isdigit():
+            return HttpResponseBadRequest("Invalid member_id")
+        
+        try:
+            username, bought_ids = parser.parse(_pre_process(buy_string))
+        except parser.ParseError as e:
+            return HttpResponseBadRequest("Parse error: {}".format(e))
+        try:
+            member = Member.objects.get(pk=member_id, active=True)
+        except Member.DoesNotExist:
+            return HttpResponseBadRequest("Invalid member_id")
+
+        if username != member.username:
+            return HttpResponseBadRequest("Username does not match member_id")
+
+        if len(bought_ids):
+            room = Room.objects.get(pk=room)
+            msg, status, ret_obj = api_quicksale(request, room, member, bought_ids)
+            return JsonResponse({'status': status, 'msg': msg, 'values': ret_obj}, json_dumps_params={'ensure_ascii': False})
+        return HttpResponseBadRequest("No items to buy")
+
+
+def api_quicksale(request, room, member: Member, bought_ids):
+    now = timezone.now()
+
+    # Retrieve products and construct transaction
+    products: List[Product] = []
+    try:
+        for i in bought_ids:
+            product = Product.objects.get(
+                Q(pk=i),
+                Q(active=True),
+                Q(deactivate_date__gte=now) | Q(deactivate_date__isnull=True),
+                Q(rooms__id=room.id) | Q(rooms=None),
+            )
+            products.append(product)
+    except Product.DoesNotExist:
+        return "Invalid product id", 400, None
+
+    order = Order.from_products(member=member, products=products, room=room)
+
+    try:
+        order.execute()
+    except StregForbudError:
+        return "Stregforbud", 403, None
+    except NoMoreInventoryError:
+        # @INCOMPLETE this should render with a different template
+        return "Out of stock", 403, None
+
+    promille = member.calculate_alcohol_promille()
+    is_ballmer_peaking, bp_minutes, bp_seconds = ballmer_peak(promille)
+
+    caffeine = member.calculate_caffeine_in_body()
+    cups = caffeine_mg_to_coffee_cups(caffeine)
+    product_contains_caffeine = any(product.caffeine_content_mg > 0 for product in products)
+    is_coffee_master = member.is_leading_coffee_addict()
+
+    cost = order.total
+
+    give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
+
+    return "OK", 200, {
+        'order': {
+            'room': order.room.id,
+            'member': order.member.id,
+            'created_on': order.created_on,
+            'items': bought_ids,
+        },
+        'promille': promille,
+        'is_ballmer_peaking': is_ballmer_peaking,
+        'bp_minutes': bp_minutes,
+        'bp_seconds': bp_seconds,
+        'caffeine': caffeine,
+        'cups': cups,
+        'product_contains_caffeine': product_contains_caffeine,
+        'is_coffee_master': is_coffee_master,
+        'cost': cost(),
+        'give_multibuy_hint': give_multibuy_hint,
+        'sale_hints': sale_hints,
+        }
+
+
