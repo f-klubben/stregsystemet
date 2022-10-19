@@ -477,6 +477,7 @@ def qr_payment(request):
 
     return qr_code(data)
 
+
 # API views
 
 
@@ -487,7 +488,7 @@ def dump_active_items(request):
     elif not room_id.isdigit():
         return HttpResponseBadRequest("Invalid room_id")
     items = __get_productlist(room_id)
-    items_dict = {item.id: (item.name,item.price) for item in items}
+    items_dict = {item.id: (item.name, item.price) for item in items}
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
 
 
@@ -527,7 +528,9 @@ def get_user_sales(request):
         return HttpResponseBadRequest("Invalid member_id")
     count = 10 if request.GET.get('count') is None else int(request.GET.get('count') or 10)
     sales = Sale.objects.filter(member=member_id).order_by('-timestamp')[:count]
-    return JsonResponse({'sales': [{'timestamp': s.timestamp, 'product': s.product.name, 'price': s.product.price} for s in sales]})
+    return JsonResponse(
+        {'sales': [{'timestamp': s.timestamp, 'product': s.product.name, 'price': s.product.price} for s in sales]}
+    )
 
 
 def get_user_balance(request):
@@ -553,7 +556,14 @@ def get_user_info(request):
         member = Member.objects.get(pk=member_id)
     except Member.DoesNotExist:
         return HttpResponseBadRequest("Member not found")
-    return JsonResponse({'balance': member.balance, 'username': member.username, 'active': member.active, 'name': f'{member.firstname} {member.lastname}'})
+    return JsonResponse(
+        {
+            'balance': member.balance,
+            'username': member.username,
+            'active': member.active,
+            'name': f'{member.firstname} {member.lastname}',
+        }
+    )
 
 
 def dump_named_items(request):
@@ -579,7 +589,7 @@ def api_sale(request):
             return HttpResponseBadRequest("Missing member_id")
         elif not member_id.isdigit():
             return HttpResponseBadRequest("Invalid member_id")
-        
+
         try:
             username, bought_ids = parser.parse(_pre_process(buy_string))
         except parser.ParseError as e:
@@ -598,7 +608,9 @@ def api_sale(request):
             except Room.DoesNotExist:
                 return HttpResponseBadRequest("Invalid room")
             msg, status, ret_obj = api_quicksale(request, room, member, bought_ids)
-            return JsonResponse({'status': status, 'msg': msg, 'values': ret_obj}, json_dumps_params={'ensure_ascii': False})
+            return JsonResponse(
+                {'status': status, 'msg': msg, 'values': ret_obj}, json_dumps_params={'ensure_ascii': False}
+            )
         return HttpResponseBadRequest("No items to buy")
 
 
@@ -607,7 +619,7 @@ def api_quicksale(request, room, member: Member, bought_ids):
 
     # Retrieve products and construct transaction
     products: List[Product] = []
-    
+
     msg, status, result = __append_bought_ids_to_product_list(products, bought_ids, now, room)
     if status == 400:
         return msg, status, result
@@ -632,25 +644,30 @@ def api_quicksale(request, room, member: Member, bought_ids):
         sale_hints,
     ) = __set_local_values(member, room, products, order, now)
 
-    return "OK", 200, {
-        'order': {
-            'room': order.room.id,
-            'member': order.member.id,
-            'created_on': order.created_on,
-            'items': bought_ids,
+    return (
+        "OK",
+        200,
+        {
+            'order': {
+                'room': order.room.id,
+                'member': order.member.id,
+                'created_on': order.created_on,
+                'items': bought_ids,
+            },
+            'promille': promille,
+            'is_ballmer_peaking': is_ballmer_peaking,
+            'bp_minutes': bp_minutes,
+            'bp_seconds': bp_seconds,
+            'caffeine': caffeine,
+            'cups': cups,
+            'product_contains_caffeine': product_contains_caffeine,
+            'is_coffee_master': is_coffee_master,
+            'cost': cost(),
+            'give_multibuy_hint': give_multibuy_hint,
+            'sale_hints': sale_hints,
         },
-        'promille': promille,
-        'is_ballmer_peaking': is_ballmer_peaking,
-        'bp_minutes': bp_minutes,
-        'bp_seconds': bp_seconds,
-        'caffeine': caffeine,
-        'cups': cups,
-        'product_contains_caffeine': product_contains_caffeine,
-        'is_coffee_master': is_coffee_master,
-        'cost': cost(),
-        'give_multibuy_hint': give_multibuy_hint,
-        'sale_hints': sale_hints,
-        }
+    )
+
 
 def __append_bought_ids_to_product_list(products, bought_ids, time_now, room):
     try:
@@ -692,5 +709,16 @@ def __set_local_values(member, room, products, order, now):
     give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
 
     # return it all
-    return promille, is_ballmer_peaking, bp_minutes, bp_seconds, caffeine, cups, product_contains_caffeine, is_coffee_master, cost, give_multibuy_hint, sale_hints
-
+    return (
+        promille,
+        is_ballmer_peaking,
+        bp_minutes,
+        bp_seconds,
+        caffeine,
+        cups,
+        product_contains_caffeine,
+        is_coffee_master,
+        cost,
+        give_multibuy_hint,
+        sale_hints,
+    )
