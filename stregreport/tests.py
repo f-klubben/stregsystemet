@@ -1,7 +1,10 @@
+import datetime
+
 from django.test import TestCase
 from django.urls import reverse
 from stregreport import views
 from stregreport.models import BreadRazzia
+from freezegun import freeze_time
 
 
 class ParseIdStringTests(TestCase):
@@ -116,26 +119,27 @@ class RazziaTests(TestCase):
         self.assertContains(response_add_2, "already checked in", status_code=200)
 
     def test_foobar_razzia_member_can_register_multiple_times(self):
-        self.client.login(username="tester", password="treotreo")
-        response = self.client.get(reverse("razzia_new_FB"), follow=True)
-        razzia_url, _ = response.redirect_chain[-1]
+        with freeze_time() as frozen_datetime:
+            self.client.login(username="tester", password="treotreo")
+            response = self.client.get(reverse("razzia_new_FB"), follow=True)
+            razzia_url, _ = response.redirect_chain[-1]
 
-        response_members_0 = self.client.get(razzia_url + "members", follow=True)
+            response_members_0 = self.client.get(razzia_url + "members", follow=True)
 
-        response_add_1 = self.client.post(razzia_url, {"username": "jokke"}, follow=True)
+            response_add_1 = self.client.post(razzia_url, {"username": "jokke"}, follow=True)
+            frozen_datetime.tick(delta=datetime.timedelta(hours=1, minutes=1))
+            response_add_2 = self.client.post(razzia_url, {"username": "jokke"}, follow=True)
 
-        response_add_2 = self.client.post(razzia_url, {"username": "jokke"}, follow=True)
+            response_members_2 = self.client.get(razzia_url + "members", follow=True)
 
-        response_members_2 = self.client.get(razzia_url + "members", follow=True)
-
-        self.assertEqual(response_add_1.status_code, 200)
-        self.assertEqual(response_add_2.status_code, 200)
-        self.assertTemplateUsed(response_add_1, "admin/stregsystem/razzia/foobar.html")
-        self.assertTemplateUsed(response_add_2, "admin/stregsystem/razzia/foobar.html")
-        self.assertNotContains(response_add_1, "last checked in at", status_code=200)
-        self.assertContains(response_add_2, "last checked in at", status_code=200)
-        self.assertContains(response_members_0, "0 fember(s)", status_code=200)
-        self.assertContains(response_members_2, "2 fember(s)", status_code=200)
+            self.assertEqual(response_add_1.status_code, 200)
+            self.assertEqual(response_add_2.status_code, 200)
+            self.assertTemplateUsed(response_add_1, "admin/stregsystem/razzia/foobar.html")
+            self.assertTemplateUsed(response_add_2, "admin/stregsystem/razzia/foobar.html")
+            self.assertNotContains(response_add_1, "last checked in at", status_code=200)
+            self.assertContains(response_add_2, "last checked in at", status_code=200)
+            self.assertContains(response_members_0, "0 fember(s)", status_code=200)
+            self.assertContains(response_members_2, "2 fember(s)", status_code=200)
 
     def test_razzia_registered_member_is_in_member_list(self):
         self.client.login(username="tester", password="treotreo")
