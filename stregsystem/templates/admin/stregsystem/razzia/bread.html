@@ -4,7 +4,7 @@
 
 {% block member_present %}
 <div class="status">
-	<div class="fa {% if already_used %} fa-minus-circle failure {% else %} fa-check-circle sucess {% endif %}" aria-hidden="true"></div>
+	<div class="fa {% if already_checked_in %} fa-minus-circle failure {% else %} fa-check-circle sucess {% endif %}" aria-hidden="true"></div>
 </div>
-{{member.firstname}} {{member.lastname}} ({{member.username}}) {% if already_used %} already checked in at {{ entry.time }} {% endif %}
+{{member.firstname}} {{member.lastname}} ({{member.username}}) {% if already_checked_in %} already checked in at {{ last_entry.time }} {% endif %}
 {% endblock %}

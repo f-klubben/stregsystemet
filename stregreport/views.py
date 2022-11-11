@@ -58,10 +58,18 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
         if len(result) > 0:
             member = result[0]
             entries = list(razzia.razziaentry_set.filter(member__pk=member.pk).order_by('-time'))
-            already_used = len(entries) > 0
-            if already_used:
-                entry = entries[0]
-            if not already_used or razzia_type == BreadRazzia.FOOBAR:
+            already_checked_in = len(entries) > 0
+            wait_time = datetime.timedelta(minutes=30)
+            if already_checked_in:
+                last_entry = entries[0]
+                within_wait = last_entry.time > timezone.now() - wait_time
+            # if member has already checked in within the last hour, don't allow another check in
+            if already_checked_in and within_wait and razzia_type == BreadRazzia.FOOBAR:
+                drunkard = True
+                # time until next check in is legal
+                remaining_time_secs = int(((last_entry.time + wait_time) - timezone.now()).total_seconds() % 60)
+                remaining_time_mins = int(((last_entry.time + wait_time) - timezone.now()).total_seconds() // 60)
+            if not already_checked_in or (razzia_type == BreadRazzia.FOOBAR and not within_wait):
                 RazziaEntry(member=member, razzia=razzia).save()
 
     templates = {
