@@ -485,5 +485,4 @@ def qr_payment(request):
         query['amount'] = form.cleaned_data.get("amount")
 
     data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
-
     return qr_code(data)
