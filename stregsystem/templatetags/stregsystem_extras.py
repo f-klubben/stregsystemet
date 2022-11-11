@@ -28,3 +28,26 @@ def show_candle():
 
 t = get_template('stregsystem/adventcandle.html')
 register.inclusion_tag(t)(show_candle)
+
+
+@register.filter
+def product_id_and_alias_string(product_id):
+    from stregsystem.models import NamedProduct
+    from random import choice
+
+    # get aliases for id
+    aliases = NamedProduct.objects.filter(product__exact=product_id)
+
+    if aliases.exists():
+        res = str(product_id) + " / "
+        if aliases.count() > 1:
+            # pick random alias
+
+            alias: NamedProduct = choice(aliases)
+            return res + str(alias)
+        else:
+            # else we've got one alias
+            return res + str(aliases.first())
+    else:
+        #
+        return str(product_id)

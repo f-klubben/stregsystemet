@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytz
 from django.utils.dateparse import parse_datetime
 import stregsystem.parser as parser
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages import get_messages
@@ -37,6 +38,7 @@ from stregsystem.models import (
     active_str,
     price_display,
     MobilePayment,
+    NamedProduct,
 )
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
 from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, MobilePaytoolException
@@ -85,6 +87,40 @@ class SaleViewTests(TestCase):
 
     @patch('stregsystem.models.Member.can_fulfill')
     @patch('stregsystem.models.Member.fulfill')
+    def test_make_sale_quickbuy_success_for_multiple_named_product(self, fulfill, can_fulfill):
+        can_fulfill.return_value = True
+        item = Product.objects.get(id=1)
+        NamedProduct.objects.create(name='test1', product=item)
+
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke test1:2"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/index_sale.html")
+
+        assertCountEqual(self, response.context["products"], [Product.objects.get(id=1), Product.objects.get(id=1)])
+        self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
+
+        fulfill.assert_called_once_with(PayTransaction(1800))
+
+    @patch('stregsystem.models.Member.can_fulfill')
+    @patch('stregsystem.models.Member.fulfill')
+    def test_make_sale_quickbuy_success_for_named_product(self, fulfill, can_fulfill):
+        can_fulfill.return_value = True
+        item = Product.objects.get(id=1)
+        NamedProduct.objects.create(name='test1', product=item)
+
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke test1"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/index_sale.html")
+
+        assertCountEqual(self, response.context["products"], {Product.objects.get(id=1)})
+        self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
+
+        fulfill.assert_called_once_with(PayTransaction(900))
+
+    @patch('stregsystem.models.Member.can_fulfill')
+    @patch('stregsystem.models.Member.fulfill')
     def test_make_sale_quickbuy_success(self, fulfill, can_fulfill):
         can_fulfill.return_value = True
 
@@ -97,6 +133,59 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))
+
+    def test_make_sale_quickbuy_wrong_product_for_named_product(self):
+        item = Product.objects.get(id=1)
+        NamedProduct.objects.create(name='test1', product=item)
+
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke gnu99"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/error_invalidquickbuy.html")
+
+    def test_create_named_product_fails_for_invalid_name(self):
+        item = Product.objects.get(id=1)
+        prod = NamedProduct(name='11', product=item)
+        with self.assertRaises(ValidationError):
+            prod.full_clean()
+
+    def test_create_named_product_fails_for_invalid_name_2(self):
+        item = Product.objects.get(id=1)
+        prod = NamedProduct(name='test øl', product=item)
+        with self.assertRaises(ValidationError):
+            prod.full_clean()
+
+    def test_create_named_product_fails_for_invalid_name_3(self):
+        item = Product.objects.get(id=1)
+        prod = NamedProduct(name='øl:2', product=item)
+        with self.assertRaises(ValidationError):
+            prod.full_clean()
+
+    def test_create_named_product_fails_for_invalid_name_4(self):
+        item = Product.objects.get(id=1)
+        prod = NamedProduct(name='', product=item)
+        with self.assertRaises(ValidationError):
+            prod.full_clean()
+
+    def test_create_named_product_succeed_for_valid_name(self):
+        item = Product.objects.get(id=1)
+        prod = NamedProduct(name='øl', product=item)
+        prod.full_clean()
+
+    def test_create_named_product_succeed_for_valid_name_2(self):
+        item = Product.objects.get(id=1)
+        prod = NamedProduct(name='monster-mango', product=item)
+        prod.full_clean()
+
+    def test_create_named_product_succeed_for_valid_name_3(self):
+        item = Product.objects.get(id=1)
+        prod = NamedProduct(name='ale16', product=item)
+        prod.full_clean()
+
+    def test_create_named_product_succeed_for_valid_name_4(self):
+        item = Product.objects.get(id=1)
+        prod = NamedProduct(name='månedens-øl', product=item)
+        prod.full_clean()
 
     def test_make_sale_quickbuy_fail(self):
         member_username = 'jan'
@@ -1413,7 +1502,7 @@ class MobilePaymentTests(TestCase):
         self.assertEqual(strip_emoji("Tilmeld Lichi 😎"), "Tilmeld Lichi")
 
     def test_emoji_strip_electric_boogaloo(self):
-        # Laurits bør få næse for at fremprovokoere dette case
+        # Laurits bør få næse for at fremprovokere dette case
         self.assertEqual(strip_emoji("♂️Laurits♂️"), "Laurits")
 
     def test_emoji_retain_nordic(self):
@@ -1421,6 +1510,19 @@ class MobilePaymentTests(TestCase):
 
     def test_emoji_retain(self):
         self.assertEqual(strip_emoji("Tilmeld Lichi"), "Tilmeld Lichi")
+
+    def test_allowlist(self):
+        self.assertEqual(
+            strip_emoji("a-zA-Z0-9äåæéëöø!#$%&()*+,\-_./:;<=>?@\^`\]{|}~£§¶Ø"),
+            "a-zA-Z0-9äåæéëöø!#$%&()*+,\-_./:;<=>?@\^`\]{|}~£§¶Ø",
+        )
+
+    def test_esoteric_chars(self):
+        # Weirsøe bør få næse for at fremprovokere dette case
+        self.assertEqual(strip_emoji("tilmeld ἂ"), "tilmeld")
+
+    def test_underscore_char(self):
+        self.assertEqual(strip_emoji("_"), "_")
 
     def test_mobilepaytool_race_no_error(self):
         # do autopayment
@@ -1460,6 +1562,79 @@ class MobilePaymentTests(TestCase):
                 self.assertEqual(e.inconsistent_mbpayments_count, 2)
                 self.assertEqual(e.inconsistent_transaction_ids, ["241E027449465355", "016E027417049990"])
                 raise e
+
+
+class AutoPaymentTests(TestCase):
+    def setUp(self):
+
+        self.autopayment_user = User.objects.create_superuser('autopayment', 'foo@bar.com', 'hunter2')
+        Member.objects.create(
+            username='tester', firstname='Test', lastname='Testsen', email='tables@nsa.gov', balance=178
+        )
+
+    def test_ignore_lt_50_20(self):
+        comment = 'tester'
+        MobilePayment.objects.create(
+            amount=2000,
+            comment=comment,
+            timestamp=parse_datetime("2022-05-16T13:51:08.8574424+01:00"),
+            transaction_id='156E027485173228',
+            member=mobile_payment_exact_match_member(comment),
+        )
+
+        MobilePayment.approve_member_filled_mobile_payments()
+        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+
+        unset = MobilePayment.objects.get(transaction_id='156E027485173228')
+        self.assertEqual(unset.status, MobilePayment.UNSET)
+
+    def test_ignore_lt_50_49(self):
+        comment = 'tester'
+        MobilePayment.objects.create(
+            amount=4999,
+            comment=comment,
+            timestamp=parse_datetime("2022-05-16T13:51:08.8574424+01:00"),
+            transaction_id='156E027485173228',
+            member=mobile_payment_exact_match_member(comment),
+        )
+
+        MobilePayment.approve_member_filled_mobile_payments()
+        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+
+        unset = MobilePayment.objects.get(transaction_id='156E027485173228')
+        self.assertEqual(unset.status, MobilePayment.UNSET)
+
+    def test_approve_gte_50(self):
+        comment = 'tester'
+        MobilePayment.objects.create(
+            amount=5000,
+            comment=comment,
+            timestamp=parse_datetime("2022-05-16T13:51:09.8574424+01:00"),
+            transaction_id='156E027485173229',
+            member=mobile_payment_exact_match_member(comment),
+        )
+
+        MobilePayment.approve_member_filled_mobile_payments()
+        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+
+        approved = MobilePayment.objects.get(transaction_id='156E027485173229')
+        self.assertEqual(approved.status, MobilePayment.APPROVED)
+
+    def test_approve_gte_50_big(self):
+        comment = 'tester'
+        MobilePayment.objects.create(
+            amount=500000,
+            comment=comment,
+            timestamp=parse_datetime("2022-05-16T13:51:09.8574424+01:00"),
+            transaction_id='156E027485173229',
+            member=mobile_payment_exact_match_member(comment),
+        )
+
+        MobilePayment.approve_member_filled_mobile_payments()
+        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+
+        approved = MobilePayment.objects.get(transaction_id='156E027485173229')
+        self.assertEqual(approved.status, MobilePayment.APPROVED)
 
 
 class CaffeineCalculatorTest(TestCase):
