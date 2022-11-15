@@ -574,21 +574,20 @@ def dump_named_items(request):
 
 @csrf_exempt
 def api_sale(request):
-    if request.method == 'POST':
+    if request.method != "POST":
+        return HttpResponseBadRequest()
+    else:
         data = json.loads(request.body)
-        buy_string = data['buystring'].strip()
-        room = data['room'] or None
-        member_id = data['member_id'] or None
+        buy_string = str(data['buystring']).strip()
+        room = str(data['room']) or None
+        member_id = str(data['member_id']) or None
 
-        if not type(room) is int:
-            return HttpResponseBadRequest("Invalid room")
-
+        if room is None or not room.isdigit():
+            return HttpResponseBadRequest("Missing or invalid room")
         if buy_string is None:
             return HttpResponseBadRequest("Missing buystring")
-        if member_id is None:
-            return HttpResponseBadRequest("Missing member_id")
-        elif not member_id.isdigit():
-            return HttpResponseBadRequest("Invalid member_id")
+        if member_id is None or not member_id.isdigit():
+            return HttpResponseBadRequest("Missing or invalid member_id")
 
         try:
             username, bought_ids = parser.parse(_pre_process(buy_string))
@@ -602,16 +601,14 @@ def api_sale(request):
         if username != member.username:
             return HttpResponseBadRequest("Username does not match member_id")
 
-        if len(bought_ids):
-            try:
-                room = Room.objects.get(pk=room)
-            except Room.DoesNotExist:
-                return HttpResponseBadRequest("Invalid room")
-            msg, status, ret_obj = api_quicksale(request, room, member, bought_ids)
-            return JsonResponse(
-                {'status': status, 'msg': msg, 'values': ret_obj}, json_dumps_params={'ensure_ascii': False}
-            )
-        return HttpResponseBadRequest("No items to buy")
+        try:
+            room = Room.objects.get(pk=room)
+        except Room.DoesNotExist:
+            return HttpResponseBadRequest("Invalid room")
+        msg, status, ret_obj = api_quicksale(request, room, member, bought_ids)
+        return JsonResponse(
+            {'status': status, 'msg': msg, 'values': ret_obj}, json_dumps_params={'ensure_ascii': False}
+        )
 
 
 def api_quicksale(request, room, member: Member, bought_ids):
@@ -646,7 +643,7 @@ def api_quicksale(request, room, member: Member, bought_ids):
 
     return (
         "OK",
-        200,
+        200 if len(bought_ids) > 0 else 201,
         {
             'order': {
                 'room': order.room.id,
