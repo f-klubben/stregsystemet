@@ -547,14 +547,12 @@ def get_user_balance(request):
 
 
 def get_user_info(request):
-    member_id = request.GET.get('member_id') or None
-    if member_id is None:
-        return HttpResponseBadRequest("Missing member_id")
-    elif not member_id.isdigit():
-        return HttpResponseBadRequest("Invalid member_id")
-    try:
-        member = Member.objects.get(pk=member_id)
-    except Member.DoesNotExist:
+    member_id = str(request.GET.get('member_id')) or None
+    if member_id is None or not member_id.isdigit():
+        return HttpResponseBadRequest("Missing or invalid member_id")
+
+    member = find_user_from_id(int(member_id))
+    if member is None:
         return HttpResponseBadRequest("Member not found")
     return JsonResponse(
         {
@@ -564,6 +562,12 @@ def get_user_info(request):
             'name': f'{member.firstname} {member.lastname}',
         }
     )
+
+def find_user_from_id(user_id:int):
+    try:
+        return Member.objects.get(pk=user_id)
+    except Member.DoesNotExist:
+        return None
 
 
 def dump_named_items(request):
@@ -593,13 +597,16 @@ def api_sale(request):
             username, bought_ids = parser.parse(_pre_process(buy_string))
         except parser.ParseError as e:
             return HttpResponseBadRequest("Parse error: {}".format(e))
-        try:
-            member = Member.objects.get(pk=member_id, active=True)
-        except Member.DoesNotExist:
+
+        member = find_user_from_id(int(member_id))
+        if member is None:
             return HttpResponseBadRequest("Invalid member_id")
 
         if username != member.username:
             return HttpResponseBadRequest("Username does not match member_id")
+
+        if not buy_string.startswith(member.username):
+            buy_string = f'{member.username} {buy_string}'
 
         try:
             room = Room.objects.get(pk=room)
