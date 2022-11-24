@@ -17,7 +17,7 @@ from django.contrib.auth.decorators import permission_required
 from django.conf import settings
 from django.db.models import Q, Count
 from django import forms
-from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest
+from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django_select2 import forms as s2forms
@@ -37,6 +37,7 @@ from stregsystem.models import (
     MobilePayment,
     PendingSignup,
     Category,
+    NamedProduct,
 )
 from stregsystem.utils import (
     make_active_productlist_query,
@@ -78,6 +79,26 @@ def index(request, room_id):
     return render(request, 'stregsystem/index.html', locals())
 
 
+def dump_named_items(request):
+    items = NamedProduct.objects.all()
+    items_dict = {item.name: item.product.id for item in items}
+    return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
+
+
+def _pre_process(buy_string):
+    items = buy_string.split(' ')
+    _items = [items[0]]
+
+    for item in items[1:]:
+        if type(item) is not int:
+            _item = NamedProduct.objects.filter(name=item.split(':')[0].lower() if ':' in item else item)
+            if _item:
+                item = item.replace(item.split(':')[0], str(_item.get().product.pk))
+        _items.append(str(item))
+
+    return ' '.join(_items)
+
+
 def sale(request, room_id):
     room = get_object_or_404(Room, pk=room_id)
     news = __get_news()
@@ -89,7 +110,8 @@ def sale(request, room_id):
         return render(request, 'stregsystem/index.html', locals())
     # Extract username and product ids
     try:
-        username, bought_ids = parser.parse(buy_string)
+
+        username, bought_ids = parser.parse(_pre_process(buy_string))
     except parser.QuickBuyError as err:
         values = {
             'correct': err.parsed_part,
@@ -292,7 +314,7 @@ def menu_userrank(request, room_id, member_id):
         form = RankingDateForm(request.POST)
         if form.is_valid():
             from_date = form.cleaned_data['from_date']
-            to_date = form.cleaned_data['to_date']
+            to_date = form.cleaned_data['to_date'] + datetime.timedelta(days=1)
     else:
         # setup initial dates for form and results
         form = RankingDateForm(initial={'from_date': from_date, 'to_date': to_date})
@@ -470,7 +492,6 @@ def qr_payment(request):
         query['amount'] = form.cleaned_data.get("amount")
 
     data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
-
     return qr_code(data)
 
 

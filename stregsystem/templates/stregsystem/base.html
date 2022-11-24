@@ -1,18 +1,14 @@
 {% load static %}
 {% load stregsystem_extras %}
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
-  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="da-DK">
 <head>
 <title>{% block title %}TREOENs STREGSYSTEM{% endblock %}</title>
-<link rel="stylesheet" type="text/css" media="screen" href="{% static "/stregsystem/stregsystem.css" %}" />
-<style type="text/css">
-
-</style>
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-<link rel="stylesheet" type="text/css" media="screen" href="{% static "/stregsystem/bat.css" %}" />
-<link rel="stylesheet" type="text/css" media="screen" href="{% static "/stregsystem/snow.css" %}" />
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" media="screen" href="{% static "/stregsystem/stregsystem.css" %}">
+<link rel="stylesheet" media="screen" href="{% static "/stregsystem/bat.css" %}">
+<link rel="stylesheet" media="screen" href="{% static "/stregsystem/snow.css" %}">
+<link rel="stylesheet" media="screen" href="{% static "/stregsystem/easter.css" %}">
 <script>
     var static_url = "{% get_static_prefix %}";
     var media_url = "{% get_media_prefix %}";
@@ -28,7 +24,7 @@
     <tr>
         <td>
           <center>
-            <input type="button" onclick="location.href='/{{room.id}}';" value="Genstart" tabindex="10" accesskey="q" />
+            <input type="button" onclick="location.href='/{{room.id}}';" value="Genstart" tabindex="10" accesskey="q">
           </center>
         </td>
         <td align=center>
@@ -46,11 +42,11 @@
         </td>
     </tr>
 </table>
-<hr />
+<hr>
 
 {% block content %}{% endblock %}
 
-<hr />
+<hr>
 
 <div id="news">
 {% block news %}
@@ -59,11 +55,13 @@
 {% endif %}
 {% endblock %}
 </div>
-<script type="text/javascript" async src="{% static "/stregsystem/bat.js" %}"></script>
-<script type="text/javascript" async src="{% static "/stregsystem/snow.js" %}"></script>
-<script type="text/javascript" async src="{% static "/stregsystem/gdpr.js" %}"></script>
+<script async src="{% static "/stregsystem/bat.js" %}"></script>
+<script async src="{% static "/stregsystem/snow.js" %}"></script>
+<script async src="{% static "/stregsystem/easter.js" %}"></script>
+<script async src="{% static "/stregsystem/gdpr.js" %}"></script>
 <div class="bat-container"></div>
 <div class="snow-container"></div>
+<div class="easter-container"></div>
 {% show_candle %}
 </body>
 </html>
