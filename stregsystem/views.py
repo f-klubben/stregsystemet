@@ -504,12 +504,14 @@ def signup(request):
             form.add_error("username", "Brugernavn allerede i brug")
             return render(request, "stregsystem/signup.html", locals())
 
-        member = Member.objects.create(username=form.cleaned_data.get('username'),
-                                       firstname=form.cleaned_data.get('firstname'),
-                                       lastname=form.cleaned_data.get('lastname'),
-                                       email=form.cleaned_data.get('email'),
-                                       gender='U',
-                                       signup_due_paid=False)
+        member = Member.objects.create(
+            username=form.cleaned_data.get('username'),
+            firstname=form.cleaned_data.get('firstname'),
+            lastname=form.cleaned_data.get('lastname'),
+            email=form.cleaned_data.get('email'),
+            gender='U',
+            signup_due_paid=False,
+        )
         signup_request = PendingSignup(member=member)
         signup_request.save()
 
