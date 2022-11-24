@@ -690,7 +690,7 @@ class PendingSignup(models.Model):
 
     def generate_mobilepay_url(self):
         comment = self.get_mobilepay_comment()
-        query = {'phone': '90601', 'comment': comment, 'amount': "{0:.2f}".format(self.due/100.0)}
+        query = {'phone': '90601', 'comment': comment, 'amount': "{0:.2f}".format(self.due / 100.0)}
         return 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
 
     @transaction.atomic

@@ -1567,7 +1567,6 @@ class MobilePaymentTests(TestCase):
 
 class AutoPaymentTests(TestCase):
     def setUp(self):
-
         self.autopayment_user = User.objects.create_superuser('autopayment', 'foo@bar.com', 'hunter2')
         Member.objects.create(
             username='tester', firstname='Test', lastname='Testsen', email='tables@nsa.gov', balance=178
@@ -1818,11 +1817,7 @@ class CaffeineCalculatorTest(TestCase):
 
 class SignupTest(TestCase):
     def setUp(self):
-        self.mock_mobile_payment = MobilePayment(
-            timestamp=timezone.now(),
-            amount=20000,
-            transaction_id="1"
-        )
+        self.mock_mobile_payment = MobilePayment(timestamp=timezone.now(), amount=20000, transaction_id="1")
 
     def test_signup_request_creation(self):
         user_info = {
@@ -1867,6 +1862,7 @@ class SignupTest(TestCase):
 
     def test_comment_scanning(self):
         from stregsystem.management.commands.autosignup import scan_comment
+
         member = Member.objects.create(username='john', signup_due_paid=False)
         signup = PendingSignup.objects.create(member=member)
 
@@ -1878,6 +1874,7 @@ class SignupTest(TestCase):
 
     def test_autosignup_command(self):
         from stregsystem.management.commands.autosignup import Command
+
         member = Member.objects.create(username='john', signup_due_paid=False)
         signup = PendingSignup.objects.create(member=member)
 
@@ -1903,17 +1900,15 @@ class SignupTest(TestCase):
     # mobile payment work properly
     def test_autosignup_command_split_payment(self):
         from stregsystem.management.commands.autosignup import Command
+
         member = Member.objects.create(username='john', signup_due_paid=False)
-        signup = PendingSignup.objects.create(member=member, due=self.mock_mobile_payment.amount*2)
+        signup = PendingSignup.objects.create(member=member, due=self.mock_mobile_payment.amount * 2)
 
         self.mock_mobile_payment.comment = signup.get_mobilepay_comment()
         self.mock_mobile_payment.save()
 
         second_payment = MobilePayment(
-            timestamp=timezone.now(),
-            amount=20000,
-            transaction_id="2",
-            comment=signup.get_mobilepay_comment()
+            timestamp=timezone.now(), amount=20000, transaction_id="2", comment=signup.get_mobilepay_comment()
         )
 
         cmd = Command()
@@ -1942,4 +1937,3 @@ class SignupTest(TestCase):
         # Assert that the PendingSignup instance has been deleted
         with self.assertRaises(PendingSignup.DoesNotExist):
             _ = PendingSignup.objects.get(member=member)
-
