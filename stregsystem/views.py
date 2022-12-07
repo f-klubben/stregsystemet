@@ -296,7 +296,7 @@ def menu_userrank(request, room_id, member_id):
         form = RankingDateForm(request.POST)
         if form.is_valid():
             from_date = form.cleaned_data['from_date']
-            to_date = form.cleaned_data['to_date']
+            to_date = form.cleaned_data['to_date'] + datetime.timedelta(days=1)
     else:
         # setup initial dates for form and results
         form = RankingDateForm(initial={'from_date': from_date, 'to_date': to_date})
@@ -474,7 +474,6 @@ def qr_payment(request):
         query['amount'] = form.cleaned_data.get("amount")
 
     data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
-
     return qr_code(data)
 
 
