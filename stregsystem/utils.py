@@ -171,7 +171,6 @@ def parse_csv_and_create_mobile_payments(csv_file):
     # get csv reader and ignore header
     reader = csv.reader(csv_file[1:], delimiter=';', quotechar='"')
     for row in reader:
-
         from stregsystem.models import MobilePayment
 
         mobile_payment = MobilePayment(
