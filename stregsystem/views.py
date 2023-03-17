@@ -106,7 +106,6 @@ def sale(request, room_id):
         return render(request, 'stregsystem/index.html', locals())
     # Extract username and product ids
     try:
-
         username, bought_ids = parser.parse(_pre_process(buy_string))
     except parser.QuickBuyError as err:
         values = {

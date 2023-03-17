@@ -1566,7 +1566,6 @@ class MobilePaymentTests(TestCase):
 
 class AutoPaymentTests(TestCase):
     def setUp(self):
-
         self.autopayment_user = User.objects.create_superuser('autopayment', 'foo@bar.com', 'hunter2')
         Member.objects.create(
             username='tester', firstname='Test', lastname='Testsen', email='tables@nsa.gov', balance=178
@@ -1808,7 +1807,6 @@ class CaffeineCalculatorTest(TestCase):
             coffee_addict.sale_set.create(product=coffee, price=coffee.price)
 
         with freeze_time(timezone.datetime(year=2021, day=5, month=12, hour=8)) as sunday:
-
             coffee_addict.sale_set.create(product=coffee, price=coffee.price)
             average_developer.sale_set.create(product=coffee, price=coffee.price)
 
