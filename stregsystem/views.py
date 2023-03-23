@@ -12,7 +12,7 @@ from django.forms import modelformset_factory, formset_factory
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.conf import settings
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Sum
 from django import forms
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -226,6 +226,9 @@ def menu_userinfo(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
+    stats = Sale.objects.filter(member_id=member_id).aggregate(
+        total_amount=Sum('price'), total_purchases=Count('timestamp')
+    )
 
     last_sale_list = member.sale_set.order_by('-timestamp')[:10]
     try:
