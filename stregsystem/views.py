@@ -226,8 +226,9 @@ def menu_userinfo(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
-    stats = Sale.objects.filter(member_id=member_id)\
-        .aggregate(total_amount=Sum('price'), total_purchases=Count('timestamp'))
+    stats = Sale.objects.filter(member_id=member_id).aggregate(
+        total_amount=Sum('price'), total_purchases=Count('timestamp')
+    )
 
     last_sale_list = member.sale_set.order_by('-timestamp')[:10]
     try:
