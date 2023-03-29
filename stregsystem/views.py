@@ -1,4 +1,5 @@
 import datetime
+import io
 from typing import List
 
 import pytz
@@ -6,6 +7,8 @@ from pytz import UTC
 
 from stregreport.views import fjule_party
 
+import qrcode
+import qrcode.image.svg
 from django.core import management
 from django.forms import modelformset_factory, formset_factory
 
@@ -15,7 +18,7 @@ from django.conf import settings
 from django.db.models import Q, Count, Sum
 from django import forms
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django_select2 import forms as s2forms
 import urllib.parse
@@ -32,6 +35,7 @@ from stregsystem.models import (
     Sale,
     StregForbudError,
     MobilePayment,
+    PendingSignup,
     Category,
     NamedProduct,
 )
@@ -46,7 +50,7 @@ from stregsystem.utils import (
 
 from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
-from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, RankingDateForm
+from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, SignupForm, RankingDateForm
 
 
 def __get_news():
@@ -121,6 +125,9 @@ def sale(request, room_id):
         member = Member.objects.get(username=username, active=True)
     except Member.DoesNotExist:
         return render(request, 'stregsystem/error_usernotfound.html', locals())
+
+    if not member.signup_due_paid:
+        return render(request, 'stregsystem/error_signupdue.html', locals())
 
     if len(bought_ids):
         return quicksale(request, room, member, bought_ids)
@@ -488,3 +495,45 @@ def qr_payment(request):
 
     data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
     return qr_code(data)
+
+
+def signup(request):
+    is_post = request.method == "POST"
+    form = SignupForm(request.POST) if is_post else SignupForm()
+
+    if is_post and form.is_valid():
+        if Member.objects.filter(username=form.cleaned_data.get('username')).all().count() > 0:
+            form.add_error("username", "Brugernavn allerede i brug")
+            return render(request, "stregsystem/signup.html", locals())
+
+        member = Member.objects.create(
+            username=form.cleaned_data.get('username'),
+            firstname=form.cleaned_data.get('firstname'),
+            lastname=form.cleaned_data.get('lastname'),
+            email=form.cleaned_data.get('email'),
+            gender='U',
+            signup_due_paid=False,
+        )
+        signup_request = PendingSignup(member=member)
+        signup_request.save()
+
+        return redirect('signup_status', signup_id=signup_request.id)
+
+    return render(request, "stregsystem/signup.html", locals())
+
+
+def signup_status(request, signup_id):
+    try:
+        pending_signup = PendingSignup.objects.get(pk=signup_id)
+    except PendingSignup.DoesNotExist:
+        return redirect('signup')
+
+    mobilepay_url = pending_signup.generate_mobilepay_url()
+
+    qr = io.BytesIO()
+    qrcode.make(mobilepay_url, image_factory=qrcode.image.svg.SvgPathFillImage).save(qr)
+
+    mobilepay_qr_svg = qr.getvalue().decode('utf-8').splitlines()[1]
+    qr.close()
+
+    return render(request, "stregsystem/signup_status.html", locals())

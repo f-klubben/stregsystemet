@@ -35,6 +35,34 @@ class PurchaseForm(forms.Form):
     product_id = forms.IntegerField()
 
 
+class SignupForm(forms.Form):
+    username = forms.CharField(
+        max_length=16,
+        label='Brugernavn',
+        error_messages={
+            'required': 'Udfyldning af `Brugernavn` er påkrævet.',
+            'max_length': 'Længden af `Brugernavn` må ikke overstige 16 tegn.',
+        },
+    )
+    email = forms.EmailField(label='E-Mail')
+    firstname = forms.CharField(
+        max_length=20,
+        label='Fornavn',
+        error_messages={
+            'required': 'Udfyldning af `Fornavn` er påkrævet.',
+            'max_length': 'Længden af `Fornavn` må ikke overstige 16 tegn.',
+        },
+    )
+    lastname = forms.CharField(
+        max_length=30,
+        label='Efternavn',
+        error_messages={
+            'required': 'Udfyldning af `Efternavn` er påkrævet.',
+            'max_length': 'Længden af `Efternavn` må ikke overstige 16 tegn.',
+        },
+    )
+
+
 class RankingDateForm(forms.Form):
     from_date = forms.DateField(widget=forms.SelectDateWidget(years=range(2000, datetime.date.today().year + 1)))
     to_date = forms.DateField(

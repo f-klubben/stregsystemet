@@ -83,6 +83,17 @@ def make_unprocessed_member_filled_mobilepayment_query() -> QuerySet:
     )
 
 
+def make_unprocessed_membership_payment_query() -> QuerySet:
+    from stregsystem.models import MobilePayment
+
+    return MobilePayment.objects.filter(
+        Q(payment__isnull=True)
+        & Q(status=MobilePayment.UNSET)
+        & Q(member__isnull=True)
+        & Q(comment__regex=r'^signup:[0-9a-fA-F-]{36}\+.{1,16}$')
+    )
+
+
 def date_to_midnight(date):
     """
     Converts a datetime.date to a datetime of the same date at midnight.

@@ -1,3 +1,6 @@
+import typing
+import urllib.parse
+import uuid
 import datetime
 import re
 from collections import Counter
@@ -21,6 +24,7 @@ from stregsystem.utils import (
     MobilePaytoolException,
 )
 from stregsystem.utils import send_payment_mail
+from stregsystem.mail import send_welcome_mail
 
 
 def price_display(value):
@@ -172,6 +176,7 @@ class Member(models.Model):  # id automatisk...
     balance = models.IntegerField(default=0)  # hvor mange oerer vedkommende har til gode
     undo_count = models.IntegerField(default=0)  # for 'undos' i alt
     notes = models.TextField(blank=True)
+    signup_due_paid = models.BooleanField(default=True)
 
     stregforbud_override = False
 
@@ -673,3 +678,30 @@ class News(models.Model):
 
     def __str__(self):
         return self.title + " -- " + str(self.pub_date)
+
+
+class PendingSignup(models.Model):
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, null=False)
+    due = models.IntegerField(default=200 * 100)
+    token = models.UUIDField(default=uuid.uuid4, db_index=True)
+
+    def get_mobilepay_comment(self):
+        return "signup:{}+{}".format(self.token, self.member.username)
+
+    def generate_mobilepay_url(self):
+        comment = self.get_mobilepay_comment()
+        query = {'phone': '90601', 'comment': comment, 'amount': "{0:.2f}".format(self.due / 100.0)}
+        return 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
+
+    @transaction.atomic
+    def complete(self, payment: MobilePayment):
+        # If the user payed more than their due add it to their balance
+        if self.due < 0:
+            payment.payment = Payment.objects.create(member=self.member, amount=-self.due)
+        payment.save()
+
+        self.member.signup_due_paid = True
+        self.member.save()
+        self.delete()
+
+        send_welcome_mail(self.member)
