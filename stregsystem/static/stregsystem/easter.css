@@ -63,7 +63,7 @@
     -ms-user-select: none;
     user-select: none;
     animation-name: beerflakes-fall, beerflakes-shake;
-    animation-duration: 10s, 2s, 3s;
+    animation-duration: 10s, 3s, 3s;
     animation-timing-function: linear, linear, linear;
     animation-iteration-count: infinite, infinite, infinite;
     animation-play-state: running, running, running;
