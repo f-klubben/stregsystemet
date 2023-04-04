@@ -36,10 +36,6 @@
     }
 }
 
-@keyframes beerflakes-rotate {
-
-}
-
 @keyframes beerflakes-shake {
     0% {
         transform: translateX(0px) rotate(0deg);
