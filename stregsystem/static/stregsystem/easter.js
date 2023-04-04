@@ -1,6 +1,6 @@
 d = new Date();
 
-if(d.getMonth() === 8){
+if(d.getMonth() === 3){
     //spawning beercans/beerflakes. Adds another beerflake each day for the first 24 days.
     for(let beerflakes=0; beerflakes < Math.min(d.getDate(), 24); beerflakes++){
         SpawnBeerflake();
