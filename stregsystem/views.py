@@ -12,7 +12,7 @@ from django.forms import modelformset_factory, formset_factory
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.conf import settings
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Sum
 from django import forms
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -106,7 +106,6 @@ def sale(request, room_id):
         return render(request, 'stregsystem/index.html', locals())
     # Extract username and product ids
     try:
-
         username, bought_ids = parser.parse(_pre_process(buy_string))
     except parser.QuickBuyError as err:
         values = {
@@ -227,6 +226,9 @@ def menu_userinfo(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
+    stats = Sale.objects.filter(member_id=member_id).aggregate(
+        total_amount=Sum('price'), total_purchases=Count('timestamp')
+    )
 
     last_sale_list = member.sale_set.order_by('-timestamp')[:10]
     try:
@@ -307,7 +309,7 @@ def menu_userrank(request, room_id, member_id):
         form = RankingDateForm(request.POST)
         if form.is_valid():
             from_date = form.cleaned_data['from_date']
-            to_date = form.cleaned_data['to_date']
+            to_date = form.cleaned_data['to_date'] + datetime.timedelta(days=1)
     else:
         # setup initial dates for form and results
         form = RankingDateForm(initial={'from_date': from_date, 'to_date': to_date})
@@ -485,5 +487,4 @@ def qr_payment(request):
         query['amount'] = form.cleaned_data.get("amount")
 
     data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
-
     return qr_code(data)

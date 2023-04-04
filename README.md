@@ -21,7 +21,7 @@ For windows using Anaconda and virtual environments:
 
 For Ubuntu with virtual envs:
 1. Install python3 with pip
- - `sudo apt install python3 python3-pip`
+ - `sudo apt install python3 python3-pip python3-venv`
 2. Create virtual environment
  - `python3 -m venv venv`
 3. Activate virtualenv
