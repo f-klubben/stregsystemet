@@ -26,8 +26,8 @@ def send_welcome_mail(member):
     msg = MIMEMultipart()
 
     context = dict()
-    context.update(member)
-    context.update({balance: money(member.balance)})
+    context.update(vars(member))
+    context.update({'money_result': money(member.balance)})
 
     html = render_to_string("message_templates/welcome.html", context)
 

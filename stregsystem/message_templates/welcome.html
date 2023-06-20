@@ -1,11 +1,14 @@
+{% comment %}
+Context is vars(member) and money_result
+{% endcomment %}
 <html>
     <head></head>
     <body>
-        Hej {{ member.firstname }}!<br><br>
+        Hej {{ firstname }}!<br><br>
         Velkommen som fember (medlem) i Fklubben!
-        Din stregkonto (bruger) er oprettet med følgende brugernavn: <b>{{ member.username }}</b>.<br>
+        Din stregkonto (bruger) er oprettet med følgende brugernavn: <b>{{ username }}</b>.<br>
         Fremover kan du benytte dit brugernavn i <a href="http://fklub.dk/treo/stregsystem">stregsystemet</a> til køb af diverse varer og/eller event billetter, såfremt du har penge på din stregkonto.<br>
-        Din nuværende saldo er: {{ balance }} kr.<br><br>
+        Din nuværende saldo er: {{ money_result }} kr.<br><br>
         Hvis du har nogen spørgsmål henviser vi til <a href="http://fklub.dk">fklub.dk</a>, men ellers er du meget velkommen til at kontakte os på <a href="mailto:info@fklub.dk">info@fklub.dk</a> eller <a href="https://www.facebook.com/fklub">Facebook</a>.<br><br>
 
         Følg med på <a href="https://www.facebook.com/fklub">Facebook</a> og <a href="https://www.instagram.com/fklub">Instagram</a> for events, billeder, og andre relevante indslag.<br><br>
@@ -15,11 +18,11 @@
 
         ====================================== <br><br>
 
-        Hi {{ member.firstname }}!<br><br>
+        Hi {{ firstname }}!<br><br>
         Welcome as a fember (member) of F-klubben!
-        Your stregkonto (account) has been created with the following username: <b>{{ member.username }}</b>.<br>
+        Your stregkonto (account) has been created with the following username: <b>{{ username }}</b>.<br>
         From now on you can use your username in <a href="http://fklub.dk/treo/stregsystem">stregsystemet</a> to purchase goods and/or event tickets, if you have funds on your account.<br>
-        Your current balance is: {{ balance }} kr.<br><br>
+        Your current balance is: {{ money_result }} kr.<br><br>
         If you have any questions please take a look at <a href="http://fklub.dk">fklub.dk</a>, but otherwise contact us at <a href="mailto:info@fklub.dk">info@fklub.dk</a> or <a href="https://www.facebook.com/fklub">Facebook</a>.<br><br>
 
         Follow us on <a href="https://www.facebook.com/fklub">Facebook</a> and <a href="https://www.instagram.com/fklub">Instagram</a> for events, pictures and other relevant postings.<br><br>
