@@ -103,59 +103,19 @@ def send_payment_mail(member, amount, mobilepay_comment):
 
     formatted_amount = money(amount)
 
-    normal_html = f"""
-    <html>
-        <head></head>
-        <body>
-            <p>
-               Hej {member.firstname}!<br><br>
-               Vi har indsat {formatted_amount} stregdollars på din konto: "{member.username}". <br><br>
-               Hvis du ikke ønsker at modtage flere mails som denne kan du skrive en mail til: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
-               Mvh,<br>
-               TREOen<br>
-               ====================================================================<br>
-               Hello {member.firstname}!<br><br>
-               We've inserted {formatted_amount} stregdollars on your account: "{member.username}". <br><br>
-               If you do not desire to receive any more mails of this sort, please file a complaint to: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
-               Kind regards,<br>
-               TREOen
-            </p>
-        </body>
-    </html>
-    """
-
     from django.utils.html import escape
+    from django.template.loader import render_to_string
 
-    shame_html = f"""
-        <html>
-            <head></head>
-            <body>
-                <p>
-                   Hej {member.firstname}!<br><br>
-                   Vi har med stort besvær indsat pokkers {formatted_amount} stregdollars på din konto: "{member.username}". <br><br>
-                   Da du ikke skrev dit brugernavn korrekt, men i stedet skrev '{escape(mobilepay_comment)}' var de stakkels TREOer desværre nødt til at tage flere minutter ud af deres dag for at indsætte dine penge manuelt.
-                   Vil du nyde godt af vores automatiske indbetaling kan du i fremtiden med fordel skrive dit brugernavn korrekt i MobilePay kommentaren: '{member.username}'.
-                   Udnytter du vores QR-kode generator klarer den også denne komplicerede process for dig.
-                   
-                   Hvis du ikke ønsker at modtage flere mails som denne kan du skrive en mail til: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
-                   Mvh,<br>
-                   TREOen<br>
-                   ====================================================================<br>
-                   Hello {member.firstname}!<br><br>
-                   We've had great trouble inserting {formatted_amount} stregdollars on your account: "{member.username}". <br><br>
-                   This is due to you not you not writing your username correctly, and instead writing '{escape(mobilepay_comment)}'. The poor TREOs had to take multiple minutes out of their day to insert your money manually.
-                   If you want to utilise our automatic fill-up in future, you can write your username correctly in the MobilePay comment: '{member.username}'
-                   Our QR-code generator also handles this very complicated process for you. 
-                   
-                   If you do not desire to receive any more mails of this sort, please file a complaint to: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
-                   Kind regards,<br>
-                   TREOen
-                </p>
-            </body>
-        </html>
-        """
+    context = dict()
+    context.update(vars(member))
+    context.update({'formatted_balance': money(member.balance)})
+    # TODO: not sure if escape serves any purpose here, since it's already being passed through a template.
+    context.update({'mobilepay_comment': escape(mobilepay_comment)})
 
-    msg.attach(MIMEText(shame_html if mobilepay_comment else normal_html, 'html'))
+    target_template = "deposit_manual.html" if mobilepay_comment else "deposit_automatic.html"
+    html = render_to_string(f"templates/mail/{target_template}", context)
+
+    msg.attach(MIMEText(html, 'html'))
 
     try:
         smtpObj = smtplib.SMTP('localhost', 25)
