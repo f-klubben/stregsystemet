@@ -27,7 +27,7 @@ def send_welcome_mail(member):
 
     context = dict()
     context.update(vars(member))
-    context.update({'money_result': money(member.balance)})
+    context.update({'formatted_balance': money(member.balance)})
 
     html = render_to_string("templates/mail/welcome.html", context)
 
