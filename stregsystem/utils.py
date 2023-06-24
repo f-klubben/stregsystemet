@@ -113,7 +113,7 @@ def send_payment_mail(member, amount, mobilepay_comment):
     context.update({'mobilepay_comment': escape(mobilepay_comment)})
 
     target_template = "deposit_manual.html" if mobilepay_comment else "deposit_automatic.html"
-    html = render_to_string(f"templates/mail/{target_template}", context)
+    html = render_to_string(f"mail/{target_template}", context)
 
     msg.attach(MIMEText(html, 'html'))
 

@@ -29,7 +29,7 @@ def send_welcome_mail(member):
     context.update(vars(member))
     context.update({'formatted_balance': money(member.balance)})
 
-    html = render_to_string("templates/mail/welcome.html", context)
+    html = render_to_string("mail/welcome.html", context)
 
     msg.attach(MIMEText(html, 'html'))
     send_email(member.email, msg.as_string())
