@@ -36,8 +36,6 @@ def send_welcome_mail(member):
 
 
 def send_payment_mail(member, amount, mobilepay_comment):
-    if hasattr(settings, 'TEST_MODE'):
-        return
     msg = MIMEMultipart()
     msg['From'] = 'treo@fklub.dk'
     msg['To'] = member.email
@@ -53,9 +51,4 @@ def send_payment_mail(member, amount, mobilepay_comment):
     html = render_to_string(f"mail/{target_template}", context)
 
     msg.attach(MIMEText(html, 'html'))
-
-    try:
-        smtpObj = smtplib.SMTP('localhost', 25)
-        smtpObj.sendmail('treo@fklub.dk', member.email, msg.as_string())
-    except Exception as e:
-        logger.error(str(e))
+    send_email(member.email, msg.as_string())
