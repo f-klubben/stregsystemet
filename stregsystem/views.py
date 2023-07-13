@@ -564,7 +564,8 @@ def get_user_info(request):
         }
     )
 
-def find_user_from_id(user_id:int):
+
+def find_user_from_id(user_id: int):
     try:
         return Member.objects.get(pk=user_id)
     except Member.DoesNotExist:

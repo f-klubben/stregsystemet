@@ -4,9 +4,10 @@ import logging
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from .utils import money
 from django.conf import settings
-
+from django.template.loader import render_to_string
+from django.utils.html import escape
+from stregsystem.templatetags.stregsystem_extras import money
 
 logger = logging.getLogger(__name__)
 
@@ -23,39 +24,31 @@ def send_email(mailadress, msg_string):
 
 def send_welcome_mail(member):
     msg = MIMEMultipart()
-    html = f"""
-    <html>
-        <head></head>
-        <body>
-            Hej {member.firstname}!<br><br>
-            Velkommen som fember (medlem) i Fklubben!
-            Din stregkonto (bruger) er oprettet med følgende brugernavn: <b>{member.username}</b>.<br>
-            Fremover kan du benytte dit brugernavn i <a href="http://fklub.dk/treo/stregsystem">stregsystemet</a> til køb af diverse varer og/eller event billetter, såfremt du har penge på din stregkonto.<br>
-            Din nuværende saldo er: {money(member.balance)} kr.<br><br>
-            Hvis du har nogen spørgsmål henviser vi til <a href="http://fklub.dk">fklub.dk</a>, men ellers er du meget velkommen til at kontakte os på <a href="mailto:info@fklub.dk">info@fklub.dk</a> eller <a href="https://www.facebook.com/fklub">Facebook</a>.<br><br>
 
-			Følg med på <a href="https://www.facebook.com/fklub">Facebook</a> og <a href="https://www.instagram.com/fklub">Instagram</a> for events, billeder, og andre relevante indslag.<br><br>
-			Husk at der er fredagsfranskbrød i kantinen hver onsdag kl. 10.00!<br><br> 
-            Med venlig hilsen,<br>
-            F-klubben <br><br>
+    context = dict()
+    context.update(vars(member))
+    context.update({'formatted_balance': money(member.balance)})
 
-            ====================================== <br><br>
+    html = render_to_string("mail/welcome.html", context)
 
-            Hi {member.firstname}!<br><br>
-            Welcome as a fember (member) of F-klubben!
-            Your stregkonto (account) has been created with the following username: <b>{member.username}</b>.<br>
-            From now on you can use your username in <a href="http://fklub.dk/treo/stregsystem">stregsystemet</a> to purchase goods and/or event tickets, if you have funds on your account.<br>
-            Your current balance is: {money(member.balance)} kr.<br><br>
-            If you have any questions please take a look at <a href="http://fklub.dk">fklub.dk</a>, but otherwise contact us at <a href="mailto:info@fklub.dk">info@fklub.dk</a> or <a href="https://www.facebook.com/fklub">Facebook</a>.<br><br>
+    msg.attach(MIMEText(html, 'html'))
+    send_email(member.email, msg.as_string())
 
-            Follow us on <a href="https://www.facebook.com/fklub">Facebook</a> and <a href="https://www.instagram.com/fklub">Instagram</a> for events, pictures and other relevant postings.<br><br>
-            Remember that there is fredagsfranskbrød (friday bread) in the canteen every Wednesday at 10.00!<br><br>
 
-            Best regards,<br>
-            F-klubben
-        </body>
-    </html>
-    """
+def send_payment_mail(member, amount, mobilepay_comment):
+    msg = MIMEMultipart()
+    msg['From'] = 'treo@fklub.dk'
+    msg['To'] = member.email
+    msg['Subject'] = 'Stregsystem payment'
+
+    context = dict()
+    context.update(vars(member))
+    context.update({'formatted_amount': money(amount)})
+    # TODO: not sure if escape serves any purpose here, since it's already being passed through a template.
+    context.update({'mobilepay_comment': escape(mobilepay_comment)})
+
+    target_template = "deposit_manual.html" if mobilepay_comment else "deposit_automatic.html"
+    html = render_to_string(f"mail/{target_template}", context)
 
     msg.attach(MIMEText(html, 'html'))
     send_email(member.email, msg.as_string())

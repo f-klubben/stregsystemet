@@ -20,7 +20,7 @@ from stregsystem.utils import (
     make_unprocessed_member_filled_mobilepayment_query,
     MobilePaytoolException,
 )
-from stregsystem.utils import send_payment_mail
+from stregsystem.mail import send_payment_mail
 
 
 def price_display(value):
