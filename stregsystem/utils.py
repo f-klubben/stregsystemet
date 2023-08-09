@@ -35,7 +35,7 @@ def make_active_productlist_query(queryset) -> QuerySet:
 
 def make_inactive_productlist_query(queryset) -> QuerySet:
     now = timezone.now()
-    # Create a query of things are definitively inactive. Some of the ones
+    # Create a query of things which are definitively inactive. Some of the ones
     # filtered here might be out of stock, but we include that later.
     inactive_candidates = queryset.exclude(
         Q(active=True) & (Q(deactivate_date=None) | Q(deactivate_date__gte=now))
