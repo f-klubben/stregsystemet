@@ -19,6 +19,11 @@ def money(value):
     return "{0:.2f}".format(value / 100.0)
 
 
+@register.filter
+def multiply(value, arg):
+    return value * arg
+
+
 @register.inclusion_tag('stregsystem/adventcandle.html')
 def show_candle():
     return {'date': timezone.now()}
