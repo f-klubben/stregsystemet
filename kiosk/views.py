@@ -17,8 +17,12 @@ def find_random_media(request):
     """
     Randomly get a media and return the relative url
     """
-    item = KioskItem.objects.filter(active=True, start_datetime__lte=timezone.now())\
-        .filter(Q(end_datetime__isnull=True) | Q(end_datetime__gt=timezone.now())).order_by('?').first()
+    item = (
+        KioskItem.objects.filter(active=True, start_datetime__lte=timezone.now())
+        .filter(Q(end_datetime__isnull=True) | Q(end_datetime__gt=timezone.now()))
+        .order_by('?')
+        .first()
+    )
     if item is None:
         raise Http404("No active kiosk items found")
 
@@ -33,8 +37,11 @@ def find_random_media(request):
 def find_next_media_real(request, item_id):
     item = KioskItem.objects.get(pk=item_id)
 
-    item_count = KioskItem.objects.filter(active=True, start_datetime__lte=timezone.now())\
-        .filter(Q(end_datetime__isnull=True) | Q(end_datetime__gt=timezone.now())).count()
+    item_count = (
+        KioskItem.objects.filter(active=True, start_datetime__lte=timezone.now())
+        .filter(Q(end_datetime__isnull=True) | Q(end_datetime__gt=timezone.now()))
+        .count()
+    )
     if item_count == 0:
         raise Http404("No active kiosk items found")
 
@@ -47,8 +54,11 @@ def find_next_media_real(request, item_id):
             .filter(Q(ordering__gt=item.ordering) | (Q(ordering=item.ordering) & Q(id__gt=item.id)))[0]
         )
     except IndexError:
-        next_item = KioskItem.objects.filter(active=True, start_datetime__lte=timezone.now())\
-            .filter(Q(end_datetime__isnull=True) | Q(end_datetime__gt=timezone.now())).order_by('ordering', 'id')[0]
+        next_item = (
+            KioskItem.objects.filter(active=True, start_datetime__lte=timezone.now())
+            .filter(Q(end_datetime__isnull=True) | Q(end_datetime__gt=timezone.now()))
+            .order_by('ordering', 'id')[0]
+        )
     response_data = {
         "id": next_item.id,
         "url": next_item.media.url,
