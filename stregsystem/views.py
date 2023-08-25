@@ -1,4 +1,5 @@
 import datetime
+import random
 from typing import List
 
 import pytz
@@ -54,7 +55,10 @@ import json
 
 def __get_news():
     try:
-        return News.objects.filter(stop_date__gte=timezone.now(), pub_date__lte=timezone.now()).get()
+        current_time = timezone.now()
+        news_items = News.objects.filter(stop_date__gte=current_time, pub_date__lte=current_time)
+        random_news = random.choice(news_items)
+        return random_news
     except News.DoesNotExist:
         return None
 
