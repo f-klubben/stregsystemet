@@ -139,6 +139,12 @@ har {{member.balance|money}} kroner til gode!
 {% endblock %}
 </center>
 <br />
+<center>
+    <div>
+        {% include "stregsystem/purchase_heatmap.html" %}
+    </div>
+</center>
+<br />
 {% if give_multibuy_hint %}
     <center>
         <h1>psssst. multibuy er enabled.</h1>
