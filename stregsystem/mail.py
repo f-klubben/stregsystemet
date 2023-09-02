@@ -17,7 +17,7 @@ def send_welcome_mail(member):
         member,
         "welcome.html",
         {**vars(member), 'formatted_balance': money(member.balance)},
-        None  # Original code didn't specify a subject line.
+        None,  # Original code didn't specify a subject line.
     )
 
 
@@ -26,7 +26,7 @@ def send_payment_mail(member, amount, mobilepay_comment):
         member,
         "deposit_manual.html" if mobilepay_comment else "deposit_automatic.html",
         {**vars(member), 'formatted_amount': money(amount), 'mobilepay_comment': escape(mobilepay_comment)},
-        "Stregsystem payment"
+        "Stregsystem payment",
     )
 
 
