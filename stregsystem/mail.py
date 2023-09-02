@@ -13,23 +13,21 @@ logger = logging.getLogger(__name__)
 
 
 def send_welcome_mail(member):
-    context = dict()
-    context.update(vars(member))
-    context.update({'formatted_balance': money(member.balance)})
-
-    # Original code didn't specify a subject line.
-    send_template_mail(member, "welcome.html", context, None)
+    send_template_mail(
+        member,
+        "welcome.html",
+        vars(member) | {'formatted_balance': money(member.balance)},
+        None  # Original code didn't specify a subject line.
+    )
 
 
 def send_payment_mail(member, amount, mobilepay_comment):
-    context = dict()
-    context.update(vars(member))
-    context.update({'formatted_amount': money(amount)})
-    # TODO: not sure if escape serves any purpose here, since it's already being passed through a template.
-    context.update({'mobilepay_comment': escape(mobilepay_comment)})
-
-    target_template = "deposit_manual.html" if mobilepay_comment else "deposit_automatic.html"
-    send_template_mail(member, target_template, context, "Stregsystem payment")
+    send_template_mail(
+        member,
+        "deposit_manual.html" if mobilepay_comment else "deposit_automatic.html",
+        vars(member) | {'formatted_amount': money(amount), 'mobilepay_comment': escape(mobilepay_comment)},
+        "Stregsystem payment"
+    )
 
 
 def send_template_mail(member, target_template: str, context: dict, subject: str):
@@ -42,6 +40,7 @@ def send_template_mail(member, target_template: str, context: dict, subject: str
 
     if hasattr(settings, 'TEST_MODE'):
         return
+
     try:
         smtpObj = smtplib.SMTP('localhost', 25)
         smtpObj.sendmail('treo@fklub.dk', member.email, msg.as_string())
