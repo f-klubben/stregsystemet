@@ -66,17 +66,6 @@ def __get_productlist(room_id):
     return make_active_productlist_query(Product.objects).filter(make_room_specific_query(room_id))
 
 
-def __get_purchase_heatmap_cell_color(
-    purchase_ids: list,
-    category_id_color: (
-        int,
-        int,
-        int,
-    ),
-) -> (int, int, int,):
-    pass
-
-
 def __organize_purchase_heatmap_data(heatmap_data: list, start_date: datetime.date) -> list:
     # Transforms [<<Day 0 (today)>>, <<Day 1 (yesterday)>>, ...]
     # into
@@ -96,7 +85,66 @@ def __organize_purchase_heatmap_data(heatmap_data: list, start_date: datetime.da
     return new_list
 
 
-def __get_purchase_heatmap_data(member: Member, start_date: datetime.date) -> list:
+def __get_purchase_heatmap_day_color(
+    products: List[Product],
+    category_name_color: (
+        str,
+        str,
+        str,
+    ),
+) -> (int, int, int,):
+    return (50, 50, 50)
+
+
+def __get_purchase_heatmap_data(member: Member,
+                                end_date: datetime.datetime,
+                                weeks_to_display: int,
+                                category_name_color: (str, str, str,)
+                                ) -> list:
+    from datetime import datetime, timedelta
+    # Possibly off-by-one because visual starts on sunday, but weekday property has sunday be 6.
+    days_to_go_back = (7 * weeks_to_display) - end_date.weekday()
+    cutoff_date = end_date.date() - timedelta(days=days_to_go_back)
+    last_sale_list = iter(member.sale_set.filter(timestamp__gte=cutoff_date, timestamp__lt=end_date).order_by('timestamp'))
+
+    products_by_day = []
+    dates_by_day = []
+
+    next_sale = next(last_sale_list)
+    next_sale_date = next_sale.timestamp.date()
+
+    for single_date in (end_date - timedelta(days=n) for n in range(days_to_go_back)):
+        products_by_day.append([])
+        dates_by_day.append(single_date)
+
+        try:
+            while next_sale_date == single_date.date():
+                products_by_day[-1].append(next_sale.product)
+
+                next_sale = next(last_sale_list)
+                next_sale_date = next_sale.timestamp.date()
+        except StopIteration:
+            next_sale = None
+            next_sale_date = None
+            continue
+
+    # Proposed format:
+    # Returned list: [<<Day 0 (today)>>, <<Day 1 (yesterday)>>, ...]
+    # Day item: (<<Date>>, <<RGB values tuple-format>>, [<<item ID 1>>, ...])
+    days = []
+
+    for day_index in range(len(products_by_day)):
+        day_color = __get_purchase_heatmap_day_color(products_by_day[day_index], category_name_color)
+        days.append((dates_by_day[day_index], day_color, [x.id for x in products_by_day[day_index]]))
+
+    return days
+
+
+def __get_purchase_heatmap_data_mockup(member: Member,
+                                end_date: datetime.datetime,
+                                weeks_to_display: int,
+                                category_name_color: (str, str, str,)
+                                       ) -> list:
     # Proposed format:
     # Returned list: [<<Day 0 (today)>>, <<Day 1 (yesterday)>>, ...]
     # Day item: (<<Date>>, <<RGB values tuple-format>>, [<<item ID 1>>, ...])
@@ -104,7 +152,7 @@ def __get_purchase_heatmap_data(member: Member, start_date: datetime.date) -> li
     mockup_colors = [(235, 237, 240), (155, 233, 168), (64, 196, 99), (33, 110, 57)]
 
     mockup_list = []
-    for i in range(70 - start_date.weekday()):
+    for i in range(70 - end_date.weekday()):
         mockup_item_count = random.randint(0, len(mockup_colors) - 1)
         mockup_list.append(
             (
@@ -261,15 +309,19 @@ def usermenu(request, room, member, bought, from_sale=False):
     give_multibuy_hint, sale_hints = _multibuy_hint(timezone.now(), member)
     give_multibuy_hint = give_multibuy_hint and from_sale
 
-    raw_heatmap_data = __get_purchase_heatmap_data(member, datetime.date.today())
-    raw_heatmap_data.reverse()
+    # heatmap logic begin
+    weeks_to_display = 10
+    from datetime import datetime, timedelta
 
-    heatmap_data = __organize_purchase_heatmap_data(raw_heatmap_data, datetime.date.today())
+    raw_heatmap_data = __get_purchase_heatmap_data_mockup(member, datetime.today(), weeks_to_display, ("beer", "energy", "soda"))
+    heatmap_data = __organize_purchase_heatmap_data(raw_heatmap_data[::-1], datetime.today())
     row_labels = ["", "Mandag", "", "Onsdag", "", "Fredag", ""]
-    column_labels = ["26", "27", "28", "29", "30", "31", "32", "33", "34", "35"]
+    current_week = datetime.today().isocalendar()[1]
+    column_labels = [str(current_week - x) for x in range(weeks_to_display)][::-1]
 
     rows = zip(row_labels, heatmap_data)
 
+    # heatmap logic end
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())
     else:
