@@ -56,9 +56,7 @@ import json
 def __get_news():
     try:
         current_time = timezone.now()
-        news_items = News.objects.filter(stop_date__gte=current_time, pub_date__lte=current_time).order_by('?').first()
-        random_news = random.choice(news_items)
-        return random_news
+        return News.objects.filter(stop_date__gte=current_time, pub_date__lte=current_time).order_by('?').first()
     except News.DoesNotExist:
         return None
 
