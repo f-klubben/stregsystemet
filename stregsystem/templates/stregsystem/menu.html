@@ -26,6 +26,9 @@ har {{member.balance|money}} kroner til gode!
       <th>
         <a href="/{{room.id}}/user/{{member.id}}/pay">Indsæt penge</a>
       </th>
+       <th>
+        <a href="/{{room.id}}/user/{{member.id}}/rank">Rangliste</a>
+      </th>
 {% comment %}
       <th>
          <a href="/{{room.id}}/user/{{member.id}}/undo">Fortryd køb</a>
@@ -59,6 +62,15 @@ har {{member.balance|money}} kroner til gode!
         <br />Din alkohol promille er ca. <b>{{promille|floatformat:2}}‰</b>
     {% endif %}
 {% endif %}
+{% if caffeine %}
+    <br />Du har {{caffeine | floatformat:0}}mg koffein i kroppen.
+    {% if cups is not 0 %}
+        <br />Det svarer til at drikke {{caffeine | caffeine_emoji_render}} {{ cups|pluralize:'kop kaffe,kopper kaffe i streg!' }}
+    {% endif %}
+    {% if is_coffee_master %}
+        <br />🏆Du er kaffemester i denne uge!🏆
+    {% endif %}
+{% endif %}
 
 <br />
 {% endblock %}
@@ -79,7 +91,15 @@ har {{member.balance|money}} kroner til gode!
 			  </tr>
 			  {% for product in product_list|partition:"2"|first %}
 			  <tr>
-			    <td><a href="/{{room.id}}/sale/{{member.id}}/{{product.id}}">{{product.name}}</a></td>
+			    <td>
+                    <form method="post" action="/{{ room.id }}/sale/{{ member.id }}/">
+                        {% csrf_token %}
+                        <a href="" onclick="this.closest('form').submit();return false;">{{product.name}}</a>
+                        <input type="hidden" value="{{ product.id }}" name="product_id">
+                        <input type="hidden" value="{{ room.id }}" name="room_id">
+                        <input type="hidden" value="{{ member.id }}" name="member_id">
+                    </form>
+                </td>
 			    <td align="right">{{product.price|money}} kr</td>
 			  </tr>
 			  {% endfor %}
@@ -95,7 +115,15 @@ har {{member.balance|money}} kroner til gode!
                   </tr>
                   {% for product in product_list|partition:"2"|last %}
                   <tr>
-                    <td><a href="/{{room.id}}/sale/{{member.id}}/{{product.id}}">{{product.name}}</a></td>
+                    <td>
+                        <form method="post" action="/{{ room.id }}/sale/{{ member.id }}/">
+                            {% csrf_token %}
+                            <a href="" onclick="this.closest('form').submit();return false;">{{product.name}}</a>
+                            <input type="hidden" value="{{ product.id }}" name="product_id">
+                            <input type="hidden" value="{{ room.id }}" name="room_id">
+                            <input type="hidden" value="{{ member.id }}" name="member_id">
+                        </form>
+                    </td>
                     <td align="right">{{product.price|money}} kr</td>
                   </tr>
                   {% endfor %}
@@ -114,7 +142,9 @@ har {{member.balance|money}} kroner til gode!
 {% if give_multibuy_hint %}
     <center>
         <h1>psssst. multibuy er enabled.</h1>
+        {% autoescape off %}
         <b> Du kunne have skrevet: {{sale_hints}} </b>
+        {% endautoescape %}
     </center>
 {% endif %}
 <div style="clear: both;">&nbsp;</div>

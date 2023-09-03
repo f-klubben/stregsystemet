@@ -1,4 +1,4 @@
-Stregsystemet [![Build Status](https://travis-ci.org/f-klubben/stregsystemet.svg?branch=next)](https://travis-ci.org/f-klubben/stregsystemet) [![Coverage Status](https://coveralls.io/repos/github/f-klubben/stregsystemet/badge.svg?branch=next)](https://coveralls.io/github/f-klubben/stregsystemet?branch=next)
+Stregsystemet [![Django CI Actions Status](https://github.com/f-klubben/stregsystemet/workflows/Django%20CI/badge.svg)](https://github.com/f-klubben/stregsystemet/actions)  [![codecov](https://codecov.io/gh/f-klubben/stregsystemet/branch/next/graph/badge.svg)](https://codecov.io/gh/f-klubben/stregsystemet) 
 ========
 
 This is the current stregsystem in the F-Klub.
@@ -21,9 +21,9 @@ For windows using Anaconda and virtual environments:
 
 For Ubuntu with virtual envs:
 1. Install python3 with pip
- - `sudo apt install python3 python3-pip`
+ - `sudo apt install python3 python3-pip python3-venv`
 2. Create virtual environment
- - `python3 -m vevn venv`
+ - `python3 -m venv venv`
 3. Activate virtualenv
  - `source venv/bin/activate`
 4. Install packages
@@ -41,11 +41,11 @@ To use it do the following:
 3. ???
 4. Profit
 
-Admin panel: `http://127.0.0.1:8000/admin/` 
-Login: tester:treotreo
+Admin panel: <http://127.0.0.1:8000/admin/>  
+Login: `tester:treotreo`
 
-Stregsystem: `http://127.0.0.1:8000/1/` 
-User: tester
+Stregsystem: <http://127.0.0.1:8000/1/>  
+User: `tester`
 
 Persistent Testdata
 -------
