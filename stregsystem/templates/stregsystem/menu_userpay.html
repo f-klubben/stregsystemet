@@ -35,7 +35,7 @@ Ingen indbetalinger!
    <tr>
 {% for amount in amounts %}
       <td align="center">
-         <b>{{amount | floatformat:-2}} kr.</b>
+         <b>{{amount | floatformat:2}} kr.</b>
          <br /><br />
           <a href="mobilepay://send?phone=90601&comment={{ member.username }}&amount={{ amount }}">
               {% mobilepay_qr member.username amount %}
