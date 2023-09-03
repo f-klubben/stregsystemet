@@ -3,94 +3,20 @@
         <thead>
             <tr class="heatmap-row">
                 <td class="heatmap-label heatmap-label-first"><span>Uge nr.</span></td>
-                <td class="heatmap-label" colspan="1"><span>28</span></td>
-                <td class="heatmap-label" colspan="1"><span>29</span></td>
-                <td class="heatmap-label" colspan="1"><span>30</span></td>
-                <td class="heatmap-label" colspan="1"><span>31</span></td>
-                <td class="heatmap-label" colspan="1"><span>32</span></td>
-                <td class="heatmap-label" colspan="1"><span>33</span></td>
-                <td class="heatmap-label" colspan="1"><span>34</span></td>
-                <td class="heatmap-label" colspan="1"><span>35</span></td>
+                {% for label in column_labels %}
+                <td class="heatmap-label" colspan="1"><span>{{label}}</span></td>
+                {% endfor %}
             </tr>
         </thead>
         <tbody>
+        {% for weekday_label, weekday_data in rows %}
             <tr class="heatmap-row">
-                <td class="heatmap-label heatmap-label-first"><span></span></td>
-                <td class="heatmap-cell" data-date="1. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="2. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="3. august" style="--cell-color: #9be9a8"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
+                <td class="heatmap-label heatmap-label-first"><span>{{weekday_label}}</span></td>
+                {% for day_data in weekday_data %}
+                <td class="heatmap-cell" title="{{day_data.0}}" data-items="{{day_data.2}}" style="--cell-color: rgb{{day_data.1}}"></td>
+                {% endfor %}
             </tr>
-            <tr class="heatmap-row">
-                <td class="heatmap-label heatmap-label-first"><span>Mandag</span></td>
-                <td class="heatmap-cell" data-date="1. august" style="--cell-color: #9be9a8"></td>
-                <td class="heatmap-cell" data-date="2. august" style="--cell-color: #9be9a8"></td>
-                <td class="heatmap-cell" data-date="3. august" data-level=""></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #9be9a8"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #40c463"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #9be9a8"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-            </tr>
-            <tr class="heatmap-row">
-                <td class="heatmap-label heatmap-label-first"><span></span></td>
-                <td class="heatmap-cell" data-date="1. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="2. august" style="--cell-color: #9be9a8"></td>
-                <td class="heatmap-cell" data-date="3. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #9be9a8"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-            </tr>
-            <tr class="heatmap-row">
-                <td class="heatmap-label heatmap-label-first"><span>Onsdag</span></td>
-                <td class="heatmap-cell" data-date="1. august" style="--cell-color: #9be9a8"></td>
-                <td class="heatmap-cell" data-date="2. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="3. august" style="--cell-color: #9be9a8"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #9be9a8"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #9be9a8"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-            </tr>
-            <tr class="heatmap-row">
-                <td class="heatmap-label heatmap-label-first"><span></span></td>
-                <td class="heatmap-cell" data-date="1. august" style="--cell-color: #9be9a8"></td>
-                <td class="heatmap-cell" data-date="2. august" style="--cell-color: #40c463"></td>
-                <td class="heatmap-cell" data-date="3. august" style="--cell-color: #40c463"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #9be9a8"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #9be9a8"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #9be9a8"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-            </tr>
-            <tr class="heatmap-row">
-                <td class="heatmap-label heatmap-label-first"><span><b>Fredag</b></span></td>
-                <td class="heatmap-cell" data-date="1. august" style="--cell-color: #216e39"></td>
-                <td class="heatmap-cell" data-date="2. august" style="--cell-color: #30a14e"></td>
-                <td class="heatmap-cell" data-date="3. august" style="--cell-color: #30a14e"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #216e39"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #40c463"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #40c463"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #216e39"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #30a14e"></td>
-            </tr>
-            <tr class="heatmap-row">
-                <td class="heatmap-label heatmap-label-first"><span></span></td>
-                <td class="heatmap-cell" data-date="1. august" style="--cell-color: #9be9a8"></td>
-                <td class="heatmap-cell" data-date="2. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="3. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #9be9a8"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-                <td class="heatmap-cell" data-date="4. august" style="--cell-color: #ebedf0"></td>
-            </tr>
+        {% endfor %}
         </tbody>
     </table>
 </div>

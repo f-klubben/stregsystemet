@@ -1,4 +1,5 @@
 import datetime
+import random
 from typing import List
 
 import pytz
@@ -63,11 +64,18 @@ def __get_productlist(room_id):
     return make_active_productlist_query(Product.objects).filter(make_room_specific_query(room_id))
 
 
-def __get_purchase_heatmap_cell_color(purchase_ids: list, category_id_color: (int, int, int,)) -> (int, int, int,):
+def __get_purchase_heatmap_cell_color(
+    purchase_ids: list,
+    category_id_color: (
+        int,
+        int,
+        int,
+    ),
+) -> (int, int, int,):
     pass
 
 
-def __organize_purchase_heatmap_data(heatmap_data: list, today: datetime.date) -> list:
+def __organize_purchase_heatmap_data(heatmap_data: list, start_date: datetime.date) -> list:
     # Transforms [<<Day 0 (today)>>, <<Day 1 (yesterday)>>, ...]
     # into
     # [
@@ -86,14 +94,23 @@ def __organize_purchase_heatmap_data(heatmap_data: list, today: datetime.date) -
     return new_list
 
 
-def __get_purchase_heatmap_data(member: Member) -> list:
+def __get_purchase_heatmap_data(member: Member, start_date: datetime.date) -> list:
     # Proposed format:
     # Returned list: [<<Day 0 (today)>>, <<Day 1 (yesterday)>>, ...]
     # Day item: (<<Date>>, <<RGB values tuple-format>>, [<<item ID 1>>, ...])
 
+    mockup_colors = [(235, 237, 240), (155, 233, 168), (64, 196, 99), (33, 110, 57)]
+
     mockup_list = []
-    for i in range(70):
-        mockup_list.append((datetime.datetime.today() - datetime.timedelta(days=i), (0, 200, 0), [1, 2]))
+    for i in range(70 - start_date.weekday()):
+        mockup_item_count = random.randint(0, len(mockup_colors) - 1)
+        mockup_list.append(
+            (
+                datetime.datetime.today() - datetime.timedelta(days=i),
+                mockup_colors[mockup_item_count],
+                [1] * mockup_item_count,
+            )
+        )
 
     return mockup_list
     """
@@ -254,7 +271,14 @@ def usermenu(request, room, member, bought, from_sale=False):
     give_multibuy_hint, sale_hints = _multibuy_hint(timezone.now(), member)
     give_multibuy_hint = give_multibuy_hint and from_sale
 
-    heatmap_data = __organize_purchase_heatmap_data(__get_purchase_heatmap_data(member), datetime.date.today())
+    raw_heatmap_data = __get_purchase_heatmap_data(member, datetime.date.today())
+    raw_heatmap_data.reverse()
+
+    heatmap_data = __organize_purchase_heatmap_data(raw_heatmap_data, datetime.date.today())
+    row_labels = ["", "Mandag", "", "Onsdag", "", "Fredag", ""]
+    column_labels = ["26", "27", "28", "29", "30", "31", "32", "33", "34", "35"]
+
+    rows = zip(row_labels, heatmap_data)
 
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())
