@@ -86,12 +86,12 @@ def __organize_purchase_heatmap_data(heatmap_data: list, start_date: datetime.da
 
 
 def __get_purchase_heatmap_day_color(
-    products: List[Product],
-    category_name_color: (
-        str,
-        str,
-        str,
-    ),
+        products: List[Product],
+        category_name_color: (
+                str,
+                str,
+                str,
+        ),
 ) -> (int, int, int,):
     return (50, 50, 50)
 
@@ -101,11 +101,12 @@ def __get_purchase_heatmap_data(member: Member,
                                 weeks_to_display: int,
                                 category_name_color: (str, str, str,)
                                 ) -> list:
-    from datetime import datetime, timedelta
+    from datetime import timedelta
     # Possibly off-by-one because visual starts on sunday, but weekday property has sunday be 6.
     days_to_go_back = (7 * weeks_to_display) - end_date.weekday()
     cutoff_date = end_date.date() - timedelta(days=days_to_go_back)
-    last_sale_list = iter(member.sale_set.filter(timestamp__gte=cutoff_date, timestamp__lt=end_date).order_by('timestamp'))
+    last_sale_list = iter(
+        member.sale_set.filter(timestamp__gte=cutoff_date, timestamp__lt=end_date).order_by('timestamp'))
 
     products_by_day = []
     dates_by_day = []
@@ -141,9 +142,9 @@ def __get_purchase_heatmap_data(member: Member,
 
 
 def __get_purchase_heatmap_data_mockup(member: Member,
-                                end_date: datetime.datetime,
-                                weeks_to_display: int,
-                                category_name_color: (str, str, str,)
+                                       end_date: datetime.datetime,
+                                       weeks_to_display: int,
+                                       category_name_color: (str, str, str,)
                                        ) -> list:
     # Proposed format:
     # Returned list: [<<Day 0 (today)>>, <<Day 1 (yesterday)>>, ...]
@@ -311,9 +312,10 @@ def usermenu(request, room, member, bought, from_sale=False):
 
     # heatmap logic begin
     weeks_to_display = 10
-    from datetime import datetime, timedelta
+    from datetime import datetime
 
-    raw_heatmap_data = __get_purchase_heatmap_data_mockup(member, datetime.today(), weeks_to_display, ("beer", "energy", "soda"))
+    raw_heatmap_data = __get_purchase_heatmap_data_mockup(member, datetime.today(), weeks_to_display,
+                                                          ("beer", "energy", "soda"))
     heatmap_data = __organize_purchase_heatmap_data(raw_heatmap_data[::-1], datetime.today())
     row_labels = ["", "Mandag", "", "Onsdag", "", "Fredag", ""]
     current_week = datetime.today().isocalendar()[1]
