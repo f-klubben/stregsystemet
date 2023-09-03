@@ -74,14 +74,42 @@ def __organize_purchase_heatmap_data(heatmap_data: list, today: datetime.date) -
     #   [<<Day - last monday>>, <<Day - the monday before that>>, ...],
     #   [<<Day - last tuesday>>, <<Day - the tuesday before that>>, ...],
     # ...]
-    return []
+
+    # TODO: Doesn't take current weekday into consideration.
+    new_list = []
+    for i in range(7):
+        new_list.append([])
+        for j in range(len(heatmap_data)):
+            if j % 7 == i:
+                new_list[i].append(heatmap_data[j])
+
+    return new_list
 
 
 def __get_purchase_heatmap_data(member: Member) -> list:
     # Proposed format:
     # Returned list: [<<Day 0 (today)>>, <<Day 1 (yesterday)>>, ...]
-    # Day item: (<<RGB values tuple-format>>, [<<item ID 1>>, ...])
-    return [((0, 255, 0), [1, 2, 3]), ((0, 200, 0), [1, 2]), ((0, 100, 0), [2])] * 23  # ~70 entries
+    # Day item: (<<Date>>, <<RGB values tuple-format>>, [<<item ID 1>>, ...])
+
+    mockup_list = []
+    for i in range(70):
+        mockup_list.append((datetime.datetime.today() - datetime.timedelta(days=i), (0, 200, 0), [1, 2]))
+
+    return mockup_list
+    """
+    return [
+        (datetime.datetime.today(), (0, 255, 0), [1, 2, 3]),
+        (datetime.datetime.today() - datetime.timedelta(days=1), (0, 200, 0), [1, 2]),
+        (datetime.datetime.today() - datetime.timedelta(days=2), (0, 100, 0), [2]),
+        (datetime.datetime.today() - datetime.timedelta(days=3), (0, 100, 0), [2]),
+        (datetime.datetime.today() - datetime.timedelta(days=4), (0, 100, 0), [2]),
+        (datetime.datetime.today() - datetime.timedelta(days=5), (0, 50, 0), [2]),
+        (datetime.datetime.today() - datetime.timedelta(days=6), (0, 50, 0), [2]),
+        (datetime.datetime.today() - datetime.timedelta(days=7), (0, 100, 0), [2]),
+        (datetime.datetime.today() - datetime.timedelta(days=8), (0, 100, 0), [2]),
+        (datetime.datetime.today() - datetime.timedelta(days=9), (0, 100, 0), [2]),
+        (datetime.datetime.today() - datetime.timedelta(days=10), (0, 100, 0), [2]),
+    ]"""
 
 
 def roomindex(request):
