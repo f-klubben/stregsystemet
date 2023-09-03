@@ -63,6 +63,27 @@ def __get_productlist(room_id):
     return make_active_productlist_query(Product.objects).filter(make_room_specific_query(room_id))
 
 
+def __get_purchase_heatmap_cell_color(purchase_ids: list, category_id_color: (int, int, int,)) -> (int, int, int,):
+    pass
+
+
+def __organize_purchase_heatmap_data(heatmap_data: list, today: datetime.date) -> list:
+    # Transforms [<<Day 0 (today)>>, <<Day 1 (yesterday)>>, ...]
+    # into
+    # [
+    #   [<<Day - last monday>>, <<Day - the monday before that>>, ...],
+    #   [<<Day - last tuesday>>, <<Day - the tuesday before that>>, ...],
+    # ...]
+    return []
+
+
+def __get_purchase_heatmap_data(member: Member) -> list:
+    # Proposed format:
+    # Returned list: [<<Day 0 (today)>>, <<Day 1 (yesterday)>>, ...]
+    # Day item: (<<RGB values tuple-format>>, [<<item ID 1>>, ...])
+    return [((0, 255, 0), [1, 2, 3]), ((0, 200, 0), [1, 2]), ((0, 100, 0), [2])] * 23  # ~70 entries
+
+
 def roomindex(request):
     return HttpResponsePermanentRedirect('/1/')
 
@@ -204,6 +225,8 @@ def usermenu(request, room, member, bought, from_sale=False):
 
     give_multibuy_hint, sale_hints = _multibuy_hint(timezone.now(), member)
     give_multibuy_hint = give_multibuy_hint and from_sale
+
+    heatmap_data = __organize_purchase_heatmap_data(__get_purchase_heatmap_data(member), datetime.date.today())
 
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())
