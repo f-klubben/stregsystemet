@@ -173,17 +173,6 @@ def quicksale(request, room, member: Member, bought_ids):
     elif 'Stregforbud' in msg:
         return render(request, 'stregsystem/error_stregforbud.html', locals(), status=402)
 
-    promille = member.calculate_alcohol_promille()
-    is_ballmer_peaking, bp_minutes, bp_seconds = ballmer_peak(promille)
-
-    cost = order.total
-
-    new_balance = Member.objects.get(pk=member.id).balance
-
-    show_member_balance = new_balance <= 5000
-    new_member_balance = money(new_balance)
-
-    give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
     (
         promille,
         is_ballmer_peaking,
@@ -196,6 +185,8 @@ def quicksale(request, room, member: Member, bought_ids):
         cost,
         give_multibuy_hint,
         sale_hints,
+        member_has_low_balance,
+        member_balance,
     ) = __set_local_values(member, room, products, order, now)
 
     return render(request, 'stregsystem/index_sale.html', locals())
@@ -662,6 +653,8 @@ def api_quicksale(request, room, member: Member, bought_ids):
         cost,
         give_multibuy_hint,
         sale_hints,
+        member_has_low_balance,
+        member_balance,
     ) = __set_local_values(member, room, products, order, now)
 
     return (
@@ -685,6 +678,8 @@ def api_quicksale(request, room, member: Member, bought_ids):
             'cost': cost(),
             'give_multibuy_hint': give_multibuy_hint,
             'sale_hints': sale_hints,
+            'member_has_low_balance': member_has_low_balance,
+            'member_balance': member_balance,
         },
     )
 
@@ -728,6 +723,10 @@ def __set_local_values(member, room, products, order, now):
 
     give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
 
+    new_balance = Member.objects.get(pk=member.id).balance
+    member_has_low_balance = new_balance <= 5000
+    member_balance = money(new_balance)
+
     # return it all
     return (
         promille,
@@ -741,4 +740,6 @@ def __set_local_values(member, room, products, order, now):
         cost,
         give_multibuy_hint,
         sale_hints,
+        member_has_low_balance,
+        member_balance,
     )
