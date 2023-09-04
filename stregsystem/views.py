@@ -103,7 +103,7 @@ def __get_purchase_heatmap_data(member: Member,
                                 ) -> list:
     from datetime import timedelta
     # Possibly off-by-one because visual starts on sunday, but weekday property has sunday be 6.
-    days_to_go_back = (7 * weeks_to_display) - end_date.weekday()
+    days_to_go_back = (7 * weeks_to_display) - (6 - end_date.weekday() - 1)
     cutoff_date = end_date.date() - timedelta(days=days_to_go_back)
     last_sale_list = iter(
         member.sale_set.filter(timestamp__gte=cutoff_date, timestamp__lt=end_date).order_by('timestamp'))
@@ -111,12 +111,17 @@ def __get_purchase_heatmap_data(member: Member,
     products_by_day = []
     dates_by_day = []
 
-    next_sale = next(last_sale_list)
-    next_sale_date = next_sale.timestamp.date()
+    try:
+        next_sale = next(last_sale_list)
+        next_sale_date = next_sale.timestamp.date()
+    except StopIteration:
+        next_sale = None
+        next_sale_date = None
+        pass
 
     for single_date in (end_date - timedelta(days=n) for n in range(days_to_go_back)):
         products_by_day.append([])
-        dates_by_day.append(single_date)
+        dates_by_day.append(single_date.date())
 
         try:
             while next_sale_date == single_date.date():
@@ -153,11 +158,11 @@ def __get_purchase_heatmap_data_mockup(member: Member,
     mockup_colors = [(235, 237, 240), (155, 233, 168), (64, 196, 99), (33, 110, 57)]
 
     mockup_list = []
-    for i in range(70 - end_date.weekday()):
+    for i in range(70 - (6 - end_date.weekday() - 1)):
         mockup_item_count = random.randint(0, len(mockup_colors) - 1)
         mockup_list.append(
             (
-                datetime.datetime.today() - datetime.timedelta(days=i),
+                (datetime.datetime.today() - datetime.timedelta(days=i)).date(),
                 mockup_colors[mockup_item_count],
                 [1] * mockup_item_count,
             )
@@ -314,7 +319,7 @@ def usermenu(request, room, member, bought, from_sale=False):
     weeks_to_display = 10
     from datetime import datetime
 
-    raw_heatmap_data = __get_purchase_heatmap_data_mockup(member, datetime.today(), weeks_to_display,
+    raw_heatmap_data = __get_purchase_heatmap_data(member, datetime.today(), weeks_to_display,
                                                           ("beer", "energy", "soda"))
     heatmap_data = __organize_purchase_heatmap_data(raw_heatmap_data[::-1], datetime.today())
     row_labels = ["", "Mandag", "", "Onsdag", "", "Fredag", ""]
