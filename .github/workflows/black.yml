@@ -1,6 +1,6 @@
 name: Black formatter check
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   black:
