@@ -1,4 +1,5 @@
 import datetime
+import random
 from typing import List
 
 import pytz
@@ -10,6 +11,7 @@ from django.core import management
 from django.forms import modelformset_factory, formset_factory
 
 from django.contrib.admin.views.decorators import staff_member_required
+from stregsystem.templatetags.stregsystem_extras import money
 from django.contrib.auth.decorators import permission_required
 from django.conf import settings
 from django.db.models import Q, Count, Sum
@@ -54,7 +56,8 @@ import json
 
 def __get_news():
     try:
-        return News.objects.filter(stop_date__gte=timezone.now(), pub_date__lte=timezone.now()).get()
+        current_time = timezone.now()
+        return News.objects.filter(stop_date__gte=current_time, pub_date__lte=current_time).order_by('?').first()
     except News.DoesNotExist:
         return None
 
@@ -182,6 +185,8 @@ def quicksale(request, room, member: Member, bought_ids):
         cost,
         give_multibuy_hint,
         sale_hints,
+        member_has_low_balance,
+        member_balance,
     ) = __set_local_values(member, room, products, order, now)
 
     return render(request, 'stregsystem/index_sale.html', locals())
@@ -564,7 +569,8 @@ def get_user_info(request):
         }
     )
 
-def find_user_from_id(user_id:int):
+
+def find_user_from_id(user_id: int):
     try:
         return Member.objects.get(pk=user_id)
     except Member.DoesNotExist:
@@ -647,6 +653,8 @@ def api_quicksale(request, room, member: Member, bought_ids):
         cost,
         give_multibuy_hint,
         sale_hints,
+        member_has_low_balance,
+        member_balance,
     ) = __set_local_values(member, room, products, order, now)
 
     return (
@@ -670,6 +678,8 @@ def api_quicksale(request, room, member: Member, bought_ids):
             'cost': cost(),
             'give_multibuy_hint': give_multibuy_hint,
             'sale_hints': sale_hints,
+            'member_has_low_balance': member_has_low_balance,
+            'member_balance': member_balance,
         },
     )
 
@@ -713,6 +723,10 @@ def __set_local_values(member, room, products, order, now):
 
     give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
 
+    new_balance = Member.objects.get(pk=member.id).balance
+    member_has_low_balance = new_balance <= 5000
+    member_balance = money(new_balance)
+
     # return it all
     return (
         promille,
@@ -726,4 +740,6 @@ def __set_local_values(member, room, products, order, now):
         cost,
         give_multibuy_hint,
         sale_hints,
+        member_has_low_balance,
+        member_balance,
     )
