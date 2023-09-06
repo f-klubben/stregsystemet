@@ -123,7 +123,7 @@ def __get_purchase_heatmap_data(
     days_to_go_back = (7 * weeks_to_display) - (6 - end_date.weekday() - 1)
     cutoff_date = end_date.date() - timedelta(days=days_to_go_back)
     last_sale_list = iter(
-        member.sale_set.filter(timestamp__gte=cutoff_date, timestamp__lte=end_date).order_by('timestamp')
+        member.sale_set.filter(timestamp__gte=cutoff_date, timestamp__lte=end_date).order_by('-timestamp')
     )
 
     products_by_day = []
@@ -152,7 +152,7 @@ def __get_purchase_heatmap_data(
             next_sale_date = None
             continue
 
-    category_by_name = tuple(Category.objects.filter(name=cat_name) for cat_name in category_name_color)
+    category_by_name = [Category.objects.filter(name=cat_name) for cat_name in category_name_color]
     products_by_category = tuple(
         Product.objects.filter(categories__in=category_ins) for category_ins in category_by_name
     )
