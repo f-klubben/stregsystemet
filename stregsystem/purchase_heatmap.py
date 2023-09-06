@@ -1,10 +1,32 @@
-from typing import List
+from typing import List, NamedTuple, Tuple
 
 from stregsystem.models import Product, Member, Category
 from datetime import datetime, timedelta
 
 
-def __get_purchase_heatmap_day_color(
+class HeatmapDay(NamedTuple):
+    date: datetime.date
+    color: Tuple[int, int, int]
+    products: List[Product]
+
+
+def get_heatmap_graph_data(member) -> (List[str], List[Tuple[str, HeatmapDay]]):
+    __weeks_to_display = 10
+
+    __raw_heatmap_data = __get_purchase_heatmap_data(
+        member, datetime.today(), __weeks_to_display, ("beer", "energy", "soda")
+    )
+    __heatmap_data = __organize_purchase_heatmap_data(__raw_heatmap_data[::-1], datetime.today())
+    __row_labels = ["", "Mandag", "", "Onsdag", "", "Fredag", ""]
+    __current_week = datetime.today().isocalendar()[1]
+    column_labels = [str(__current_week - x) for x in range(__weeks_to_display)][::-1]
+
+    rows = zip(__row_labels, __heatmap_data)
+
+    return column_labels, rows
+
+
+def __get_heatmap_day_color(
     products: List[Product],
     products_by_color: (
         List[Product],
@@ -39,7 +61,7 @@ def __get_purchase_heatmap_data(
         str,
         str,
     ),
-) -> list:
+) -> List[HeatmapDay]:
     days_to_go_back = (7 * weeks_to_display) - (6 - end_date.weekday() - 1)
     cutoff_date = end_date.date() - timedelta(days=days_to_go_back)
     last_sale_list = iter(
@@ -86,8 +108,28 @@ def __get_purchase_heatmap_data(
     days = []
 
     for day_index in range(len(products_by_day)):
-        day_color = __get_purchase_heatmap_day_color(products_by_day[day_index], products_by_category, max_day_items)
-        days.append((dates_by_day[day_index], day_color, [x.id for x in products_by_day[day_index]]))
+        day_color = __get_heatmap_day_color(products_by_day[day_index], products_by_category, max_day_items)
+        days.append(
+            HeatmapDay(dates_by_day[day_index], day_color, products_by_day[day_index])
+        )
 
     return days
 
+
+def __organize_purchase_heatmap_data(heatmap_data: list, start_date: datetime.date) -> list:
+    # Transforms [<<Day 0 (today)>>, <<Day 1 (yesterday)>>, ...]
+    # into
+    # [
+    #   [<<Day - last monday>>, <<Day - the monday before that>>, ...],
+    #   [<<Day - last tuesday>>, <<Day - the tuesday before that>>, ...],
+    # ...]
+
+    # TODO: Doesn't take current weekday into consideration.
+    new_list = []
+    for i in range(7):
+        new_list.append([])
+        for j in range(len(heatmap_data)):
+            if j % 7 == i:
+                new_list[i].append(heatmap_data[j])
+
+    return new_list

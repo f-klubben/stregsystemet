@@ -23,7 +23,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django_select2 import forms as s2forms
 import urllib.parse
 
-from stregsystem import parser
+from stregsystem import parser, purchase_heatmap
 from stregsystem.models import (
     Member,
     Payment,
@@ -66,26 +66,6 @@ def __get_news():
 
 def __get_productlist(room_id):
     return make_active_productlist_query(Product.objects).filter(make_room_specific_query(room_id))
-
-
-def __organize_purchase_heatmap_data(heatmap_data: list, start_date: datetime.date) -> list:
-    # Transforms [<<Day 0 (today)>>, <<Day 1 (yesterday)>>, ...]
-    # into
-    # [
-    #   [<<Day - last monday>>, <<Day - the monday before that>>, ...],
-    #   [<<Day - last tuesday>>, <<Day - the tuesday before that>>, ...],
-    # ...]
-
-    # TODO: Doesn't take current weekday into consideration.
-    new_list = []
-    for i in range(7):
-        new_list.append([])
-        for j in range(len(heatmap_data)):
-            if j % 7 == i:
-                new_list[i].append(heatmap_data[j])
-
-    return new_list
-
 
 def roomindex(request):
     return HttpResponsePermanentRedirect('/1/')
@@ -231,20 +211,8 @@ def usermenu(request, room, member, bought, from_sale=False):
     give_multibuy_hint, sale_hints = _multibuy_hint(timezone.now(), member)
     give_multibuy_hint = give_multibuy_hint and from_sale
 
-    # heatmap logic begin
-    weeks_to_display = 10
+    column_labels, rows = purchase_heatmap.get_heatmap_graph_data(member)
 
-    raw_heatmap_data = __get_purchase_heatmap_data(
-        member, datetime.datetime.today(), weeks_to_display, ("beer", "energy", "soda")
-    )
-    heatmap_data = __organize_purchase_heatmap_data(raw_heatmap_data[::-1], datetime.datetime.today())
-    row_labels = ["", "Mandag", "", "Onsdag", "", "Fredag", ""]
-    current_week = datetime.datetime.today().isocalendar()[1]
-    column_labels = [str(current_week - x) for x in range(weeks_to_display)][::-1]
-
-    rows = zip(row_labels, heatmap_data)
-
-    # heatmap logic end
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())
     else:
