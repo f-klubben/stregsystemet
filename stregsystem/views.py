@@ -169,37 +169,6 @@ def __get_purchase_heatmap_data(
     return days
 
 
-"""
-def __get_purchase_heatmap_data_mockup(
-    member: Member,
-    end_date: datetime.datetime,
-    weeks_to_display: int,
-    category_name_color: (
-        str,
-        str,
-        str,
-    ),
-) -> list:
-    # Proposed format:
-    # Returned list: [<<Day 0 (today)>>, <<Day 1 (yesterday)>>, ...]
-    # Day item: (<<Date>>, <<RGB values tuple-format>>, [<<item ID 1>>, ...])
-
-    mockup_colors = [(235, 237, 240), (155, 233, 168), (64, 196, 99), (33, 110, 57)]
-
-    mockup_list = []
-    for i in range(70 - (6 - end_date.weekday() - 1)):
-        mockup_item_count = random.randint(0, len(mockup_colors) - 1)
-        mockup_list.append(
-            (
-                (datetime.datetime.today() - datetime.timedelta(days=i)).date(),
-                mockup_colors[mockup_item_count],
-                [1] * mockup_item_count,
-            )
-        )
-
-    return mockup_list"""
-
-
 def roomindex(request):
     return HttpResponsePermanentRedirect('/1/')
 
