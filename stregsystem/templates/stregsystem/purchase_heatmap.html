@@ -13,7 +13,7 @@
             <tr class="heatmap-row">
                 <td class="heatmap-label heatmap-label-first"><span>{{weekday_label}}</span></td>
                 {% for day_data in weekday_data %}
-                <td class="heatmap-cell" title="{{day_data.0}}" data-items="{{day_data.2}}" style="--cell-color: rgb{{day_data.1}}"></td>
+                <td class="heatmap-cell" title="{{day_data.0}}" data-items="{{day_data.2}}" style="--cell-color1: rgb{{day_data.1}};--cell-color2: green;"></td>
                 {% endfor %}
             </tr>
         {% endfor %}
@@ -54,6 +54,7 @@
         shape-rendering: geometricPrecision;
         padding: 0;
         outline: 1px solid rgba(27, 31, 35, 0.06);
+
         fill: var(--cell-color);
         background-color: var(--cell-color);
     }
@@ -61,3 +62,13 @@
         border-radius: 5px;
     }
 </style>
+<style id="heatmap-cell-variable">
+    .heatmap-cell {
+        --cell-color: var(--cell-color1);
+    }
+</style>
+<script>
+    function swapTableType(index){
+        document.getElementById("heatmap-cell-variable").innerHTML = `.heatmap-cell{--cell-color: var(--cell-color${index});}`;
+    }
+</script>

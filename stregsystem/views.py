@@ -67,6 +67,7 @@ def __get_news():
 def __get_productlist(room_id):
     return make_active_productlist_query(Product.objects).filter(make_room_specific_query(room_id))
 
+
 def roomindex(request):
     return HttpResponsePermanentRedirect('/1/')
 

@@ -109,9 +109,7 @@ def __get_purchase_heatmap_data(
 
     for day_index in range(len(products_by_day)):
         day_color = __get_heatmap_day_color(products_by_day[day_index], products_by_category, max_day_items)
-        days.append(
-            HeatmapDay(dates_by_day[day_index], day_color, products_by_day[day_index])
-        )
+        days.append(HeatmapDay(dates_by_day[day_index], day_color, products_by_day[day_index]))
 
     return days
 
