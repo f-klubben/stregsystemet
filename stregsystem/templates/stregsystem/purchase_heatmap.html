@@ -1,4 +1,4 @@
-<div>
+<div class="heatmap-table-container">
     <table class="heatmap-table">
         <thead>
             <tr class="heatmap-row">
@@ -13,21 +13,38 @@
             <tr class="heatmap-row">
                 <td class="heatmap-label heatmap-label-first"><span>{{weekday_label}}</span></td>
                 {% for day_data in weekday_data %}
-                <td class="heatmap-cell" title="{{day_data.0}}" data-items="{{day_data.2}}" style="--cell-color1: rgb{{day_data.1}};--cell-color2: green;"></td>
+                <td class="heatmap-cell" title="{{day_data.0}}" data-items="{{day_data.2}}" style="--cell-color0: rgb{{day_data.1.0}};--cell-color1: rgb{{day_data.1.1}};">
+                    <!--<span class="heatmap-cell-title">{{day_data.2}}</span>-->
+                </td>
                 {% endfor %}
             </tr>
         {% endfor %}
         </tbody>
     </table>
+    <div>
+        <div style="height: 2em"><a id="heatmap-table-mode-button" href="javascript:void(0)" onclick="swapTableType((current_table_mode + 1) % 2)">Kategorier</a></div>
+        <div id="heatmap-table-mode-description0" style="display: inline-flex">
+            <div class="heatmap-cell" style="--cell-color0: red;--cell-color1: red;"></div> =ØL.
+            <div class="heatmap-cell" style="--cell-color0: green;--cell-color1: green;"></div> =Energi.
+            <div class="heatmap-cell" style="--cell-color0: blue;--cell-color1: blue;"></div> =Soda.
+        </div>
+        <div id="heatmap-table-mode-description1" style="display: none">
+            <div class="heatmap-cell" style="--cell-color0: darkgreen;--cell-color1: darkgreen;"></div> =få køb.
+            <div class="heatmap-cell" style="--cell-color0: lightgreen;--cell-color1: lightgreen;"></div> =mange køb.
+        </div>
+    </div>
 </div>
 <style>
-    .heatmap-table {
-        position: relative;
-        overflow: hidden;
+    .heatmap-table-container{
         border-spacing: 5px;
         border-collapse: separate;
         border-style: inset;
         padding: 10px;
+        display: inline-block;
+    }
+    .heatmap-table {
+        position: relative;
+        overflow: hidden;
     }
     .heatmap-label {
         position: relative;
@@ -49,6 +66,7 @@
     }
     .heatmap-cell {
         width: 20px;
+        height: 20px;
         border-radius: 3px;
         outline-offset: -1px;
         shape-rendering: geometricPrecision;
@@ -64,11 +82,20 @@
 </style>
 <style id="heatmap-cell-variable">
     .heatmap-cell {
-        --cell-color: var(--cell-color1);
+        --cell-color: var(--cell-color0);
     }
 </style>
 <script>
+    let current_table_mode = 0;
     function swapTableType(index){
         document.getElementById("heatmap-cell-variable").innerHTML = `.heatmap-cell{--cell-color: var(--cell-color${index});}`;
+
+        if (index === 0){
+
+        }
+        document.getElementById("heatmap-table-mode-button").innerText = index === 0 ? "Kategorier" : "Generel";
+        document.getElementById("heatmap-table-mode-description0").style.display = index === 0 ? "inline-flex" : "none";
+        document.getElementById("heatmap-table-mode-description1").style.display = index === 1 ? "inline-flex" : "none";
+        current_table_mode = index;
     }
 </script>

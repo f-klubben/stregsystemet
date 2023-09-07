@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 
 class HeatmapDay(NamedTuple):
     date: datetime.date
-    color: Tuple[int, int, int]
-    products: List[Product]
+    color: Tuple[Tuple[int, int, int], Tuple[int, int, int]]
+    products: List[int]
 
 
 def get_heatmap_graph_data(member) -> (List[str], List[Tuple[str, HeatmapDay]]):
@@ -26,7 +26,7 @@ def get_heatmap_graph_data(member) -> (List[str], List[Tuple[str, HeatmapDay]]):
     return column_labels, rows
 
 
-def __get_heatmap_day_color(
+def __get_heatmap_day_color_categories(
     products: List[Product],
     products_by_color: (
         List[Product],
@@ -50,6 +50,13 @@ def __get_heatmap_day_color(
         return 235, 237, 240  # Grey
 
     return tuple(category_sum / total_category_sum * 255 * brightness for category_sum in category_representation)
+
+
+def __get_heatmap_day_color_general(products: List[Product], max_items_day: int) -> (int, int, int):
+    if len(products) == 0:
+        return 235, 237, 240  # Grey
+
+    return 0, int(255 * (len(products) / max_items_day)), 0
 
 
 def __get_purchase_heatmap_data(
@@ -108,8 +115,11 @@ def __get_purchase_heatmap_data(
     days = []
 
     for day_index in range(len(products_by_day)):
-        day_color = __get_heatmap_day_color(products_by_day[day_index], products_by_category, max_day_items)
-        days.append(HeatmapDay(dates_by_day[day_index], day_color, products_by_day[day_index]))
+        category_day_color = __get_heatmap_day_color_categories(products_by_day[day_index], products_by_category, max_day_items)
+        general_day_color = __get_heatmap_day_color_general(products_by_day[day_index], max_day_items)
+        days.append(
+            HeatmapDay(dates_by_day[day_index], (category_day_color, general_day_color), [product.id for product in products_by_day[day_index]])
+        )
 
     return days
 
