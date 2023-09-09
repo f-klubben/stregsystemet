@@ -115,10 +115,16 @@ def __get_purchase_heatmap_data(
     days = []
 
     for day_index in range(len(products_by_day)):
-        category_day_color = __get_heatmap_day_color_categories(products_by_day[day_index], products_by_category, max_day_items)
         general_day_color = __get_heatmap_day_color_general(products_by_day[day_index], max_day_items)
+        category_day_color = __get_heatmap_day_color_categories(
+            products_by_day[day_index], products_by_category, max_day_items
+        )
         days.append(
-            HeatmapDay(dates_by_day[day_index], (category_day_color, general_day_color), [product.id for product in products_by_day[day_index]])
+            HeatmapDay(
+                dates_by_day[day_index],
+                (general_day_color, category_day_color),
+                [product.id for product in products_by_day[day_index]],
+            )
         )
 
     return days
@@ -132,7 +138,7 @@ def __organize_purchase_heatmap_data(heatmap_data: list, start_date: datetime.da
     #   [<<Day - last tuesday>>, <<Day - the tuesday before that>>, ...],
     # ...]
 
-    # TODO: Doesn't take current weekday into consideration.
+    # TODO: Doesn't take current weekday into consideration. But still works?
     new_list = []
     for i in range(7):
         new_list.append([])

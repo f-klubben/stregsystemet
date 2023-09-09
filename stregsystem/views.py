@@ -53,8 +53,6 @@ from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, RankingDateFo
 
 import json
 
-from .purchase_heatmap import __get_purchase_heatmap_data
-
 
 def __get_news():
     try:
