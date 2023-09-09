@@ -32,7 +32,7 @@
             <div class="heatmap-cell" style="--cell-color-0: blue;--cell-color-1: blue;"></div> =Soda.
         </div>
         <div style="height: 2em">
-            <a id="heatmap-table-mode-button" href="javascript:void(0)" onclick="swapTableType((current_table_mode + 1) % table_button_text.length)">General visning</a>
+            <a id="heatmap-table-mode-button" href="javascript:void(0)" onclick="swapTableType((current_table_mode + 1) % table_button_text.length)">Vis med kategorier</a>
         </div>
     </div>
 </div>
@@ -89,7 +89,7 @@
 </style>
 <script>
     let current_table_mode = 0;
-    const table_button_text = ["Vis med kategorier", "General visning"];
+    const table_button_text = ["General visning", "Vis med kategorier"];
     window.onload = function (){swapTableType(0);};
 
     function swapTableType(index){
