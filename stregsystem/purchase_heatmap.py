@@ -49,14 +49,14 @@ def __get_heatmap_day_color_categories(
     if total_category_sum == 0:
         return 235, 237, 240  # Grey
 
-    return tuple(category_sum / total_category_sum * 255 * brightness for category_sum in category_representation)
+    return tuple(255 - (category_sum / total_category_sum * 255 * brightness) for category_sum in category_representation)
 
 
 def __get_heatmap_day_color_general(products: List[Product], max_items_day: int) -> (int, int, int):
     if len(products) == 0:
         return 235, 237, 240  # Grey
 
-    return 0, int(255 * (len(products) / max_items_day)), 0
+    return 0, int(255 - (255 * (len(products) / (max_items_day + 1)))), 0
 
 
 def __get_purchase_heatmap_data(
