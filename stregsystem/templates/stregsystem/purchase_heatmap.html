@@ -13,7 +13,8 @@
             <tr class="heatmap-row">
                 <td class="heatmap-label heatmap-label-first"><span>{{weekday_label}}</span></td>
                 {% for day_data in weekday_data %}
-                <td class="heatmap-cell" title="{{day_data.0}}" data-items="{{day_data.2}}" style="--cell-color-0: rgb{{day_data.1.0}};--cell-color-1: rgb{{day_data.1.1}};">
+                <td class="heatmap-cell" title="{{day_data.0}}" data-items="{{day_data.2}}"
+                    style="{% for color_value in day_data.color %}--cell-color-{{forloop.counter0}}: rgb{{color_value}};{% endfor %}">
                     <!--<span class="heatmap-cell-title">{{day_data.2}}</span>-->
                 </td>
                 {% endfor %}
@@ -22,17 +23,19 @@
         </tbody>
     </table>
     <div>
-        <div id="heatmap-table-mode-description-0" style="display: inline-flex">
-            <div class="heatmap-cell" style="--cell-color-0: lightgreen;--cell-color-1: lightgreen;"></div> =få køb.
-            <div class="heatmap-cell" style="--cell-color-0: darkgreen;--cell-color-1: darkgreen;"></div> =mange køb.
+        <div id="heatmap-table-mode-description-ItemCount" style="display: inline-flex">
+            <div class="heatmap-cell" style="fill: lightgreen;background-color: lightgreen;"></div> =få køb.
+            <div class="heatmap-cell" style="fill: darkgreen;background-color: darkgreen;"></div> =mange køb.
         </div>
-        <div id="heatmap-table-mode-description-1" style="display: none">
-            <div class="heatmap-cell" style="--cell-color-0: red;--cell-color-1: red;"></div> =ØL.
-            <div class="heatmap-cell" style="--cell-color-0: green;--cell-color-1: green;"></div> =Energi.
-            <div class="heatmap-cell" style="--cell-color-0: blue;--cell-color-1: blue;"></div> =Soda.
+        <div id="heatmap-table-mode-description-ColorCategorized" style="display: none">
+            <div class="heatmap-cell" style="fill: red;background-color: red;"></div> =ØL.
+            <div class="heatmap-cell" style="fill: green;background-color: green;"></div> =Energi.
+            <div class="heatmap-cell" style="fill: blue;background-color: blue;"></div> =Soda.
         </div>
         <div style="height: 2em">
-            <a id="heatmap-table-mode-button" href="javascript:void(0)" onclick="swapTableType((current_table_mode + 1) % table_button_text.length)">Vis med kategorier</a>
+            {% for color_mode in heatmap_modes %}
+            <a id="heatmap-table-mode-button-{{color_mode.mode_name}}" href="javascript:void(0)" onclick="swapTableType({{forloop.counter0}});">{{color_mode.mode_description}}</a>
+            {% endfor %}
         </div>
     </div>
 </div>
@@ -88,16 +91,22 @@
     }
 </style>
 <script>
-    let current_table_mode = 0;
-    const table_button_text = ["General visning", "Vis med kategorier"];
+    let current_heatmap_mode = 0;
+    const heatmap_mode_names = [
+        {% for heatmap_mode in heatmap_modes %}
+            "{{heatmap_mode.mode_name}}",
+        {% endfor %}
+    ]
+
     window.onload = function (){swapTableType(0);};
 
     function swapTableType(index){
         document.getElementById("heatmap-cell-variable").innerHTML = `.heatmap-cell{--cell-color: var(--cell-color-${index});}`;
-        document.getElementById("heatmap-table-mode-button").innerText = table_button_text[(index + 1) % table_button_text.length];
+        document.getElementById(`heatmap-table-mode-button-${heatmap_mode_names[current_heatmap_mode]}`).style.color = "";
+        document.getElementById(`heatmap-table-mode-button-${heatmap_mode_names[index]}`).style.color = "purple";
 
-        document.getElementById(`heatmap-table-mode-description-${current_table_mode}`).style.display = 'none';
-        document.getElementById(`heatmap-table-mode-description-${index}`).style.display = 'inline-flex';
-        current_table_mode = index;
+        document.getElementById(`heatmap-table-mode-description-${heatmap_mode_names[current_heatmap_mode]}`).style.display = 'none';
+        document.getElementById(`heatmap-table-mode-description-${heatmap_mode_names[index]}`).style.display = 'inline-flex';
+        current_heatmap_mode = index;
     }
 </script>
