@@ -53,6 +53,8 @@ from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, RankingDateFo
 
 import json
 
+from .purchase_heatmap import ItemCountHeatmapColorMode, ColorCategorizedHeatmapColorMode, get_purchase_data_for_heatmap
+
 
 def __get_news():
     try:
@@ -210,7 +212,18 @@ def usermenu(request, room, member, bought, from_sale=False):
     give_multibuy_hint, sale_hints = _multibuy_hint(timezone.now(), member)
     give_multibuy_hint = give_multibuy_hint and from_sale
 
+    # Heatmap - begin
+    __weeks_to_display = 10
+
+    __raw_heatmap_data, max_items_day = get_purchase_data_for_heatmap(
+        member, datetime.today(), __weeks_to_display
+    )
+    heatmap_modes = [
+        ItemCountHeatmapColorMode(),
+        ColorCategorizedHeatmapColorMode() # ("beer", "energy", "soda")
+    ]
     column_labels, rows = purchase_heatmap.get_heatmap_graph_data(member)
+    # Heatmap - end
 
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())

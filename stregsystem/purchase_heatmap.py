@@ -6,69 +6,95 @@ from datetime import datetime, timedelta
 
 class HeatmapDay(NamedTuple):
     date: datetime.date
-    color: Tuple[Tuple[int, int, int], Tuple[int, int, int]]
+    color: List[Tuple[int, int, int]]
     products: List[int]
 
 
-def get_heatmap_graph_data(member) -> (List[str], List[Tuple[str, HeatmapDay]]):
-    __weeks_to_display = 10
+class HeatmapColorMode(object):
+    def __init__(self, mode_name: str, mode_description: str):
+        # The ID to look up a description for in purchase_heatmap template.
+        self.mode_name = mode_name
 
-    __raw_heatmap_data = __get_purchase_heatmap_data(
-        member, datetime.today(), __weeks_to_display, ("beer", "energy", "soda")
-    )
-    __heatmap_data = __organize_purchase_heatmap_data(__raw_heatmap_data[::-1], datetime.today())
-    __row_labels = ["", "Mandag", "", "Onsdag", "", "Fredag", ""]
-    __current_week = datetime.today().isocalendar()[1]
-    column_labels = [str(__current_week - x) for x in range(__weeks_to_display)][::-1]
+        # The text showing on the figure as link to switch to mode.
+        self.mode_description = mode_description
+        pass
 
-    rows = zip(__row_labels, __heatmap_data)
+    def get_day_color(self, products: List[Product]) -> Tuple[int, int, int]:
+        """Returns the color of a particular day given the products bought on that day."""
+        pass
+
+
+class ColorCategorizedHeatmapColorMode(HeatmapColorMode):
+    products_by_color: Tuple[List[Product], List[Product], List[Product]]
+    max_items_day: int
+
+    def __init__(self, products_by_color: Tuple[List[Product], List[Product], List[Product]], max_items_day: int):
+        self.products_by_color = products_by_color
+        self.max_items_day = max_items_day
+        super().__init__(mode_name="ColorCategorized", mode_description="Med kategorier")
+
+    @staticmethod
+    def get_category_objects(category_name_color: str) -> List[Product]:
+        category = Category.objects.filter(name=category_name_color)
+        return Product.objects.filter(categories__in=category)
+
+    def get_day_color(self, products: List[Product]) -> Tuple[int, int, int]:
+        category_representation = [0, 0, 0]
+
+        for product in products:
+            for category_products_index in range(3):
+                if product in self.products_by_color[category_products_index]:
+                    category_representation[category_products_index] = category_representation[
+                                                                           category_products_index] + 1
+
+        total_category_sum = sum(category_representation)
+
+        brightness = total_category_sum / self.max_items_day
+
+        if total_category_sum == 0:
+            return 235, 237, 240  # Grey
+
+        return tuple(255 - (category_sum / total_category_sum * 255 * brightness) for category_sum in category_representation)
+
+
+class ItemCountHeatmapColorMode(HeatmapColorMode):
+    max_items_day: int
+
+    def __init__(self, max_items_day: int):
+        self.max_items_day = max_items_day
+        super().__init__(mode_name="ItemCount", mode_description="General visning")
+
+    def get_day_color(self, products: List[Product]):
+        if len(products) == 0:
+            return 235, 237, 240  # Grey
+
+        return 0, int(255 - (255 * (len(products) / (self.max_items_day + 1)))), 0
+
+
+class MoneySumHeatmapColorMode(HeatmapColorMode):
+    # TODO: Finish class
+    def __init__(self):
+        super().__init__(mode_name="MoneySum", mode_description="Penge brugt")
+
+
+def get_heatmap_graph_data(weeks_to_display: int, heatmap_data: List[HeatmapDay], heatmap_modes: List[HeatmapColorMode]) -> (List[str], List[Tuple[str, HeatmapDay]]):
+    reorganized_heatmap_data = __organize_purchase_heatmap_data(heatmap_data[::-1], datetime.today())
+    row_labels = ["", "Mandag", "", "Onsdag", "", "Fredag", ""]
+    current_week = datetime.today().isocalendar()[1]
+    column_labels = [str(current_week - x) for x in range(weeks_to_display)][::-1]
+
+    rows = zip(row_labels, reorganized_heatmap_data)
 
     return column_labels, rows
 
 
-def __get_heatmap_day_color_categories(
-    products: List[Product],
-    products_by_color: (
-        List[Product],
-        List[Product],
-        List[Product],
-    ),
-    max_items_day: int,
-) -> (int, int, int,):
-    category_representation = [0, 0, 0]
+def get_purchase_data_for_heatmap(
+        member: Member,
+        end_date: datetime,
+        weeks_to_display: int,
+        heatmap_modes: List[HeatmapColorMode]
+) -> (List[HeatmapDay], int):
 
-    for product in products:
-        for category_products_index in range(3):
-            if product in products_by_color[category_products_index]:
-                category_representation[category_products_index] = category_representation[category_products_index] + 1
-
-    total_category_sum = sum(category_representation)
-
-    brightness = total_category_sum / max_items_day
-
-    if total_category_sum == 0:
-        return 235, 237, 240  # Grey
-
-    return tuple(255 - (category_sum / total_category_sum * 255 * brightness) for category_sum in category_representation)
-
-
-def __get_heatmap_day_color_general(products: List[Product], max_items_day: int) -> (int, int, int):
-    if len(products) == 0:
-        return 235, 237, 240  # Grey
-
-    return 0, int(255 - (255 * (len(products) / (max_items_day + 1)))), 0
-
-
-def __get_purchase_heatmap_data(
-    member: Member,
-    end_date: datetime,
-    weeks_to_display: int,
-    category_name_color: (
-        str,
-        str,
-        str,
-    ),
-) -> List[HeatmapDay]:
     days_to_go_back = (7 * weeks_to_display) - (6 - end_date.weekday() - 1)
     cutoff_date = end_date.date() - timedelta(days=days_to_go_back)
     last_sale_list = iter(
@@ -104,25 +130,18 @@ def __get_purchase_heatmap_data(
 
         max_day_items = max(max_day_items, len(products_by_day[-1]))
 
-    category_by_name = [Category.objects.filter(name=cat_name) for cat_name in category_name_color]
-    products_by_category = tuple(
-        Product.objects.filter(categories__in=category_ins) for category_ins in category_by_name
-    )
-
     # Proposed format:
     # Returned list: [<<Day 0 (today)>>, <<Day 1 (yesterday)>>, ...]
-    # Day item: (<<Date>>, <<RGB values tuple-format>>, [<<item ID 1>>, ...])
+    # Day item: (<<Date>>, [<<RGB values by mode>>], [<<item ID 1>>, ...])
     days = []
 
     for day_index in range(len(products_by_day)):
-        general_day_color = __get_heatmap_day_color_general(products_by_day[day_index], max_day_items)
-        category_day_color = __get_heatmap_day_color_categories(
-            products_by_day[day_index], products_by_category, max_day_items
-        )
+        day_colors = [color_mode.get_day_color(products_by_day[day_index]) for color_mode in heatmap_modes]
+
         days.append(
             HeatmapDay(
                 dates_by_day[day_index],
-                (general_day_color, category_day_color),
+                day_colors,
                 [product.id for product in products_by_day[day_index]],
             )
         )
