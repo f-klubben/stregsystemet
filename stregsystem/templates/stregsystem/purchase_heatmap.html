@@ -13,7 +13,7 @@
             <tr class="heatmap-row">
                 <td class="heatmap-label heatmap-label-first"><span>{{weekday_label}}</span></td>
                 {% for day_data in weekday_data %}
-                <td class="heatmap-cell" title="{{day_data.0}}" data-items="{{day_data.2}}"
+                <td class="heatmap-cell" title="{{day_data.0}}" data-items="{{day_data.2}}" onmouseenter="updateProductCounts({{day_data.2}})" onmouseleave="updateProductCounts({{day_data.2}}, true)"
                     style="{% for color_value in day_data.color %}--cell-color-{{forloop.counter0}}: rgb{{color_value}};{% endfor %}">
                     <!--<span class="heatmap-cell-title">{{day_data.2}}</span>-->
                 </td>
@@ -108,5 +108,31 @@
         document.getElementById(`heatmap-table-mode-description-${heatmap_mode_names[current_heatmap_mode]}`).style.display = 'none';
         document.getElementById(`heatmap-table-mode-description-${heatmap_mode_names[index]}`).style.display = 'inline-flex';
         current_heatmap_mode = index;
+    }
+
+    function updateProductCounts(products, clear=false){
+        const product_counts = {};
+
+        for (const num of products){
+            product_counts[num] = product_counts[num] ? product_counts[num] + 1 : 1;
+        }
+
+        for (const [product_id, count] of Object.entries(product_counts)){
+            changeProductCount(product_id, clear ? 0 : count);
+        }
+    }
+
+    function changeProductCount(product_id, count){
+        let productForm = document.querySelector(`input[name='product_id'][value='${product_id}']`).parentElement;
+
+        var productCountElement = productForm.getElementsByClassName("product-count")[0];
+        if (productCountElement === undefined){
+            productCountElement = document.createElement("a");
+            productCountElement.setAttribute("class", "product-count");
+            productForm.appendChild(productCountElement);
+        }
+
+        productCountElement.style.display = count === 0 ? 'none' : 'inline';
+        productCountElement.innerText = `${count}`
     }
 </script>
