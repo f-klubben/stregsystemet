@@ -135,7 +135,9 @@ def get_purchase_data_ordered_by_date(
     cutoff_date = end_date.date() - timedelta(days=days_to_go_back)
 
     last_sale_list = list(
-        member.sale_set.filter(timestamp__gte=cutoff_date, timestamp__lte=end_date).order_by('-timestamp')
+        member.sale_set.filter(timestamp__gte=cutoff_date, timestamp__lte=end_date)
+        .select_related('product')
+        .order_by('-timestamp')
     )
 
     products_by_day = []
