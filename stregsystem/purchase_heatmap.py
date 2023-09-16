@@ -134,33 +134,21 @@ def get_purchase_data_ordered_by_date(
     days_to_go_back = (7 * weeks_to_display) - (6 - end_date.weekday() - 1)
     cutoff_date = end_date.date() - timedelta(days=days_to_go_back)
 
-    last_sale_list = iter(
+    last_sale_list = list(
         member.sale_set.filter(timestamp__gte=cutoff_date, timestamp__lte=end_date).order_by('-timestamp')
     )
 
     products_by_day = []
     dates_by_day = []
 
-    try:
-        next_sale = next(last_sale_list)
-        next_sale_date = next_sale.timestamp.date()
-    except StopIteration:
-        next_sale = None
-        next_sale_date = None
-
+    sale_index = 0
     for single_date in (end_date - timedelta(days=n) for n in range(days_to_go_back)):
         products_by_day.append([])
         dates_by_day.append(single_date.date())
 
-        try:
-            while next_sale_date == single_date.date():
-                products_by_day[-1].append(next_sale.product)
-
-                next_sale = next(last_sale_list)
-                next_sale_date = next_sale.timestamp.date()
-        except StopIteration:
-            next_sale = None
-            next_sale_date = None
+        while last_sale_list[sale_index].timestamp.date() == single_date.date():
+            products_by_day[-1].append(last_sale_list[sale_index].product)
+            sale_index += 1
 
     return list(zip(dates_by_day, products_by_day))
 
