@@ -1,4 +1,7 @@
 <div class="heatmap-table-container">
+    <div class="heatmap-header">
+        <h2 id="heatmap-header-title">Forbrugsoversigt (Antal)</h2>
+    </div>
     <table class="heatmap-table">
         <thead>
             <tr class="heatmap-row">
@@ -22,7 +25,7 @@
         {% endfor %}
         </tbody>
     </table>
-    <div>
+    <div class="heatmap-footer">
         <div id="heatmap-table-mode-description-ItemCount" style="display: inline-flex">
             <div class="heatmap-cell" style="fill: lightgreen;background-color: lightgreen;"></div> =få køb.
             <div class="heatmap-cell" style="fill: darkgreen;background-color: darkgreen;"></div> =mange køb.
@@ -41,12 +44,18 @@
 </div>
 <style>
     .heatmap-table-container{
-        border-spacing: 5px;
         border-collapse: separate;
-        border-style: inset;
-        padding: 10px;
+        border-style: outset;
+        padding: 1em 2em 0.5em 2em;
         display: inline-block;
     }
+    .heatmap-footer {
+        margin-top: 0.5em;
+    }
+    #heatmap-header-title {
+        margin: 0 0 0.5em 0;
+    }
+
     .heatmap-table {
         position: relative;
         overflow: hidden;
@@ -55,8 +64,8 @@
         position: relative;
         padding: .125em .5em .125em 0;
         color: black;
-        text-align: left;
         fill: black;
+        font-size: 12.5pt;
     }
     .heatmap-label-first {
         width: 4em;
@@ -66,12 +75,16 @@
         position: absolute;
         bottom: 2px
     }
+    .heatmap-label[colspan="1"] > span {
+        text-align: center;
+        width: 100%;
+    }
     .heatmap-row {
-        height: 20px;
+        height: 24px;
     }
     .heatmap-cell {
-        width: 20px;
-        height: 20px;
+        width: 24px;
+        height: 24px;
         border-radius: 3px;
         outline-offset: -1px;
         shape-rendering: geometricPrecision;
@@ -83,6 +96,10 @@
     }
     .heatmap-cell:hover {
         border-radius: 5px;
+    }
+
+    a.product-count {
+        font-weight: bold;
     }
 </style>
 <style id="heatmap-cell-variable">
