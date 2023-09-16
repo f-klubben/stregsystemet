@@ -1,4 +1,4 @@
-<div class="heatmap-table-container">
+<div class="heatmap-table-container" onmouseenter="updateAllProductNumbers(false)" onmouseleave="updateAllProductNumbers(true)">
     <div class="heatmap-header">
         <h2 id="heatmap-header-title">Forbrugsoversigt (Antal)</h2>
     </div>
@@ -37,7 +37,7 @@
         </div>
         <div style="height: 2em">
             {% for color_mode in heatmap_modes %}
-            <a id="heatmap-table-mode-button-{{color_mode.mode_name}}" href="javascript:void(0)" onclick="swapTableType({{forloop.counter0}});">{{color_mode.mode_description}}</a>
+            <a id="heatmap-table-mode-button-{{color_mode.mode_name}}" class="heatmap-mode-button" href="javascript:void(0)" onclick="swapTableType({{forloop.counter0}});">{{color_mode.mode_description}}</a>
             {% endfor %}
         </div>
     </div>
@@ -97,9 +97,17 @@
     .heatmap-cell:hover {
         border-radius: 5px;
     }
+    .heatmap-mode-button[data-active="yes"] {
+        text-decoration: none;
+        color: black;
+        cursor: default;
+    }
 
-    a.product-count {
+    .product-count {
         font-weight: bold;
+        width: 1em;
+        float: right;
+        text-align: center;
     }
 </style>
 <style id="heatmap-cell-variable">
@@ -119,12 +127,17 @@
 
     function swapTableType(index){
         document.getElementById("heatmap-cell-variable").innerHTML = `.heatmap-cell{--cell-color: var(--cell-color-${index});}`;
-        document.getElementById(`heatmap-table-mode-button-${heatmap_mode_names[current_heatmap_mode]}`).style.color = "";
-        document.getElementById(`heatmap-table-mode-button-${heatmap_mode_names[index]}`).style.color = "purple";
+        document.getElementById(`heatmap-table-mode-button-${heatmap_mode_names[current_heatmap_mode]}`).dataset.active = "";
+        document.getElementById(`heatmap-table-mode-button-${heatmap_mode_names[index]}`).dataset.active = "yes";
 
         document.getElementById(`heatmap-table-mode-description-${heatmap_mode_names[current_heatmap_mode]}`).style.display = 'none';
         document.getElementById(`heatmap-table-mode-description-${heatmap_mode_names[index]}`).style.display = 'inline-flex';
         current_heatmap_mode = index;
+    }
+
+    function updateAllProductNumbers(hide=false){
+        document.querySelectorAll("input[name='product_id']")
+            .forEach(p => changeProductCountElement(p.parentElement, 0, hide))
     }
 
     function updateProductCounts(products, clear=false){
@@ -135,21 +148,22 @@
         }
 
         for (const [product_id, count] of Object.entries(product_counts)){
-            changeProductCount(product_id, clear ? 0 : count);
+            changeProductCountElement(
+                document.querySelector(`input[name='product_id'][value='${product_id}']`).parentElement,
+                clear ? 0 : count,
+                false);
         }
     }
 
-    function changeProductCount(product_id, count){
-        let productForm = document.querySelector(`input[name='product_id'][value='${product_id}']`).parentElement;
-
-        var productCountElement = productForm.getElementsByClassName("product-count")[0];
+    function changeProductCountElement(productFormElement, count, hide=false){
+        let productCountElement = productFormElement.getElementsByClassName("product-count")[0];
         if (productCountElement === undefined){
             productCountElement = document.createElement("a");
             productCountElement.setAttribute("class", "product-count");
-            productForm.appendChild(productCountElement);
+            productFormElement.appendChild(productCountElement);
         }
 
-        productCountElement.style.display = count === 0 ? 'none' : 'inline';
+        productCountElement.style.display = hide ? 'none' : 'inline';
         productCountElement.innerText = `${count}`
     }
 </script>
