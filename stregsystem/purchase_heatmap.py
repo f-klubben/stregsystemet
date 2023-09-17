@@ -62,7 +62,7 @@ class ColorCategorizedHeatmapColorMode(HeatmapColorMode):
         )
 
     def get_day_summary(self, products: List[Product]) -> str:
-        return f"{len(products)} varer købt"
+        return f"{len(products)} {'vare' if len(products) == 1 else 'varer'} købt"
 
     @staticmethod
     def get_category_objects(category_name_color: str) -> List[Product]:
@@ -84,7 +84,7 @@ class ItemCountHeatmapColorMode(HeatmapColorMode):
         return 0, int(255 - (255 * (len(products) / (self.max_items_day + 1)))), 0
 
     def get_day_summary(self, products: List[Product]) -> str:
-        return f"{len(products)} varer købt"
+        return f"{len(products)} {'vare' if len(products) == 1 else 'varer'} købt"
 
     @staticmethod
     def get_max_product_count(day_list: List[Tuple[date, List[Product]]]) -> int:
