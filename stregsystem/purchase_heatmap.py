@@ -3,11 +3,14 @@ from typing import List, NamedTuple, Tuple
 from stregsystem.models import Product, Member, Category
 from datetime import datetime, timedelta, date
 
+from stregsystem.templatetags.stregsystem_extras import money
+
 
 class HeatmapDay(NamedTuple):
     date: datetime.date
-    color: List[Tuple[int, int, int]]
     products: List[int]
+    color: List[Tuple[int, int, int]]
+    summary: List[str]
 
 
 class HeatmapColorMode(object):
@@ -21,6 +24,10 @@ class HeatmapColorMode(object):
 
     def get_day_color(self, products: List[Product]) -> Tuple[int, int, int]:
         """Returns the color of a particular day given the products bought on that day."""
+        pass
+
+    def get_day_summary(self, products: List[Product]) -> str:
+        """Returns a summary of the day, e.g. amount of money used, or product count."""
         pass
 
 
@@ -54,6 +61,9 @@ class ColorCategorizedHeatmapColorMode(HeatmapColorMode):
             255 - (category_sum / total_category_sum * 255 * brightness) for category_sum in category_representation
         )
 
+    def get_day_summary(self, products: List[Product]) -> str:
+        return f"{len(products)} varer købt"
+
     @staticmethod
     def get_category_objects(category_name_color: str) -> List[Product]:
         category = Category.objects.filter(name=category_name_color)
@@ -72,6 +82,9 @@ class ItemCountHeatmapColorMode(HeatmapColorMode):
             return 235, 237, 240  # Grey
 
         return 0, int(255 - (255 * (len(products) / (self.max_items_day + 1)))), 0
+
+    def get_day_summary(self, products: List[Product]) -> str:
+        return f"{len(products)} varer købt"
 
     @staticmethod
     def get_max_product_count(day_list: List[Tuple[date, List[Product]]]) -> int:
@@ -97,6 +110,9 @@ class MoneySumHeatmapColorMode(HeatmapColorMode):
         day_sum = sum(p.price for p in products)
 
         return 0, 0, int(255 - (255 * (day_sum / (self.max_money_day_oere + 1000))))
+
+    def get_day_summary(self, products: List[Product]) -> str:
+        return f"{money(sum(p.price for p in products))} F$ brugt"
 
     @staticmethod
     def get_products_money_sum(day_list: List[Tuple[date, List[Product]]]) -> int:
@@ -132,14 +148,9 @@ def convert_purchase_data_to_heatmap_day(
     for day_index in range(len(products_by_date)):
         day_date, product_list = products_by_date[day_index]
         day_colors = [color_mode.get_day_color(product_list) for color_mode in heatmap_modes]
+        day_summaries = [color_mode.get_day_summary(product_list) for color_mode in heatmap_modes]
 
-        days.append(
-            HeatmapDay(
-                day_date,
-                day_colors,
-                [product.id for product in product_list],
-            )
-        )
+        days.append(HeatmapDay(day_date, [product.id for product in product_list], day_colors, day_summaries))
 
     return days
 

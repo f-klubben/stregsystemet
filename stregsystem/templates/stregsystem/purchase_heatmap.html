@@ -1,4 +1,4 @@
-<div class="heatmap-table-container" onmouseenter="updateAllProductNumbers(false)" onmouseleave="updateAllProductNumbers(true)">
+<div class="heatmap-table-container" onmouseenter="updateAllProductNumbers(false)" onmouseleave="updateAllProductNumbers(true);changeTile('', true)">
     <div class="heatmap-header">
         <h2 class="heatmap-header-title">Forbrugsoversigt (Antal)</h2>
     </div>
@@ -16,9 +16,9 @@
             <tr class="heatmap-row">
                 <td class="heatmap-label heatmap-label-first"><span>{{weekday_label}}</span></td>
                 {% for day_data in weekday_data %}
-                <td class="heatmap-cell" title="{{day_data.0}}" data-items="{{day_data.2}}" onmouseenter="updateProductCounts({{day_data.2}})" onmouseleave="updateProductCounts({{day_data.2}}, true)"
+                <td class="heatmap-cell" title="{{day_data.date}}" data-date="{{day_data.date}}" data-products="{{day_data.products}}" onmouseenter="dayCellOnEnter(this)" onmouseleave="dayCellOnLeave(this)"
+                    {% for summary in day_data.summary %}data-summary{{forloop.counter0}}="{{summary}}"{% endfor %}
                     style="{% for color_value in day_data.color %}--cell-color-{{forloop.counter0}}: rgb{{color_value}};{% endfor %}">
-                    <!--<span class="heatmap-cell-title">{{day_data.2}}</span>-->
                 </td>
                 {% endfor %}
             </tr>
@@ -153,6 +153,26 @@
     function updateAllProductNumbers(hide=false){
         document.querySelectorAll("input[name='product_id']")
             .forEach(p => changeProductCountElement(p.parentElement, 0, hide))
+    }
+
+    function changeTile(newTitle, revert=false){
+        const titleElement = document.getElementsByClassName("heatmap-header-title")[0];
+        if (revert){
+            titleElement.innerText = titleElement.dataset.originaltext;
+            return;
+        }
+
+        titleElement.innerText = newTitle;
+    }
+
+    function dayCellOnEnter(sender){
+        updateProductCounts(JSON.parse(sender.dataset.products));
+        const day_summary = sender.dataset[`summary${current_heatmap_mode}`];
+        changeTile(`${sender.dataset.date} - ${day_summary}`);
+    }
+
+    function dayCellOnLeave(sender){
+        updateProductCounts(JSON.parse(sender.dataset.products), true);
     }
 
     function updateProductCounts(products, clear=false){
