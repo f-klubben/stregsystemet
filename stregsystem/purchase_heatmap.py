@@ -81,7 +81,9 @@ class ItemCountHeatmapColorMode(HeatmapColorMode):
         if len(products) == 0:
             return 235, 237, 240  # Grey
 
-        return 0, int(255 - (255 * (len(products) / (self.max_items_day + 1)))), 0
+        lerp_value = len(products) / self.max_items_day
+
+        return lerp_color((144, 238, 144), (0, 100, 0), lerp_value)  # Lightgreen - Darkgreen
 
     def get_day_summary(self, products: List[Product]) -> str:
         return f"{len(products)} {'vare' if len(products) == 1 else 'varer'} købt"
@@ -108,8 +110,9 @@ class MoneySumHeatmapColorMode(HeatmapColorMode):
             return 235, 237, 240  # Grey
 
         day_sum = sum(p.price for p in products)
+        lerp_value = day_sum / self.max_money_day_oere
 
-        return 0, 0, int(255 - (255 * (day_sum / (self.max_money_day_oere + 1000))))
+        return lerp_color((255, 255, 200), (255, 255, 0), lerp_value)  # Lightyellow - Yellow
 
     def get_day_summary(self, products: List[Product]) -> str:
         return f"{money(sum(p.price for p in products))} F$ brugt"
@@ -130,7 +133,9 @@ def get_heatmap_graph_data(
     current_date = datetime.today()
     reorganized_heatmap_data = __organize_purchase_heatmap_data(heatmap_data[::-1], current_date)
     row_labels = ["", "Mandag", "", "Onsdag", "", "Fredag", ""]
-    column_labels = [str((current_date - timedelta(days=7*x)).isocalendar()[1]) for x in range(weeks_to_display)][::-1]
+    column_labels = [str((current_date - timedelta(days=7 * x)).isocalendar()[1]) for x in range(weeks_to_display)][
+        ::-1
+    ]
 
     rows = zip(row_labels, reorganized_heatmap_data)
 
@@ -160,7 +165,6 @@ def get_purchase_data_ordered_by_date(
     end_date: datetime,
     weeks_to_display: int,
 ) -> List[Tuple[date, List[Product]]]:
-
     days_to_go_back = (7 * weeks_to_display) - (6 - end_date.weekday() - 1)
     cutoff_date = end_date.date() - timedelta(days=days_to_go_back)
 
@@ -202,3 +206,11 @@ def __organize_purchase_heatmap_data(heatmap_data: list, start_date: datetime.da
                 new_list[i].append(heatmap_data[j])
 
     return new_list
+
+
+def lerp_color(color1: Tuple[int, int, int], color2: Tuple[int, int, int], value: float) -> Tuple[int, int, int]:
+    return (
+        int(color1[0] + (color2[0] - color1[0]) * value),
+        int(color1[1] + (color2[1] - color1[1]) * value),
+        int(color1[2] + (color2[2] - color1[2]) * value),
+    )
