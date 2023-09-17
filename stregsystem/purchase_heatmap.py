@@ -52,10 +52,10 @@ class ColorCategorizedHeatmapColorMode(HeatmapColorMode):
 
         total_category_sum = sum(category_representation)
 
-        brightness = total_category_sum / self.max_items_day
-
         if total_category_sum == 0:
             return 235, 237, 240  # Grey
+
+        brightness = total_category_sum / self.max_items_day
 
         return tuple(
             255 - (category_sum / total_category_sum * 255 * brightness) for category_sum in category_representation
@@ -127,10 +127,10 @@ class MoneySumHeatmapColorMode(HeatmapColorMode):
 def get_heatmap_graph_data(
     weeks_to_display: int, heatmap_data: List[HeatmapDay]
 ) -> (List[str], List[Tuple[str, HeatmapDay]]):
-    reorganized_heatmap_data = __organize_purchase_heatmap_data(heatmap_data[::-1], datetime.today())
+    current_date = datetime.today()
+    reorganized_heatmap_data = __organize_purchase_heatmap_data(heatmap_data[::-1], current_date)
     row_labels = ["", "Mandag", "", "Onsdag", "", "Fredag", ""]
-    current_week = datetime.today().isocalendar()[1]
-    column_labels = [str(current_week - x) for x in range(weeks_to_display)][::-1]
+    column_labels = [str((current_date - timedelta(days=7*x)).isocalendar()[1]) for x in range(weeks_to_display)][::-1]
 
     rows = zip(row_labels, reorganized_heatmap_data)
 
