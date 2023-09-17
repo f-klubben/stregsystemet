@@ -178,7 +178,7 @@ def get_purchase_data_ordered_by_date(
         products_by_day.append([])
         dates_by_day.append(single_date.date())
 
-        while last_sale_list[sale_index].timestamp.date() == single_date.date():
+        while sale_index < len(last_sale_list) and last_sale_list[sale_index].timestamp.date() == single_date.date():
             products_by_day[-1].append(last_sale_list[sale_index].product)
             sale_index += 1
 
