@@ -1,6 +1,6 @@
 <div class="heatmap-table-container" onmouseenter="updateAllProductNumbers(false)" onmouseleave="updateAllProductNumbers(true)">
     <div class="heatmap-header">
-        <h2 id="heatmap-header-title">Forbrugsoversigt (Antal)</h2>
+        <h2 class="heatmap-header-title">Forbrugsoversigt (Antal)</h2>
     </div>
     <table class="heatmap-table">
         <thead>
@@ -30,6 +30,10 @@
             <div class="heatmap-cell" style="fill: lightgreen;background-color: lightgreen;"></div> =få køb.
             <div class="heatmap-cell" style="fill: darkgreen;background-color: darkgreen;"></div> =mange køb.
         </div>
+        <div id="heatmap-table-mode-description-MoneySum" style="display: none">
+            <div class="heatmap-cell" style="fill: lightblue;background-color: lightblue;"></div> =mindre forbrug.
+            <div class="heatmap-cell" style="fill: darkblue;background-color: darkblue;"></div> =større forbrug.
+        </div>
         <div id="heatmap-table-mode-description-ColorCategorized" style="display: none">
             <div class="heatmap-cell" style="fill: red;background-color: red;"></div> =ØL.
             <div class="heatmap-cell" style="fill: green;background-color: green;"></div> =Energi.
@@ -37,7 +41,7 @@
         </div>
         <div style="height: 2em">
             {% for color_mode in heatmap_modes %}
-            <a id="heatmap-table-mode-button-{{color_mode.mode_name}}" class="heatmap-mode-button" href="javascript:void(0)" onclick="swapTableType({{forloop.counter0}});">{{color_mode.mode_description}}</a>
+            <a class="heatmap-mode-button" href="javascript:void(0)" onclick="swapTableType({{forloop.counter0}});">{{color_mode.mode_description}}</a>
             {% endfor %}
         </div>
     </div>
@@ -52,8 +56,8 @@
     .heatmap-footer {
         margin-top: 0.5em;
     }
-    #heatmap-header-title {
-        margin: 0 0 0.5em 0;
+    .heatmap-header-title {
+        margin: 0 -1em 0.5em -1em;
     }
 
     .heatmap-table {
@@ -123,12 +127,23 @@
         {% endfor %}
     ]
 
+    const heatmap_mode_description = [
+        {% for heatmap_mode in heatmap_modes %}
+            "{{heatmap_mode.mode_description}}",
+        {% endfor %}
+    ]
+
     window.onload = function (){swapTableType(0);};
 
     function swapTableType(index){
+        const header_title = `Forbrugsoversigt (${heatmap_mode_description[index]})`
+        document.getElementsByClassName("heatmap-header-title")[0].dataset.originaltext = header_title;
+        document.getElementsByClassName("heatmap-header-title")[0].innerText = header_title;
+
         document.getElementById("heatmap-cell-variable").innerHTML = `.heatmap-cell{--cell-color: var(--cell-color-${index});}`;
-        document.getElementById(`heatmap-table-mode-button-${heatmap_mode_names[current_heatmap_mode]}`).dataset.active = "";
-        document.getElementById(`heatmap-table-mode-button-${heatmap_mode_names[index]}`).dataset.active = "yes";
+
+        document.getElementsByClassName("heatmap-mode-button")[current_heatmap_mode].dataset.active = "";
+        document.getElementsByClassName("heatmap-mode-button")[index].dataset.active = "yes";
 
         document.getElementById(`heatmap-table-mode-description-${heatmap_mode_names[current_heatmap_mode]}`).style.display = 'none';
         document.getElementById(`heatmap-table-mode-description-${heatmap_mode_names[index]}`).style.display = 'inline-flex';

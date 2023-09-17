@@ -53,7 +53,7 @@ from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, RankingDateFo
 
 import json
 
-from .purchase_heatmap import ItemCountHeatmapColorMode, ColorCategorizedHeatmapColorMode
+from .purchase_heatmap import ItemCountHeatmapColorMode, ColorCategorizedHeatmapColorMode, MoneySumHeatmapColorMode
 
 
 def __get_news():
@@ -219,14 +219,16 @@ def usermenu(request, room, member, bought, from_sale=False):
         member, datetime.datetime.today(), __weeks_to_display
     )
 
-    __max_items_bought = purchase_heatmap.get_max_product_count(__raw_heatmap_data)
     __products_in_color_categories = tuple(
         ColorCategorizedHeatmapColorMode.get_category_objects(category_name)
         for category_name in ("beer", "energy", "soda")
     )
 
+    __max_items_bought = ItemCountHeatmapColorMode.get_max_product_count(__raw_heatmap_data)
+
     heatmap_modes = [
         ItemCountHeatmapColorMode(__max_items_bought),
+        MoneySumHeatmapColorMode(MoneySumHeatmapColorMode.get_products_money_sum(__raw_heatmap_data)),
         ColorCategorizedHeatmapColorMode(__max_items_bought, __products_in_color_categories),
     ]
     __reorganized_heatmap_data = purchase_heatmap.convert_purchase_data_to_heatmap_day(

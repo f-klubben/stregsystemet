@@ -33,11 +33,6 @@ class ColorCategorizedHeatmapColorMode(HeatmapColorMode):
         self.products_by_color = products_by_color
         super().__init__(mode_name="ColorCategorized", mode_description="Med kategorier")
 
-    @staticmethod
-    def get_category_objects(category_name_color: str) -> List[Product]:
-        category = Category.objects.filter(name=category_name_color)
-        return Product.objects.filter(categories__in=category)
-
     def get_day_color(self, products: List[Product]) -> Tuple[int, int, int]:
         category_representation = [0, 0, 0]
 
@@ -59,25 +54,58 @@ class ColorCategorizedHeatmapColorMode(HeatmapColorMode):
             255 - (category_sum / total_category_sum * 255 * brightness) for category_sum in category_representation
         )
 
+    @staticmethod
+    def get_category_objects(category_name_color: str) -> List[Product]:
+        category = Category.objects.filter(name=category_name_color)
+        return Product.objects.filter(categories__in=category)
+
 
 class ItemCountHeatmapColorMode(HeatmapColorMode):
     max_items_day: int
 
     def __init__(self, max_items_day: int):
         self.max_items_day = max_items_day
-        super().__init__(mode_name="ItemCount", mode_description="General visning")
+        super().__init__(mode_name="ItemCount", mode_description="Antal")
 
-    def get_day_color(self, products: List[Product]):
+    def get_day_color(self, products: List[Product]) -> Tuple[int, int, int]:
         if len(products) == 0:
             return 235, 237, 240  # Grey
 
         return 0, int(255 - (255 * (len(products) / (self.max_items_day + 1)))), 0
 
+    @staticmethod
+    def get_max_product_count(day_list: List[Tuple[date, List[Product]]]) -> int:
+        max_day_items = 0
+
+        for day_date, product_list in day_list:
+            max_day_items = max(max_day_items, len(product_list))
+
+        return max_day_items
+
 
 class MoneySumHeatmapColorMode(HeatmapColorMode):
-    # TODO: Finish class
-    def __init__(self):
+    max_money_day_oere: int
+
+    def __init__(self, max_money_day_oere: int):
+        self.max_money_day_oere = max_money_day_oere
         super().__init__(mode_name="MoneySum", mode_description="Penge brugt")
+
+    def get_day_color(self, products: List[Product]) -> Tuple[int, int, int]:
+        if len(products) == 0:
+            return 235, 237, 240  # Grey
+
+        day_sum = sum(p.price for p in products)
+
+        return 0, 0, int(255 - (255 * (day_sum / (self.max_money_day_oere + 1000))))
+
+    @staticmethod
+    def get_products_money_sum(day_list: List[Tuple[date, List[Product]]]) -> int:
+        max_product_sum = 0
+
+        for day_date, product_list in day_list:
+            max_product_sum = max(max_product_sum, sum(product.price for product in product_list))
+
+        return max_product_sum
 
 
 def get_heatmap_graph_data(
@@ -91,15 +119,6 @@ def get_heatmap_graph_data(
     rows = zip(row_labels, reorganized_heatmap_data)
 
     return column_labels, rows
-
-
-def get_max_product_count(day_list: List[Tuple[date, List[Product]]]) -> int:
-    max_day_items = 0
-
-    for day_date, product_list in day_list:
-        max_day_items = max(max_day_items, len(product_list))
-
-    return max_day_items
 
 
 def convert_purchase_data_to_heatmap_day(
