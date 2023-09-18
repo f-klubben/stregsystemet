@@ -212,7 +212,7 @@ def usermenu(request, room, member, bought, from_sale=False):
     give_multibuy_hint, sale_hints = _multibuy_hint(timezone.now(), member)
     give_multibuy_hint = give_multibuy_hint and from_sale
 
-    # Heatmap - begin
+    # Heatmap - begin (dummy comment)
     __weeks_to_display = 10
 
     __raw_heatmap_data = purchase_heatmap.get_purchase_data_ordered_by_date(
