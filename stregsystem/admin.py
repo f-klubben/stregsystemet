@@ -2,6 +2,7 @@ from django.contrib import admin
 from django import forms
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from django.contrib import messages
+from django.contrib.admin.models import LogEntry
 
 from stregsystem.models import (
     Category,
@@ -11,20 +12,27 @@ from stregsystem.models import (
     PayTransaction,
     Product,
     Room,
-    Sale
+    Sale,
+    MobilePayment,
+    NamedProduct,
 )
-from stregsystem.utils import (
-    make_active_productlist_query,
-    make_inactive_productlist_query
-)
+from stregsystem.templatetags.stregsystem_extras import money
+from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
 
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
-    list_display = ('get_username', 'get_fullname', 'get_product_name', 'get_room_name', 'timestamp', 'get_price_display')
+    list_display = (
+        'get_username',
+        'get_fullname',
+        'get_product_name',
+        'get_room_name',
+        'timestamp',
+        'get_price_display',
+    )
     actions = ['refund']
     search_fields = ['^member__username', '=product__id', 'product__name']
-    valid_lookups = ('member')
+    valid_lookups = 'member'
     autocomplete_fields = ['member', 'product']
 
     class Media:
@@ -76,13 +84,16 @@ class SaleAdmin(admin.ModelAdmin):
     get_price_display.short_description = "Price"
     get_price_display.admin_order_field = "price"
 
-    def refund(modeladmin, request, queryset):
-        for obj in queryset:
-            transaction = PayTransaction(obj.price)
-            obj.member.rollback(transaction)
-            obj.member.save()
-        queryset.delete()
-    refund.short_description = "Refund selected"
+
+def refund(modeladmin, request, queryset):
+    for obj in queryset:
+        transaction = PayTransaction(obj.price)
+        obj.member.rollback(transaction)
+        obj.member.save()
+    queryset.delete()
+
+
+refund.short_description = "Refund selected"
 
 
 def toggle_active_selected_products(modeladmin, request, queryset):
@@ -130,11 +141,10 @@ class ProductAdmin(admin.ModelAdmin):
         ("start_date", "quantity", "get_bought"),
         "categories",
         "rooms",
-        "alcohol_content_ml"
+        "alcohol_content_ml",
+        "caffeine_content_mg",
     )
-    readonly_fields = (
-        "get_bought",
-    )
+    readonly_fields = ("get_bought",)
 
     actions = [toggle_active_selected_products]
     filter_horizontal = ('categories', 'rooms')
@@ -143,17 +153,38 @@ class ProductAdmin(admin.ModelAdmin):
         if obj.price is None:
             obj.price = 0
         return "{0:.2f} kr.".format(obj.price / 100.0)
+
     get_price_display.short_description = "Price"
     get_price_display.admin_order_field = "price"
 
     def get_bought(self, obj):
         return obj.bought
+
     get_bought.short_description = "Bought"
     get_bought.admin_order_field = "bought"
 
     def activated(self, product):
         return product.is_active()
+
     activated.boolean = True
+
+
+class NamedProductAdmin(admin.ModelAdmin):
+    search_fields = (
+        'name',
+        'product',
+    )
+    list_display = (
+        'name',
+        'product',
+    )
+    fields = (
+        'name',
+        'product',
+    )
+    autocomplete_fields = [
+        'product',
+    ]
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -178,24 +209,27 @@ class MemberForm(forms.ModelForm):
 
 class MemberAdmin(admin.ModelAdmin):
     form = MemberForm
-    list_filter = ('want_spam', )
+    list_filter = ('want_spam',)
     search_fields = ('username', 'firstname', 'lastname', 'email')
     list_display = ('username', 'firstname', 'lastname', 'balance', 'email', 'notes')
 
     # fieldsets is like fields, except that they are grouped and with descriptions
     fieldsets = (
-        (None, {
-            'fields': ('username', 'firstname', 'lastname', 'year', 'gender', 'email'),
-            'description': "Basal information omkring fember"
-        }),
-        (None, {
-            'fields': ('notes',),
-            'description': "Studieretning + evt. andet i noter"
-        }),
-        (None, {
-            'fields': ('active', 'want_spam', 'balance', 'undo_count'),
-            'description': "Lad være med at rode med disse, med mindre du ved hvad du laver ..."
-        })
+        (
+            None,
+            {
+                'fields': ('username', 'firstname', 'lastname', 'year', 'gender', 'email'),
+                'description': "Basal information omkring fember",
+            },
+        ),
+        (None, {'fields': ('notes',), 'description': "Studieretning + evt. andet i noter"}),
+        (
+            None,
+            {
+                'fields': ('active', 'want_spam', 'balance', 'undo_count'),
+                'description': "Lad være med at rode med disse, med mindre du ved hvad du laver ...",
+            },
+        ),
     )
 
     def save_model(self, request, obj, form, change):
@@ -215,14 +249,15 @@ class MemberAdmin(admin.ModelAdmin):
         @HACK: We need to apply a filter to our AutoComplete (select2),
         we do this by overwriting the default behaviour, and apply our filter.
         """
+
         def get_queryset(self):
             qs = super().get_queryset()
             return qs.filter(active=True).order_by('username')
 
 
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('get_username', 'timestamp', 'get_amount_display')
-    valid_lookups = ('member')
+    list_display = ('get_username', 'timestamp', 'get_amount_display', 'is_mobilepayment')
+    valid_lookups = 'member'
     search_fields = ['member__username']
     autocomplete_fields = ['member']
 
@@ -236,18 +271,83 @@ class PaymentAdmin(admin.ModelAdmin):
     get_username.admin_order_field = "member__username"
 
     def get_amount_display(self, obj):
-        if obj.amount is None:
-            obj.amount = 0
-        return "{0:.2f} kr.".format(obj.amount / 100.0)
+        return money(obj.amount)
 
     get_amount_display.short_description = "Amount"
     get_amount_display.admin_order_field = "amount"
 
+    def is_mobilepayment(self, obj):
+        return MobilePayment.objects.filter(payment=obj.pk).exists()
 
+    is_mobilepayment.short_description = "From MobilePayment"
+    is_mobilepayment.admin_order_field = "from_mobilepayment"
+    is_mobilepayment.boolean = True
+
+
+class MobilePaymentAdmin(admin.ModelAdmin):
+    list_display = (
+        'payment',
+        'customer_name',
+        'comment',
+        'timestamp',
+        'transaction_id',
+        'get_amount_display',
+        'status',
+    )
+    valid_lookups = 'member'
+    search_fields = ['member__username']
+    autocomplete_fields = ['member', 'payment']
+
+    class Media:
+        css = {'all': ('stregsystem/select2-stregsystem.css',)}
+
+    def get_amount_display(self, obj):
+        return money(obj.amount)
+
+    get_amount_display.short_description = "Amount"
+    get_amount_display.admin_order_field = "amount"
+
+    # django-bug, .delete() is not called https://stackoverflow.com/questions/1471909/django-model-delete-not-triggered
+    actions = ['really_delete_selected']
+
+    def get_actions(self, request):
+        actions = super(MobilePaymentAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    def really_delete_selected(self, _, queryset):
+        for obj in queryset:
+            obj.delete()
+
+    really_delete_selected.short_description = "Delete and refund selected entries"
+
+
+class LogEntryAdmin(admin.ModelAdmin):
+    date_hierarchy = 'action_time'
+    list_filter = ['content_type', 'action_flag']
+    search_fields = ['object_repr', 'change_message', 'user__username']
+    list_display = ['action_time', 'user', 'content_type', 'object_id', 'action_flag', 'change_message', 'object_repr']
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(Member, MemberAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(News)
 admin.site.register(Product, ProductAdmin)
+admin.site.register(NamedProduct, NamedProductAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Room)
+admin.site.register(MobilePayment, MobilePaymentAdmin)

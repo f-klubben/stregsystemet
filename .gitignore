@@ -11,3 +11,6 @@ MANIFEST/
 
 .coverage
 htmlcov/
+
+# ignore mobilepay api token
+stregsystem/management/commands/tokens.json

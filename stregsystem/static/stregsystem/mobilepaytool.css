@@ -1,0 +1,30 @@
+#wrapper {
+    display: flex;
+    overflow: hidden;
+}
+
+.hidden {
+    visibility: hidden;
+    position: absolute
+}
+
+#mobilepaytool-description {
+    float: left;
+    width: 50%;
+    padding-right: 10px;
+}
+
+#mobilepay-import {
+    float: left;
+    width: 50%;
+    padding-left: 10px;
+    border-left: thin dashed grey;
+}
+
+.submit-button {
+    min-width: 180px;
+}
+
+#submit-matched-button {
+    background-color: #E6AE07;
+}
