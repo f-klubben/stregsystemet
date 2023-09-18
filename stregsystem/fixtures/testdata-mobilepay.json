@@ -188,13 +188,14 @@
     "model": "stregsystem.product",
     "pk": 1,
     "fields": {
-      "name": "Test \u00d8L",
+      "name": "Test ØL",
       "price": 100,
       "active": true,
       "start_date": null,
       "quantity": 0,
       "deactivate_date": null,
-      "alcohol_content_ml": 0.0,
+      "alcohol_content_ml": 0,
+      "caffeine_content_mg": 0,
       "categories": [],
       "rooms": []
     }
@@ -209,7 +210,8 @@
       "start_date": null,
       "quantity": 0,
       "deactivate_date": null,
-      "alcohol_content_ml": 0.0,
+      "alcohol_content_ml": 0,
+      "caffeine_content_mg": 0,
       "categories": [],
       "rooms": []
     }
@@ -218,13 +220,14 @@
     "model": "stregsystem.product",
     "pk": 3,
     "fields": {
-      "name": "Fad\u00f8l",
+      "name": "Fadøl",
       "price": 1500,
       "active": true,
       "start_date": null,
       "quantity": 0,
       "deactivate_date": null,
-      "alcohol_content_ml": 0.0,
+      "alcohol_content_ml": 0,
+      "caffeine_content_mg": 0,
       "categories": [],
       "rooms": [
         1
@@ -235,13 +238,14 @@
     "model": "stregsystem.product",
     "pk": 13,
     "fields": {
-      "name": "Fake \u00d8L",
+      "name": "Fake ØL",
       "price": 300,
       "active": true,
       "start_date": null,
       "quantity": 0,
       "deactivate_date": null,
-      "alcohol_content_ml": 0.0,
+      "alcohol_content_ml": 0,
+      "caffeine_content_mg": 0,
       "categories": [],
       "rooms": []
     }
@@ -307,11 +311,21 @@
     }
   },
   {
+    "model": "stregsystem.news",
+    "pk": 1,
+    "fields": {
+      "title": "Varm kaffe udgår",
+      "text": "Det er med stor fornøjelse, at vi annoncerer sortimentsudskiftningen af \"varm kaffe\" med vores nye og forbedrede produkt, \"kold kaffe\". Dette valg er truffet efter at have modtaget flere klager fra ærede fembers, der desværre har oplevet at brænde sig på javaen.",
+      "pub_date": "2023-08-07T21:46:04Z",
+      "stop_date": "2043-08-07T11:00:00Z"
+    }
+  },
+  {
     "model": "auth.user",
     "pk": 1,
     "fields": {
-      "password": "pbkdf2_sha256$30000$ivRA8qABWClG$pxi2R4uyotlGpwa66RQuDOXFaO9JElQutMFJqXmnOdI=",
-      "last_login": "2017-03-13T12:41:13.546+00:00",
+      "password": "pbkdf2_sha256$150000$fUAN4hBdKvOp$+1qkLByq1ae/ybzfplIUZnLQvQzHh2NrYLHvzg028Hc=",
+      "last_login": "2023-08-26T21:41:15.174Z",
       "is_superuser": true,
       "username": "tester",
       "first_name": "test",
@@ -319,7 +333,7 @@
       "email": "",
       "is_staff": true,
       "is_active": true,
-      "date_joined": "2017-03-06T10:53:54+00:00",
+      "date_joined": "2017-03-06T10:53:54Z",
       "groups": [],
       "user_permissions": []
     }

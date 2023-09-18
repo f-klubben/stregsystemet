@@ -15,6 +15,13 @@
 {{product.name}}{% endfor %}
 for tilsammen {{cost|money}} kr.
 </b>
+{% if member_has_low_balance %}
+<div class="blink">
+    <h2>
+        Balance: <span class="remainingbalance">{{member_balance}}</span> kr.
+    </h2>
+</div>
+{% endif %}
 {% if give_multibuy_hint %}
     <h1>psssst. multibuy er enabled.</h1>
     <b> Du kunne have skrevet: {{sale_hints}} </b>

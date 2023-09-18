@@ -1,4 +1,5 @@
 import datetime
+import random
 from typing import List
 
 import pytz
@@ -10,6 +11,7 @@ from django.core import management
 from django.forms import modelformset_factory, formset_factory
 
 from django.contrib.admin.views.decorators import staff_member_required
+from stregsystem.templatetags.stregsystem_extras import money
 from django.contrib.auth.decorators import permission_required
 from django.conf import settings
 from django.db.models import Q, Count, Sum
@@ -17,6 +19,7 @@ from django import forms
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 from django_select2 import forms as s2forms
 import urllib.parse
 
@@ -48,10 +51,13 @@ from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
 from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, RankingDateForm
 
+import json
+
 
 def __get_news():
     try:
-        return News.objects.filter(stop_date__gte=timezone.now(), pub_date__lte=timezone.now()).get()
+        current_time = timezone.now()
+        return News.objects.filter(stop_date__gte=current_time, pub_date__lte=current_time).order_by('?').first()
     except News.DoesNotExist:
         return None
 
@@ -73,12 +79,6 @@ def index(request, room_id):
     product_list = __get_productlist(room_id)
     news = __get_news()
     return render(request, 'stregsystem/index.html', locals())
-
-
-def dump_named_items(request):
-    items = NamedProduct.objects.all()
-    items_dict = {item.name: item.product.id for item in items}
-    return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
 
 
 def _pre_process(buy_string):
@@ -161,39 +161,33 @@ def quicksale(request, room, member: Member, bought_ids):
 
     # Retrieve products and construct transaction
     products: List[Product] = []
-    try:
-        for i in bought_ids:
-            product = Product.objects.get(
-                Q(pk=i),
-                Q(active=True),
-                Q(deactivate_date__gte=now) | Q(deactivate_date__isnull=True),
-                Q(rooms__id=room.id) | Q(rooms=None),
-            )
-            products.append(product)
-    except Product.DoesNotExist:
-        return render(request, 'stregsystem/error_productdoesntexist.html', {'failedProduct': i, 'room': room})
+    msg, status, result = __append_bought_ids_to_product_list(products, bought_ids, now, room)
+    if status == 400:
+        return render(request, 'stregsystem/error_productdoesntexist.html', {'failedProduct': result, 'room': room})
 
     order = Order.from_products(member=member, products=products, room=room)
 
-    try:
-        order.execute()
-    except StregForbudError:
-        return render(request, 'stregsystem/error_stregforbud.html', locals(), status=402)
-    except NoMoreInventoryError:
-        # @INCOMPLETE this should render with a different template
+    msg, status, result = __execute_order(order)
+    if 'Out of stock' in msg:
         return render(request, 'stregsystem/error_stregforbud.html', locals())
+    elif 'Stregforbud' in msg:
+        return render(request, 'stregsystem/error_stregforbud.html', locals(), status=402)
 
-    promille = member.calculate_alcohol_promille()
-    is_ballmer_peaking, bp_minutes, bp_seconds = ballmer_peak(promille)
-
-    caffeine = member.calculate_caffeine_in_body()
-    cups = caffeine_mg_to_coffee_cups(caffeine)
-    product_contains_caffeine = any(product.caffeine_content_mg > 0 for product in products)
-    is_coffee_master = member.is_leading_coffee_addict()
-
-    cost = order.total
-
-    give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
+    (
+        promille,
+        is_ballmer_peaking,
+        bp_minutes,
+        bp_seconds,
+        caffeine,
+        cups,
+        product_contains_caffeine,
+        is_coffee_master,
+        cost,
+        give_multibuy_hint,
+        sale_hints,
+        member_has_low_balance,
+        member_balance,
+    ) = __set_local_values(member, room, products, order, now)
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
@@ -488,3 +482,264 @@ def qr_payment(request):
 
     data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
     return qr_code(data)
+
+
+# API views
+
+
+def dump_active_items(request):
+    room_id = request.GET.get('room_id') or None
+    if room_id is None:
+        return HttpResponseBadRequest("Missing room_id")
+    elif not room_id.isdigit():
+        return HttpResponseBadRequest("Invalid room_id")
+    items = __get_productlist(room_id)
+    items_dict = {item.id: (item.name, item.price) for item in items}
+    return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
+
+
+def check_user_active(request):
+    member_id = request.GET.get('member_id') or None
+    if member_id is None:
+        return HttpResponseBadRequest("Missing member_id")
+    elif not member_id.isdigit():
+        return HttpResponseBadRequest("Invalid member_id")
+    try:
+        member = Member.objects.get(pk=member_id)
+    except Member.DoesNotExist:
+        return HttpResponseBadRequest("Member not found")
+    return JsonResponse({'active': member.active})
+
+
+def convert_username_to_id(request):
+    username = request.GET.get('username') or None
+    if username is None:
+        return HttpResponseBadRequest("Missing username")
+    try:
+        member = Member.objects.get(username=username)
+    except Member.DoesNotExist:
+        return HttpResponseBadRequest("Invalid username")
+    return JsonResponse({'member_id': member.id})
+
+
+def dump_product_category_mappings(request):
+    return JsonResponse({p.id: [(cat.id, cat.name) for cat in p.categories.all()] for p in Product.objects.all()})
+
+
+def get_user_sales(request):
+    member_id = request.GET.get('member_id') or None
+    if member_id is None:
+        return HttpResponseBadRequest("Missing member_id")
+    elif not member_id.isdigit():
+        return HttpResponseBadRequest("Invalid member_id")
+    count = 10 if request.GET.get('count') is None else int(request.GET.get('count') or 10)
+    sales = Sale.objects.filter(member=member_id).order_by('-timestamp')[:count]
+    return JsonResponse(
+        {'sales': [{'timestamp': s.timestamp, 'product': s.product.name, 'price': s.product.price} for s in sales]}
+    )
+
+
+def get_user_balance(request):
+    member_id = request.GET.get('member_id') or None
+    if member_id is None:
+        return HttpResponseBadRequest("Missing member_id")
+    elif not member_id.isdigit():
+        return HttpResponseBadRequest("Invalid member_id")
+    try:
+        member = Member.objects.get(pk=member_id)
+    except Member.DoesNotExist:
+        return HttpResponseBadRequest("Member not found")
+    return JsonResponse({'balance': member.balance})
+
+
+def get_user_info(request):
+    member_id = str(request.GET.get('member_id')) or None
+    if member_id is None or not member_id.isdigit():
+        return HttpResponseBadRequest("Missing or invalid member_id")
+
+    member = find_user_from_id(int(member_id))
+    if member is None:
+        return HttpResponseBadRequest("Member not found")
+    return JsonResponse(
+        {
+            'balance': member.balance,
+            'username': member.username,
+            'active': member.active,
+            'name': f'{member.firstname} {member.lastname}',
+        }
+    )
+
+
+def find_user_from_id(user_id: int):
+    try:
+        return Member.objects.get(pk=user_id)
+    except Member.DoesNotExist:
+        return None
+
+
+def dump_named_items(request):
+    items = NamedProduct.objects.all()
+    items_dict = {item.name: item.product.id for item in items}
+    return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
+
+
+@csrf_exempt
+def api_sale(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest()
+    else:
+        data = json.loads(request.body)
+        buy_string = str(data['buystring']).strip()
+        room = str(data['room']) or None
+        member_id = str(data['member_id']) or None
+
+        if room is None or not room.isdigit():
+            return HttpResponseBadRequest("Missing or invalid room")
+        if buy_string is None:
+            return HttpResponseBadRequest("Missing buystring")
+        if member_id is None or not member_id.isdigit():
+            return HttpResponseBadRequest("Missing or invalid member_id")
+
+        try:
+            username, bought_ids = parser.parse(_pre_process(buy_string))
+        except parser.ParseError as e:
+            return HttpResponseBadRequest("Parse error: {}".format(e))
+
+        member = find_user_from_id(int(member_id))
+        if member is None:
+            return HttpResponseBadRequest("Invalid member_id")
+
+        if username != member.username:
+            return HttpResponseBadRequest("Username does not match member_id")
+
+        if not buy_string.startswith(member.username):
+            buy_string = f'{member.username} {buy_string}'
+
+        try:
+            room = Room.objects.get(pk=room)
+        except Room.DoesNotExist:
+            return HttpResponseBadRequest("Invalid room")
+        msg, status, ret_obj = api_quicksale(request, room, member, bought_ids)
+        return JsonResponse(
+            {'status': status, 'msg': msg, 'values': ret_obj}, json_dumps_params={'ensure_ascii': False}
+        )
+
+
+def api_quicksale(request, room, member: Member, bought_ids):
+    now = timezone.now()
+
+    # Retrieve products and construct transaction
+    products: List[Product] = []
+
+    msg, status, result = __append_bought_ids_to_product_list(products, bought_ids, now, room)
+    if status == 400:
+        return msg, status, result
+
+    order = Order.from_products(member=member, products=products, room=room)
+
+    msg, status, result = __execute_order(order)
+    if status != 200:
+        return msg, status, result
+
+    (
+        promille,
+        is_ballmer_peaking,
+        bp_minutes,
+        bp_seconds,
+        caffeine,
+        cups,
+        product_contains_caffeine,
+        is_coffee_master,
+        cost,
+        give_multibuy_hint,
+        sale_hints,
+        member_has_low_balance,
+        member_balance,
+    ) = __set_local_values(member, room, products, order, now)
+
+    return (
+        "OK",
+        200 if len(bought_ids) > 0 else 201,
+        {
+            'order': {
+                'room': order.room.id,
+                'member': order.member.id,
+                'created_on': order.created_on,
+                'items': bought_ids,
+            },
+            'promille': promille,
+            'is_ballmer_peaking': is_ballmer_peaking,
+            'bp_minutes': bp_minutes,
+            'bp_seconds': bp_seconds,
+            'caffeine': caffeine,
+            'cups': cups,
+            'product_contains_caffeine': product_contains_caffeine,
+            'is_coffee_master': is_coffee_master,
+            'cost': cost(),
+            'give_multibuy_hint': give_multibuy_hint,
+            'sale_hints': sale_hints,
+            'member_has_low_balance': member_has_low_balance,
+            'member_balance': member_balance,
+        },
+    )
+
+
+def __append_bought_ids_to_product_list(products, bought_ids, time_now, room):
+    try:
+        for i in bought_ids:
+            product = Product.objects.get(
+                Q(pk=i),
+                Q(active=True),
+                Q(deactivate_date__gte=time_now) | Q(deactivate_date__isnull=True),
+                Q(rooms__id=room.id) | Q(rooms=None),
+            )
+            products.append(product)
+    except Product.DoesNotExist:
+        return "Invalid product id", 400, i
+    return "OK", 200, None
+
+
+def __execute_order(order):
+    try:
+        order.execute()
+    except StregForbudError:
+        return "Stregforbud", 403, None
+    except NoMoreInventoryError:
+        # @INCOMPLETE this should render with a different template
+        return "Out of stock", 403, None
+    return "OK", 200, None
+
+
+def __set_local_values(member, room, products, order, now):
+    promille = member.calculate_alcohol_promille()
+    is_ballmer_peaking, bp_minutes, bp_seconds = ballmer_peak(promille)
+
+    caffeine = member.calculate_caffeine_in_body()
+    cups = caffeine_mg_to_coffee_cups(caffeine)
+    product_contains_caffeine = any(product.caffeine_content_mg > 0 for product in products)
+    is_coffee_master = member.is_leading_coffee_addict()
+
+    cost = order.total
+
+    give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
+
+    new_balance = Member.objects.get(pk=member.id).balance
+    member_has_low_balance = new_balance <= 5000
+    member_balance = money(new_balance)
+
+    # return it all
+    return (
+        promille,
+        is_ballmer_peaking,
+        bp_minutes,
+        bp_seconds,
+        caffeine,
+        cups,
+        product_contains_caffeine,
+        is_coffee_master,
+        cost,
+        give_multibuy_hint,
+        sale_hints,
+        member_has_low_balance,
+        member_balance,
+    )
