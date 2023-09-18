@@ -1,6 +1,6 @@
-name: Black formatter check
-
 on: push
+
+name: Black formatter check
 
 jobs:
   black:
