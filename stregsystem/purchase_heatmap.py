@@ -58,7 +58,7 @@ class ColorCategorizedHeatmapColorMode(HeatmapColorMode):
         brightness = total_category_sum / self.max_items_day
 
         return tuple(
-            255 - (category_sum / total_category_sum * 255 * brightness) for category_sum in category_representation
+            ((category_sum / total_category_sum) * 255) for category_sum in category_representation
         )
 
     def get_day_summary(self, products: List[Product]) -> str:
