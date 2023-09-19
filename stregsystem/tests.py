@@ -498,13 +498,20 @@ class PurchaseHeatmapTests(TestCase):
                 )
                 frozen_time.tick()
 
+            frozen_time.tick(datetime.timedelta(days=1))
             heatmap_context = prepare_heatmap_template_context(self.jokke, 5)
+
+            found_date = False
 
             for weekday_header, rows in heatmap_context['rows']:
                 for row_data in rows:
-                    print(row_data)
-                    # TODO: This isn't a proper test.
-                    self.assertEqual(len(row_data.products), 0)
+                    if str(row_data.date) == "2000-01-01":
+                        found_date = True
+                        self.assertEqual(len(row_data.products), 3)
+                    else:
+                        self.assertEqual(len(row_data.products), 0)
+
+            self.assertEqual(found_date, True)
 
         self.sales.clear()
 

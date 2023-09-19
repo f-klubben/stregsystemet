@@ -153,7 +153,7 @@ def prepare_heatmap_template_context(member: Member, weeks_to_display: int) -> d
 def get_heatmap_graph_data(
     weeks_to_display: int, heatmap_data: List[HeatmapDay]
 ) -> (List[str], List[Tuple[str, HeatmapDay]]):
-    current_date = datetime.today()
+    current_date = date.today()
     reorganized_heatmap_data = __organize_purchase_heatmap_data(heatmap_data[::-1], current_date)
     row_labels = ["", "Mandag", "", "Onsdag", "", "Fredag", ""]
     column_labels = [str((current_date - timedelta(days=7 * x)).isocalendar()[1]) for x in range(weeks_to_display)][
