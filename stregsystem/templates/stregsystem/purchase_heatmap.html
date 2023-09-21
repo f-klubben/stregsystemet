@@ -133,7 +133,7 @@
         {% endfor %}
     ]
 
-    window.onload = function (){swapTableType(0);};
+    window.addEventListener("load", (_) => swapTableType(0));
 
     function swapTableType(index){
         const header_title = `Forbrugsoversigt (${heatmap_mode_description[index]})`
