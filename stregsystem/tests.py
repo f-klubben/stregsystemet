@@ -473,7 +473,7 @@ class PurchaseHeatmapTests(TestCase):
 
     def test_empty_user(self):
         with freeze_time(timezone.datetime(2000, 1, 1)) as frozen_time:
-            heatmap_context = prepare_heatmap_template_context(self.jokke, 5)
+            heatmap_context = prepare_heatmap_template_context(self.jokke, 5, datetime.date.today())
 
         for weekday_header, rows in heatmap_context['rows']:
             for row_data in rows:
@@ -481,7 +481,7 @@ class PurchaseHeatmapTests(TestCase):
 
     def test_weeks_correct(self):
         with freeze_time(timezone.datetime(2000, 1, 1)) as frozen_time:
-            heatmap_context = prepare_heatmap_template_context(self.jokke, 5)
+            heatmap_context = prepare_heatmap_template_context(self.jokke, 5, datetime.date.today())
 
             self.assertEqual(heatmap_context['column_labels'], ['48', '49', '50', '51', '52'])
 
@@ -499,7 +499,7 @@ class PurchaseHeatmapTests(TestCase):
                 frozen_time.tick()
 
             frozen_time.tick(datetime.timedelta(days=1))
-            heatmap_context = prepare_heatmap_template_context(self.jokke, 5)
+            heatmap_context = prepare_heatmap_template_context(self.jokke, 5, datetime.date.today())
 
             found_date = False
 
