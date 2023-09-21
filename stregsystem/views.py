@@ -214,7 +214,7 @@ def usermenu(request, room, member, bought, from_sale=False):
     give_multibuy_hint, sale_hints = _multibuy_hint(timezone.now(), member)
     give_multibuy_hint = give_multibuy_hint and from_sale
 
-    heatmap_context = prepare_heatmap_template_context(member, 10)
+    heatmap_context = prepare_heatmap_template_context(member, 12)
 
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())
