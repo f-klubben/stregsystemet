@@ -55,11 +55,7 @@ class ColorCategorizedHeatmapColorMode(HeatmapColorMode):
         if total_category_sum == 0:
             return 235, 237, 240  # Grey
 
-        brightness = total_category_sum / self.max_items_day
-
-        return tuple(
-            ((category_sum / total_category_sum) * 255) for category_sum in category_representation
-        )
+        return tuple((category_sum / total_category_sum) * 255 for category_sum in category_representation)
 
     def get_day_summary(self, products: List[Product]) -> str:
         return f"{len(products)} {'vare' if len(products) == 1 else 'varer'} købt"
@@ -127,8 +123,9 @@ class MoneySumHeatmapColorMode(HeatmapColorMode):
         return max_product_sum
 
 
-def prepare_heatmap_template_context(member: Member, weeks_to_display: int) -> dict:
-    __raw_heatmap_data = get_purchase_data_ordered_by_date(member, datetime.today(), weeks_to_display)
+def prepare_heatmap_template_context(member: Member, weeks_to_display: int, end_date: datetime.date) -> dict:
+    """Prepares the context required to successfully load purchase_heatmap.html rendering template."""
+    __raw_heatmap_data = get_purchase_data_ordered_by_date(member, end_date, weeks_to_display)
 
     __products_in_color_categories = tuple(
         ColorCategorizedHeatmapColorMode.get_category_objects(category_name)
@@ -145,22 +142,20 @@ def prepare_heatmap_template_context(member: Member, weeks_to_display: int) -> d
     ]
     __reorganized_heatmap_data = convert_purchase_data_to_heatmap_day(__raw_heatmap_data, heatmap_modes)
 
-    column_labels, rows = get_heatmap_graph_data(weeks_to_display, __reorganized_heatmap_data)
+    column_labels, rows = get_heatmap_graph_data(weeks_to_display, __reorganized_heatmap_data, end_date)
 
     return {"column_labels": column_labels, "rows": rows, "heatmap_modes": heatmap_modes}
 
 
 def get_heatmap_graph_data(
-    weeks_to_display: int, heatmap_data: List[HeatmapDay]
+    weeks_to_display: int, heatmap_data: List[HeatmapDay], end_date: datetime.date
 ) -> (List[str], List[Tuple[str, HeatmapDay]]):
-    current_date = date.today()
-    reorganized_heatmap_data = __organize_purchase_heatmap_data(heatmap_data[::-1], current_date)
-    row_labels = ["", "Mandag", "", "Onsdag", "", "Fredag", ""]
-    column_labels = [str((current_date - timedelta(days=7 * x)).isocalendar()[1]) for x in range(weeks_to_display)][
-        ::-1
-    ]
+    reorganized_heatmap_data = __organize_purchase_heatmap_data(heatmap_data[::-1], end_date)
 
+    row_labels = ["", "Mandag", "", "Onsdag", "", "Fredag", ""]
     rows = zip(row_labels, reorganized_heatmap_data)
+
+    column_labels = [str((end_date - timedelta(days=7 * x)).isocalendar()[1]) for x in range(weeks_to_display)][::-1]
 
     return column_labels, rows
 
@@ -168,9 +163,6 @@ def get_heatmap_graph_data(
 def convert_purchase_data_to_heatmap_day(
     products_by_date: List[Tuple[date, List[Product]]], heatmap_modes: List[HeatmapColorMode]
 ) -> List[HeatmapDay]:
-    # Proposed format:
-    # Returned list: [<<Day 0 (today)>>, <<Day 1 (yesterday)>>, ...]
-    # Day item: (<<Date>>, [<<RGB values by mode>>], [<<item ID 1>>, ...])
     days = []
 
     for day_index in range(len(products_by_date)):
@@ -220,7 +212,7 @@ def __organize_purchase_heatmap_data(heatmap_data: list, start_date: datetime.da
     #   [<<Day - last tuesday>>, <<Day - the tuesday before that>>, ...],
     # ...]
 
-    # TODO: Doesn't take current weekday into consideration. But still works?
+    # TODO: Doesn't take current weekday into consideration. But still works? It just works.
     new_list = []
     for i in range(7):
         new_list.append([])
@@ -232,6 +224,7 @@ def __organize_purchase_heatmap_data(heatmap_data: list, start_date: datetime.da
 
 
 def lerp_color(color1: Tuple[int, int, int], color2: Tuple[int, int, int], value: float) -> Tuple[int, int, int]:
+    """Linearly interpolate between two 3-dimensional tuples."""
     return (
         int(color1[0] + (color2[0] - color1[0]) * value),
         int(color1[1] + (color2[1] - color1[1]) * value),
