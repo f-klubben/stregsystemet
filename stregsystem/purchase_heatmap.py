@@ -177,11 +177,11 @@ def convert_purchase_data_to_heatmap_day(
 
 def get_purchase_data_ordered_by_date(
     member: Member,
-    end_date: datetime,
+    end_date: datetime.date,
     weeks_to_display: int,
 ) -> List[Tuple[date, List[Product]]]:
     days_to_go_back = (7 * weeks_to_display) - (6 - end_date.weekday() - 1)
-    cutoff_date = end_date.date() - timedelta(days=days_to_go_back)
+    cutoff_date = end_date - timedelta(days=days_to_go_back)
 
     last_sale_list = list(
         member.sale_set.filter(timestamp__gte=cutoff_date, timestamp__lte=end_date)
@@ -195,9 +195,9 @@ def get_purchase_data_ordered_by_date(
     sale_index = 0
     for single_date in (end_date - timedelta(days=n) for n in range(days_to_go_back)):
         products_by_day.append([])
-        dates_by_day.append(single_date.date())
+        dates_by_day.append(single_date)
 
-        while sale_index < len(last_sale_list) and last_sale_list[sale_index].timestamp.date() == single_date.date():
+        while sale_index < len(last_sale_list) and last_sale_list[sale_index].timestamp.date() == single_date:
             products_by_day[-1].append(last_sale_list[sale_index].product)
             sale_index += 1
 
