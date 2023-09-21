@@ -183,8 +183,15 @@
         }
 
         for (const [product_id, count] of Object.entries(product_counts)){
+            const productCountElement = document.querySelector(`input[name='product_id'][value='${product_id}']`)?.parentElement;
+
+            if (productCountElement === undefined){
+                console.warn(`Product doesn't exist in tabel: ${product_id}`);
+                continue;
+            }
+
             changeProductCountElement(
-                document.querySelector(`input[name='product_id'][value='${product_id}']`).parentElement,
+                productCountElement,
                 clear ? 0 : count,
                 false);
         }
