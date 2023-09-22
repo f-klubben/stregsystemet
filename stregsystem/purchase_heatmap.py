@@ -150,7 +150,7 @@ def prepare_heatmap_template_context(member: Member, weeks_to_display: int, end_
 def get_heatmap_graph_data(
     weeks_to_display: int, heatmap_data: List[HeatmapDay], end_date: datetime.date
 ) -> (List[str], List[Tuple[str, HeatmapDay]]):
-    reorganized_heatmap_data = __organize_purchase_heatmap_data(heatmap_data[::-1], end_date)
+    reorganized_heatmap_data = __organize_purchase_heatmap_data(heatmap_data[::-1])
 
     row_labels = ["", "Mandag", "", "Onsdag", "", "Fredag", ""]
     rows = zip(row_labels, reorganized_heatmap_data)
@@ -211,14 +211,9 @@ def __organize_purchase_heatmap_data(heatmap_data: list, start_date: datetime.da
     #   [<<Day - last monday>>, <<Day - the monday before that>>, ...],
     #   [<<Day - last tuesday>>, <<Day - the tuesday before that>>, ...],
     # ...]
-
-    # TODO: Doesn't take current weekday into consideration. But still works? It just works.
-    new_list = []
-    for i in range(7):
-        new_list.append([])
-        for j in range(len(heatmap_data)):
-            if j % 7 == i:
-                new_list[i].append(heatmap_data[j])
+    new_list = [[] for _ in range(7)]
+    for i in range(len(heatmap_data)):
+        new_list[i % 7].append(heatmap_data[i])
 
     return new_list
 
