@@ -204,7 +204,7 @@ def get_purchase_data_ordered_by_date(
     return list(zip(dates_by_day, products_by_day))
 
 
-def __organize_purchase_heatmap_data(heatmap_data: list, start_date: datetime.date) -> list:
+def __organize_purchase_heatmap_data(heatmap_data: list) -> list:
     # Transforms [<<Day 0 (today)>>, <<Day 1 (yesterday)>>, ...]
     # into
     # [
