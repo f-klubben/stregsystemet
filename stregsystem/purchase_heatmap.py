@@ -32,10 +32,10 @@ class HeatmapColorMode(object):
 
 
 class ColorCategorizedHeatmapColorMode(HeatmapColorMode):
-    products_by_color: Tuple[List[Product], List[Product], List[Product]]
+    products_by_color: Tuple[List[int], List[int], List[int]]
     max_items_day: int
 
-    def __init__(self, max_items_day: int, products_by_color: Tuple[List[Product], List[Product], List[Product]]):
+    def __init__(self, max_items_day: int, products_by_color: Tuple[List[int], List[int], List[int]]):
         self.max_items_day = max_items_day
         self.products_by_color = products_by_color
         super().__init__(mode_name="ColorCategorized", mode_description="Med kategorier")
@@ -45,7 +45,7 @@ class ColorCategorizedHeatmapColorMode(HeatmapColorMode):
 
         for product in products:
             for category_products_index in range(3):
-                if product in self.products_by_color[category_products_index]:
+                if product.id in self.products_by_color[category_products_index]:
                     category_representation[category_products_index] = (
                         category_representation[category_products_index] + 1
                     )
@@ -61,9 +61,12 @@ class ColorCategorizedHeatmapColorMode(HeatmapColorMode):
         return f"{len(products)} {'vare' if len(products) == 1 else 'varer'} købt"
 
     @staticmethod
-    def get_category_objects(category_name_color: str) -> List[Product]:
-        category = Category.objects.filter(name=category_name_color)
-        return Product.objects.filter(categories__in=category)
+    def get_products_by_categories(
+        category_name_color: Tuple[str, str, str]
+    ) -> Tuple[List[Product], List[Product], List[Product]]:
+        return tuple(
+            Category.objects.filter(name=category).values_list("product", flat=True) for category in category_name_color
+        )
 
 
 class ItemCountHeatmapColorMode(HeatmapColorMode):
@@ -127,10 +130,7 @@ def prepare_heatmap_template_context(member: Member, weeks_to_display: int, end_
     """Prepares the context required to successfully load purchase_heatmap.html rendering template."""
     __raw_heatmap_data = get_purchase_data_ordered_by_date(member, end_date, weeks_to_display)
 
-    __products_in_color_categories = tuple(
-        ColorCategorizedHeatmapColorMode.get_category_objects(category_name)
-        for category_name in ("beer", "energy", "soda")
-    )
+    __products_in_color_categories = ColorCategorizedHeatmapColorMode.get_products_by_categories(("beer", "energy", "soda"))
 
     __max_items_bought = ItemCountHeatmapColorMode.get_max_product_count(__raw_heatmap_data)
 
