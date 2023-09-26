@@ -63,7 +63,7 @@ class ColorCategorizedHeatmapColorMode(HeatmapColorMode):
     @staticmethod
     def get_products_by_categories(
         category_name_color: Tuple[str, str, str]
-    ) -> Tuple[List[Product], List[Product], List[Product]]:
+    ) -> Tuple[List[int], List[int], List[int]]:
         return tuple(
             Category.objects.filter(name=category).values_list("product", flat=True) for category in category_name_color
         )
@@ -128,7 +128,7 @@ class MoneySumHeatmapColorMode(HeatmapColorMode):
 
 def prepare_heatmap_template_context(member: Member, weeks_to_display: int, end_date: datetime.date) -> dict:
     """Prepares the context required to successfully load purchase_heatmap.html rendering template."""
-    __raw_heatmap_data = get_purchase_data_ordered_by_date(member, end_date, weeks_to_display)
+    __raw_heatmap_data = __get_heatmap_data_by_date(member, end_date, weeks_to_display)
 
     __products_in_color_categories = ColorCategorizedHeatmapColorMode.get_products_by_categories(("beer", "energy", "soda"))
 
@@ -140,7 +140,7 @@ def prepare_heatmap_template_context(member: Member, weeks_to_display: int, end_
         MoneySumHeatmapColorMode(MoneySumHeatmapColorMode.get_products_money_sum(__raw_heatmap_data)),
         ColorCategorizedHeatmapColorMode(__max_items_bought, __products_in_color_categories),
     ]
-    __reorganized_heatmap_data = convert_purchase_data_to_heatmap_day(__raw_heatmap_data, heatmap_modes)
+    __reorganized_heatmap_data = __convert_purchase_data_to_heatmap_day(__raw_heatmap_data, heatmap_modes)
 
     column_labels, rows = get_heatmap_graph_data(weeks_to_display, __reorganized_heatmap_data, end_date)
 
@@ -150,7 +150,7 @@ def prepare_heatmap_template_context(member: Member, weeks_to_display: int, end_
 def get_heatmap_graph_data(
     weeks_to_display: int, heatmap_data: List[HeatmapDay], end_date: datetime.date
 ) -> (List[str], List[Tuple[str, HeatmapDay]]):
-    reorganized_heatmap_data = __organize_purchase_heatmap_data(heatmap_data[::-1])
+    reorganized_heatmap_data = __organize_heatmap_data_by_weekdays(heatmap_data[::-1])
 
     row_labels = ["", "Mandag", "", "Onsdag", "", "Fredag", ""]
     rows = zip(row_labels, reorganized_heatmap_data)
@@ -160,7 +160,7 @@ def get_heatmap_graph_data(
     return column_labels, rows
 
 
-def convert_purchase_data_to_heatmap_day(
+def __convert_purchase_data_to_heatmap_day(
     products_by_date: List[Tuple[date, List[Product]]], heatmap_modes: List[HeatmapColorMode]
 ) -> List[HeatmapDay]:
     days = []
@@ -175,7 +175,7 @@ def convert_purchase_data_to_heatmap_day(
     return days
 
 
-def get_purchase_data_ordered_by_date(
+def __get_heatmap_data_by_date(
     member: Member,
     end_date: datetime.date,
     weeks_to_display: int,
@@ -204,7 +204,7 @@ def get_purchase_data_ordered_by_date(
     return list(zip(dates_by_day, products_by_day))
 
 
-def __organize_purchase_heatmap_data(heatmap_data: list) -> list:
+def __organize_heatmap_data_by_weekdays(heatmap_data: list) -> list:
     # Transforms [<<Day 0 (today)>>, <<Day 1 (yesterday)>>, ...]
     # into
     # [
