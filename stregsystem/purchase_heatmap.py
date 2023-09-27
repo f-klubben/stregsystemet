@@ -55,7 +55,11 @@ class ColorCategorizedHeatmapColorMode(HeatmapColorMode):
         if total_category_sum == 0:
             return 235, 237, 240  # Grey
 
-        return tuple((category_sum / total_category_sum) * 255 for category_sum in category_representation)
+        red = 70 + (category_representation[0] / total_category_sum) * 185
+        green = 70 + (category_representation[1] / total_category_sum) * 185
+        blue = 70 + (category_representation[2] / total_category_sum) * 185
+
+        return red, green, blue
 
     def get_day_summary(self, products: List[Product]) -> str:
         return f"{len(products)} {'vare' if len(products) == 1 else 'varer'} købt"
