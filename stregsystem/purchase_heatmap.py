@@ -65,9 +65,7 @@ class ColorCategorizedHeatmapColorMode(HeatmapColorMode):
         return f"{len(products)} {'vare' if len(products) == 1 else 'varer'} købt"
 
     @staticmethod
-    def get_products_by_categories(
-        category_name_color: Tuple[str, str, str]
-    ) -> Tuple[List[int], List[int], List[int]]:
+    def get_products_by_categories(category_name_color: Tuple[str, str, str]) -> Tuple[List[int], List[int], List[int]]:
         return tuple(
             Category.objects.filter(name=category).values_list("product", flat=True) for category in category_name_color
         )
@@ -134,7 +132,9 @@ def prepare_heatmap_template_context(member: Member, weeks_to_display: int, end_
     """Prepares the context required to successfully load purchase_heatmap.html rendering template."""
     __raw_heatmap_data = __get_heatmap_data_by_date(member, end_date, weeks_to_display)
 
-    __products_in_color_categories = ColorCategorizedHeatmapColorMode.get_products_by_categories(("beer", "energy", "soda"))
+    __products_in_color_categories = ColorCategorizedHeatmapColorMode.get_products_by_categories(
+        ("beer", "energy", "soda")
+    )
 
     __max_items_bought = ItemCountHeatmapColorMode.get_max_product_count(__raw_heatmap_data)
 
