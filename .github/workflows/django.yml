@@ -17,7 +17,7 @@ jobs:
         python-version: ["3.6.9", "3.7.17", "3.11.5"] # 3.6.9 is what is running on prod
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
