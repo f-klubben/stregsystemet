@@ -1,9 +1,11 @@
 import datetime
+import re
 from collections import Counter
 from email.utils import parseaddr
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
+from django.core.validators import RegexValidator
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.db.models import Count
@@ -18,7 +20,7 @@ from stregsystem.utils import (
     make_unprocessed_member_filled_mobilepayment_query,
     MobilePaytoolException,
 )
-from stregsystem.utils import send_payment_mail
+from stregsystem.mail import send_payment_mail
 
 
 def price_display(value):
@@ -42,6 +44,7 @@ class NoMoreInventoryError(Exception):
 
 
 # Create your models here.
+
 
 # So we have two "basic" operations to do with money
 # we can take money from a user and we can give them money
@@ -101,7 +104,7 @@ class Order(object):
     def from_products(cls, member, room, products):
         counts = Counter(products)
         order = cls(member, room)
-        for (product, count) in counts.items():
+        for product, count in counts.items():
             item = OrderItem(product=product, order=order, count=count)
             order.items.add(item)
         return order
@@ -423,13 +426,11 @@ class MobilePayment(models.Model):
     def submit_processed_mobile_payments(admin_user: User):
         processed_mobile_payment: MobilePayment  # annotate iterated variable (PEP 526)
         for processed_mobile_payment in make_processed_mobilepayment_query():
-
             if processed_mobile_payment.status == MobilePayment.APPROVED:
                 payment = Payment(member=processed_mobile_payment.member, amount=processed_mobile_payment.amount)
                 # Save payment and foreign key to MobilePayment field
                 payment.save()
                 payment.log_from_mobile_payment(processed_mobile_payment, admin_user)
-                processed_mobile_payment.log_mobile_payment(admin_user, "Approved")
                 processed_mobile_payment.payment = payment
                 processed_mobile_payment.save()
 
@@ -590,6 +591,17 @@ class Product(models.Model):  # id automatisk...
             out_of_stock = False
 
         return self.active and not expired and not out_of_stock
+
+
+class NamedProduct(models.Model):
+    name = models.CharField(max_length=50, unique=True, validators=[RegexValidator(regex=r'^[^\d:\-_][\w\-]+$')])
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='named_id')
+
+    def __str__(self):
+        return self.name
+
+    def map_str(self):
+        return self.name + " -> " + str(self.product.id)
 
 
 class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statistik?
