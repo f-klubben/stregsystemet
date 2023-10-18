@@ -1,4 +1,16 @@
-.kylle{
+.easter-style {
+    color: black;
+    background-image: url(/media/stregsystem/easter.jpg);
+    background-repeat: repeat-x;
+    background-size: auto 100%;
+    padding: 0;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+}
+
+.kylle {
     position: fixed;
     top: 72%;
     right:-42%;
@@ -11,6 +23,15 @@
     animation-timing-function: linear;
     animation-iteration-count: infinite;
     animation-play-state: running;
+}
+
+.--kylle-normal {
+    background-image: url(/static/stregsystem/kylle.gif);
+}
+
+.--kylle-cursed {
+    background-image: url(/static/stregsystem/kylleCursed.gif);
+    top: 60%;
 }
 
 @keyframes play {
@@ -37,13 +58,25 @@
 
 @keyframes beerflakes-shake {
     0% {
-        transform: translateX(0px)
+        transform: translateX(0px);
     }
     50% {
-        transform: translateX(80px)
+        transform: translateX(80px);
     }
     100% {
-        transform: translateX(0px)
+        transform: translateX(0px);
+    }
+}
+
+@keyframes beerflakes-rotate {
+    0% {
+        transform: rotateZ(0deg);
+    }
+    50% {
+        transform: rotateZ(180deg)
+    }
+    100% {
+        transform: rotateZ(360deg);
     }
 }
 
@@ -56,11 +89,25 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    animation-name: beerflakes-fall, beerflakes-shake;
-    animation-duration: 10s, 3s;
-    animation-timing-function: linear, ease-in-out;
-    animation-iteration-count: infinite, infinite;
-    animation-play-state: running, running;
+    animation-name: beerflakes-fall, beerflakes-shake, beerflakes-rotate;
+    animation-duration: 10s, 3s, 3s;
+    animation-timing-function: linear, ease-in-out, linear;
+    animation-iteration-count: infinite, infinite, infinite;
+    animation-play-state: running, running, running;
+}
+
+.--flake-normal {
+    background-image: url(/static/stregsystem/beerflake.webp);
+    background-size: contain;
+    width: 66px;
+    height: 100px;
+}
+
+.--flake-cursed {
+    background-image: url(/static/stregsystem/beerflakeCursed.gif);
+    background-size: cover;
+    width: 100px;
+    height: 100px;
 }
 
 .beerflake:nth-of-type(0) {
@@ -72,43 +119,47 @@
 .beerflake:nth-of-type(1) {
     left: 10%;
     -webkit-animation-delay: 1s, 1s;
-    animation-delay: 1s, 1s
+    animation-delay: 1s, 1s;
+    transform: scale(50%);
 }
 
 .beerflake:nth-of-type(2) {
     left: 20%;
     -webkit-animation-delay: 6s, .5s;
-    animation-delay: 6s, .5s
+    animation-delay: 6s, .5s;
 }
 
 .beerflake:nth-of-type(3) {
     left: 30%;
     -webkit-animation-delay: 4s, 2s;
-    animation-delay: 4s, 2s
+    animation-delay: 4s, 2s;
+    transform: scale(50%);
 }
 
 .beerflake:nth-of-type(4) {
     left: 40%;
     -webkit-animation-delay: 2s, 2s;
-    animation-delay: 2s, 2s
+    animation-delay: 2s, 2s;
 }
 
 .beerflake:nth-of-type(5) {
     left: 50%;
     -webkit-animation-delay: 8s, 3s;
-    animation-delay: 8s, 3s
+    animation-delay: 8s, 3s;
+    transform: scale(50%);
 }
 
 .beerflake:nth-of-type(6) {
     left: 60%;
     -webkit-animation-delay: 6s, 2s;
-    animation-delay: 6s, 2s
+    animation-delay: 6s, 2s;
 }
 
 .beerflake:nth-of-type(7) {
     left: 70%;
     -webkit-animation-delay: 2.5s, 1s;
-    animation-delay: 2.5s, 1s
+    animation-delay: 2.5s, 1s;
+    transform: scale(50%);
 }
 
 .beerflake:nth-of-type(8) {
@@ -120,7 +171,8 @@
 .beerflake:nth-of-type(9) {
     left: 90%;
     -webkit-animation-delay: 7s, 4s;
-    animation-delay: 2.5s, 5.77s
+    animation-delay: 2.5s, 5.77s;
+    transform: scale(50%);
 }
 
 .beerflake:nth-of-type(10) {
@@ -132,7 +184,8 @@
 .beerflake:nth-of-type(11) {
     left: 15%;
     -webkit-animation-delay: 12s, 12.9s;
-    animation-delay: 17s, 7.5s
+    animation-delay: 17s, 7.5s;
+    transform: scale(50%);
 }
 
 .beerflake:nth-of-type(12) {
