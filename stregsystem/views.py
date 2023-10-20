@@ -53,6 +53,10 @@ from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, RankingDateFo
 
 import json
 
+from .purchase_heatmap import (
+    prepare_heatmap_template_context,
+)
+
 
 def __get_news():
     try:
@@ -210,10 +214,12 @@ def usermenu(request, room, member, bought, from_sale=False):
     give_multibuy_hint, sale_hints = _multibuy_hint(timezone.now(), member)
     give_multibuy_hint = give_multibuy_hint and from_sale
 
+    heatmap_context = prepare_heatmap_template_context(member, 12, datetime.date.today())
+
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())
     else:
-        return render(request, 'stregsystem/menu.html', locals())
+        return render(request, 'stregsystem/menu.html', {**locals(), **heatmap_context})
 
 
 def menu_userinfo(request, room_id, member_id):
