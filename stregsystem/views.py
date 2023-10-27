@@ -33,7 +33,6 @@ from stregsystem.models import (
     Product,
     Room,
     Sale,
-    Event,
     StregForbudError,
     MobilePayment,
     Category,
@@ -241,15 +240,6 @@ def menu_userinfo(request, room_id, member_id):
     stregforbud = member.has_stregforbud()
 
     return render(request, 'stregsystem/menu_userinfo.html', locals())
-
-
-# Used to see active tickets
-def menu_ticketsview(request, room_id, member_id):
-    room = Room.objects.get(pk=room_id)
-    member = Member.objects.get(pk=member_id, active=True)
-    bought_events_list = Event.objects.filter(product__in=member.sale_set.values('product'))
-
-    return render(request, 'stregsystem/menu_ticketsview.html', locals())
 
 
 def menu_userpay(request, room_id, member_id):
