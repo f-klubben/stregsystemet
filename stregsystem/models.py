@@ -1,7 +1,9 @@
-import datetime
 import re
 from collections import Counter
+from datetime import datetime, date, timedelta
 from email.utils import parseaddr
+from smtplib import OLDSTYLE_AUTH
+from unittest.case import expectedFailure
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
@@ -9,6 +11,7 @@ from django.core.validators import RegexValidator
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.db.models import Count
+from django.db.models.query_utils import Q
 from django.utils import timezone
 
 from stregsystem.caffeine import Intake, CAFFEINE_TIME_INTERVAL, current_caffeine_in_body_compound_interest
@@ -134,6 +137,9 @@ class Order(object):
             for i in range(item.count):
                 s = Sale(member=self.member, product=item.product, room=self.room, price=item.product.price)
                 s.save()
+
+            if item.product.quantity == 0 and item.product.start_date is not None:
+                item.product.sold_out_date = date.today()
 
             # Bought (used above) is automatically calculated, so we don't need
             # to update it
@@ -307,7 +313,7 @@ class Member(models.Model):  # id automatisk...
         coffee_category = [6]
 
         now = timezone.now()
-        start_of_week = now - datetime.timedelta(days=now.weekday()) - datetime.timedelta(hours=now.hour)
+        start_of_week = now - timedelta(days=now.weekday()) - timedelta(hours=now.hour)
         user_with_most_coffees_bought = (
             Member.objects.filter(
                 sale__timestamp__gt=start_of_week,
@@ -559,6 +565,7 @@ class Product(models.Model):  # id automatisk...
     def __str__(self):
         return active_str(self.active) + " " + self.name + " (" + money(self.price) + ")"
 
+    @transaction.atomic
     def save(self, *args, **kwargs):
         price_changed = True
         if self.id:
@@ -591,6 +598,127 @@ class Product(models.Model):  # id automatisk...
             out_of_stock = False
 
         return self.active and not expired and not out_of_stock
+
+
+class InventoryItem(models.Model):  # Skal bruges af TREO til at holde styr på tab og indkøb
+    # INFO: This model will keep track of inventory for every item in the system
+    # TODO Decide what to do when an item does not conform to a single category
+    # TODO Decide what to do when an item is only one category
+    # TODO Figure out how to extract data about loss in the system
+    # TODO Figure out how reimbursements will be handled, with the inventory system
+    name = models.CharField(max_length=64)
+    quantity = models.PositiveIntegerField(default=0)
+    desired_amount = models.IntegerField(default=0)
+    active = models.BooleanField(default=False)
+    products: Product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='inventory_items')
+
+    class Meta:
+        verbose_name_plural = "Inventory"
+
+    def __str__(self):
+        return active_str(self.active) + " " + self.name + " : " + str(self.quantity)
+
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        self.active = self.quantity > 0
+        __can_create = False
+
+        if self.id:
+            __can_create = True
+            # At initial creation we do not wish to create an inventory history record for the item
+            item: InventoryItem = InventoryItem.objects.get(id=self.pk)
+
+            old_quantity = item.quantity
+
+            # We do not wish to 💣 bomb 💣 the database with "non-important" log entries
+            if InventoryItemHistory.objects.filter(count_date=date.today(), item=self).exists():
+                inventory_history: InventoryItemHistory = InventoryItemHistory.objects.get(
+                    count_date=date.today(), item=self
+                )
+            else:
+                inventory_history = InventoryItemHistory()
+
+            inventory_history.item = self
+            inventory_history.set_quantities(old_quantity, self.quantity)
+            if old_quantity:
+                inventory_history.calculate_loss()
+
+            inventory_history.save()
+
+        # We only want to update the start date if at least once day has passed to ensure updated inventory
+        if self.products.pk and (
+            self.products.start_date is None or self.products.start_date <= date.today() - timedelta(days=1)
+        ):
+            self.products.start_date = date.today()
+
+        # Save own model before product list, to ensure active state is considered
+        super(InventoryItem, self).save(*args, **kwargs)
+        if not __can_create:
+            inventory_history = InventoryItemHistory()
+            inventory_history.item = self
+            inventory_history.set_quantities(0, self.quantity)
+            inventory_history.save()
+
+        # pls no abuse
+        # 4/10-2021 - made it un-abusable
+        self.products.quantity = sum(
+            [item.quantity for item in InventoryItem.objects.filter(products=self.products.pk) if item.active]
+        )
+
+        self.products.save()
+
+    def is_active(self):
+        return self.products.is_active()
+
+
+class InventoryItemHistory(models.Model):
+    item: InventoryItem = models.ForeignKey(
+        InventoryItem, on_delete=models.CASCADE, related_name='inventory_item_history'
+    )
+    new_quantity = models.IntegerField(default=0)
+    old_quantity = models.IntegerField(default=0)
+    count_date = models.DateField(default=timezone.now)
+    sold_out = models.BooleanField(default=False)
+    sold_out_date = models.DateField(null=True, blank=True)
+    loss = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name_plural = "Inventory History"
+
+    def __str__(self) -> str:
+        return f'{self.item.name} ({self.old_quantity} -> {self.new_quantity})[{self.sold_out}] @ {self.count_date}'
+
+    def calculate_loss(
+        self,
+    ) -> None:
+        if self.item is None or self.item.products is None or self.item.products.start_date is None:
+            self.loss = 0
+            return
+
+        if self.old_quantity > self.new_quantity and self.old_quantity - self.new_quantity > self.item.products.bought:
+            self.loss = self.old_quantity - self.new_quantity - self.item.products.bought
+            return
+
+        # If no sales are made, any difference in quantity is loss
+        self.loss = self.old_quantity - self.new_quantity if self.old_quantity > self.new_quantity else 0
+
+    def set_quantities(self, old_quantity: int, new_quantity: int) -> None:
+        self.old_quantity = old_quantity
+        self.new_quantity = new_quantity
+
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        self.sold_out = not (self.item.active and self.item.products.is_active())
+        self.item = InventoryItem.objects.get(id=self.item.pk)
+        if self.sold_out:
+            self.old_quantity = 0
+            try:
+                self.sold_out_date = Sale.objects.filter(product=self.item.products).latest('id').timestamp
+            except Exception:
+                self.sold_out_date = date.today()
+
+        super(InventoryItemHistory, self).save(*args, **kwargs)
+        assert self.pk
 
 
 class NamedProduct(models.Model):

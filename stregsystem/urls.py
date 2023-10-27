@@ -25,7 +25,11 @@ urlpatterns = [
     re_path(r'^(?P<room_id>\d+)/$', views.index, name="menu_index"),
     re_path(r'^(?P<room_id>\d+)/sale/$', views.sale, name="quickbuy"),
     re_path(r'^(?P<room_id>\d+)/sale/(?P<member_id>\d+)/$', views.menu_sale, name="menu"),
-    re_path(r'^(?P<room_id>\d+)/sale/\d+/\d+/$', lambda request, room_id: redirect('menu_index', room_id=room_id), name="menu_sale"),
+    re_path(
+        r'^(?P<room_id>\d+)/sale/\d+/\d+/$',
+        lambda request, room_id: redirect('menu_index', room_id=room_id),
+        name="menu_sale",
+    ),
     re_path(r'^(?P<room_id>\d+)/user/(?P<member_id>\d+)/$', views.menu_userinfo, name="userinfo"),
     re_path(r'^(?P<room_id>\d+)/user/(?P<member_id>\d+)/pay$', views.menu_userpay, name="userpay"),
     re_path(r'^(?P<room_id>\d+)/user/(?P<member_id>\d+)/rank$', views.menu_userrank, name="userrank"),

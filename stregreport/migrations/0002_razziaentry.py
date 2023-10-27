@@ -18,7 +18,10 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('time', models.DateTimeField(auto_now_add=True, null=True)),
                 ('member', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='stregsystem.Member')),
-                ('razzia', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='stregreport.BreadRazzia')),
+                (
+                    'razzia',
+                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='stregreport.BreadRazzia'),
+                ),
             ],
         ),
     ]

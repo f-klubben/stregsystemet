@@ -2,13 +2,15 @@
 
 from django.db import migrations
 
-def create_razzia_through_field(apps, schema_editor):
-	BreadRazzia = apps.get_model('stregreport', 'BreadRazzia')
-	RazziaEntry = apps.get_model('stregreport', 'RazziaEntry')
 
-	for razzia in BreadRazzia.objects.all():
-		for member in razzia.members.all():
-			RazziaEntry(member = member, razzia = razzia, time=razzia.start_date).save()
+def create_razzia_through_field(apps, schema_editor):
+    BreadRazzia = apps.get_model('stregreport', 'BreadRazzia')
+    RazziaEntry = apps.get_model('stregreport', 'RazziaEntry')
+
+    for razzia in BreadRazzia.objects.all():
+        for member in razzia.members.all():
+            RazziaEntry(member=member, razzia=razzia, time=razzia.start_date).save()
+
 
 class Migration(migrations.Migration):
 
@@ -16,6 +18,4 @@ class Migration(migrations.Migration):
         ('stregreport', '0002_razziaentry'),
     ]
 
-    operations = [
-    	migrations.RunPython(create_razzia_through_field, reverse_code=migrations.RunPython.noop)
-    ]
+    operations = [migrations.RunPython(create_razzia_through_field, reverse_code=migrations.RunPython.noop)]
