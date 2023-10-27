@@ -617,22 +617,6 @@ class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statist
         return self.product.name + ": " + money(self.price) + " (" + str(self.changed_on) + ")"
 
 
-# A model to link certain products to events, to facilitate showing of active tickets
-class Event(models.Model):
-    name = models.CharField(max_length=32)
-    active = models.BooleanField()
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    time = models.DateTimeField(null=False, blank=False)
-    ticket_start_threshold = models.DateTimeField(null=False, blank=False)
-    ticket_end_threshold = models.DateTimeField(null=False, blank=False)
-
-    def is_active(self):
-        is_after_start = self.ticket_start_threshold <= timezone.now()
-        is_before_end = self.ticket_end_threshold >= timezone.now()
-
-        return self.active and is_after_start and is_before_end
-
-
 class Sale(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
