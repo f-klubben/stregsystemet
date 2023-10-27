@@ -58,7 +58,9 @@
             </tr>
             {% for product in product_list|partition:"2"|first %}
             <tr>
-            <td>{{product.id}}</td>
+            <td>
+                {{ product.id|product_id_and_alias_string }}
+            </td>
               <td>{{product.name}}</td>
             <td align="right">{{product.price|money}} kr</td>
               </tr>
@@ -76,7 +78,7 @@
                   </tr>
                   {% for product in product_list|partition:"2"|last %}
                   <tr>
-                    <td>{{product.id}}</td>
+                    <td>{{product.id|product_id_and_alias_string }}</td>
                     <td>{{product.name}}</td>
                     <td align="right">{{product.price|money}} kr</td>
                   </tr>

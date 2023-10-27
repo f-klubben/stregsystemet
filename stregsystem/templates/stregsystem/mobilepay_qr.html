@@ -1,5 +1,6 @@
+{% load stregsystem_extras %}
 {% if amount %}
-<img width="300" height="300" src="/api/member/payment/qr?member={{username | urlencode}}&amount={{amount | floatformat | urlencode}}" />
+<img width="300" height="300" src="/api/member/payment/qr?member={{username | urlencode}}&amount={{amount | multiply:100 | money | urlencode}}" class="qr-code"/>
 {% else %}
-<img width="300" height="300" src="/api/member/payment/qr?member={{username | urlencode}}" />
+<img width="300" height="300" src="/api/member/payment/qr?member={{username | urlencode}}" class="qr-code"/>
 {% endif %}

@@ -26,6 +26,9 @@ har {{member.balance|money}} kroner til gode!
       <th>
         <a href="/{{room.id}}/user/{{member.id}}/pay">Indsæt penge</a>
       </th>
+       <th>
+        <a href="/{{room.id}}/user/{{member.id}}/rank">Rangliste</a>
+      </th>
 {% comment %}
       <th>
          <a href="/{{room.id}}/user/{{member.id}}/undo">Fortryd køb</a>
@@ -57,6 +60,15 @@ har {{member.balance|money}} kroner til gode!
         <br />Du Ballmer-peaker!! Du kan producere god kode de næste: {{ bp_minutes|floatformat:0 }} minuter og {{ bp_seconds|floatformat:0 }} sekunder!
     {% else %}
         <br />Din alkohol promille er ca. <b>{{promille|floatformat:2}}‰</b>
+    {% endif %}
+{% endif %}
+{% if caffeine %}
+    <br />Du har {{caffeine | floatformat:0}}mg koffein i kroppen.
+    {% if cups is not 0 %}
+        <br />Det svarer til at drikke {{caffeine | caffeine_emoji_render}} {{ cups|pluralize:'kop kaffe,kopper kaffe i streg!' }}
+    {% endif %}
+    {% if is_coffee_master %}
+        <br />🏆Du er kaffemester i denne uge!🏆
     {% endif %}
 {% endif %}
 
@@ -127,14 +139,10 @@ har {{member.balance|money}} kroner til gode!
 {% endblock %}
 </center>
 <br />
-{% if give_multibuy_hint %}
-    <center>
-        <h1>psssst. multibuy er enabled.</h1>
-        {% autoescape off %}
-        <b> Du kunne have skrevet: {{sale_hints}} </b>
-        {% endautoescape %}
-    </center>
-{% endif %}
+<center>
+    {% include "stregsystem/purchase_heatmap.html" %}
+</center>
+<br />
 <div style="clear: both;">&nbsp;</div>
 
 {% endblock %}

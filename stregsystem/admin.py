@@ -16,6 +16,7 @@ from stregsystem.models import (
     Room,
     Sale,
     MobilePayment,
+    NamedProduct,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
@@ -85,14 +86,16 @@ class SaleAdmin(admin.ModelAdmin):
     get_price_display.short_description = "Price"
     get_price_display.admin_order_field = "price"
 
-    def refund(modeladmin, request, queryset):
-        for obj in queryset:
-            transaction = PayTransaction(obj.price)
-            obj.member.rollback(transaction)
-            obj.member.save()
-        queryset.delete()
 
-    refund.short_description = "Refund selected"
+def refund(modeladmin, request, queryset):
+    for obj in queryset:
+        transaction = PayTransaction(obj.price)
+        obj.member.rollback(transaction)
+        obj.member.save()
+    queryset.delete()
+
+
+refund.short_description = "Refund selected"
 
 
 def toggle_active_selected_products(modeladmin, request, queryset):
@@ -141,6 +144,7 @@ class ProductAdmin(admin.ModelAdmin):
         "categories",
         "rooms",
         "alcohol_content_ml",
+        "caffeine_content_mg",
     )
     readonly_fields = ("get_bought",)
 
@@ -212,6 +216,22 @@ class InventoryHistoryAdmin(admin.ModelAdmin):
         'sold_out',
         'sold_out_date',
     )
+class NamedProductAdmin(admin.ModelAdmin):
+    search_fields = (
+        'name',
+        'product',
+    )
+    list_display = (
+        'name',
+        'product',
+    )
+    fields = (
+        'name',
+        'product',
+    )
+    autocomplete_fields = [
+        'product',
+    ]
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -400,6 +420,7 @@ admin.site.register(InventoryItem, InventoryAdmin)
 admin.site.register(InventoryItemHistory, InventoryHistoryAdmin)
 admin.site.register(News)
 admin.site.register(Product, ProductAdmin)
+admin.site.register(NamedProduct, NamedProductAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Room)
 admin.site.register(MobilePayment, MobilePaymentAdmin)
