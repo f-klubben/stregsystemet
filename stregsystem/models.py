@@ -1,4 +1,3 @@
-import datetime
 import re
 from collections import Counter
 from datetime import datetime, date, timedelta
@@ -314,7 +313,7 @@ class Member(models.Model):  # id automatisk...
         coffee_category = [6]
 
         now = timezone.now()
-        start_of_week = now - datetime.timedelta(days=now.weekday()) - datetime.timedelta(hours=now.hour)
+        start_of_week = now - timedelta(days=now.weekday()) - timedelta(hours=now.hour)
         user_with_most_coffees_bought = (
             Member.objects.filter(
                 sale__timestamp__gt=start_of_week,
