@@ -2060,24 +2060,18 @@ class InventoryItemTest(TestCase):
         with freeze_time('2018-02-02'):
             member = Member.objects.create(pk=1, username="jeff", firstname="jeff", lastname="jefferson", gender="M")
             coke = Product.objects.create(name="coke", price=100, active=True)
-            slots: InventoryItem = InventoryItem.objects.create(
-                name='Slots', active=True, quantity=10, products=coke
-            )
+            slots: InventoryItem = InventoryItem.objects.create(name='Slots', active=True, quantity=10, products=coke)
             lettuce: InventoryItem = InventoryItem.objects.create(
                 name='Lettuce', active=True, quantity=10, products=coke
             )
             cucumber: InventoryItem = InventoryItem.objects.create(
                 name='Cucumber', active=True, quantity=10, products=coke
             )
-            carrot: InventoryItem = InventoryItem.objects.create(
-                name='Carrot', active=True, quantity=10, products=coke
-            )
-            wine: InventoryItem = InventoryItem.objects.create(
-                name='Wine', active=True, quantity=10, products=coke
-            )
+            carrot: InventoryItem = InventoryItem.objects.create(name='Carrot', active=True, quantity=10, products=coke)
+            wine: InventoryItem = InventoryItem.objects.create(name='Wine', active=True, quantity=10, products=coke)
             self.assertEqual(50, coke.quantity, 'Creating a new product should set quantity')
             self.assertEqual(datetime.date.today(), coke.start_date, 'Start date should be set with quantity change')
-            
+
         for i in range(0, 51):
             Sale.objects.create(
                 member=member,

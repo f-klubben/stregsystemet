@@ -216,6 +216,8 @@ class InventoryHistoryAdmin(admin.ModelAdmin):
         'sold_out',
         'sold_out_date',
     )
+
+
 class NamedProductAdmin(admin.ModelAdmin):
     search_fields = (
         'name',
