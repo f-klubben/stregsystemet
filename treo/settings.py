@@ -53,6 +53,9 @@ HANDLERS = [
     ]
 FILE = /tmp/stregsystem.log
 LEVEL = DEBUG
+
+[heatmap]
+HEATMAP_CATEGORY_DEFINITIONS = ("beer", "energy", "soda")
 """
 
 cfg = ConfigParser()
@@ -78,6 +81,8 @@ SECURE_BROWSER_XSS_FILTER = cfg.getboolean("debug", "SECURE_BROWSER_XSS_FILTER")
 SECURE_CONTENT_TYPE_NOSNIFF = cfg.getboolean("debug", "SECURE_CONTENT_TYPE_NOSNIFF")
 
 X_FRAME_OPTIONS = cfg.get("general", "X_FRAME_OPTIONS")
+
+HEATMAP_CATEGORY_DEFINITIONS = cfg.get("heatmap", "HEATMAP_CATEGORY_DEFINITIONS")
 
 # We don't have any default hostnames for debug
 # But you really should have some when you are deploying
