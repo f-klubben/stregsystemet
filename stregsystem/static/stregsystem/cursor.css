@@ -1,8 +1,12 @@
 * {
+    cursor: url('cursor/frame14.png') 32 32, auto;
+}
+
+input:hover {
     
     cursor: url('cursor/frame0.png') 32 32, auto;
-    -webkit-animation: cursor 300ms infinite;
-    animation: cursor 300ms infinite;
+    -webkit-animation: cursor 400ms infinite;
+    animation: cursor 400ms infinite;
 }
 
 
