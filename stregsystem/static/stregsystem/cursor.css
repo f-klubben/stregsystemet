@@ -1,7 +1,3 @@
-* {
-    cursor: url('cursor/frame14.png') 32 32, auto;
-}
-
 input:hover {
     
     cursor: url('cursor/frame0.png') 32 32, auto;
