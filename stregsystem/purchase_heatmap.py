@@ -5,6 +5,8 @@ from datetime import datetime, timedelta, date
 
 from stregsystem.templatetags.stregsystem_extras import money
 
+from django.conf import settings
+
 
 class HeatmapDay(NamedTuple):
     date: datetime.date
@@ -133,7 +135,7 @@ def prepare_heatmap_template_context(member: Member, weeks_to_display: int, end_
     __raw_heatmap_data = __get_heatmap_data_by_date(member, end_date, weeks_to_display)
 
     __products_in_color_categories = ColorCategorizedHeatmapColorMode.get_products_by_categories(
-        ("beer", "energy", "soda")
+        settings.HEATMAP_CATEGORY_DEFINITIONS
     )
 
     __max_items_bought = ItemCountHeatmapColorMode.get_max_product_count(__raw_heatmap_data)
