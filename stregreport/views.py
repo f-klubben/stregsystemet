@@ -70,47 +70,53 @@ def _sales_to_user_in_period(username, start_date, end_date, product_list, produ
 @permission_required("stregreport.host_razzia")
 def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BREAD, title=None):
     razzia = get_object_or_404(BreadRazzia, pk=razzia_id, razzia_type=razzia_type)
-    if queryname is not None:
-        result = list(Member.objects.filter(username__iexact=queryname))
-        if len(result) > 0:
-            member = result[0]
-
-            if razzia_type == BreadRazzia.FNUGFALD:
-                username = queryname
-                member_name = member.firstname + " " + member.lastname
-                start_date = dateparse.parse_date("2000-4-30")
-                end_date = dateparse.parse_date("2023-11-4")
-                product_list = [34]
-                product_dict = {k.name: 0 for k in Product.objects.filter(id__in=product_list)}
-                sales_to_user = _sales_to_user_in_period(queryname, start_date, end_date, product_list, product_dict)
-                items_bought = sales_to_user.items()
-
-            entries = list(razzia.razziaentry_set.filter(member__pk=member.pk).order_by('-time'))
-            already_checked_in = len(entries) > 0
-            wait_time = datetime.timedelta(minutes=30)
-            if already_checked_in:
-                last_entry = entries[0]
-                within_wait = last_entry.time > timezone.now() - wait_time
-            # if member has already checked in within the last hour, don't allow another check in
-            if (
-                already_checked_in
-                and within_wait
-                and (razzia_type == BreadRazzia.FOOBAR or razzia_type == BreadRazzia.FNUGFALD)
-            ):
-                drunkard = True
-                # time until next check in is legal
-                remaining_time_secs = int(((last_entry.time + wait_time) - timezone.now()).total_seconds() % 60)
-                remaining_time_mins = int(((last_entry.time + wait_time) - timezone.now()).total_seconds() // 60)
-            if not already_checked_in or (
-                (razzia_type == BreadRazzia.FOOBAR or razzia_type == BreadRazzia.FNUGFALD) and not within_wait
-            ):
-                RazziaEntry(member=member, razzia=razzia).save()
 
     templates = {
         BreadRazzia.BREAD: 'admin/stregsystem/razzia/bread.html',
         BreadRazzia.FOOBAR: 'admin/stregsystem/razzia/foobar.html',
         BreadRazzia.FNUGFALD: 'admin/stregsystem/razzia/fnugfald.html',
     }
+
+    if queryname is None:
+        return render(request, templates[razzia_type], locals())
+
+    result = list(Member.objects.filter(username__iexact=queryname))
+    if len(result) == 0:
+        return render(request, templates[razzia_type], locals())
+
+    member = result[0]
+
+    if razzia_type == BreadRazzia.FNUGFALD:
+        username = queryname
+        member_name = member.firstname + " " + member.lastname
+        start_date = dateparse.parse_date("2000-4-30")
+        end_date = dateparse.parse_date("2023-11-4")
+        product_list = [34]
+        product_dict = {k.name: 0 for k in Product.objects.filter(id__in=product_list)}
+        sales_to_user = _sales_to_user_in_period(queryname, start_date, end_date, product_list, product_dict)
+        items_bought = sales_to_user.items()
+
+    entries = list(razzia.razziaentry_set.filter(member__pk=member.pk).order_by('-time'))
+    already_checked_in = len(entries) > 0
+    wait_time = datetime.timedelta(minutes=30)
+    if already_checked_in:
+        last_entry = entries[0]
+        within_wait = last_entry.time > timezone.now() - wait_time
+    # if member has already checked in within the last hour, don't allow another check in
+    if (
+        already_checked_in
+        and within_wait
+        and (razzia_type == BreadRazzia.FOOBAR or razzia_type == BreadRazzia.FNUGFALD)
+    ):
+        drunkard = True
+        # time until next check in is legal
+        remaining_time_secs = int(((last_entry.time + wait_time) - timezone.now()).total_seconds() % 60)
+        remaining_time_mins = int(((last_entry.time + wait_time) - timezone.now()).total_seconds() // 60)
+    if not already_checked_in or (
+        (razzia_type == BreadRazzia.FOOBAR or razzia_type == BreadRazzia.FNUGFALD) and not within_wait
+    ):
+        RazziaEntry(member=member, razzia=razzia).save()
+
     return render(request, templates[razzia_type], locals())
 
 
