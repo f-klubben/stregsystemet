@@ -64,17 +64,18 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
                 last_entry = entries[0]
                 within_wait = last_entry.time > timezone.now() - wait_time
             # if member has already checked in within the last hour, don't allow another check in
-            if already_checked_in and within_wait and razzia_type == BreadRazzia.FOOBAR:
+            if already_checked_in and within_wait and (razzia_type == BreadRazzia.FOOBAR or razzia_type == BreadRazzia.FNUGFALD):
                 drunkard = True
                 # time until next check in is legal
                 remaining_time_secs = int(((last_entry.time + wait_time) - timezone.now()).total_seconds() % 60)
                 remaining_time_mins = int(((last_entry.time + wait_time) - timezone.now()).total_seconds() // 60)
-            if not already_checked_in or (razzia_type == BreadRazzia.FOOBAR and not within_wait):
+            if not already_checked_in or ((razzia_type == BreadRazzia.FOOBAR or razzia_type == BreadRazzia.FNUGFALD) and not within_wait):
                 RazziaEntry(member=member, razzia=razzia).save()
 
     templates = {
         BreadRazzia.BREAD: 'admin/stregsystem/razzia/bread.html',
         BreadRazzia.FOOBAR: 'admin/stregsystem/razzia/foobar.html',
+        BreadRazzia.FNUGFALD: 'admin/stregsystem/razzia/fnugfald.html',
     }
     return render(request, templates[razzia_type], locals())
 
@@ -92,7 +93,7 @@ def new_razzia(request, razzia_type=BreadRazzia.BREAD):
     razzia = BreadRazzia(razzia_type=razzia_type)
     razzia.save()
 
-    views = {BreadRazzia.BREAD: 'bread_view', BreadRazzia.FOOBAR: 'foobar_view'}
+    views = {BreadRazzia.BREAD: 'bread_view', BreadRazzia.FOOBAR: 'foobar_view', BreadRazzia.FNUGFALD: 'fnugfald_view'}
 
     return redirect(views[razzia_type], razzia_id=razzia.pk)
 
