@@ -143,14 +143,6 @@ har {{member.balance|money}} kroner til gode!
     {% include "stregsystem/purchase_heatmap.html" %}
 </center>
 <br />
-{% if give_multibuy_hint %}
-    <center>
-        <h1>psssst. multibuy er enabled.</h1>
-        {% autoescape off %}
-        <b> Du kunne have skrevet: {{sale_hints}} </b>
-        {% endautoescape %}
-    </center>
-{% endif %}
 <div style="clear: both;">&nbsp;</div>
 
 {% endblock %}

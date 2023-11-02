@@ -9,6 +9,8 @@
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/bat.css" %}">
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/snow.css" %}">
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/easter.css" %}">
+<link rel="stylesheet" media="screen" href="{% static "/stregsystem/fireworks.css" %}">
+<link rel="stylesheet" media="screen" href="{% static "/stregsystem/cursor.css" %}">
 <script>
     var static_url = "{% get_static_prefix %}";
     var media_url = "{% get_media_prefix %}";
@@ -19,6 +21,10 @@
 <pre>{% filter escape %}{% debug %}{% endfilter %}</pre>
 
 {% endcomment %}
+
+<div id="canvas-container"></div>
+<img id="rocket" src="{% static "/stregsystem/rocket.png" %}">
+<script src="{% static "/stregsystem/fireworks.js" %}"></script>
 
 <table width="100%">
     <tr>
