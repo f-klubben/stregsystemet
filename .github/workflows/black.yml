@@ -1,6 +1,11 @@
 name: Black formatter check
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
+      - next
+  pull_request:
 
 jobs:
   black:
