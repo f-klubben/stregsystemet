@@ -50,6 +50,23 @@ def razzia(request, razzia_id, razzia_type=BreadRazzia.BREAD, title=None):
         return razzia_view_single(request, razzia_id, None, razzia_type=razzia_type, title=title)
 
 
+def _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict):
+    result = (
+        Product.objects.filter(
+            sale__member__username__iexact=username,
+            id__in=product_list,
+            sale__timestamp__gte=start_date,
+            sale__timestamp__lte=end_date,
+        )
+        .annotate(cnt=Count("id"))
+        .values_list("name", "cnt")
+    )
+
+    products_bought = {product: count for product, count in result}
+
+    return {product: products_bought.get(product, 0) for product in product_dict}
+
+
 @permission_required("stregreport.host_razzia")
 def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BREAD, title=None):
     razzia = get_object_or_404(BreadRazzia, pk=razzia_id, razzia_type=razzia_type)
@@ -57,6 +74,17 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
         result = list(Member.objects.filter(username__iexact=queryname))
         if len(result) > 0:
             member = result[0]
+
+            if razzia_type == BreadRazzia.FNUGFALD:
+                username = queryname
+                member_name = member.firstname + " " + member.lastname
+                start_date = dateparse.parse_date("2000-4-30")
+                end_date = dateparse.parse_date("2023-11-4")
+                product_list = [34]
+                product_dict = {k.name: 0 for k in Product.objects.filter(id__in=product_list)}
+                sales_to_user = _sales_to_user_in_period(queryname, start_date, end_date, product_list, product_dict)
+                items_bought = sales_to_user.items()
+
             entries = list(razzia.razziaentry_set.filter(member__pk=member.pk).order_by('-time'))
             already_checked_in = len(entries) > 0
             wait_time = datetime.timedelta(minutes=30)
@@ -64,12 +92,18 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
                 last_entry = entries[0]
                 within_wait = last_entry.time > timezone.now() - wait_time
             # if member has already checked in within the last hour, don't allow another check in
-            if already_checked_in and within_wait and (razzia_type == BreadRazzia.FOOBAR or razzia_type == BreadRazzia.FNUGFALD):
+            if (
+                already_checked_in
+                and within_wait
+                and (razzia_type == BreadRazzia.FOOBAR or razzia_type == BreadRazzia.FNUGFALD)
+            ):
                 drunkard = True
                 # time until next check in is legal
                 remaining_time_secs = int(((last_entry.time + wait_time) - timezone.now()).total_seconds() % 60)
                 remaining_time_mins = int(((last_entry.time + wait_time) - timezone.now()).total_seconds() // 60)
-            if not already_checked_in or ((razzia_type == BreadRazzia.FOOBAR or razzia_type == BreadRazzia.FNUGFALD) and not within_wait):
+            if not already_checked_in or (
+                (razzia_type == BreadRazzia.FOOBAR or razzia_type == BreadRazzia.FNUGFALD) and not within_wait
+            ):
                 RazziaEntry(member=member, razzia=razzia).save()
 
     templates = {
@@ -108,23 +142,6 @@ razzia = staff_member_required(razzia)
 razzia_view_single = staff_member_required(razzia_view_single)
 new_razzia = staff_member_required(new_razzia)
 razzia_members = staff_member_required(razzia_members)
-
-
-def _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict):
-    result = (
-        Product.objects.filter(
-            sale__member__username__iexact=username,
-            id__in=product_list,
-            sale__timestamp__gte=start_date,
-            sale__timestamp__lte=end_date,
-        )
-        .annotate(cnt=Count("id"))
-        .values_list("name", "cnt")
-    )
-
-    products_bought = {product: count for product, count in result}
-
-    return {product: products_bought.get(product, 0) for product in product_dict}
 
 
 @permission_required("stregreport.host_razzia")
