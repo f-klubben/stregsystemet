@@ -89,9 +89,9 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
     if razzia_type == BreadRazzia.FNUGFALD:
         username = queryname
         member_name = member.firstname + " " + member.lastname
-        start_date = dateparse.parse_date("2000-4-30")
+        start_date = dateparse.parse_date("2023-9-15")
         end_date = dateparse.parse_date("2023-11-4")
-        product_list = [34]
+        product_list = [1910]
         product_dict = {k.name: 0 for k in Product.objects.filter(id__in=product_list)}
         sales_to_user = _sales_to_user_in_period(queryname, start_date, end_date, product_list, product_dict)
         items_bought = sales_to_user.items()
