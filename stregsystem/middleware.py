@@ -36,6 +36,7 @@ class CorsMiddleware:
 
         CorsMiddleware.set_origin_access(req, res)
         res['access-control-allow-methods'] = 'POST, GET, OPTIONS, DELETE'
+        res['access-control-allow-headers'] = 'content-type'
         res['access-control-max-age'] = '86400'
 
         return res
