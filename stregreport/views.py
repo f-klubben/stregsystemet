@@ -96,8 +96,11 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
         sales_to_user = _sales_to_user_in_period(queryname, start_date, end_date, product_list, product_dict)
         items_bought = sales_to_user.items()
 
-        item_bought_count = sales_to_user[list(sales_to_user.keys())[0]]
-        if item_bought_count == 0:
+        try:
+            item_bought_count = sales_to_user[list(sales_to_user.keys())[0]]
+            if item_bought_count == 0:
+                return render(request, templates[razzia_type], locals())
+        except IndexError:
             return render(request, templates[razzia_type], locals())
 
     entries = list(razzia.razziaentry_set.filter(member__pk=member.pk).order_by('-time'))
