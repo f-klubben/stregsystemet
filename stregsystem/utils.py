@@ -1,10 +1,7 @@
 import logging
 import re
-import smtplib
 
 from django.utils.dateparse import parse_datetime
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
@@ -12,7 +9,6 @@ from django.test.runner import DiscoverRunner
 
 from django.db.models import Count, F, Q, QuerySet
 from django.utils import timezone
-from stregsystem.templatetags.stregsystem_extras import money
 
 import qrcode
 import qrcode.image.svg
@@ -39,7 +35,7 @@ def make_active_productlist_query(queryset) -> QuerySet:
 
 def make_inactive_productlist_query(queryset) -> QuerySet:
     now = timezone.now()
-    # Create a query of things are definitively inactive. Some of the ones
+    # Create a query of things which are definitively inactive. Some of the ones
     # filtered here might be out of stock, but we include that later.
     inactive_candidates = queryset.exclude(
         Q(active=True) & (Q(deactivate_date=None) | Q(deactivate_date__gte=now))
@@ -93,77 +89,6 @@ def date_to_midnight(date):
     return timezone.make_aware(timezone.datetime(date.year, date.month, date.day, 0, 0))
 
 
-def send_payment_mail(member, amount, mobilepay_comment):
-    if hasattr(settings, 'TEST_MODE'):
-        return
-    msg = MIMEMultipart()
-    msg['From'] = 'treo@fklub.dk'
-    msg['To'] = member.email
-    msg['Subject'] = 'Stregsystem payment'
-
-    formatted_amount = money(amount)
-
-    normal_html = f"""
-    <html>
-        <head></head>
-        <body>
-            <p>
-               Hej {member.firstname}!<br><br>
-               Vi har indsat {formatted_amount} stregdollars på din konto: "{member.username}". <br><br>
-               Hvis du ikke ønsker at modtage flere mails som denne kan du skrive en mail til: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
-               Mvh,<br>
-               TREOen<br>
-               ====================================================================<br>
-               Hello {member.firstname}!<br><br>
-               We've inserted {formatted_amount} stregdollars on your account: "{member.username}". <br><br>
-               If you do not desire to receive any more mails of this sort, please file a complaint to: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
-               Kind regards,<br>
-               TREOen
-            </p>
-        </body>
-    </html>
-    """
-
-    from django.utils.html import escape
-
-    shame_html = f"""
-        <html>
-            <head></head>
-            <body>
-                <p>
-                   Hej {member.firstname}!<br><br>
-                   Vi har med stort besvær indsat pokkers {formatted_amount} stregdollars på din konto: "{member.username}". <br><br>
-                   Da du ikke skrev dit brugernavn korrekt, men i stedet skrev '{escape(mobilepay_comment)}' var de stakkels TREOer desværre nødt til at tage flere minutter ud af deres dag for at indsætte dine penge manuelt.
-                   Vil du nyde godt af vores automatiske indbetaling kan du i fremtiden med fordel skrive dit brugernavn korrekt i MobilePay kommentaren: '{member.username}'.
-                   Udnytter du vores QR-kode generator klarer den også denne komplicerede process for dig.
-                   
-                   Hvis du ikke ønsker at modtage flere mails som denne kan du skrive en mail til: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
-                   Mvh,<br>
-                   TREOen<br>
-                   ====================================================================<br>
-                   Hello {member.firstname}!<br><br>
-                   We've had great trouble inserting {formatted_amount} stregdollars on your account: "{member.username}". <br><br>
-                   This is due to you not you not writing your username correctly, and instead writing '{escape(mobilepay_comment)}'. The poor TREOs had to take multiple minutes out of their day to insert your money manually.
-                   If you want to utilise our automatic fill-up in future, you can write your username correctly in the MobilePay comment: '{member.username}'
-                   Our QR-code generator also handles this very complicated process for you. 
-                   
-                   If you do not desire to receive any more mails of this sort, please file a complaint to: <a href="mailto:treo@fklub.dk?Subject=Klage" target="_top">treo@fklub.dk</a><br><br>
-                   Kind regards,<br>
-                   TREOen
-                </p>
-            </body>
-        </html>
-        """
-
-    msg.attach(MIMEText(shame_html if mobilepay_comment else normal_html, 'html'))
-
-    try:
-        smtpObj = smtplib.SMTP('localhost', 25)
-        smtpObj.sendmail('treo@fklub.dk', member.email, msg.as_string())
-    except Exception as e:
-        logger.error(str(e))
-
-
 def parse_csv_and_create_mobile_payments(csv_file):
     imported_transactions, duplicate_transactions = 0, 0
     import csv
@@ -171,7 +96,6 @@ def parse_csv_and_create_mobile_payments(csv_file):
     # get csv reader and ignore header
     reader = csv.reader(csv_file[1:], delimiter=';', quotechar='"')
     for row in reader:
-
         from stregsystem.models import MobilePayment
 
         mobile_payment = MobilePayment(

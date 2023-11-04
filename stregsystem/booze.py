@@ -49,9 +49,8 @@ def alcohol_bac_timeline(gender, weight, now, alcohol_timeline):
     # None means this is first iteration
     last_time = None
     for time, ml in alcohol_timeline:
-
         # First iteration has BAC 0, and a BAC of 0 can't degrade, so the first
-        # iteration doesn't need degredation
+        # iteration doesn't need degradation
         if last_time is not None:
             time_diff = time - last_time
             current -= alcohol_bac_degradation(time_diff)
@@ -70,7 +69,7 @@ def alcohol_bac_timeline(gender, weight, now, alcohol_timeline):
     # Since we return if the list is empty we must have some last time
     assert last_time is not None
 
-    # We also need to remove the degredation from the last drink till now
+    # We also need to remove the degradation from the last drink till now
     time_diff = now - last_time
     current -= alcohol_bac_degradation(time_diff)
 
