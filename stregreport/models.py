@@ -19,3 +19,15 @@ class RazziaEntry(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     razzia = models.ForeignKey(BreadRazzia, on_delete=models.CASCADE)
     time = models.DateTimeField(null=True, blank=True, auto_now_add=True)
+
+
+class WizardRazzia(models.Model):
+    members = models.ManyToManyField(Member, through='WizardEntry')
+    start_date = models.DateTimeField(auto_now_add=True)
+    razzia_name = models.CharField(max_length=30)
+
+
+class WizardEntry(models.Model):
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    razzia = models.ForeignKey(WizardRazzia, on_delete=models.CASCADE)
+    time = models.DateTimeField(null=True, blank=True, auto_now_add=True)
