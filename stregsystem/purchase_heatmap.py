@@ -116,7 +116,7 @@ class MoneySumHeatmapColorMode(HeatmapColorMode):
         return lerp_color((255, 255, 200), (255, 255, 0), lerp_value)  # Lightyellow - Yellow
 
     def get_day_summary(self, products: List[Product]) -> str:
-        return f"{money(sum(p.price for p in products))} F$ brugt"
+        return f"{money(sum(p.price for p in products))} 𝓕$ brugt"
 
     @staticmethod
     def get_products_money_sum(day_list: List[Tuple[date, List[Product]]]) -> int:
