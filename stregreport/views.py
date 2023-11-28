@@ -7,14 +7,14 @@ from django.contrib.auth.decorators import permission_required
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import TruncDay
 from django.forms import fields
-from django.forms.widgets import SelectDateWidget
+from django.forms.widgets import SelectDateWidget, TextInput, NumberInput
 from django.http import JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
 from django.utils import dateparse, timezone
 from stregreport.forms import CategoryReportForm
 from stregsystem.models import Category, Member, Product, Sale
-from stregreport.models import BreadRazzia, RazziaEntry
+from stregreport.models import BreadRazzia, RazziaEntry, WizardRazzia, WizardEntry
 from stregsystem.templatetags.stregsystem_extras import money
 
 
@@ -51,6 +51,14 @@ def razzia(request, razzia_id, razzia_type=BreadRazzia.BREAD, title=None):
 
 
 @permission_required("stregreport.host_razzia")
+def wizardv2_razzia(request, razzia_id):
+    if request.method == 'POST':
+        return wizardv2_razzia_view_single(request, razzia_id, request.POST['username'])
+    else:
+        return wizardv2_razzia_view_single(request, razzia_id, None)
+
+
+@permission_required("stregreport.host_razzia")
 def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BREAD, title=None):
     razzia = get_object_or_404(BreadRazzia, pk=razzia_id, razzia_type=razzia_type)
     if queryname is not None:
@@ -80,6 +88,45 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
 
 
 @permission_required("stregreport.host_razzia")
+def wizardv2_razzia_view_single(request, razzia_id, queryname):
+    razzia = get_object_or_404(WizardRazzia, pk=razzia_id)
+
+    # General page opened, no specific user
+    if queryname is None:
+        return render(request, "admin/stregsystem/razzia/wizardv2.html", locals())
+
+    result = list(Member.objects.filter(username__iexact=queryname))
+
+    # No member found
+    if len(result) <= 0:
+        return render(request, "admin/stregsystem/razzia/wizardv2.html", locals())
+
+    member = result[0]
+    refill_enabled = razzia.refill_interval is not None
+
+    if refill_enabled:
+        entries = list(razzia.razziaentry_set.filter(member__pk=member.pk).order_by('-time'))
+        wait_time = razzia.refill_interval
+        already_checked_in = len(entries) > 0
+
+        if already_checked_in:
+            last_entry = entries[0]
+            too_soon = last_entry.time > timezone.now() - wait_time
+
+            if too_soon:
+                drunkard = True
+                # time until next check in is legal
+                remaining_time_secs = int(((last_entry.time + wait_time) - timezone.now()).total_seconds() % 60)
+                remaining_time_mins = int(((last_entry.time + wait_time) - timezone.now()).total_seconds() // 60)
+            else:
+                WizardEntry(member=member, razzia=razzia).save()
+        else:
+            WizardEntry(member=member, razzia=razzia).save()
+
+    return render(request, "admin/stregsystem/razzia/wizardv2.html", locals())
+
+
+@permission_required("stregreport.host_razzia")
 def razzia_menu(request, razzia_type=BreadRazzia.BREAD, new_text=None, title=None):
     razzias = BreadRazzia.objects.filter(razzia_type=razzia_type).order_by('-pk')[:3]
     if len(razzias) == 0:
@@ -96,6 +143,13 @@ def new_razzia(request, razzia_type=BreadRazzia.BREAD):
 
     return redirect(views[razzia_type], razzia_id=razzia.pk)
 
+
+def wizardv2_new_razzia(request):
+    # TODO: Make proper wizard razzia with parameters.
+    razzia = WizardRazzia()
+    razzia.save()
+
+    return redirect("wizard_view", razzia_id=razzia.pk)
 
 @permission_required("stregreport.host_razzia")
 def razzia_members(request, razzia_id, razzia_type=BreadRazzia.BREAD, title=None):
@@ -177,6 +231,53 @@ razzia_view = staff_member_required(razzia_view)
 
 
 @permission_required("stregreport.host_razzia")
+def wizardv2_razzia_view(request):
+    default_start = timezone.now().today() - datetime.timedelta(days=-180)
+    default_end = timezone.now().today()
+    start = request.GET.get('start', default_start.isoformat())
+    end = request.GET.get('end', default_end.isoformat())
+    products = request.GET.get('products', "")
+    username = request.GET.get('username', "")
+    title = request.GET.get('razzia_title', "Razzia!")
+
+    try:
+        product_list = [int(p) for p in products.split(",")]
+    except ValueError:
+        return render(request, 'admin/stregsystem/razzia/error_wizardv2error.html', {})
+
+    product_dict = {k.name: 0 for k in Product.objects.filter(id__in=product_list)}
+    if len(product_list) != len(product_dict.items()):
+        return render(request, 'admin/stregsystem/razzia/error_wizardv2error.html', {})
+
+    try:
+        user = Member.objects.get(username__iexact=username)
+    except (Member.DoesNotExist, Member.MultipleObjectsReturned):
+        return render(
+            request,
+            'admin/stregsystem/razzia/wizard_view.html',
+            {'start': start, 'end': end, 'products': products, 'username': username, 'razzia_title': title},
+        )
+
+    start_date = dateparse.parse_date(start)
+    end_date = dateparse.parse_date(end)
+    sales_to_user = _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict)
+
+    return render(
+        request,
+        'admin/stregsystem/razzia/wizard_view.html',
+        {
+            'razzia_title': title,
+            'username': username,
+            'start': start,
+            'end': end,
+            'products': products,
+            'member_name': user.firstname + " " + user.lastname,
+            'items_bought': sales_to_user.items(),
+        },
+    )
+
+
+@permission_required("stregreport.host_razzia")
 def razzia_wizard(request):
     if request.method == 'POST':
         return redirect(
@@ -210,8 +311,47 @@ def razzia_wizard(request):
         },
     )
 
-
 razzia_wizard = staff_member_required(razzia_wizard)
+
+
+@permission_required("stregreport.host_razzia")
+def razzia_wizardv2(request):
+    if request.method == 'POST':
+        return redirect(
+            reverse("razzia_view")
+            + "?start={0}-{1}-{2}&end={3}-{4}-{5}&products={6}&username=&razzia_title={7}".format(
+                int(request.POST['start_year']),
+                int(request.POST['start_month']),
+                int(request.POST['start_day']),
+                int(request.POST['end_year']),
+                int(request.POST['end_month']),
+                int(request.POST['end_day']),
+                request.POST.get('products'),
+                request.POST.get('razzia_title'),
+            )
+        )
+
+    suggested_start_date = timezone.now() - datetime.timedelta(days=-180)
+    suggested_end_date = timezone.now()
+
+    start_date_picker = fields.DateField(
+        widget=SelectDateWidget(years=[x for x in range(2000, timezone.now().year + 1)])
+    )
+    end_date_picker = fields.DateField(widget=SelectDateWidget(years=[x for x in range(2000, timezone.now().year + 1)]))
+    refill_interval_picker = fields.IntegerField(widget=NumberInput())
+
+    razzia_name_picker = fields.CharField(widget=TextInput(), max_length=30)
+
+    return render(
+        request,
+        'admin/stregsystem/razzia/wizard.html',
+        {
+            'start_date_picker': start_date_picker.widget.render("start", suggested_start_date),
+            'end_date_picker': end_date_picker.widget.render("end", suggested_end_date),
+            'razzia_name_picker': razzia_name_picker.widget.render("razzia_name", "Ratsia"),
+            'refill_interval_picker': refill_interval_picker.widget.render("refill_interval", 30),
+        },
+    )
 
 
 def ranks(request, year=None):

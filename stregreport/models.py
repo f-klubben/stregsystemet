@@ -1,6 +1,6 @@
 from django.db import models
 
-from stregsystem.models import Member
+from stregsystem.models import Member, Product
 
 
 class BreadRazzia(models.Model):
@@ -22,9 +22,14 @@ class RazziaEntry(models.Model):
 
 
 class WizardRazzia(models.Model):
-    members = models.ManyToManyField(Member, through='WizardEntry')
-    start_date = models.DateTimeField(auto_now_add=True)
     razzia_name = models.CharField(max_length=30)
+    time = models.DateTimeField(null=True, blank=True, auto_now_add=True)
+    members = models.ManyToManyField(Member, through='WizardEntry')
+    # TODO: Is a many-to-many field overkill here? We probably won't need to lookup razzia by product.
+    products = models.ManyToManyField(Product, blank=True)
+    start_date = models.DateTimeField(null=True, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
+    refill_interval = models.DurationField(null=True, blank=True)
 
 
 class WizardEntry(models.Model):
