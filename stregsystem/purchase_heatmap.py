@@ -79,7 +79,7 @@ class ItemCountHeatmapColorMode(HeatmapColorMode):
         super().__init__(mode_name="ItemCount", mode_description="Antal")
 
     def get_day_color(self, products: List[Product]) -> Tuple[int, int, int]:
-        if len(products) == 0:
+        if len(products) == 0 or self.max_items_day == 0:
             return 235, 237, 240  # Grey
 
         lerp_value = len(products) / self.max_items_day
@@ -107,7 +107,7 @@ class MoneySumHeatmapColorMode(HeatmapColorMode):
         super().__init__(mode_name="MoneySum", mode_description="Penge brugt")
 
     def get_day_color(self, products: List[Product]) -> Tuple[int, int, int]:
-        if len(products) == 0:
+        if len(products) == 0 or self.max_money_day_oere == 0:
             return 235, 237, 240  # Grey
 
         day_sum = sum(p.price for p in products)
@@ -116,7 +116,7 @@ class MoneySumHeatmapColorMode(HeatmapColorMode):
         return lerp_color((255, 255, 200), (255, 255, 0), lerp_value)  # Lightyellow - Yellow
 
     def get_day_summary(self, products: List[Product]) -> str:
-        return f"{money(sum(p.price for p in products))} F$ brugt"
+        return f"{money(sum(p.price for p in products))} 𝓕$ brugt"
 
     @staticmethod
     def get_products_money_sum(day_list: List[Tuple[date, List[Product]]]) -> int:
