@@ -24,7 +24,7 @@ function SpawnSnowflake () {
 function SetBodyChristmasStyle() {
     const bodyStyle = document.body.style;
     bodyStyle.color = "white";
-    bodyStyle.backgroundImage = "url(\"" + media_url + "stregsystem/background.jpg\")";
+    bodyStyle.backgroundImage = "url(\"" + media_url + "stregsystem/background.png\")";
     bodyStyle.backgroundRepeat = "repeat-x";
     bodyStyle.backgroundSize = "auto 100%";
     bodyStyle.padding = "0";
