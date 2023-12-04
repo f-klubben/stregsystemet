@@ -1,4 +1,4 @@
-import regex
+import re
 
 
 class QuickBuyError(Exception):
@@ -11,7 +11,7 @@ class QuickBuyParseError(Exception):
     pass
 
 
-_item_matcher = regex.compile(r'(?V1)(?P<productId>\d+)(?::(?P<count>\d+))?$')
+_item_matcher = re.compile(r'(?P<productId>\d+)(?::(?P<count>\d+))?$')
 
 
 def get_token_indexes(string, start_index):
