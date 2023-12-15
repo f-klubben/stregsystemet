@@ -57,6 +57,10 @@ class Command(BaseCommand):
 
     # Saves the token variable to disk
     def update_token_storage(self):
+        if self.tokens is None:
+            self.write_error(f"'tokens' is None. Aborted writing.")
+            return
+
         with open(self.tokens_file, 'w') as json_file:
             json.dump(self.tokens, json_file, indent=2)
 
