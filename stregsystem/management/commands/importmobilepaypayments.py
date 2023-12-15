@@ -55,6 +55,9 @@ class Command(BaseCommand):
         with open(self.tokens_file, 'r') as json_file:
             self.tokens = json.load(json_file)
 
+        if self.tokens is None:
+            self.write_error("read token from storage. 'tokens' is None")
+
     # Saves the token variable to disk
     def update_token_storage(self):
         if self.tokens is None:
