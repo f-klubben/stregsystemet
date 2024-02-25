@@ -151,6 +151,7 @@ def wizardv2_new_razzia(request):
 
     return redirect("wizard_view", razzia_id=razzia.pk)
 
+
 @permission_required("stregreport.host_razzia")
 def razzia_members(request, razzia_id, razzia_type=BreadRazzia.BREAD, title=None):
     razzia = get_object_or_404(BreadRazzia, pk=razzia_id, razzia_type=razzia_type)
@@ -310,6 +311,7 @@ def razzia_wizard(request):
             'end_date_picker': end_date_picker.widget.render("end", suggested_end_date),
         },
     )
+
 
 razzia_wizard = staff_member_required(razzia_wizard)
 
