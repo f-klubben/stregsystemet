@@ -13,6 +13,7 @@ if(d.getMonth() === 11 && d.getDate() <= 24){
     document.body.querySelector(".snow-container").appendChild(santa);
 
     SetBodyChristmasStyle();
+    InjectChristmasCSS();
 }
 
 function SpawnSnowflake () {
@@ -32,4 +33,11 @@ function SetBodyChristmasStyle() {
     bodyStyle.width = "100vw";
     bodyStyle.height = "100vh";
     bodyStyle.position = "relative"
+}
+
+function InjectChristmasCSS(){
+    let el = document.createElement('style');
+    el.type = 'text/css';
+    el.innerText = "a, a:hover, a:active, a:visited { color: white; }";
+    document.head.appendChild(el);
 }
