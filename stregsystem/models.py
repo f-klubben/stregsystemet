@@ -1,18 +1,17 @@
 import datetime
-import re
 from collections import Counter
 from email.utils import parseaddr
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
-from django.core.validators import RegexValidator
 from django.contrib.contenttypes.models import ContentType
+from django.core.validators import RegexValidator
 from django.db import models, transaction
 from django.db.models import Count
 from django.utils import timezone
 
 from stregsystem.caffeine import Intake, CAFFEINE_TIME_INTERVAL, current_caffeine_in_body_compound_interest
-from stregsystem.deprecated import deprecated
+from stregsystem.mail import send_payment_mail
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
     date_to_midnight,
@@ -20,7 +19,6 @@ from stregsystem.utils import (
     make_unprocessed_member_filled_mobilepayment_query,
     MobilePaytoolException,
 )
-from stregsystem.mail import send_payment_mail
 
 
 def price_display(value):
@@ -162,40 +160,22 @@ class Member(models.Model):  # id automatisk...
         ('F', 'Female'),
     )
     active = models.BooleanField(default=True)
-    username = models.CharField(max_length=16)
+    phone_number = models.CharField(max_length=20)
     year = models.CharField(max_length=4, default=get_current_year)  # Put the current year as default
-    firstname = models.CharField(max_length=20)  # for 'firstname'
-    lastname = models.CharField(max_length=30)  # for 'lastname'
+    full_name = models.CharField(max_length=100)  # for 'firstname'
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     email = models.EmailField(blank=True)
     want_spam = models.BooleanField(default=True)  # oensker vedkommende fember mails?
     balance = models.IntegerField(default=0)  # hvor mange oerer vedkommende har til gode
-    undo_count = models.IntegerField(default=0)  # for 'undos' i alt
     notes = models.TextField(blank=True)
-
-    stregforbud_override = False
-
-    # I don't know if this is actually used anywhere - Jesper 17/09-2017
-    @deprecated
-    def balance_display(self):
-        return money(self.balance) + " kr."
-
-    balance_display.short_description = "Balance"
-    balance_display.admin_order_field = 'balance'
-
-    @deprecated
-    def __unicode__(self):
-        return self.__str__()
 
     def __str__(self):
         return (
             active_str(self.active)
             + " "
-            + self.username
+            + self.phone_number
             + ": "
-            + self.firstname
-            + " "
-            + self.lastname
+            + self.full_name
             + " | "
             + self.email
             + " ("
@@ -211,7 +191,7 @@ class Member(models.Model):  # id automatisk...
         """
         Should only be called by the Payment and MobilePayment class.
 
-        >>> jokke = Member.objects.create(username="jokke", firstname="Joakim", lastname="Byg", email="treo@cs.aau.dk", year=2007)
+        >>> jokke = Member.objects.create(phone_number="jokke", full_name="Joakim Byg", email="treo@cs.aau.dk", year=2007)
         >>> jokke.balance
         0
         >>> jokke.make_payment(100)
@@ -242,21 +222,6 @@ class Member(models.Model):  # id automatisk...
         if self.balance + transaction.change() < 0:
             return False
         return True
-
-        #    def clear_undo_count(self):
-        #        from django.db import connection
-        #        cursor = connection.cursor()
-        #        cursor.execute("UPDATE stregsystem_member SET undo_count = 0 WHERE id = %s", [self.id])
-        #        return
-
-    def has_stregforbud(self, buy=0):
-        # hyttetur, julefrokost, paaskefrokost override
-        # if buy == 30000 or buy == 27000 or buy == 25000 or buy == 17500 or buy == 1500 or buy == 3500 or buy == 10000 or buy == 33300 or buy == 22200:
-        #    return False
-        if Member.stregforbud_override:
-            return False
-
-        return self.balance - buy < 0
 
     # BAC in this method stands for "Blood alcohol content"
     def calculate_alcohol_promille(self):
@@ -315,7 +280,7 @@ class Member(models.Model):  # id automatisk...
                 sale__product__categories__in=coffee_category,
             )
             .annotate(Count('sale'))
-            .order_by('-sale__count', 'username')
+            .order_by('-sale__count', 'phone_number')
             .first()
         )
 
@@ -330,20 +295,8 @@ class Payment(models.Model):  # id automatisk...
     timestamp = models.DateTimeField(auto_now_add=True)
     amount = models.IntegerField()  # penge, oere...
 
-    @deprecated
-    def amount_display(self):
-        return money(self.amount) + " kr."
-
-    amount_display.short_description = "Amount"
-    # XXX - django bug - kan ikke vaelge mellem desc og asc i admin, som ved normalt felt
-    amount_display.admin_order_field = '-amount'
-
-    @deprecated
-    def __unicode__(self):
-        return self.__str__()
-
     def __str__(self):
-        return self.member.username + " " + str(self.timestamp) + ": " + money(self.amount)
+        return self.member.phone_number + " " + str(self.timestamp) + ": " + money(self.amount)
 
     @transaction.atomic
     def save(self, mbpayment=None, *args, **kwargs):
@@ -408,7 +361,7 @@ class MobilePayment(models.Model):
 
     def __str__(self):
         return (
-            f"{self.member.username if self.member is not None else 'Not assigned'}, {self.customer_name}, "
+            f"{self.member.phone_number if self.member is not None else 'Not assigned'}, {self.customer_name}, "
             f"{self.timestamp}, {self.amount}, {self.transaction_id}, {self.comment}"
         )
 
@@ -532,10 +485,6 @@ class Room(models.Model):
     name = models.CharField(max_length=64)
     description = models.CharField(max_length=64)
 
-    @deprecated
-    def __unicode__(self):
-        return self.__str__()
-
     def __str__(self):
         return self.name
 
@@ -551,10 +500,6 @@ class Product(models.Model):  # id automatisk...
     rooms = models.ManyToManyField(Room, blank=True)
     alcohol_content_ml = models.FloatField(default=0.0, null=True)
     caffeine_content_mg = models.IntegerField(default=0)
-
-    @deprecated
-    def __unicode__(self):
-        return self.__str__()
 
     def __str__(self):
         return active_str(self.active) + " " + self.name + " (" + money(self.price) + ")"
@@ -609,10 +554,6 @@ class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statist
     price = models.IntegerField()  # penge, oere...
     changed_on = models.DateTimeField(auto_now_add=True)
 
-    @deprecated
-    def __unicode__(self):
-        return self.__str__()
-
     def __str__(self):
         return self.product.name + ": " + money(self.price) + " (" + str(self.changed_on) + ")"
 
@@ -638,12 +579,10 @@ class Sale(models.Model):
     # XXX - django bug - kan ikke vaelge mellem desc og asc i admin, som ved normalt felt
     price_display.admin_order_field = 'price'
 
-    @deprecated
-    def __unicode__(self):
-        return self.__str__()
-
     def __str__(self):
-        return self.member.username + " " + self.product.name + " (" + money(self.price) + ") " + str(self.timestamp)
+        return (
+            self.member.phone_number + " " + self.product.name + " (" + money(self.price) + ") " + str(self.timestamp)
+        )
 
     def save(self, *args, **kwargs):
         if self.id:
@@ -666,10 +605,6 @@ class News(models.Model):
 
     class Meta:
         verbose_name_plural = "News"
-
-    @deprecated
-    def __unicode__(self):
-        return self.__str__()
 
     def __str__(self):
         return self.title + " -- " + str(self.pub_date)

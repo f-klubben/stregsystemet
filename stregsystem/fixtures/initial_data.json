@@ -1,171 +1,171 @@
 [
-    {
-        "fields": {
-            "description": "Kaffestuen, KMD",
-            "name": "CS Kaffestuen"
-        },
-        "model": "stregsystem.room",
-        "pk": "1"
+  {
+    "fields": {
+      "description": "Kaffestuen, KMD",
+      "name": "CS Kaffestuen"
     },
-    {
-        "fields": {
-            "description": "Fytteturens Grill",
-            "name": "Fyttetur"
-        },
-        "model": "stregsystem.room",
-        "pk": "2"
+    "model": "stregsystem.room",
+    "pk": "1"
+  },
+  {
+    "fields": {
+      "description": "Fytteturens Grill",
+      "name": "Fyttetur"
     },
-    {
-        "fields": {
-            "active": 1,
-            "name": "Limfjordsporter",
-            "price": 900
-        },
-        "model": "stregsystem.product",
-        "pk": "1"
+    "model": "stregsystem.room",
+    "pk": "2"
+  },
+  {
+    "fields": {
+      "active": 1,
+      "name": "Limfjordsporter",
+      "price": 900
     },
-    {
-        "fields": {
-            "active": 1,
-            "name": "Flan",
-            "price": 900,
-            "start_date": "2017-03-06",
-            "quantity": 3
-        },
-        "model": "stregsystem.product",
-        "pk": "2"
+    "model": "stregsystem.product",
+    "pk": "1"
+  },
+  {
+    "fields": {
+      "active": 1,
+      "name": "Flan",
+      "price": 900,
+      "start_date": "2017-03-06",
+      "quantity": 3
     },
-    {
-        "fields": {
-            "active": 1,
-            "name": "Flan but sold out",
-            "price": 900,
-            "start_date": "2017-03-06",
-            "quantity": 3
-        },
-        "model": "stregsystem.product",
-        "pk": "3"
+    "model": "stregsystem.product",
+    "pk": "2"
+  },
+  {
+    "fields": {
+      "active": 1,
+      "name": "Flan but sold out",
+      "price": 900,
+      "start_date": "2017-03-06",
+      "quantity": 3
     },
-    {
-        "model": "stregsystem.sale",
-        "pk": 1,
-        "fields": {
-            "member": 1,
-            "product": 2,
-            "room": 1,
-            "timestamp": "2017-03-13T12:52+00:00",
-            "price": 100
-        }
-    },
-    {
-        "model": "stregsystem.sale",
-        "pk": 2,
-        "fields": {
-            "member": 1,
-            "product": 3,
-            "room": 1,
-            "timestamp": "2017-03-13T12:52:52+00:00",
-            "price": 100
-        }
-    },
-    {
-        "model": "stregsystem.sale",
-        "pk": 3,
-        "fields": {
-            "member": 1,
-            "product": 3,
-            "room": 1,
-            "timestamp": "2017-03-13T12:52:52+00:00",
-            "price": 100
-        }
-    },
-    {
-        "model": "stregsystem.sale",
-        "pk": 4,
-        "fields": {
-            "member": 1,
-            "product": 3,
-            "room": 1,
-            "timestamp": "2017-03-13T12:52:52+00:00",
-            "price": 100
-        }
-    },
-    {
-        "fields": {
-            "active": 1,
-            "name": "Smoker",
-            "price": 100,
-            "rooms": [
-                2
-            ]
-        },
-        "model": "stregsystem.product",
-        "pk": "4"
-    },
-    {
-        "fields": {
-            "changed_on": "2007-07-11 22:21:02+00:00",
-            "price": 900,
-            "product": 1
-        },
-        "model": "stregsystem.oldprice",
-        "pk": "1"
-    },
-    {
-        "fields": {
-            "changed_on": "2007-07-11 22:32:06+00:00",
-            "price": 900,
-            "product": 1
-        },
-        "model": "stregsystem.oldprice",
-        "pk": "2"
-    },
-    {
-        "fields": {
-            "active": 1,
-            "balance": 1800,
-            "email": "treo@cs.aau.dk",
-            "firstname": "Joakim",
-            "lastname": "Byg",
-            "undo_count": 0,
-            "username": "jokke",
-            "want_spam": 1,
-            "year": "2007"
-        },
-        "model": "stregsystem.member",
-        "pk": "1"
-    },
-    {
-        "fields": {
-            "active": 1,
-            "balance": 0,
-            "email": "treo2@cs.aau.dk",
-            "firstname": "Jan",
-            "lastname": "Byg",
-            "undo_count": 0,
-            "username": "jan",
-            "want_spam": 1,
-            "year": "2017"
-        },
-        "model": "stregsystem.member",
-        "pk": "2"
-    },
-    {
-        "model": "auth.user",
-        "pk": 1,
-        "fields": {
-            "password": "pbkdf2_sha256$30000$ivRA8qABWClG$pxi2R4uyotlGpwa66RQuDOXFaO9JElQutMFJqXmnOdI=",
-            "last_login": "2017-09-22T09:26:03+00:00",
-            "is_superuser": true,
-            "username": "tester",
-            "first_name": "test",
-            "last_name": "testsen",
-            "email": "test@satai.dk",
-            "is_staff": true,
-            "is_active": true,
-            "date_joined": "2017-03-06T10:53:54+00:00",
-            "groups": [],
-            "user_permissions": []
-        }
+    "model": "stregsystem.product",
+    "pk": "3"
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 1,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2017-03-13T12:52+00:00",
+      "price": 100
     }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 2,
+    "fields": {
+      "member": 1,
+      "product": 3,
+      "room": 1,
+      "timestamp": "2017-03-13T12:52:52+00:00",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 3,
+    "fields": {
+      "member": 1,
+      "product": 3,
+      "room": 1,
+      "timestamp": "2017-03-13T12:52:52+00:00",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 4,
+    "fields": {
+      "member": 1,
+      "product": 3,
+      "room": 1,
+      "timestamp": "2017-03-13T12:52:52+00:00",
+      "price": 100
+    }
+  },
+  {
+    "fields": {
+      "active": 1,
+      "name": "Smoker",
+      "price": 100,
+      "rooms": [
+        2
+      ]
+    },
+    "model": "stregsystem.product",
+    "pk": "4"
+  },
+  {
+    "fields": {
+      "changed_on": "2007-07-11 22:21:02+00:00",
+      "price": 900,
+      "product": 1
+    },
+    "model": "stregsystem.oldprice",
+    "pk": "1"
+  },
+  {
+    "fields": {
+      "changed_on": "2007-07-11 22:32:06+00:00",
+      "price": 900,
+      "product": 1
+    },
+    "model": "stregsystem.oldprice",
+    "pk": "2"
+  },
+  {
+    "fields": {
+      "active": 1,
+      "balance": 1800,
+      "email": "treo@cs.aau.dk",
+      "firstname": "Joakim",
+      "lastname": "Byg",
+      "undo_count": 0,
+      "username": "jokke",
+      "want_spam": 1,
+      "year": "2007"
+    },
+    "model": "stregsystem.member",
+    "pk": "1"
+  },
+  {
+    "fields": {
+      "active": 1,
+      "balance": 0,
+      "email": "treo2@cs.aau.dk",
+      "firstname": "Jan",
+      "lastname": "Byg",
+      "undo_count": 0,
+      "username": "jan",
+      "want_spam": 1,
+      "year": "2017"
+    },
+    "model": "stregsystem.member",
+    "pk": "2"
+  },
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$30000$ivRA8qABWClG$pxi2R4uyotlGpwa66RQuDOXFaO9JElQutMFJqXmnOdI=",
+      "last_login": "2017-09-22T09:26:03+00:00",
+      "is_superuser": true,
+      "username": "tester",
+      "first_name": "test",
+      "last_name": "testsen",
+      "email": "test@satai.dk",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2017-03-06T10:53:54+00:00",
+      "groups": [],
+      "user_permissions": []
+    }
+  }
 ]

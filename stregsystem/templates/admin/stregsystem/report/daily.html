@@ -4,127 +4,128 @@
 {% load stregsystem_extras %}
 
 {% block extrahead %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<script src="https://d3js.org/d3.v3.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.17/c3.min.js"></script>
-<script src="{% static "stregsystem/daily.js" %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.17/c3.min.js"></script>
+    <script src="{% static "stregsystem/daily.js" %}"></script>
 
-<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
-<link href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.17/c3.min.css" rel="stylesheet" />
-<link href="{% static "stregsystem/table.css" %}" rel="stylesheet" />
-<link href="{% static "stregsystem/daily.css" %}" rel="stylesheet" />
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.17/c3.min.css" rel="stylesheet"/>
+    <link href="{% static "stregsystem/table.css" %}" rel="stylesheet"/>
+    <link href="{% static "stregsystem/daily.css" %}" rel="stylesheet"/>
 {% endblock %}
 
 {% block title %}Daily stats{% endblock %}
 
 {% block breadcrumbs %}
-	<div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Reports</a>&nbsp;&rsaquo;&nbsp;Daily stats
-	</div>{% endblock %}
+    <div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a
+            href="../">Reports</a>&nbsp;&rsaquo;&nbsp;Daily stats
+    </div>{% endblock %}
 
 {% block content %}
-<h1>Daily stats</h1>
-<div id="statscontainer">
-	<div class="clearfix">
-		<div id="topline" class="clearfix column-container">
-			<div class="col-2">
-				<div class="panel">
-					<span class="stat">{{revenue_day|money}} kr</span>
-					<div class="icon-container icon-color-1">
-						<i class="fa fa-credit-card-alt icon" aria-hidden="true"></i>
-					</div>
-					<h2>Revenue past 24 hours</h2>
-				</div>
-			</div>
-			<div class="col-2">
-				<div class="panel">
-					<span class="stat">{{revenue_month|money}} kr</span>
-					<div class="icon-container icon-color-2">
-						<i class="fa fa-calendar-o icon" aria-hidden="true"></i>
-					</div>
-					<h2>Revenue past 30 days</h2>
-				</div>
-			</div>
-			<div class="col-2">
-				<div class="panel">
-					<span class="stat">{{top_month_category.0.name}}</span>
-					<div class="icon-container icon-color-3">
-						<i class="fa fa-list icon" aria-hidden="true"></i>
-					</div>
-					<h2>Most popular category past 30 days</h2>
-				</div>
-			</div>
-		</div>
-		<div class="column-container">
-			<div class="row">
-				<div class="col-6">
-					<div class="panel">
-						<h2>Sales per day last 30 days</h2>
-						<div id="sales_chart"></div>
-					</div>
-			</div>
-			</div>
-			<div class="row">
-				<div class="col-2">
-					<div class="panel">
-						<h2>Latest sales</h2>
-						<table>
-							<tr>
-								<th>Age</th>
-								<th>Product id</th>
-								<th>Product name</th>
-								<th>Username</th>
-								<th>Full name</th>
-							</tr>
-							{% for sale in latest_sales %}
-							<tr>
-								<td>{{ sale.timestamp | naturaltime }}</td>
-								<td>{{ sale.product_id }}</td>
-								<td>{{ sale.product.name }}</td>
-								<td>{{ sale.member.username }}</td>
-								<td>{{ sale.member.firstname }} {{ sale.member.lastname  }}</td>
-							</tr>
-							{% endfor %}
-						</table>
-					</div>
-				</div>
-				<div class="col-1">
-					<div class="panel">
-						<h2>Top sales today</h2>
-						<table>
-							<tr>
-								<th>Product id</th>
-								<th>Product name</th>
-								<th>Sales</th>
-							</tr>
-							{% for dd in top_today %}
-							<tr>
-								<td>{{ dd.id }}</td>
-								<td>{{ dd.name }}</td>
-								<td>{{ dd.sale__count }}</td>
-							</tr>
-							{% endfor %}
-						</table>
-					</div>
-				</div>
-				<div class="col-1">
-					<div class="panel">
-						<h2>Top categories this month</h2>
-						<table>
-							<tr>
-								<th>Category</th>
-								<th>Sales</th>
-							</tr>
-							{% for dd in top_month_category %}
-							<tr>
-								<td>{{ dd.name }}</td>
-								<td>{{ dd.sale }}</td>
-							</tr>
-							{% endfor %}
-						</table>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
+    <h1>Daily stats</h1>
+    <div id="statscontainer">
+        <div class="clearfix">
+            <div id="topline" class="clearfix column-container">
+                <div class="col-2">
+                    <div class="panel">
+                        <span class="stat">{{ revenue_day|money }} kr</span>
+                        <div class="icon-container icon-color-1">
+                            <i class="fa fa-credit-card-alt icon" aria-hidden="true"></i>
+                        </div>
+                        <h2>Revenue past 24 hours</h2>
+                    </div>
+                </div>
+                <div class="col-2">
+                    <div class="panel">
+                        <span class="stat">{{ revenue_month|money }} kr</span>
+                        <div class="icon-container icon-color-2">
+                            <i class="fa fa-calendar-o icon" aria-hidden="true"></i>
+                        </div>
+                        <h2>Revenue past 30 days</h2>
+                    </div>
+                </div>
+                <div class="col-2">
+                    <div class="panel">
+                        <span class="stat">{{ top_month_category.0.name }}</span>
+                        <div class="icon-container icon-color-3">
+                            <i class="fa fa-list icon" aria-hidden="true"></i>
+                        </div>
+                        <h2>Most popular category past 30 days</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="column-container">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="panel">
+                            <h2>Sales per day last 30 days</h2>
+                            <div id="sales_chart"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-2">
+                        <div class="panel">
+                            <h2>Latest sales</h2>
+                            <table>
+                                <tr>
+                                    <th>Age</th>
+                                    <th>Product id</th>
+                                    <th>Product name</th>
+                                    <th>Username</th>
+                                    <th>Full name</th>
+                                </tr>
+                                {% for sale in latest_sales %}
+                                    <tr>
+                                        <td>{{ sale.timestamp | naturaltime }}</td>
+                                        <td>{{ sale.product_id }}</td>
+                                        <td>{{ sale.product.name }}</td>
+                                        <td>{{ sale.member.username }}</td>
+                                        <td>{{ sale.member.firstname }} {{ sale.member.lastname }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-1">
+                        <div class="panel">
+                            <h2>Top sales today</h2>
+                            <table>
+                                <tr>
+                                    <th>Product id</th>
+                                    <th>Product name</th>
+                                    <th>Sales</th>
+                                </tr>
+                                {% for dd in top_today %}
+                                    <tr>
+                                        <td>{{ dd.id }}</td>
+                                        <td>{{ dd.name }}</td>
+                                        <td>{{ dd.sale__count }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-1">
+                        <div class="panel">
+                            <h2>Top categories this month</h2>
+                            <table>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Sales</th>
+                                </tr>
+                                {% for dd in top_month_category %}
+                                    <tr>
+                                        <td>{{ dd.name }}</td>
+                                        <td>{{ dd.sale }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

@@ -3,6 +3,6 @@
 
 {% block after_related_objects %}
 
-<a href="../../../sale/?member__id__exact={{original.id}}">List sales</a><br />
-<a href="../../../payment/?member__id__exact={{original.id}}">List payments</a>
+    <a href="../../../sale/?member__id__exact={{ original.id }}">List sales</a><br/>
+    <a href="../../../payment/?member__id__exact={{ original.id }}">List payments</a>
 {% endblock %}

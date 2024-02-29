@@ -17,12 +17,12 @@
     }
   },
   {
-        "fields": {
-            "name": "kaffe"
-        },
-        "model": "stregsystem.category",
-        "pk": "6"
+    "fields": {
+      "name": "kaffe"
     },
+    "model": "stregsystem.category",
+    "pk": "6"
+  },
   {
     "model": "stregsystem.product",
     "pk": 1,
@@ -42,7 +42,9 @@
       "active": true,
       "deactivate_date": null,
       "caffeine_content_mg": 70,
-      "categories": [6]
+      "categories": [
+        6
+      ]
     }
   },
   {

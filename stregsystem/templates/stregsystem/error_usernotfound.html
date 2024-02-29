@@ -4,14 +4,14 @@
 
 
 {% block headline %}
-Bruger "{{username|escape}}" blev ikke fundet
+    Bruger "{{ username|escape }}" blev ikke fundet
 {% endblock %}
 
 {% block message %}
-Det var sært, <b>{{username|escape}}</b>.<br />
-Det lader ikke til, at du er registreret som aktivt medlem af F-klubben i TREOENs database.<br />
-Måske tastede du forkert?<br />
-Hvis du ikke er medlem, kan du blive det ved at følge guiden på <a href="http://fklub.dk">http://fklub.dk</a>.<br />
-<br />
-Hvis du mener dette er en fejl kan du sende en e-mail til TREOEN på <a href="mailto:treo@fklub.dk">treo@fklub.dk</a>
+    Det var sært, <b>{{ username|escape }}</b>.<br/>
+    Det lader ikke til, at du er registreret som aktivt medlem af F-klubben i TREOENs database.<br/>
+    Måske tastede du forkert?<br/>
+    Hvis du ikke er medlem, kan du blive det ved at følge guiden på <a href="http://fklub.dk">http://fklub.dk</a>.<br/>
+    <br/>
+    Hvis du mener dette er en fejl kan du sende en e-mail til TREOEN på <a href="mailto:treo@fklub.dk">treo@fklub.dk</a>
 {% endblock %}

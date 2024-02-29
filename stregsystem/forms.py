@@ -1,9 +1,9 @@
 import datetime
 
 from django import forms
+from django_select2 import forms as s2forms
 
 from stregsystem.models import MobilePayment, Member
-from django_select2 import forms as s2forms
 
 
 class Select2MemberWidget(s2forms.ModelSelect2Widget):

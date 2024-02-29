@@ -2,18 +2,21 @@
 {% load i18n %}
 {% load admin_static %}
 
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static 'admin/css/dashboard.css' %}" />{% endblock %}
+{% block extrastyle %}{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/dashboard.css' %}"/>{% endblock %}
 
 {% block coltype %}colMS{% endblock %}
 
 {% block bodyclass %}dashboard{% endblock %}
 
-{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;Reports</div>{% endblock %}
+{% block breadcrumbs %}
+    <div class="breadcrumbs"><a href="../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;Reports
+    </div>{% endblock %}
 
 {% block content %}
 
-<div id="content-main">
-  {% include "shared_report_lists.html" %}
-</div>
+    <div id="content-main">
+        {% include "shared_report_lists.html" %}
+    </div>
 
 {% endblock %}

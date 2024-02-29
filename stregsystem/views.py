@@ -1,28 +1,22 @@
 import datetime
-import random
+import json
+import urllib.parse
 from typing import List
 
 import pytz
-from pytz import UTC
-
-from stregreport.views import fjule_party
-
-from django.core import management
-from django.forms import modelformset_factory, formset_factory
-
-from django.contrib.admin.views.decorators import staff_member_required
-from stregsystem.templatetags.stregsystem_extras import money
-from django.contrib.auth.decorators import permission_required
-from django.conf import settings
-from django.db.models import Q, Count, Sum
 from django import forms
+from django.conf import settings
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import permission_required
+from django.core import management
+from django.db.models import Q, Count, Sum
+from django.forms import modelformset_factory
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django_select2 import forms as s2forms
-import urllib.parse
 
+from stregreport.views import fjule_party
 from stregsystem import parser
 from stregsystem.models import (
     Member,
@@ -38,6 +32,7 @@ from stregsystem.models import (
     Category,
     NamedProduct,
 )
+from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
     make_active_productlist_query,
     qr_code,
@@ -46,16 +41,9 @@ from stregsystem.utils import (
     parse_csv_and_create_mobile_payments,
     MobilePaytoolException,
 )
-
 from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
 from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, RankingDateForm
-
-import json
-
-from .purchase_heatmap import (
-    prepare_heatmap_template_context,
-)
 
 
 def __get_news():
@@ -72,10 +60,6 @@ def __get_productlist(room_id):
 
 def roomindex(request):
     return HttpResponsePermanentRedirect('/1/')
-
-
-#    room_list = Room.objects.all().order_by('name', 'description')
-#    return render(request, 'stregsystem/roomindex.html', {'room_list': room_list})
 
 
 def index(request, room_id):
@@ -214,12 +198,10 @@ def usermenu(request, room, member, bought, from_sale=False):
     give_multibuy_hint, sale_hints = _multibuy_hint(timezone.now(), member)
     give_multibuy_hint = give_multibuy_hint and from_sale
 
-    heatmap_context = prepare_heatmap_template_context(member, 12, datetime.date.today())
-
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())
     else:
-        return render(request, 'stregsystem/menu.html', {**locals(), **heatmap_context})
+        return render(request, 'stregsystem/menu.html', locals())
 
 
 def menu_userinfo(request, room_id, member_id):
@@ -237,7 +219,6 @@ def menu_userinfo(request, room_id, member_id):
         last_payment = None
 
     negative_balance = member.balance < 0
-    stregforbud = member.has_stregforbud()
 
     return render(request, 'stregsystem/menu_userinfo.html', locals())
 
@@ -569,9 +550,9 @@ def get_user_info(request):
     return JsonResponse(
         {
             'balance': member.balance,
-            'username': member.username,
+            'phone_number': member.phone_number,
             'active': member.active,
-            'name': f'{member.firstname} {member.lastname}',
+            'name': member.full_name,
         }
     )
 
@@ -607,7 +588,7 @@ def api_sale(request):
             return HttpResponseBadRequest("Missing or invalid member_id")
 
         try:
-            username, bought_ids = parser.parse(_pre_process(buy_string))
+            phone_number, bought_ids = parser.parse(_pre_process(buy_string))
         except parser.ParseError as e:
             return HttpResponseBadRequest("Parse error: {}".format(e))
 
@@ -615,11 +596,11 @@ def api_sale(request):
         if member is None:
             return HttpResponseBadRequest("Invalid member_id")
 
-        if username != member.username:
-            return HttpResponseBadRequest("Username does not match member_id")
+        if phone_number != member.phone_number:
+            return HttpResponseBadRequest("Phone_number does not match member_id")
 
-        if not buy_string.startswith(member.username):
-            buy_string = f'{member.username} {buy_string}'
+        if not buy_string.startswith(member.phone_number):
+            buy_string = f'{member.phone_number} {buy_string}'
 
         try:
             room = Room.objects.get(pk=room)

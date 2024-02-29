@@ -1,9 +1,11 @@
 body {
-       color: black;
-       background-color: white;
+    color: black;
+    background-color: white;
 }
 
-h1 { color: red }
+h1 {
+    color: red
+}
 
 /*div { border-color: red;
       border-style: solid;
@@ -25,14 +27,17 @@ table h2, table h3 {
 }
 
 .center-around {
-  font-size: 0.8rem;
-  line-height: 0.8rem;
-  text-align: center;
+    font-size: 0.8rem;
+    line-height: 0.8rem;
+    text-align: center;
 }
 
 .center-around span {
-    min-width: 400px; display: inline-block; text-align: left;
+    min-width: 400px;
+    display: inline-block;
+    text-align: left;
 }
+
 .center-around span:first-child {
     text-align: right;
 }
@@ -70,68 +75,74 @@ table h2, table h3 {
 }
 
 .day_hidden {
-  display: none !important;
-  fill: none !important;
+    display: none !important;
+    fill: none !important;
 }
 
 #advent_candle {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  max-height: 75%;
-  max-width: 400px;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    max-height: 75%;
+    max-width: 400px;
 }
 
 .flame-main {
-  -webkit-animation-name: flameWobble;
-  animation-name: flameWobble;
-  -webkit-animation-duration: 1.5s;
-  animation-duration: 1.5s;
-  -webkit-animation-timing-function: linear;
-  animation-timing-function: linear;
-  -webkit-animation-iteration-count: infinite;
-  animation-iteration-count: infinite;
+    -webkit-animation-name: flameWobble;
+    animation-name: flameWobble;
+    -webkit-animation-duration: 1.5s;
+    animation-duration: 1.5s;
+    -webkit-animation-timing-function: linear;
+    animation-timing-function: linear;
+    -webkit-animation-iteration-count: infinite;
+    animation-iteration-count: infinite;
 }
+
 .flame-main.one {
-  -webkit-animation-duration: 2s;
-  animation-duration: 2s;
-  -webkit-animation-delay: .5s;
-  animation-delay: .5s;
+    -webkit-animation-duration: 2s;
+    animation-duration: 2s;
+    -webkit-animation-delay: .5s;
+    animation-delay: .5s;
 }
+
 .flame-main.two {
-  -webkit-animation-duration: 1.5s;
-  animation-duration: 1.5s;
-  -webkit-animation-delay: 1s;
-  animation-delay: 1s;
+    -webkit-animation-duration: 1.5s;
+    animation-duration: 1.5s;
+    -webkit-animation-delay: 1s;
+    animation-delay: 1s;
 }
+
 .flame-main.three {
-  -webkit-animation-duration: 1.05s;
-  animation-duration: 1.05s;
-  -webkit-animation-delay: 1.5s;
-  animation-delay: 1.5s;
+    -webkit-animation-duration: 1.05s;
+    animation-duration: 1.05s;
+    -webkit-animation-delay: 1.5s;
+    animation-delay: 1.5s;
 }
+
 .flame-main.four {
-  -webkit-animation-duration: 1.6s;
-  animation-duration: 1.6s;
-  -webkit-animation-delay: 2s;
-  animation-delay: 2s;
+    -webkit-animation-duration: 1.6s;
+    animation-duration: 1.6s;
+    -webkit-animation-delay: 2s;
+    animation-delay: 2s;
 }
+
 .flame-main.five {
-  -webkit-animation-duration: 1.25s;
-  animation-duration: 1.25s;
-  -webkit-animation-delay: 2.5s;
-  animation-delay: 2.5s;
+    -webkit-animation-duration: 1.25s;
+    animation-duration: 1.25s;
+    -webkit-animation-delay: 2.5s;
+    animation-delay: 2.5s;
 }
+
 @keyframes flameWobble {
-  50% {
-      transform: scale(1,1) translate(0, -2px) rotate(.2deg);
-  }
+    50% {
+        transform: scale(1, 1) translate(0, -2px) rotate(.2deg);
+    }
 }
 
 @-webkit-keyframes flameWobble {
-  50% {
-      -webkit-transform: scale(1,1) translate(0, -2px) rotate(.2deg);
-  }
+    50% {
+        -webkit-transform: scale(1, 1) translate(0, -2px) rotate(.2deg);
+    }
 }
 
 /* Ensures that bats/"flakes" don't interfere with qr-code scanning */
@@ -141,18 +152,18 @@ table h2, table h3 {
 }
 
 @keyframes blink-frame {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
 }
 
 .blink {
-  animation: blink-frame 1s linear infinite;
-  animation-duration: 1s;
-  animation-iteration-count: 3;
-  color: red;
+    animation: blink-frame 1s linear infinite;
+    animation-duration: 1s;
+    animation-iteration-count: 3;
+    color: red;
 }
 

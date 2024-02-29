@@ -4,36 +4,40 @@
 
 
 {% block headline %}
-{{member.firstname}} {{member.lastname}} ({{member.email}})
+    {{ member.firstname }} {{ member.lastname }} ({{ member.email }})
 {% endblock %}
 
 {% block message %}
-<center>
-<h4>Du har ikke r&aring;d til at foretage dette k&oslash;b!</h4>
-Din saldo er p&aring; <b>{{member.balance|money|cut:"-"}}</b> kroner.
+    <center>
+        <h4>Du har ikke r&aring;d til at foretage dette k&oslash;b!</h4>
+        Din saldo er p&aring; <b>{{ member.balance|money|cut:"-" }}</b> kroner.
 
-<center>
-<table width="90%">
-   <tr>
-      <th>
-         <a href="/{{room.id}}/user/{{member.id}}">Bruger Info</a>
-      </th>
-   </tr>
-</table>
-</center>
+        <center>
+            <table width="90%">
+                <tr>
+                    <th>
+                        <a href="/{{ room.id }}/user/{{ member.id }}">Bruger Info</a>
+                    </th>
+                </tr>
+            </table>
+        </center>
 
-<h1 style="color: red;"><blink>STREGFORBUD!</blink></h1>
+        <h1 style="color: red;">
+            <blink>STREGFORBUD!</blink>
+        </h1>
 
-Du kan <b>ikke</b> foretage k&oslash;b, f&oslash;r du har foretaget en indbetaling!<br />
+        Du kan <b>ikke</b> foretage k&oslash;b, f&oslash;r du har foretaget en indbetaling!<br/>
 
-<b>Din vare er ikke betalt, stil den tilbage!</b> <br />
+        <b>Din vare er ikke betalt, stil den tilbage!</b> <br/>
 
-Du kan foretage indbetalinger via MobilePay på <a href="/{{room.id}}/user/{{member.id}}/pay">denne side</a> eller via nedenstående QR-kode.<br />
-<br />
-Hvis du mener dette er en fejl kan du sende en e-mail til TREOEN på <a href="mailto:treo@fklub.dk">treo@fklub.dk</a>
+        Du kan foretage indbetalinger via MobilePay på <a href="/{{ room.id }}/user/{{ member.id }}/pay">denne side</a>
+        eller via nedenstående QR-kode.<br/>
+        <br/>
+        Hvis du mener dette er en fejl kan du sende en e-mail til TREOEN på <a
+            href="mailto:treo@fklub.dk">treo@fklub.dk</a>
 
-<br /><br />
-{% mobilepay_qr member.username %}
-</center>
+        <br/><br/>
+        {% mobilepay_qr member.username %}
+    </center>
 
 {% endblock %}

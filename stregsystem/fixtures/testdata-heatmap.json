@@ -1,945 +1,938 @@
 [
-   {
-      "model":"stregsystem.member",
-      "pk":1,
-      "fields":{
-         "active":true,
-         "username":"tester",
-         "year":"2017",
-         "firstname":"Test",
-         "lastname":"Testsen",
-         "gender":"U",
-         "email":"plznospam@fklub.dk",
-         "want_spam":true,
-         "balance":13354537,
-         "undo_count":0,
-         "notes":"This is a test user."
-      }
-   },
-   {
-      "model":"stregsystem.member",
-      "pk":2,
-      "fields":{
-         "active":true,
-         "username":"mlarsen",
-         "year":"2020",
-         "firstname":"Martin",
-         "lastname":"Larsen",
-         "gender":"M",
-         "email":"mlarsen@nsa.gov",
-         "want_spam":true,
-         "balance":10000,
-         "undo_count":0,
-         "notes":""
-      }
-   },
-   {
-      "model":"stregsystem.member",
-      "pk":3,
-      "fields":{
-         "active":true,
-         "username":"tables",
-         "year":"2020",
-         "firstname":"Bobby",
-         "lastname":"Tables",
-         "gender":"M",
-         "email":"tables@nsa.gov",
-         "want_spam":true,
-         "balance":12500,
-         "undo_count":0,
-         "notes":""
-      }
-   },
-   {
-      "model":"stregsystem.member",
-      "pk":4,
-      "fields":{
-         "active":true,
-         "username":"marx",
-         "year":"2020",
-         "firstname":"Karl",
-         "lastname":"Marx",
-         "gender":"M",
-         "email":"kmarx@nsa.gov",
-         "want_spam":true,
-         "balance":6900,
-         "undo_count":0,
-         "notes":""
-      }
-   },
-   {
-      "model":"stregsystem.member",
-      "pk":5,
-      "fields":{
-         "active":true,
-         "username":"jdoe",
-         "year":"2020",
-         "firstname":"John",
-         "lastname":"Doe",
-         "gender":"M",
-         "email":"jdoe@nsa.gov",
-         "want_spam":true,
-         "balance":42000,
-         "undo_count":0,
-         "notes":""
-      }
-   },
-   {
-      "model":"stregsystem.mobilepayment",
-      "pk":1,
-      "fields":{
-         "member":null,
-         "payment":null,
-         "customer_name":"Martin Larsen",
-         "timestamp":"2019-11-29T12:51:08.857Z",
-         "amount":6969,
-         "transaction_id":"156E027485173228",
-         "comment":"mlarsen indbetalt ",
-         "status":"U"
-      }
-   },
-   {
-      "model":"stregsystem.mobilepayment",
-      "pk":2,
-      "fields":{
-         "member":null,
-         "payment":null,
-         "customer_name":"Bobby Tables",
-         "timestamp":"2019-11-28T16:40:55.719Z",
-         "amount":50000,
-         "transaction_id":"232E027452733666",
-         "comment":"tables eksdee",
-         "status":"U"
-      }
-   },
-   {
-      "model":"stregsystem.mobilepayment",
-      "pk":3,
-      "fields":{
-         "member":4,
-         "payment":null,
-         "customer_name":"Karl Marx",
-         "timestamp":"2019-11-28T14:30:58.357Z",
-         "amount":20000,
-         "transaction_id":"241E027449465355",
-         "comment":"marx",
-         "status":"U"
-      }
-   },
-   {
-      "model":"stregsystem.mobilepayment",
-      "pk":4,
-      "fields":{
-         "member":null,
-         "payment":null,
-         "customer_name":"Bobby Tables",
-         "timestamp":"2019-11-28T16:40:55.719Z",
-         "amount":50000,
-         "transaction_id":"232E027452733676",
-         "comment":"tables eksdee",
-         "status":"U"
-      }
-   },
-   {
-      "model":"stregsystem.mobilepayment",
-      "pk":5,
-      "fields":{
-         "member":5,
-         "payment":null,
-         "customer_name":"John Doe",
-         "timestamp":"2019-11-27T11:15:38.529Z",
-         "amount":15000,
-         "transaction_id":"016E027417049990",
-         "comment":"jdoe",
-         "status":"U"
-      }
-   },
-   {
-      "model":"stregsystem.mobilepayment",
-      "pk":6,
-      "fields":{
-         "member":1,
-         "payment":null,
-         "customer_name":"Tester Testsen",
-         "timestamp":"2019-11-26T11:54:37.521Z",
-         "amount":20000,
-         "transaction_id":"207E027395896809",
-         "comment":"tester",
-         "status":"U"
-      }
-   },
-   {
-      "model":"stregsystem.category",
-      "pk":12,
-      "fields":{
-         "name":"beer"
-      }
-   },
-   {
-      "model":"stregsystem.category",
-      "pk":13,
-      "fields":{
-         "name":"soda"
-      }
-   },
-   {
-      "model":"stregsystem.category",
-      "pk":14,
-      "fields":{
-         "name":"energy"
-      }
-   },
-   {
-      "model":"stregsystem.room",
-      "pk":1,
-      "fields":{
-         "name":"testrummet",
-         "description":"127.0.0.1"
-      }
-   },
-   {
-      "model":"stregsystem.room",
-      "pk":2,
-      "fields":{
-         "name":"maymayrummet",
-         "description":"svedigt"
-      }
-   },
-   {
-      "model":"stregsystem.product",
-      "pk":1,
-      "fields":{
-         "name":"Test \u00d8L",
-         "price":100,
-         "active":true,
-         "start_date":null,
-         "quantity":0,
-         "deactivate_date":null,
-         "alcohol_content_ml":0.0,
-         "caffeine_content_mg":0,
-         "categories":[
-            12
-         ],
-         "rooms":[
-
-         ]
-      }
-   },
-   {
-      "model":"stregsystem.product",
-      "pk":2,
-      "fields":{
-         "name":"Kold Kaffe",
-         "price":200,
-         "active":true,
-         "start_date":null,
-         "quantity":0,
-         "deactivate_date":null,
-         "alcohol_content_ml":0.0,
-         "caffeine_content_mg":0,
-         "categories":[
-            14
-         ],
-         "rooms":[
-
-         ]
-      }
-   },
-   {
-      "model":"stregsystem.product",
-      "pk":3,
-      "fields":{
-         "name":"Fad\u00f8l",
-         "price":1500,
-         "active":true,
-         "start_date":null,
-         "quantity":0,
-         "deactivate_date":null,
-         "alcohol_content_ml":0.0,
-         "caffeine_content_mg":0,
-         "categories":[
-            12
-         ],
-         "rooms":[
-            1
-         ]
-      }
-   },
-   {
-      "model":"stregsystem.product",
-      "pk":13,
-      "fields":{
-         "name":"Sportscola",
-         "price":300,
-         "active":true,
-         "start_date":null,
-         "quantity":0,
-         "deactivate_date":null,
-         "alcohol_content_ml":0.0,
-         "caffeine_content_mg":0,
-         "categories":[
-            13
-         ],
-         "rooms":[
-
-         ]
-      }
-   },
-   {
-      "model":"stregsystem.oldprice",
-      "pk":1,
-      "fields":{
-         "product":1,
-         "price":100,
-         "changed_on":"2017-03-13T12:43:28.044Z"
-      }
-   },
-   {
-      "model":"stregsystem.oldprice",
-      "pk":2,
-      "fields":{
-         "product":2,
-         "price":200,
-         "changed_on":"2017-03-13T12:43:40.784Z"
-      }
-   },
-   {
-      "model":"stregsystem.oldprice",
-      "pk":3,
-      "fields":{
-         "product":2,
-         "price":200,
-         "changed_on":"2017-03-13T12:43:42.151Z"
-      }
-   },
-   {
-      "model":"stregsystem.oldprice",
-      "pk":11,
-      "fields":{
-         "product":13,
-         "price":300,
-         "changed_on":"2023-09-06T06:59:00.505Z"
-      }
-   },
-   {
-      "model":"stregsystem.oldprice",
-      "pk":12,
-      "fields":{
-         "product":1,
-         "price":100,
-         "changed_on":"2023-09-06T06:59:12.033Z"
-      }
-   },
-   {
-      "model":"stregsystem.oldprice",
-      "pk":13,
-      "fields":{
-         "product":2,
-         "price":200,
-         "changed_on":"2023-09-06T06:59:28.392Z"
-      }
-   },
-   {
-      "model":"stregsystem.oldprice",
-      "pk":14,
-      "fields":{
-         "product":3,
-         "price":1500,
-         "changed_on":"2023-09-06T06:59:50.330Z"
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":1,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2017-03-13T12:52:52.142Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":2,
-      "fields":{
-         "member":1,
-         "product":2,
-         "room":1,
-         "timestamp":"2017-03-13T12:54:12.423Z",
-         "price":200
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":3,
-      "fields":{
-         "member":1,
-         "product":13,
-         "room":1,
-         "timestamp":"2017-03-13T13:38:10.573Z",
-         "price":300
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":8,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-07-03T06:31:38.412Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":9,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-07-03T06:31:58.628Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":10,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-07-05T06:32:17.029Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":11,
-      "fields":{
-         "member":1,
-         "product":2,
-         "room":1,
-         "timestamp":"2023-07-05T06:32:24.962Z",
-         "price":200
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":12,
-      "fields":{
-         "member":1,
-         "product":2,
-         "room":1,
-         "timestamp":"2023-07-08T06:32:33.665Z",
-         "price":200
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":13,
-      "fields":{
-         "member":1,
-         "product":2,
-         "room":1,
-         "timestamp":"2023-07-08T06:32:39.906Z",
-         "price":200
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":14,
-      "fields":{
-         "member":1,
-         "product":2,
-         "room":1,
-         "timestamp":"2023-07-11T06:32:50.954Z",
-         "price":200
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":15,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-07-11T06:32:55.453Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":16,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-07-15T06:33:08.914Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":17,
-      "fields":{
-         "member":1,
-         "product":13,
-         "room":1,
-         "timestamp":"2023-07-15T06:33:14.566Z",
-         "price":300
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":18,
-      "fields":{
-         "member":1,
-         "product":13,
-         "room":1,
-         "timestamp":"2023-07-18T06:33:30.689Z",
-         "price":300
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":19,
-      "fields":{
-         "member":1,
-         "product":13,
-         "room":1,
-         "timestamp":"2023-07-18T06:33:32.977Z",
-         "price":300
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":20,
-      "fields":{
-         "member":1,
-         "product":13,
-         "room":1,
-         "timestamp":"2023-07-18T06:33:35.945Z",
-         "price":300
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":21,
-      "fields":{
-         "member":1,
-         "product":13,
-         "room":1,
-         "timestamp":"2023-07-22T06:33:43.515Z",
-         "price":300
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":22,
-      "fields":{
-         "member":1,
-         "product":2,
-         "room":1,
-         "timestamp":"2023-07-22T06:33:46.335Z",
-         "price":200
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":23,
-      "fields":{
-         "member":1,
-         "product":2,
-         "room":1,
-         "timestamp":"2023-07-25T06:33:55.529Z",
-         "price":200
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":24,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-07-25T06:33:58.663Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":25,
-      "fields":{
-         "member":1,
-         "product":3,
-         "room":1,
-         "timestamp":"2023-07-30T06:34:35.145Z",
-         "price":1500
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":27,
-      "fields":{
-         "member":1,
-         "product":2,
-         "room":1,
-         "timestamp":"2023-08-03T06:34:48.584Z",
-         "price":200
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":28,
-      "fields":{
-         "member":1,
-         "product":2,
-         "room":1,
-         "timestamp":"2023-08-03T06:34:51.434Z",
-         "price":200
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":29,
-      "fields":{
-         "member":1,
-         "product":2,
-         "room":1,
-         "timestamp":"2023-08-06T06:37:45.688Z",
-         "price":200
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":30,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-08-06T06:37:47.321Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":31,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-08-09T06:37:53.897Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":32,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-08-11T06:46:22.735Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":33,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-08-13T06:46:35.149Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":34,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-08-16T06:46:42.036Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":35,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-08-19T06:47:40.094Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":36,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-08-19T06:47:44.657Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":37,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-08-21T06:48:15.721Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":38,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-08-24T06:49:42.682Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":39,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-08-26T06:49:49.263Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":40,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-08-26T06:49:51.322Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":41,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-08-26T06:49:53.011Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":42,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-08-29T06:50:02.353Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":43,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-08-31T06:50:08.571Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":44,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-09-02T06:50:25.448Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":45,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-09-04T06:50:34.380Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":46,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-09-04T06:50:36.176Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":47,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-09-04T06:50:37.993Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":48,
-      "fields":{
-         "member":1,
-         "product":2,
-         "room":1,
-         "timestamp":"2023-09-17T21:14:40.841Z",
-         "price":200
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":49,
-      "fields":{
-         "member":1,
-         "product":2,
-         "room":1,
-         "timestamp":"2023-09-17T21:14:41.863Z",
-         "price":200
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":50,
-      "fields":{
-         "member":1,
-         "product":2,
-         "room":1,
-         "timestamp":"2023-09-17T21:14:42.694Z",
-         "price":200
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":51,
-      "fields":{
-         "member":1,
-         "product":2,
-         "room":1,
-         "timestamp":"2023-09-17T21:14:43.594Z",
-         "price":200
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":52,
-      "fields":{
-         "member":1,
-         "product":2,
-         "room":1,
-         "timestamp":"2023-09-17T21:21:09.311Z",
-         "price":200
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":56,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-09-19T16:36:26.044Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":57,
-      "fields":{
-         "member":1,
-         "product":1,
-         "room":1,
-         "timestamp":"2023-09-19T16:45:11.349Z",
-         "price":100
-      }
-   },
-   {
-      "model":"stregsystem.sale",
-      "pk":58,
-      "fields":{
-         "member":1,
-         "product":2,
-         "room":1,
-         "timestamp":"2023-09-19T17:07:47.761Z",
-         "price":200
-      }
-   },
-   {
-      "model":"auth.user",
-      "pk":1,
-      "fields":{
-         "password":"pbkdf2_sha256$150000$fUAN4hBdKvOp$+1qkLByq1ae/ybzfplIUZnLQvQzHh2NrYLHvzg028Hc=",
-         "last_login":"2023-09-11T20:12:02.156Z",
-         "is_superuser":true,
-         "username":"tester",
-         "first_name":"test",
-         "last_name":"testsen",
-         "email":"",
-         "is_staff":true,
-         "is_active":true,
-         "date_joined":"2017-03-06T10:53:54Z",
-         "groups":[
-
-         ],
-         "user_permissions":[
-
-         ]
-      }
-   },
-   {
-      "model":"auth.user",
-      "pk":2,
-      "fields":{
-         "password":"pbkdf2_sha256$150000$iTYq6tgl0wkZ$sayKG1202U4C7vm6zdtogsSP+OxVoQZtoxtO1cXFWdg=",
-         "last_login":null,
-         "is_superuser":true,
-         "username":"autopayment",
-         "first_name":"auto",
-         "last_name":"payment",
-         "email":"",
-         "is_staff":true,
-         "is_active":true,
-         "date_joined":"2021-09-13T13:43:22Z",
-         "groups":[
-
-         ],
-         "user_permissions":[
-
-         ]
-      }
-   }
+  {
+    "model": "stregsystem.member",
+    "pk": 1,
+    "fields": {
+      "active": true,
+      "username": "tester",
+      "year": "2017",
+      "firstname": "Test",
+      "lastname": "Testsen",
+      "gender": "U",
+      "email": "plznospam@fklub.dk",
+      "want_spam": true,
+      "balance": 13354537,
+      "undo_count": 0,
+      "notes": "This is a test user."
+    }
+  },
+  {
+    "model": "stregsystem.member",
+    "pk": 2,
+    "fields": {
+      "active": true,
+      "username": "mlarsen",
+      "year": "2020",
+      "firstname": "Martin",
+      "lastname": "Larsen",
+      "gender": "M",
+      "email": "mlarsen@nsa.gov",
+      "want_spam": true,
+      "balance": 10000,
+      "undo_count": 0,
+      "notes": ""
+    }
+  },
+  {
+    "model": "stregsystem.member",
+    "pk": 3,
+    "fields": {
+      "active": true,
+      "username": "tables",
+      "year": "2020",
+      "firstname": "Bobby",
+      "lastname": "Tables",
+      "gender": "M",
+      "email": "tables@nsa.gov",
+      "want_spam": true,
+      "balance": 12500,
+      "undo_count": 0,
+      "notes": ""
+    }
+  },
+  {
+    "model": "stregsystem.member",
+    "pk": 4,
+    "fields": {
+      "active": true,
+      "username": "marx",
+      "year": "2020",
+      "firstname": "Karl",
+      "lastname": "Marx",
+      "gender": "M",
+      "email": "kmarx@nsa.gov",
+      "want_spam": true,
+      "balance": 6900,
+      "undo_count": 0,
+      "notes": ""
+    }
+  },
+  {
+    "model": "stregsystem.member",
+    "pk": 5,
+    "fields": {
+      "active": true,
+      "username": "jdoe",
+      "year": "2020",
+      "firstname": "John",
+      "lastname": "Doe",
+      "gender": "M",
+      "email": "jdoe@nsa.gov",
+      "want_spam": true,
+      "balance": 42000,
+      "undo_count": 0,
+      "notes": ""
+    }
+  },
+  {
+    "model": "stregsystem.mobilepayment",
+    "pk": 1,
+    "fields": {
+      "member": null,
+      "payment": null,
+      "customer_name": "Martin Larsen",
+      "timestamp": "2019-11-29T12:51:08.857Z",
+      "amount": 6969,
+      "transaction_id": "156E027485173228",
+      "comment": "mlarsen indbetalt ",
+      "status": "U"
+    }
+  },
+  {
+    "model": "stregsystem.mobilepayment",
+    "pk": 2,
+    "fields": {
+      "member": null,
+      "payment": null,
+      "customer_name": "Bobby Tables",
+      "timestamp": "2019-11-28T16:40:55.719Z",
+      "amount": 50000,
+      "transaction_id": "232E027452733666",
+      "comment": "tables eksdee",
+      "status": "U"
+    }
+  },
+  {
+    "model": "stregsystem.mobilepayment",
+    "pk": 3,
+    "fields": {
+      "member": 4,
+      "payment": null,
+      "customer_name": "Karl Marx",
+      "timestamp": "2019-11-28T14:30:58.357Z",
+      "amount": 20000,
+      "transaction_id": "241E027449465355",
+      "comment": "marx",
+      "status": "U"
+    }
+  },
+  {
+    "model": "stregsystem.mobilepayment",
+    "pk": 4,
+    "fields": {
+      "member": null,
+      "payment": null,
+      "customer_name": "Bobby Tables",
+      "timestamp": "2019-11-28T16:40:55.719Z",
+      "amount": 50000,
+      "transaction_id": "232E027452733676",
+      "comment": "tables eksdee",
+      "status": "U"
+    }
+  },
+  {
+    "model": "stregsystem.mobilepayment",
+    "pk": 5,
+    "fields": {
+      "member": 5,
+      "payment": null,
+      "customer_name": "John Doe",
+      "timestamp": "2019-11-27T11:15:38.529Z",
+      "amount": 15000,
+      "transaction_id": "016E027417049990",
+      "comment": "jdoe",
+      "status": "U"
+    }
+  },
+  {
+    "model": "stregsystem.mobilepayment",
+    "pk": 6,
+    "fields": {
+      "member": 1,
+      "payment": null,
+      "customer_name": "Tester Testsen",
+      "timestamp": "2019-11-26T11:54:37.521Z",
+      "amount": 20000,
+      "transaction_id": "207E027395896809",
+      "comment": "tester",
+      "status": "U"
+    }
+  },
+  {
+    "model": "stregsystem.category",
+    "pk": 12,
+    "fields": {
+      "name": "beer"
+    }
+  },
+  {
+    "model": "stregsystem.category",
+    "pk": 13,
+    "fields": {
+      "name": "soda"
+    }
+  },
+  {
+    "model": "stregsystem.category",
+    "pk": 14,
+    "fields": {
+      "name": "energy"
+    }
+  },
+  {
+    "model": "stregsystem.room",
+    "pk": 1,
+    "fields": {
+      "name": "testrummet",
+      "description": "127.0.0.1"
+    }
+  },
+  {
+    "model": "stregsystem.room",
+    "pk": 2,
+    "fields": {
+      "name": "maymayrummet",
+      "description": "svedigt"
+    }
+  },
+  {
+    "model": "stregsystem.product",
+    "pk": 1,
+    "fields": {
+      "name": "Test \u00d8L",
+      "price": 100,
+      "active": true,
+      "start_date": null,
+      "quantity": 0,
+      "deactivate_date": null,
+      "alcohol_content_ml": 0.0,
+      "caffeine_content_mg": 0,
+      "categories": [
+        12
+      ],
+      "rooms": [
+      ]
+    }
+  },
+  {
+    "model": "stregsystem.product",
+    "pk": 2,
+    "fields": {
+      "name": "Kold Kaffe",
+      "price": 200,
+      "active": true,
+      "start_date": null,
+      "quantity": 0,
+      "deactivate_date": null,
+      "alcohol_content_ml": 0.0,
+      "caffeine_content_mg": 0,
+      "categories": [
+        14
+      ],
+      "rooms": [
+      ]
+    }
+  },
+  {
+    "model": "stregsystem.product",
+    "pk": 3,
+    "fields": {
+      "name": "Fad\u00f8l",
+      "price": 1500,
+      "active": true,
+      "start_date": null,
+      "quantity": 0,
+      "deactivate_date": null,
+      "alcohol_content_ml": 0.0,
+      "caffeine_content_mg": 0,
+      "categories": [
+        12
+      ],
+      "rooms": [
+        1
+      ]
+    }
+  },
+  {
+    "model": "stregsystem.product",
+    "pk": 13,
+    "fields": {
+      "name": "Sportscola",
+      "price": 300,
+      "active": true,
+      "start_date": null,
+      "quantity": 0,
+      "deactivate_date": null,
+      "alcohol_content_ml": 0.0,
+      "caffeine_content_mg": 0,
+      "categories": [
+        13
+      ],
+      "rooms": [
+      ]
+    }
+  },
+  {
+    "model": "stregsystem.oldprice",
+    "pk": 1,
+    "fields": {
+      "product": 1,
+      "price": 100,
+      "changed_on": "2017-03-13T12:43:28.044Z"
+    }
+  },
+  {
+    "model": "stregsystem.oldprice",
+    "pk": 2,
+    "fields": {
+      "product": 2,
+      "price": 200,
+      "changed_on": "2017-03-13T12:43:40.784Z"
+    }
+  },
+  {
+    "model": "stregsystem.oldprice",
+    "pk": 3,
+    "fields": {
+      "product": 2,
+      "price": 200,
+      "changed_on": "2017-03-13T12:43:42.151Z"
+    }
+  },
+  {
+    "model": "stregsystem.oldprice",
+    "pk": 11,
+    "fields": {
+      "product": 13,
+      "price": 300,
+      "changed_on": "2023-09-06T06:59:00.505Z"
+    }
+  },
+  {
+    "model": "stregsystem.oldprice",
+    "pk": 12,
+    "fields": {
+      "product": 1,
+      "price": 100,
+      "changed_on": "2023-09-06T06:59:12.033Z"
+    }
+  },
+  {
+    "model": "stregsystem.oldprice",
+    "pk": 13,
+    "fields": {
+      "product": 2,
+      "price": 200,
+      "changed_on": "2023-09-06T06:59:28.392Z"
+    }
+  },
+  {
+    "model": "stregsystem.oldprice",
+    "pk": 14,
+    "fields": {
+      "product": 3,
+      "price": 1500,
+      "changed_on": "2023-09-06T06:59:50.330Z"
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 1,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2017-03-13T12:52:52.142Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 2,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2017-03-13T12:54:12.423Z",
+      "price": 200
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 3,
+    "fields": {
+      "member": 1,
+      "product": 13,
+      "room": 1,
+      "timestamp": "2017-03-13T13:38:10.573Z",
+      "price": 300
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 8,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-07-03T06:31:38.412Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 9,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-07-03T06:31:58.628Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 10,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-07-05T06:32:17.029Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 11,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2023-07-05T06:32:24.962Z",
+      "price": 200
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 12,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2023-07-08T06:32:33.665Z",
+      "price": 200
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 13,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2023-07-08T06:32:39.906Z",
+      "price": 200
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 14,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2023-07-11T06:32:50.954Z",
+      "price": 200
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 15,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-07-11T06:32:55.453Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 16,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-07-15T06:33:08.914Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 17,
+    "fields": {
+      "member": 1,
+      "product": 13,
+      "room": 1,
+      "timestamp": "2023-07-15T06:33:14.566Z",
+      "price": 300
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 18,
+    "fields": {
+      "member": 1,
+      "product": 13,
+      "room": 1,
+      "timestamp": "2023-07-18T06:33:30.689Z",
+      "price": 300
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 19,
+    "fields": {
+      "member": 1,
+      "product": 13,
+      "room": 1,
+      "timestamp": "2023-07-18T06:33:32.977Z",
+      "price": 300
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 20,
+    "fields": {
+      "member": 1,
+      "product": 13,
+      "room": 1,
+      "timestamp": "2023-07-18T06:33:35.945Z",
+      "price": 300
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 21,
+    "fields": {
+      "member": 1,
+      "product": 13,
+      "room": 1,
+      "timestamp": "2023-07-22T06:33:43.515Z",
+      "price": 300
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 22,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2023-07-22T06:33:46.335Z",
+      "price": 200
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 23,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2023-07-25T06:33:55.529Z",
+      "price": 200
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 24,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-07-25T06:33:58.663Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 25,
+    "fields": {
+      "member": 1,
+      "product": 3,
+      "room": 1,
+      "timestamp": "2023-07-30T06:34:35.145Z",
+      "price": 1500
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 27,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2023-08-03T06:34:48.584Z",
+      "price": 200
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 28,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2023-08-03T06:34:51.434Z",
+      "price": 200
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 29,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2023-08-06T06:37:45.688Z",
+      "price": 200
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 30,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-08-06T06:37:47.321Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 31,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-08-09T06:37:53.897Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 32,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-08-11T06:46:22.735Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 33,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-08-13T06:46:35.149Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 34,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-08-16T06:46:42.036Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 35,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-08-19T06:47:40.094Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 36,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-08-19T06:47:44.657Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 37,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-08-21T06:48:15.721Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 38,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-08-24T06:49:42.682Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 39,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-08-26T06:49:49.263Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 40,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-08-26T06:49:51.322Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 41,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-08-26T06:49:53.011Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 42,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-08-29T06:50:02.353Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 43,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-08-31T06:50:08.571Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 44,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-09-02T06:50:25.448Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 45,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-09-04T06:50:34.380Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 46,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-09-04T06:50:36.176Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 47,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-09-04T06:50:37.993Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 48,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2023-09-17T21:14:40.841Z",
+      "price": 200
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 49,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2023-09-17T21:14:41.863Z",
+      "price": 200
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 50,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2023-09-17T21:14:42.694Z",
+      "price": 200
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 51,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2023-09-17T21:14:43.594Z",
+      "price": 200
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 52,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2023-09-17T21:21:09.311Z",
+      "price": 200
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 56,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-09-19T16:36:26.044Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 57,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2023-09-19T16:45:11.349Z",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 58,
+    "fields": {
+      "member": 1,
+      "product": 2,
+      "room": 1,
+      "timestamp": "2023-09-19T17:07:47.761Z",
+      "price": 200
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$150000$fUAN4hBdKvOp$+1qkLByq1ae/ybzfplIUZnLQvQzHh2NrYLHvzg028Hc=",
+      "last_login": "2023-09-11T20:12:02.156Z",
+      "is_superuser": true,
+      "username": "tester",
+      "first_name": "test",
+      "last_name": "testsen",
+      "email": "",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2017-03-06T10:53:54Z",
+      "groups": [
+      ],
+      "user_permissions": [
+      ]
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$150000$iTYq6tgl0wkZ$sayKG1202U4C7vm6zdtogsSP+OxVoQZtoxtO1cXFWdg=",
+      "last_login": null,
+      "is_superuser": true,
+      "username": "autopayment",
+      "first_name": "auto",
+      "last_name": "payment",
+      "email": "",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2021-09-13T13:43:22Z",
+      "groups": [
+      ],
+      "user_permissions": [
+      ]
+    }
+  }
 ]

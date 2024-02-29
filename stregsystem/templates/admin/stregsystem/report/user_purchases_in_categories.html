@@ -3,49 +3,52 @@
 {% load stregsystem_extras %}
 
 {% block extrahead %}
-{{ form.media.css }}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<link href="{% static "stregsystem/category.css" %}" rel="stylesheet" />
+    {{ form.media.css }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link href="{% static "stregsystem/category.css" %}" rel="stylesheet"/>
 {% endblock %}
 
 {% block title %}Salgsrapporteringer{% endblock %}
-{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Reports</a>&nbsp;&rsaquo;&nbsp;Salgsraporteringer</div>{% endblock %}
+{% block breadcrumbs %}
+    <div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a
+            href="../">Reports</a>&nbsp;&rsaquo;&nbsp;Salgsraporteringer
+    </div>{% endblock %}
 
 {% block content %}
-{% load admin_static %}
-<div id="content-container">
-    <form method="post" action="">
-        {% csrf_token %}
-        {{ form }}
-        <input type="submit" value="Search" />
-    </form>
-    {% if data %}
-    <div id="statscontainer">
-        <div id="stats">
-            <table>
-                <tr>
-                    <th>#</th>
-                    <th>Bruger</th>
-                    {% for line in header %}
-                    <th>{{ line }}</th>
-                    {% endfor %}
-                    <th>Antal</th>
-                </tr>
-                {% for item in data %}
-                <tr>
-                    <td>{{forloop.counter}}</td>
-                    <td>{{item.0}}</td>
-                    {% for cat in item.2 %}
-                    <th>{{ cat }}</th>
-                    {% endfor %}
-                    <td>{{item.1}}</td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
+    {% load admin_static %}
+    <div id="content-container">
+        <form method="post" action="">
+            {% csrf_token %}
+            {{ form }}
+            <input type="submit" value="Search"/>
+        </form>
+        {% if data %}
+            <div id="statscontainer">
+                <div id="stats">
+                    <table>
+                        <tr>
+                            <th>#</th>
+                            <th>Bruger</th>
+                            {% for line in header %}
+                                <th>{{ line }}</th>
+                            {% endfor %}
+                            <th>Antal</th>
+                        </tr>
+                        {% for item in data %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ item.0 }}</td>
+                                {% for cat in item.2 %}
+                                    <th>{{ cat }}</th>
+                                {% endfor %}
+                                <td>{{ item.1 }}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        {% endif %}
     </div>
-    {% endif %}
-</div>
-{{ form.media.js }}
+    {{ form.media.js }}
 {% endblock %}

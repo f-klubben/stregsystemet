@@ -1,12 +1,12 @@
-import smtplib
 import logging
-
-
+import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.html import escape
+
 from stregsystem.templatetags.stregsystem_extras import money
 
 logger = logging.getLogger(__name__)

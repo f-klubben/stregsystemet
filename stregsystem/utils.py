@@ -1,17 +1,15 @@
 import logging
 import re
 
-from django.utils.dateparse import parse_datetime
-from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.http import HttpResponse
-from django.test.runner import DiscoverRunner
-
-from django.db.models import Count, F, Q, QuerySet
-from django.utils import timezone
-
 import qrcode
 import qrcode.image.svg
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.db.models import Count, F, Q, QuerySet
+from django.http import HttpResponse
+from django.test.runner import DiscoverRunner
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 logger = logging.getLogger(__name__)
 

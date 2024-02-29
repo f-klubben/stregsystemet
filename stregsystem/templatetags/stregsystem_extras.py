@@ -1,6 +1,4 @@
 from django import template
-from django.template.loader import get_template
-from django.utils import timezone
 
 from stregsystem.caffeine import caffeine_mg_to_coffee_cups
 
@@ -22,11 +20,6 @@ def money(value):
 @register.filter
 def multiply(value, arg):
     return value * arg
-
-
-@register.inclusion_tag('stregsystem/adventcandle.html')
-def show_candle():
-    return {'date': timezone.now()}
 
 
 @register.filter

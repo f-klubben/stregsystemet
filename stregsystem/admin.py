@@ -1,8 +1,8 @@
-from django.contrib import admin
 from django import forms
-from django.contrib.admin.views.autocomplete import AutocompleteJsonView
+from django.contrib import admin
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
+from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 
 from stregsystem.models import (
     Category,
@@ -23,7 +23,7 @@ from stregsystem.utils import make_active_productlist_query, make_inactive_produ
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
     list_display = (
-        'get_username',
+        'get_phone_number',
         'get_fullname',
         'get_product_name',
         'get_room_name',
@@ -31,24 +31,24 @@ class SaleAdmin(admin.ModelAdmin):
         'get_price_display',
     )
     actions = ['refund']
-    search_fields = ['^member__username', '=product__id', 'product__name']
+    search_fields = ['^member__phone_number', '=product__id', 'product__name']
     valid_lookups = 'member'
     autocomplete_fields = ['member', 'product']
 
     class Media:
         css = {'all': ('stregsystem/select2-stregsystem.css',)}
 
-    def get_username(self, obj):
-        return obj.member.username
+    def get_phone_number(self, obj):
+        return obj.member.phone_number
 
-    get_username.short_description = "Username"
-    get_username.admin_order_field = "member__username"
+    get_phone_number.short_description = "phone_number"
+    get_phone_number.admin_order_field = "member__phone_number"
 
     def get_fullname(self, obj):
-        return f"{obj.member.firstname} {obj.member.lastname}"
+        return obj.member.full_name
 
     get_fullname.short_description = "Full name"
-    get_fullname.admin_order_field = "member__firstname"
+    get_fullname.admin_order_field = "member__full_name"
 
     def get_product_name(self, obj):
         return obj.product.name
@@ -199,26 +199,26 @@ class MemberForm(forms.ModelForm):
         model = Member
         exclude = []
 
-    def clean_username(self):
-        username = self.cleaned_data['username']
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data['phone_number']
         if self.instance is None or self.instance.pk is None:
-            if Member.objects.filter(username=username).exists():
+            if Member.objects.filter(phone_number=phone_number).exists():
                 raise forms.ValidationError("Brugernavnet er allerede taget")
-        return username
+        return phone_number
 
 
 class MemberAdmin(admin.ModelAdmin):
     form = MemberForm
     list_filter = ('want_spam',)
-    search_fields = ('username', 'firstname', 'lastname', 'email')
-    list_display = ('username', 'firstname', 'lastname', 'balance', 'email', 'notes')
+    search_fields = ('phone_number', 'full_name', 'email')
+    list_display = ('phone_number', 'full_name', 'balance', 'email', 'notes')
 
     # fieldsets is like fields, except that they are grouped and with descriptions
     fieldsets = (
         (
             None,
             {
-                'fields': ('username', 'firstname', 'lastname', 'year', 'gender', 'email'),
+                'fields': ('phone_number', 'full_name', 'year', 'gender', 'email'),
                 'description': "Basal information omkring fember",
             },
         ),
@@ -226,15 +226,15 @@ class MemberAdmin(admin.ModelAdmin):
         (
             None,
             {
-                'fields': ('active', 'want_spam', 'balance', 'undo_count'),
+                'fields': ('active', 'want_spam', 'balance'),
                 'description': "Lad være med at rode med disse, med mindre du ved hvad du laver ...",
             },
         ),
     )
 
     def save_model(self, request, obj, form, change):
-        if 'username' in form.changed_data and change:
-            if Member.objects.filter(username=obj.username).exclude(pk=obj.pk).exists():
+        if 'phone_number' in form.changed_data and change:
+            if Member.objects.filter(phone_number=obj.phone_number).exclude(pk=obj.pk).exists():
                 messages.add_message(request, messages.WARNING, 'Det brugernavn var allerede optaget')
         super().save_model(request, obj, form, change)
 
@@ -252,23 +252,23 @@ class MemberAdmin(admin.ModelAdmin):
 
         def get_queryset(self):
             qs = super().get_queryset()
-            return qs.filter(active=True).order_by('username')
+            return qs.filter(active=True).order_by('phone_number')
 
 
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('get_username', 'timestamp', 'get_amount_display', 'is_mobilepayment')
+    list_display = ('get_phone_number', 'timestamp', 'get_amount_display', 'is_mobilepayment')
     valid_lookups = 'member'
-    search_fields = ['member__username']
+    search_fields = ['member__phone_number']
     autocomplete_fields = ['member']
 
     class Media:
         css = {'all': ('stregsystem/select2-stregsystem.css',)}
 
-    def get_username(self, obj):
-        return obj.member.username
+    def get_phone_number(self, obj):
+        return obj.member.phone_number
 
-    get_username.short_description = "Username"
-    get_username.admin_order_field = "member__username"
+    get_phone_number.short_description = "phone_number"
+    get_phone_number.admin_order_field = "member__phone_number"
 
     def get_amount_display(self, obj):
         return money(obj.amount)
@@ -295,7 +295,7 @@ class MobilePaymentAdmin(admin.ModelAdmin):
         'status',
     )
     valid_lookups = 'member'
-    search_fields = ['member__username']
+    search_fields = ['member__phone_number']
     autocomplete_fields = ['member', 'payment']
 
     class Media:
@@ -325,7 +325,7 @@ class MobilePaymentAdmin(admin.ModelAdmin):
 class LogEntryAdmin(admin.ModelAdmin):
     date_hierarchy = 'action_time'
     list_filter = ['content_type', 'action_flag']
-    search_fields = ['object_repr', 'change_message', 'user__username']
+    search_fields = ['object_repr', 'change_message', 'user__phone_number']
     list_display = ['action_time', 'user', 'content_type', 'object_id', 'action_flag', 'change_message', 'object_repr']
 
     def has_view_permission(self, request, obj=None):

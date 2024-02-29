@@ -3,47 +3,37 @@
 <!DOCTYPE html>
 <html lang="da-DK">
 <head>
-<title>{% block title %}TREOENs STREGSYSTEM{% endblock %}</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" media="screen" href="{% static "/stregsystem/stregsystem.css" %}">
-<link rel="stylesheet" media="screen" href="{% static "/stregsystem/bat.css" %}">
-<link rel="stylesheet" media="screen" href="{% static "/stregsystem/snow.css" %}">
-<link rel="stylesheet" media="screen" href="{% static "/stregsystem/easter.css" %}">
-<link rel="stylesheet" media="screen" href="{% static "/stregsystem/fireworks.css" %}">
-<link rel="stylesheet" media="screen" href="{% static "/stregsystem/cursor.css" %}">
-<script>
-    var static_url = "{% get_static_prefix %}";
-    var media_url = "{% get_media_prefix %}";
-</script>
+    <title>{% block title %}TREOENs STREGSYSTEM{% endblock %}</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" media="screen" href="{% static "/stregsystem/stregsystem.css" %}">
+    <link rel="stylesheet" media="screen" href="{% static "/stregsystem/cursor.css" %}">
+    <script>
+        var static_url = "{% get_static_prefix %}";
+        var media_url = "{% get_media_prefix %}";
+    </script>
 </head>
 <body onLoad='if (document.focusform) {document.focusform.quickbuy.focus()}'>
-{% comment %}
-<pre>{% filter escape %}{% debug %}{% endfilter %}</pre>
-
-{% endcomment %}
-
 <div id="canvas-container"></div>
-<img id="rocket" src="{% static "/stregsystem/rocket.png" %}">
-<script src="{% static "/stregsystem/fireworks.js" %}"></script>
 
 <table width="100%">
     <tr>
         <td>
-          <center>
-            <input type="button" onclick="location.href='/{{room.id}}';" value="Genstart" tabindex="10" accesskey="q">
-          </center>
+            <center>
+                <input type="button" onclick="location.href='/{{ room.id }}';" value="Genstart" tabindex="10"
+                       accesskey="q">
+            </center>
         </td>
         <td align=center>
             <h1>{% block heading %}TREOENs STREGSYSTEM
-{% ifnotequal room.id 1 %}
- : {{room.description}}
-{% endifnotequal %}
-{% endblock %}</h1>
+                {% ifnotequal room.id 1 %}
+                    : {{ room.description }}
+                {% endifnotequal %}
+            {% endblock %}</h1>
         </td>
         <td>
-          <center>
-            <input type="button" onclick="location.href='/{{room.id}}';" value="Menu" tabindex="11">
-          </center>
+            <center>
+                <input type="button" onclick="location.href='/{{ room.id }}';" value="Menu" tabindex="11">
+            </center>
         </td>
     </tr>
 </table>
@@ -54,19 +44,12 @@
 <hr>
 
 <div id="news">
-{% block news %}
-{% if news %}
-<marquee><b>{{news.text}}</b></marquee>
-{% endif %}
-{% endblock %}
+    {% block news %}
+        {% if news %}
+            <marquee><b>{{ news.text }}</b></marquee>
+        {% endif %}
+    {% endblock %}
 </div>
-<script async src="{% static "/stregsystem/bat.js" %}"></script>
-<script async src="{% static "/stregsystem/snow.js" %}"></script>
-<script async src="{% static "/stregsystem/easter.js" %}"></script>
 <script async src="{% static "/stregsystem/gdpr.js" %}"></script>
-<div class="bat-container"></div>
-<div class="snow-container"></div>
-<div class="easter-container"></div>
-{% show_candle %}
 </body>
 </html>
