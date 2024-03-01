@@ -223,6 +223,9 @@ class Member(models.Model):  # id automatisk...
             return False
         return True
 
+    def has_stregforbud(self, buy=0):
+        return self.balance - buy < 0
+
     # BAC in this method stands for "Blood alcohol content"
     def calculate_alcohol_promille(self):
         from stregsystem.booze import alcohol_bac_timeline, Gender

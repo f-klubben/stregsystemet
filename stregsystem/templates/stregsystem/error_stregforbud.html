@@ -4,7 +4,7 @@
 
 
 {% block headline %}
-    {{ member.firstname }} {{ member.lastname }} ({{ member.email }})
+    {{ member.full_name }} ({{ member.email }} / {{ member.phone_number }})
 {% endblock %}
 
 {% block message %}
@@ -37,7 +37,7 @@
             href="mailto:treo@fklub.dk">treo@fklub.dk</a>
 
         <br/><br/>
-        {% mobilepay_qr member.username %}
+        {% mobilepay_qr member.phone_number %}
     </center>
 
 {% endblock %}
