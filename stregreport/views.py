@@ -38,10 +38,10 @@ def sales(request):
 sales = staff_member_required(sales)
 
 
-def _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict):
+def _sales_to_user_in_period(phone_number, start_date, end_date, product_list, product_dict):
     result = (
         Product.objects.filter(
-            sale__member__username__iexact=username,
+            sale__member__phone_number__iexact=phone_number,
             id__in=product_list,
             sale__timestamp__gte=start_date,
             sale__timestamp__lte=end_date,
@@ -174,7 +174,7 @@ def sale_product_rank(ids, from_time, to_time, rank_limit=10):
     stat_list = (
         Member.objects.filter(sale__timestamp__gt=from_time, sale__timestamp__lte=to_time, sale__product__in=ids)
         .annotate(Count('sale'))
-        .order_by('-sale__count', 'username')[:rank_limit]
+        .order_by('-sale__count', 'phone_number')[:rank_limit]
     )
     return stat_list
 
@@ -184,7 +184,7 @@ def sale_money_rank(from_time, to_time, rank_limit=10):
     stat_list = (
         Member.objects.filter(active=True, sale__timestamp__gt=from_time, sale__timestamp__lte=to_time)
         .annotate(Sum('sale__price'))
-        .order_by('-sale__price__sum', 'username')[:rank_limit]
+        .order_by('-sale__price__sum', 'phone_number')[:rank_limit]
     )
     for member in stat_list:
         member.sale__price__sum__formatted = money(member.sale__price__sum)
@@ -327,14 +327,14 @@ def user_purchases_in_categories(request):
                 .order_by("-total_sales")
                 .values_list(
                     "id",
-                    "username",
+                    "phone_number",
                     "total_sales",
                 )
             )
 
             header = categories.values_list("name", flat=True)
             data = []
-            for user_id, username, total_sales in users:
+            for user_id, phone_number, total_sales in users:
                 category_assoc = []
                 for h in header:
                     this_sales = user_sales_per_category[user_id]
@@ -342,7 +342,7 @@ def user_purchases_in_categories(request):
                         category_assoc.append(this_sales[h])
                     else:
                         category_assoc.append(0)
-                data.append((username, total_sales, category_assoc))
+                data.append((phone_number, total_sales, category_assoc))
 
     return render(
         request,
