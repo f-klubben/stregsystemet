@@ -92,9 +92,9 @@ def sale(request, room_id):
     # Handle empty line
     if buy_string == "":
         return render(request, 'stregsystem/index.html', locals())
-    # Extract username and product ids
+    # Extract phone number and product ids
     try:
-        username, bought_ids = parser.parse(_pre_process(buy_string))
+        phone_number, bought_ids = parser.parse(_pre_process(buy_string))
     except parser.QuickBuyError as err:
         values = {
             'correct': err.parsed_part,
@@ -106,7 +106,7 @@ def sale(request, room_id):
         return render(request, 'stregsystem/error_invalidquickbuy.html', values)
     # Fetch member from DB
     try:
-        member = Member.objects.get(username=username, active=True)
+        member = Member.objects.get(phone_number=phone_number, active=True)
     except Member.DoesNotExist:
         return render(request, 'stregsystem/error_usernotfound.html', locals())
 
@@ -131,7 +131,7 @@ def _multibuy_hint(now, member):
                 sale_dict[str(sale.product.id)] = 1
             else:
                 sale_dict[str(sale.product.id)] = sale_dict[str(sale.product.id)] + 1
-        sale_hints = ["<span class=\"username\">{}</span>".format(member.username)]
+        sale_hints = ["<span class=\"phone_number\">{}</span>".format(member.phone_number)]
         for key in sale_dict:
             if sale_dict[key] > 1:
                 sale_hints.append("{}:{}".format(key, sale_dict[key]))
@@ -254,7 +254,7 @@ def menu_userrank(request, room_id, member_id):
         qs = (
             Member.objects.filter(sale__product__in=category_ids, sale__timestamp__gt=from_d, sale__timestamp__lte=to_d)
             .annotate(Count('sale'))
-            .order_by('-sale__count', 'username')
+            .order_by('-sale__count', 'phone_number')
         )
         if member not in qs:
             return 0, qs.count()
@@ -498,14 +498,14 @@ def check_user_active(request):
     return JsonResponse({'active': member.active})
 
 
-def convert_username_to_id(request):
-    username = request.GET.get('username') or None
-    if username is None:
-        return HttpResponseBadRequest("Missing username")
+def convert_phone_number_to_id(request):
+    phone_number = request.GET.get('phone_number') or None
+    if phone_number is None:
+        return HttpResponseBadRequest("Missing phone number")
     try:
-        member = Member.objects.get(username=username)
+        member = Member.objects.get(phone_number=phone_number)
     except Member.DoesNotExist:
-        return HttpResponseBadRequest("Invalid username")
+        return HttpResponseBadRequest("Invalid phone number")
     return JsonResponse({'member_id': member.id})
 
 

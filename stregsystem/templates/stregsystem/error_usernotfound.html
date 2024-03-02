@@ -4,11 +4,11 @@
 
 
 {% block headline %}
-    Bruger "{{ username|escape }}" blev ikke fundet
+    Bruger "{{ phone_number|escape }}" blev ikke fundet
 {% endblock %}
 
 {% block message %}
-    Det var sært, <b>{{ username|escape }}</b>.<br/>
+    Det var sært, <b>{{ phone_number|escape }}</b>.<br/>
     Det lader ikke til, at du er registreret som aktivt medlem af F-klubben i TREOENs database.<br/>
     Måske tastede du forkert?<br/>
     Hvis du ikke er medlem, kan du blive det ved at følge guiden på <a href="http://fklub.dk">http://fklub.dk</a>.<br/>

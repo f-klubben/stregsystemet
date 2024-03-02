@@ -1,0 +1,21 @@
+{% extends "stregsystem/base.html" %}
+
+{% load stregsystem_extras %}
+
+{% block title %}Treoens stregsystem : Brugerinfo {% endblock %}
+
+{% block content %}
+
+    <center><h3>{{ member.full_name }} ({{ member.email }} / {{ member.phone_number }})</h3></center>
+
+    {% spaceless %}
+        <center><h4>Du {% if negative_balance %}
+            skylder <span style="color: red;">{{ member.balance|money|cut:"-" }}</span> kroner
+        {% else %}har {{ member.balance|money }} kroner til gode!
+        {% endif %}
+        </h4></center>
+    {% endspaceless %}
+
+    {% block menu_content %}{% endblock %}
+
+{% endblock %}
