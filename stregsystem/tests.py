@@ -912,9 +912,9 @@ class MemberAdminTests(TestCase):
 
         self.jeff2 = Member.objects.create(pk=2, phone_number="+4533334444", full_name="jeff jefferson", gender="M")
 
-    def test_creates_warning_for_duplicate_usernames(self):
+    def test_creates_warning_for_duplicate_phone_numbers(self):
         self.client.login(username="superuser", password="very_secure")
-        self.jeff2.username = "jeff"
+        self.jeff2.phone_number = "+4522222222"
         response = self.client.post(
             reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}), model_to_dict(self.jeff2), follow=False
         )
@@ -928,7 +928,7 @@ class MemberAdminTests(TestCase):
 
     def test_no_warning_unique_usernames(self):
         self.client.login(username="superuser", password="very_secure")
-        self.jeff2.username = "mr_jefferson"
+        self.jeff2.phone_number = "+4533334444"
         response = self.client.post(
             reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}), model_to_dict(self.jeff2), follow=False
         )
@@ -937,7 +937,7 @@ class MemberAdminTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(1, len(messages))
-        self.assertEqual("mr_jefferson", Member.objects.filter(pk=2).get().phone_number)
+        self.assertEqual("+4533334444", Member.objects.filter(pk=2).get().phone_number)
 
 
 class ProductActivatedListFilterTests(TestCase):
