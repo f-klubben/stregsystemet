@@ -4,7 +4,8 @@
 
 {% block title %}Treoens stregsystem : Indsæt penge {% endblock %}
 
-{% block content %}
+{% block menu_content %}
+    <center><h2><a href="/{{ room.id }}/sale/{{ member.id }}">Tilbage til produktmenu</a></h2></center>
 
     <center><b>Sidste indbetaling:</b>
         {% if last_payment %}
