@@ -16,7 +16,11 @@
             <table>
                 <tr>
                     <td><b>Title:</b></td>
-                    <td><input id="razzia_title" type="text" autofocus name="razzia_title" maxlength="40" value="Razzia!" autocomplete="off" placeholder="Titel" /></td>
+                    <td>{{ razzia_name_picker }}</td>
+                </tr>
+                <tr>
+                    <td><b>Genoptanknings interval (minutter):</b></td>
+                    <td>{{ refill_interval_picker }}</td>
                 </tr>
                 <tr>
                     <td><b>Produkt id's:</b></td>
