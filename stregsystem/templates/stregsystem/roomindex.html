@@ -7,7 +7,7 @@
         <ul>
             {% for room in room_list %}
                 <li>
-                    <a href="{{ room.id }}/">{{ room.description }} ({{ room.name }})</a>
+                    <a href="{{ room.name }}/">{{ room.description }} ({{ room.name }})</a>
                 </li>
             {% endfor %}
         </ul>

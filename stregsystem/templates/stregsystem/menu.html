@@ -11,17 +11,17 @@
         <table cellpadding="8px">
             <tr>
                 <th>
-                    <a href="/{{ room.id }}/user/{{ member.id }}">Bruger Info</a>
+                    <a href="/{{ room.name }}/user/{{ member.id }}">Bruger Info</a>
                 </th>
                 <th>
-                    <a href="/{{ room.id }}/user/{{ member.id }}/pay">Indsæt penge</a>
+                    <a href="/{{ room.name }}/user/{{ member.id }}/pay">Indsæt penge</a>
                 </th>
                 <th>
-                    <a href="/{{ room.id }}/user/{{ member.id }}/rank">Rangliste</a>
+                    <a href="/{{ room.name }}/user/{{ member.id }}/rank">Rangliste</a>
                 </th>
                 {% comment %}
       <th>
-         <a href="/{{room.id}}/user/{{member.id}}/undo">Fortryd køb</a>
+         <a href="/{{room.name}}/user/{{member.id}}/undo">Fortryd køb</a>
       </th>
 {% endcomment %}
 
@@ -84,7 +84,7 @@
                                         {% for product in product_list|partition:"2"|first %}
                                             <tr>
                                                 <td>
-                                                    <form method="post" action="/{{ room.id }}/sale/{{ member.id }}/">
+                                                    <form method="post" action="/{{ room.name }}/sale/{{ member.id }}/">
                                                         {% csrf_token %}
                                                         <a href=""
                                                            onclick="this.closest('form').submit();return false;">{{ product.name }}</a>
