@@ -59,7 +59,9 @@ def __get_productlist(room_id):
 
 
 def roomindex(request):
-    return HttpResponsePermanentRedirect('/1/')
+    room_list = Room.objects.all()
+
+    return render(request, 'stregsystem/roomindex.html', locals())
 
 
 def index(request, room_name):
