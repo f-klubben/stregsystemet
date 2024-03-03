@@ -62,9 +62,9 @@ def roomindex(request):
     return HttpResponsePermanentRedirect('/1/')
 
 
-def index(request, room_id):
-    room = get_object_or_404(Room, pk=int(room_id))
-    product_list = __get_productlist(room_id)
+def index(request, room_name):
+    room = get_object_or_404(Room, name__iexact=room_name)
+    product_list = __get_productlist(room.pk)
     news = __get_news()
     return render(request, 'stregsystem/index.html', locals())
 
@@ -83,10 +83,10 @@ def _pre_process(buy_string):
     return ' '.join(_items)
 
 
-def sale(request, room_id):
-    room = get_object_or_404(Room, pk=room_id)
+def sale(request, room_name):
+    room = get_object_or_404(Room, name__iexact=room_name)
     news = __get_news()
-    product_list = __get_productlist(room_id)
+    product_list = __get_productlist(room.pk)
 
     buy_string = request.POST['quickbuy'].strip()
     # Handle empty line
@@ -204,8 +204,8 @@ def usermenu(request, room, member, bought, from_sale=False):
         return render(request, 'stregsystem/menu.html', locals())
 
 
-def menu_userinfo(request, room_id, member_id):
-    room = Room.objects.get(pk=room_id)
+def menu_userinfo(request, room_name, member_id):
+    room = Room.objects.get(name__iexact=room_name)
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
     stats = Sale.objects.filter(member_id=member_id).aggregate(
@@ -223,8 +223,8 @@ def menu_userinfo(request, room_id, member_id):
     return render(request, 'stregsystem/menu_userinfo.html', locals())
 
 
-def menu_userpay(request, room_id, member_id):
-    room = Room.objects.get(pk=room_id)
+def menu_userpay(request, room_name, member_id):
+    room = Room.objects.get(name__iexact=room_name)
     member = Member.objects.get(pk=member_id, active=True)
 
     amounts = {100, 200}
@@ -244,10 +244,10 @@ def menu_userpay(request, room_id, member_id):
     return render(request, 'stregsystem/menu_userpay.html', locals())
 
 
-def menu_userrank(request, room_id, member_id):
+def menu_userrank(request, room_name, member_id):
     from_date = fjule_party(datetime.datetime.today().year - 1)
     to_date = datetime.datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
-    room = Room.objects.get(pk=room_id)
+    room = Room.objects.get(name__iexact=room_name)
     member = Member.objects.get(pk=member_id, active=True)
 
     def ranking(category_ids, from_d, to_d):
@@ -312,8 +312,8 @@ def menu_userrank(request, room_id, member_id):
     return render(request, 'stregsystem/menu_userrank.html', locals())
 
 
-def menu_sale(request, room_id, member_id, product_id=None):
-    room = Room.objects.get(pk=room_id)
+def menu_sale(request, room_name, member_id, product_id=None):
+    room = Room.objects.get(name__iexact=room_name)
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
 
@@ -329,7 +329,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
             product = Product.objects.get(
                 Q(pk=purchase.cleaned_data['product_id']),
                 Q(active=True),
-                Q(rooms__id=room_id) | Q(rooms=None),
+                Q(rooms__pk=room.pk) | Q(rooms=None),
                 Q(deactivate_date__gte=timezone.now()) | Q(deactivate_date__isnull=True),
             )
 
@@ -603,7 +603,7 @@ def api_sale(request):
             buy_string = f'{member.phone_number} {buy_string}'
 
         try:
-            room = Room.objects.get(pk=room)
+            room = Room.objects.get(name__iexact=room)
         except Room.DoesNotExist:
             return HttpResponseBadRequest("Invalid room")
         msg, status, ret_obj = api_quicksale(request, room, member, bought_ids)
