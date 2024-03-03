@@ -435,7 +435,7 @@ class UserInfoViewTests(TestCase):
 
     def test_renders(self):
         response = self.client.post(
-            reverse('userinfo', args=(self.room.id, self.jokke.id)),
+            reverse('userinfo', args=(self.room.name, self.jokke.id)),
         )
 
         self.assertEqual(response.status_code, 200)
@@ -443,14 +443,14 @@ class UserInfoViewTests(TestCase):
 
     def test_last_sale(self):
         response = self.client.post(
-            reverse('userinfo', args=(self.room.id, self.jokke.id)),
+            reverse('userinfo', args=(self.room.name, self.jokke.id)),
         )
 
         self.assertSequenceEqual(response.context["last_sale_list"], self.sales[::-1])
 
     def test_last_payment(self):
         response = self.client.post(
-            reverse('userinfo', args=(self.room.id, self.jokke.id)),
+            reverse('userinfo', args=(self.room.name, self.jokke.id)),
         )
 
         self.assertEqual(response.context["last_payment"], self.payments[-1])
@@ -1066,7 +1066,7 @@ class ProductRoomFilterTests(TestCase):
 
     def test_general_room_dont_get_special_items(self):
         numberOfSpecialItems = 2
-        response = self.client.get(reverse('menu_index', args=(1,)))
+        response = self.client.get(reverse('menu_index', args=("default_room",)))
         products = response.context['product_list']
         specialProduct = Product.objects.get(pk=3)
 
@@ -1074,7 +1074,7 @@ class ProductRoomFilterTests(TestCase):
         self.assertEqual(len(products), len(Product.objects.all()) - numberOfSpecialItems)
 
     def test_special_room_get_special_items(self):
-        response = self.client.get(reverse('menu_index', args=(2,)))
+        response = self.client.get(reverse('menu_index', args=("room_special_drinks",)))
         products = response.context['product_list']
         specialProduct = Product.objects.get(pk=3)
 

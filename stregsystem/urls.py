@@ -1,5 +1,6 @@
 from django.shortcuts import redirect
 from django.urls import re_path
+from django.contrib import admin
 
 from . import views
 
@@ -20,16 +21,17 @@ Including another URLconf
 """
 urlpatterns = [
     re_path(r'^$', views.roomindex, name="index"),
+    re_path(r'^admin/', admin.site.urls),
     re_path(r'^admin/batch/$', views.batch_payment, name="batch"),
     re_path(r'^admin/mobilepaytool/$', views.mobilepaytool, name="mobilepaytool"),
-    re_path(r'^(?P<room_id>\d+)/$', views.index, name="menu_index"),
-    re_path(r'^(?P<room_id>\d+)/sale/$', views.sale, name="quickbuy"),
-    re_path(r'^(?P<room_id>\d+)/sale/(?P<member_id>\d+)/$', views.menu_sale, name="menu"),
-    re_path(r'^(?P<room_id>\d+)/sale/\d+/\d+/$', lambda request, room_id: redirect('menu_index', room_id=room_id),
+    re_path(r'^(?P<room_name>[\w-]+)/$', views.index, name="menu_index"),
+    re_path(r'^(?P<room_name>[\w-]+)/sale/$', views.sale, name="quickbuy"),
+    re_path(r'^(?P<room_name>[\w-]+)/sale/(?P<member_id>\d+)/$', views.menu_sale, name="menu"),
+    re_path(r'^(?P<room_name>[\w-]+)/sale/\d+/\d+/$', lambda request, room_name: redirect('menu_index', room_name=room_name),
             name="menu_sale"),
-    re_path(r'^(?P<room_id>\d+)/user/(?P<member_id>\d+)/$', views.menu_userinfo, name="userinfo"),
-    re_path(r'^(?P<room_id>\d+)/user/(?P<member_id>\d+)/pay$', views.menu_userpay, name="userpay"),
-    re_path(r'^(?P<room_id>\d+)/user/(?P<member_id>\d+)/rank$', views.menu_userrank, name="userrank"),
+    re_path(r'^(?P<room_name>[\w-]+)/user/(?P<member_id>\d+)/$', views.menu_userinfo, name="userinfo"),
+    re_path(r'^(?P<room_name>[\w-]+)/user/(?P<member_id>\d+)/pay$', views.menu_userpay, name="userpay"),
+    re_path(r'^(?P<room_name>[\w-]+)/user/(?P<member_id>\d+)/rank$', views.menu_userrank, name="userrank"),
     re_path(r'^api/member/payment/qr$', views.qr_payment, name="payment_qr"),
     re_path(r'^api/member/active$', views.check_user_active, name="active_member"),
     re_path(r'^api/member/sales$', views.get_user_sales, name="get_user_sales"),
