@@ -20,6 +20,7 @@ class Command(BaseCommand):
     # Saves secret tokens to the file "tokens.json" right next to this file.
     # Important to use a separate file since the tokens can change and is thus not suitable for django settings.
     tokens_file = (Path(__file__).parent / 'tokens.json').as_posix()
+    tokens_file_backup = (Path(__file__).parent / 'tokens.json.bak').as_posix()
     tokens = None
 
     logger = logging.getLogger(__name__)
@@ -55,8 +56,18 @@ class Command(BaseCommand):
         with open(self.tokens_file, 'r') as json_file:
             self.tokens = json.load(json_file)
 
+        if self.tokens is None:
+            self.write_error("read token from storage. 'tokens' is None. Reverting to backup tokens")
+
+            with open(self.tokens_file_backup, 'r') as json_file_backup:
+                self.tokens = json.load(json_file_backup)
+
     # Saves the token variable to disk
     def update_token_storage(self):
+        if self.tokens is None:
+            self.write_error(f"'tokens' is None. Aborted writing.")
+            return
+
         with open(self.tokens_file, 'w') as json_file:
             json.dump(self.tokens, json_file, indent=2)
 
