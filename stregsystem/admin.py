@@ -14,6 +14,7 @@ from stregsystem.models import (
     Room,
     Sale,
     MobilePayment,
+    Event,
     NamedProduct,
 )
 from stregsystem.templatetags.stregsystem_extras import money
@@ -341,6 +342,18 @@ class LogEntryAdmin(admin.ModelAdmin):
         return False
 
 
+class EventEntryAdmin(admin.ModelAdmin):
+    search_fields = ('name', 'id')
+    list_display = (
+        'activated',
+        'id',
+        'name',
+    )
+
+    def activated(self, event):
+        return event.is_active()
+
+
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(Member, MemberAdmin)
@@ -351,3 +364,4 @@ admin.site.register(NamedProduct, NamedProductAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Room)
 admin.site.register(MobilePayment, MobilePaymentAdmin)
+admin.site.register(Event, EventEntryAdmin)
