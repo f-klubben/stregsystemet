@@ -1,8 +1,7 @@
+from datetime import datetime, timedelta, date
 from typing import List, NamedTuple, Tuple
 
 from stregsystem.models import Product, Member, Category
-from datetime import datetime, timedelta, date
-
 from stregsystem.templatetags.stregsystem_extras import money
 
 
@@ -184,6 +183,9 @@ def __get_heatmap_data_by_date(
     end_date: datetime.date,
     weeks_to_display: int,
 ) -> List[Tuple[date, List[Product]]]:
+    # add a day
+    end_date += timedelta(days=1)
+
     days_to_go_back = (7 * weeks_to_display) - (6 - end_date.weekday() - 1)
     cutoff_date = end_date - timedelta(days=days_to_go_back)
 
@@ -204,6 +206,10 @@ def __get_heatmap_data_by_date(
         while sale_index < len(last_sale_list) and last_sale_list[sale_index].timestamp.date() == single_date:
             products_by_day[-1].append(last_sale_list[sale_index].product)
             sale_index += 1
+
+    # remove added day
+    products_by_day.pop(0)
+    dates_by_day.pop(0)
 
     return list(zip(dates_by_day, products_by_day))
 
