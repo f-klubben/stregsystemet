@@ -112,17 +112,14 @@ class Command(BaseCommand):
         url = f"{self.api_endpoint}/report/v2/ledgers/{self.ledgerId}/{topic}/dates/{ledgerDate}"
 
         params = {
-            'from': self.format_datetime(current_time - timedelta(days=self.days_back)),
-            'to': self.format_datetime(current_time),
+            'includeGDPRSensitiveData': "true",
         }
         headers = {
-            'x-ibm-client-secret': self.tokens['ibm-client-secret'],
-            'x-ibm-client-id': self.tokens['ibm-client-id'],
             'authorization': 'Bearer {}'.format(self.tokens['access_token']),
         }
         response = requests.get(url, params=params, headers=headers)
         response.raise_for_status()
-        return response.json()['transactions']
+        return response.json()['items']
 
     # Client side check if the token has expired.
     def refresh_expired_token(self):
