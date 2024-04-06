@@ -174,3 +174,43 @@ class Command(BaseCommand):
         )
 
         self.write_info(f'Imported transaction id: {trans_id} for amount: {amount}')
+
+    def get_ledger_info(self, myshop_number: int):
+        """
+        {
+            "ledgerId": "123456",
+            "currency": "DKK",
+            "payoutBankAccount": {
+                "scheme": "BBAN:DK",
+                "id": "123412341234123412"
+            },
+            "owner": {
+                "scheme": "business:DK:CVR",
+                "id": "16427888"
+            },
+            "settlesForRecipientHandles": [
+                "DK:90601"
+            ]
+        }
+        :param myshop_number:
+        :return:
+        """
+        url = f"{self.api_endpoint}/settlement/v1/ledgers"
+        params = {
+            'settlesForRecipientHandles': 'DK:{}'.format(myshop_number)
+        }
+        headers = {
+            'authorization': 'Bearer {}'.format(self.tokens['access_token']),
+        }
+        response = requests.get(url, params=params, headers=headers)
+        response.raise_for_status()
+
+        ledger_info = response.json()["items"]
+        # TODO: handle no ledgers returned
+
+        return ledger_info[0]
+
+    def get_ledger_id(self, myshop_number: int) -> int:
+        return int(self.get_ledger_info(myshop_number)["ledgerId"])
+
+
