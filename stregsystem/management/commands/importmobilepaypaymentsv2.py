@@ -99,12 +99,9 @@ class Command(BaseCommand):
 
     # Fetches the transactions for a given payment-point (MobilePay phone-number) in a given period (from-to)
     def get_transactions(self, date: date):
-        # {self.tokens['paymentpoint']}
+        ledger_date = date.strftime('%Y-%m-%d')
 
-        topic = "funds"
-        ledgerDate = date.strftime('%Y-%m-%d')
-
-        url = f"{self.api_endpoint}/report/v2/ledgers/{self.ledgerId}/{topic}/dates/{ledgerDate}"
+        url = f"{self.api_endpoint}/report/v2/ledgers/{self.tokens['ledger_id']}/funds/dates/{ledger_date}"
 
         params = {
             'includeGDPRSensitiveData': "true",
