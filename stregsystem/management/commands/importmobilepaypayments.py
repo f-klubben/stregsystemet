@@ -100,8 +100,8 @@ class Command(BaseCommand):
         self.tokens['ledger_id'] = self.get_ledger_id(self.myshop_number)
 
     # Fetches the transactions for a given payment-point (MobilePay phone-number) in a given period (from-to)
-    def get_transactions(self, date: date):
-        ledger_date = date.strftime('%Y-%m-%d')
+    def get_transactions(self, transaction_date: date):
+        ledger_date = transaction_date.strftime('%Y-%m-%d')
 
         url = f"{self.api_endpoint}/report/v2/ledgers/{self.tokens['ledger_id']}/funds/dates/{ledger_date}"
 
