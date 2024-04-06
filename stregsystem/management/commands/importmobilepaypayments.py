@@ -241,7 +241,8 @@ class Command(BaseCommand):
         response.raise_for_status()
 
         ledger_info = response.json()["items"]
-        # TODO: handle no ledgers returned
+
+        assert len(ledger_info) != 0
 
         return ledger_info[0]
 
