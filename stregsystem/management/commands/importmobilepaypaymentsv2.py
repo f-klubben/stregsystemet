@@ -1,9 +1,11 @@
+import base64
 from datetime import datetime, timedelta, timezone
 from django.core.management.base import BaseCommand
 from django.utils.dateparse import parse_datetime
 from pathlib import Path
 
 from requests import HTTPError
+from base64 import b64encode
 
 from stregsystem.models import MobilePayment
 import json
@@ -76,10 +78,16 @@ class Command(BaseCommand):
         url = f"{self.api_endpoint}/miami/v1/token"
 
         payload = {
-            "grant_type": "refresh_token",
-            'authorization': 'Basic {}:{}'.format(self.tokens['client_id'], self.tokens['client_secret']),
+            "grant_type": "client_credentials",
         }
-        response = requests.post(url, data=payload)
+
+        authorization_string = '{}:{}'.format(self.tokens['client_id'], self.tokens['client_secret'])
+        authorization_base64 = b64encode(authorization_string.encode("ascii")).decode("ascii")
+        headers = {
+            'authorization': 'Basic {}'.format(authorization_base64),
+        }
+
+        response = requests.post(url, data=payload, headers=headers)
         response.raise_for_status()
         json_response = response.json()
         # Calculate when the token expires
