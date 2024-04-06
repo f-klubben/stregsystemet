@@ -1,5 +1,4 @@
-import base64
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, date
 from django.core.management.base import BaseCommand
 from django.utils.dateparse import parse_datetime
 from pathlib import Path
@@ -24,6 +23,7 @@ class Command(BaseCommand):
     tokens_file = (Path(__file__).parent / 'tokens.json').as_posix()
     tokens_file_backup = (Path(__file__).parent / 'tokens.json.bak').as_posix()
     tokens = None
+    manual_cutoff_date = date(2024, 4, 9)
 
     logger = logging.getLogger(__name__)
     days_back = None
@@ -103,7 +103,7 @@ class Command(BaseCommand):
         return f"{inputdatetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]}Z"
 
     # Fetches the transactions for a given payment-point (MobilePay phone-number) in a given period (from-to)
-    def get_transactions(self, date: datetime.date):
+    def get_transactions(self, date: date):
         # {self.tokens['paymentpoint']}
 
         topic = "funds"
@@ -138,6 +138,9 @@ class Command(BaseCommand):
 
             for i in range(self.days_back):
                 past_date = datetime.now() - timedelta(days=i)
+                if past_date < self.manual_cutoff_date:
+                    break
+
                 transactions.extend(self.get_transactions(past_date))
 
             return transactions
