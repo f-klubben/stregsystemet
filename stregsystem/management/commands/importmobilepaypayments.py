@@ -118,6 +118,10 @@ class Command(BaseCommand):
     # Client side check if the token has expired.
     def refresh_expired_token(self):
         self.read_token_storage()
+
+        if 'access_token_timeout' not in self.tokens:
+            self.refresh_access_token()
+
         expire_time = parse_datetime(self.tokens['access_token_timeout'])
         if datetime.now() >= expire_time:
             self.refresh_access_token()
