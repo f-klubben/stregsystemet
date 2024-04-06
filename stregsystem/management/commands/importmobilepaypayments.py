@@ -131,7 +131,7 @@ class Command(BaseCommand):
 
         self.update_token_storage()
 
-    def fetch_transactions(self):
+    def fetch_transactions(self) -> list:
         # Do a client side check if token is good. If not - fetch another token.
         try:
             self.refresh_expired_token()
@@ -155,7 +155,7 @@ class Command(BaseCommand):
 
     def import_mobilepay_payments(self):
         transactions = self.fetch_transactions()
-        if transactions is None:
+        if len(transactions) == 0:
             self.write_info(f'Ran, but no transactions found')
             return
 
