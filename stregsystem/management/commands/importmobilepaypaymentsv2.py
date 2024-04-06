@@ -95,7 +95,9 @@ class Command(BaseCommand):
         expire_time = datetime.now() + timedelta(seconds=json_response['expires_in'] - 1)
         self.tokens['access_token_timeout'] = expire_time.isoformat(timespec='milliseconds')
         self.tokens['access_token'] = json_response['access_token']
-        self.update_token_storage()
+
+    def refresh_ledger_id(self):
+        self.tokens['ledger_id'] = self.get_ledger_id(self.myshop_number)
 
     # Fetches the transactions for a given payment-point (MobilePay phone-number) in a given period (from-to)
     def get_transactions(self, date: date):
@@ -119,6 +121,11 @@ class Command(BaseCommand):
         expire_time = parse_datetime(self.tokens['access_token_timeout'])
         if datetime.now() >= expire_time:
             self.refresh_access_token()
+
+        if 'ledger_id' not in self.tokens:
+            self.refresh_ledger_id()
+
+        self.update_token_storage()
 
     def fetch_transactions(self):
         # Do a client side check if token is good. If not - fetch another token.
