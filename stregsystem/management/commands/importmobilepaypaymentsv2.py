@@ -103,9 +103,14 @@ class Command(BaseCommand):
         return f"{inputdatetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]}Z"
 
     # Fetches the transactions for a given payment-point (MobilePay phone-number) in a given period (from-to)
-    def get_transactions(self):
-        url = f"{self.api_endpoint}/transaction-reporting/api/merchant/v1/paymentpoints/{self.tokens['paymentpoint']}/transactions"
-        current_time = datetime.now(timezone.utc)
+    def get_transactions(self, date: datetime.date):
+        # {self.tokens['paymentpoint']}
+
+        topic = "funds"
+        ledgerDate = date.strftime('%Y-%m-%d')
+
+        url = f"{self.api_endpoint}/report/v2/ledgers/{self.ledgerId}/{topic}/dates/{ledgerDate}"
+
         params = {
             'from': self.format_datetime(current_time - timedelta(days=self.days_back)),
             'to': self.format_datetime(current_time),
@@ -131,7 +136,14 @@ class Command(BaseCommand):
         try:
             self.refresh_expired_token()
             assert self.days_back is not None
-            return self.get_transactions()
+
+            transactions = []
+
+            for i in range(self.days_back):
+                past_date = datetime.now() - timedelta(days=i)
+                transactions.extend(self.get_transactions(past_date))
+
+            return transactions
         except HTTPError as e:
             self.write_error(f"Got an HTTP error when trying to fetch transactions: {e.response}")
         except Exception as e:
