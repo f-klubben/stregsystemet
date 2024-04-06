@@ -194,9 +194,7 @@ class Command(BaseCommand):
         :return:
         """
         url = f"{self.api_endpoint}/settlement/v1/ledgers"
-        params = {
-            'settlesForRecipientHandles': 'DK:{}'.format(myshop_number)
-        }
+        params = {'settlesForRecipientHandles': 'DK:{}'.format(myshop_number)}
         headers = {
             'authorization': 'Bearer {}'.format(self.tokens['access_token']),
         }
@@ -210,5 +208,3 @@ class Command(BaseCommand):
 
     def get_ledger_id(self, myshop_number: int) -> int:
         return int(self.get_ledger_info(myshop_number)["ledgerId"])
-
-
