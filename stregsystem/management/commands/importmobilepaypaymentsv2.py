@@ -150,28 +150,48 @@ class Command(BaseCommand):
         self.write_info('Successfully ran MobilePayment API import')
 
     def import_mobilepay_payment(self, transaction):
-        if transaction['type'] != 'Payment':
+        """
+        Example of a transaction:
+        {
+            "pspReference": "32212390715",
+            "time": "2024-04-05T07:19:26.528092Z",
+            "ledgerDate": "2024-04-05",
+            "entryType": "capture",
+            "reference": "10113143347",
+            "currency": "DKK",
+            "amount": 20000,
+            "recipientHandle": "DK:90601",
+            "balanceAfter": 110000,
+            "balanceBefore": 90000,
+            "name": "Jakob Topper",
+            "maskedPhoneNo": "xxxx 1234",
+            "message": "Topper"
+        }
+        :param transaction:
+        :return:
+        """
+        if transaction['entryType'] != 'capture':
             return
 
-        trans_id = transaction['paymentTransactionId']
+        trans_id = transaction['pspReference']
 
         if MobilePayment.objects.filter(transaction_id=trans_id).exists():
-            self.write_debug(f'Skipping transaction since it already exists (Transaction ID: {trans_id})')
+            self.write_debug(f'Skipping transaction since it already exists (PSP-Reference: {trans_id})')
             return
 
-        currency_code = transaction['currencyCode']
+        currency_code = transaction['currency']
         if currency_code != 'DKK':
             self.write_warning(f'Does ONLY support DKK (Transaction ID: {trans_id}), was {currency_code}')
             return
 
         amount = transaction['amount']
 
-        comment = strip_emoji(transaction['senderComment'])
+        comment = strip_emoji(transaction['message'])
 
-        payment_datetime = parse_datetime(transaction['timestamp'])
+        payment_datetime = parse_datetime(transaction['time'])
 
         MobilePayment.objects.create(
-            amount=amount * 100,  # convert to streg-ører
+            amount=amount,  # already in streg-ører
             member=mobile_payment_exact_match_member(comment),
             comment=comment,
             timestamp=payment_datetime,
