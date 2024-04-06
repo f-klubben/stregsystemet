@@ -24,6 +24,7 @@ class Command(BaseCommand):
     tokens_file_backup = (Path(__file__).parent / 'tokens.json.bak').as_posix()
     tokens = None
     manual_cutoff_date = date(2024, 4, 9)
+    myshop_number = 90601
 
     logger = logging.getLogger(__name__)
     days_back = None
@@ -95,12 +96,6 @@ class Command(BaseCommand):
         self.tokens['access_token_timeout'] = expire_time.isoformat(timespec='milliseconds')
         self.tokens['access_token'] = json_response['access_token']
         self.update_token_storage()
-
-    # Format to timestamp format. Source:
-    # https://github.com/MobilePayDev/MobilePay-TransactionReporting-API/blob/master/docs/api/types.md#timestamp
-    @staticmethod
-    def format_datetime(inputdatetime):
-        return f"{inputdatetime.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]}Z"
 
     # Fetches the transactions for a given payment-point (MobilePay phone-number) in a given period (from-to)
     def get_transactions(self, date: date):
