@@ -73,13 +73,11 @@ class Command(BaseCommand):
 
     # Fetches a new access token using the refresh token.
     def refresh_access_token(self):
-        url = f"{self.api_endpoint}/merchant-authentication-openidconnect/connect/token"
+        url = f"{self.api_endpoint}/miami/v1/token"
 
         payload = {
             "grant_type": "refresh_token",
-            "refresh_token": self.tokens['refresh_token'],
-            "client_id": self.tokens['zip-client-id'],
-            "client_secret": self.tokens['zip-client-secret'],
+            'authorization': 'Basic {}:{}'.format(self.tokens['client_id'], self.tokens['client_secret']),
         }
         response = requests.post(url, data=payload)
         response.raise_for_status()
