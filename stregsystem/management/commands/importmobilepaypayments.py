@@ -140,7 +140,7 @@ class Command(BaseCommand):
             transactions = []
 
             for i in range(self.days_back):
-                past_date = datetime.now() - timedelta(days=i)
+                past_date = date.today() - timedelta(days=i)
                 if past_date < self.manual_cutoff_date:
                     break
 
@@ -150,8 +150,7 @@ class Command(BaseCommand):
         except HTTPError as e:
             self.write_error(f"Got an HTTP error when trying to fetch transactions: {e.response}")
         except Exception as e:
-            self.write_error(f'Got an error when trying to fetch transactions.')
-            pass
+            self.write_error(f'Got an error when trying to fetch transactions: {e}')
 
     def import_mobilepay_payments(self):
         transactions = self.fetch_transactions()
