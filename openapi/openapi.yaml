@@ -9,7 +9,7 @@ info:
     Disclaimer - The implementation is not generated using this specification, therefore they can get out of sync if changes are made directly to the codebase without updating the OpenAPI specification file accordingly.
   version: "1.0"
 externalDocs:
-  description: Find out more about Stregsystemet at GitHub
+  description: Find out more about Stregsystemet at GitHub.
   url: https://github.com/f-klubben/stregsystemet/
 servers:
   - url: https://stregsystem.fklub.dk
@@ -35,14 +35,14 @@ paths:
           $ref: '#/components/responses/MemberFound'
         '400 Member Not Found':
           $ref: '#/components/responses/MemberNotFound'
-        '400 Invalid Member Id':
+        '400 Invalid Member ID':
           $ref: '#/components/responses/InvalidMemberId'
   /api/member/balance:
     get:
       tags:
         - Member
       summary: Get member balance
-      description: Gets a member's balance
+      description: Gets a member's balance.
       operationId: getMemberBalance
       parameters:
         - $ref: '#/components/parameters/member_id'
@@ -51,7 +51,7 @@ paths:
           $ref: '#/components/responses/MemberFound_Balance'
         '400 Member Not Found':
           $ref: '#/components/responses/MemberNotFound'
-        '400 Invalid Member Id':
+        '400 Invalid Member ID':
           $ref: '#/components/responses/InvalidMemberId'
 components:
   parameters:
@@ -89,13 +89,13 @@ components:
           $ref: '#/components/schemas/name'
   responses:
     MemberFound:
-      description: Member found
+      description: Member found.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/MemberInfo'
     MemberFound_Balance:
-      description: Member found
+      description: Member found.
       content:
         application/json:
           schema:
@@ -104,12 +104,14 @@ components:
               balance:
                 $ref: '#/components/schemas/balance'
     MemberNotFound:
+      description: Member does not exist.
       content:
         text/html:
           schema:
             type: string
             example: Member not found
     InvalidMemberId:
+      description: No id given or id is invalid.
       content:
         text/html:
           schema:
