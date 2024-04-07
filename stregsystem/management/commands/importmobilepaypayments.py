@@ -4,7 +4,7 @@ from django.utils.dateparse import parse_datetime
 from pathlib import Path
 
 from requests import HTTPError
-from base64 import b64encode
+from requests.auth import HTTPBasicAuth
 
 from stregsystem.models import MobilePayment
 import json
@@ -82,13 +82,9 @@ class Command(BaseCommand):
             "grant_type": "client_credentials",
         }
 
-        authorization_string = '{}:{}'.format(self.tokens['client_id'], self.tokens['client_secret'])
-        authorization_base64 = b64encode(authorization_string.encode("ascii")).decode("ascii")
-        headers = {
-            'authorization': 'Basic {}'.format(authorization_base64),
-        }
+        auth = HTTPBasicAuth(self.tokens['client_id'], self.tokens['client_secret'])
 
-        response = requests.post(url, data=payload, headers=headers)
+        response = requests.post(url, data=payload, auth=auth)
         response.raise_for_status()
         json_response = response.json()
         # Calculate when the token expires
