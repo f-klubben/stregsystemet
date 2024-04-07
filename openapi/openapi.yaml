@@ -61,8 +61,14 @@ components:
       description: ID of the member to retrieve.
       required: true
       schema:
-        type: integer
-        example: 321
+        $ref: '#/components/schemas/member_id'
+    username:
+      name: username
+      in: query
+      description: Username of the member.
+      required: true
+      schema:
+        $ref: '#/components/schemas/username'
   schemas:
     balance:
       type: integer
@@ -76,6 +82,9 @@ components:
     name:
       type: string
       example: Kresten Laust
+    member_id:
+      type: integer
+      example: 321
     MemberInfo:
       type: object
       properties:
