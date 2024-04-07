@@ -10,3 +10,10 @@ info:
 externalDocs:
   description: Find out more about Stregsystemet
   url: https://github.com/f-klubben/stregsystemet/
+tags:
+  - name: Member
+    description: Related to the individual member page.
+  - name: Products
+    description: Related to the products.
+  - name: Sale
+    description: Related to performing a sale.
