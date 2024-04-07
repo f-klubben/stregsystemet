@@ -23,6 +23,7 @@ class Command(BaseCommand):
     tokens_file = (Path(__file__).parent / 'tokens.json').as_posix()
     tokens_file_backup = (Path(__file__).parent / 'tokens.json.bak').as_posix()
     tokens = None
+    # Cutoff for when this iteration of the Mobilepay-API (Vipps) is deployed
     manual_cutoff_date = date(2024, 4, 9)
     myshop_number = 90601
 
