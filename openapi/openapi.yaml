@@ -53,6 +53,22 @@ paths:
           $ref: '#/components/responses/MemberNotFound'
         '400 Invalid Member ID':
           $ref: '#/components/responses/InvalidMemberId'
+  /api/member/get_id:
+    get:
+      tags:
+        - Member
+      summary: Get member ID
+      description: Gets a member's ID from their username.
+      operationId: getMemberId
+      parameters:
+       - $ref: '#/components/parameters/username'
+      responses:
+        '200 Success':
+          $ref: '#/components/responses/MemberFound_ID'
+        '400 Member Not Found':
+          $ref: '#/components/responses/MemberNotFound'
+        '400 Invalid Username':
+          $ref: '#/components/responses/InvalidMemberUsername'
 components:
   parameters:
     member_id:
@@ -103,6 +119,15 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/MemberInfo'
+    MemberFound_ID:
+      description: Member found.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              member_id:
+                $ref: '#/components/schemas/member_id'
     MemberFound_Balance:
       description: Member found.
       content:
@@ -126,3 +151,10 @@ components:
           schema:
             type: string
             example: Missing or invalid member_id
+    InvalidMemberUsername:
+      description: No username given or username is invalid.
+      content:
+        text/html:
+          schema:
+            type: string
+            example: Missing or invalid username
