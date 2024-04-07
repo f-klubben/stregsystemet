@@ -20,3 +20,73 @@ tags:
     description: Related to the products.
   - name: Sale
     description: Related to performing a sale.
+paths:
+  /api/member:
+    get:
+      tags:
+        - Member
+      summary: Get member info
+      description: Gets a member's balance, username, active-status and name.
+      operationId: getMemberInfo
+      parameters:
+        - $ref: '#/components/parameters/member_id'
+      responses:
+        '200 Success':
+          $ref: '#/components/responses/MemberFound'
+        '400 Member Not Found':
+          $ref: '#/components/responses/MemberNotFound'
+        '400 Invalid Member Id':
+          $ref: '#/components/responses/InvalidMemberId'
+components:
+  parameters:
+    member_id:
+      name: member_id
+      in: query
+      description: ID of the member to retrieve.
+      required: true
+      schema:
+        type: integer
+        example: 321
+  schemas:
+    balance:
+      type: integer
+      example: 20000
+    username:
+      type: string
+      example: kresten
+    active:
+      type: boolean
+      example: true
+    name:
+      type: string
+      example: Kresten Laust
+    MemberInfo:
+      type: object
+      properties:
+        balance:
+          $ref: '#/components/schemas/balance'
+        username:
+          $ref: '#/components/schemas/username'
+        active:
+          $ref: '#/components/schemas/active'
+        name:
+          $ref: '#/components/schemas/name'
+  responses:
+    MemberFound:
+      description: Member found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MemberInfo'
+    MemberNotFound:
+      content:
+        text/html:
+          schema:
+            type: string
+            example: Member not found
+    InvalidMemberId:
+      content:
+        text/html:
+          schema:
+            type: string
+            example: Missing or invalid member_id
