@@ -1,14 +1,15 @@
 openapi: 3.0.3
 info:
-  title: Stregsystem - OpenAPI 3.0
+  title: Stregsystem
   description: |-
     This is the API implemented in the Stregsystem Django App.
     The API describes ways to interact with Stregsystem without using the web-interface.
     Existing client software utilizing the API include Stregsystem-CLI (STS) and Fappen (F-Club Web App).
-
+    
     Disclaimer - The implementation is not generated using this specification, therefore they can get out of sync if changes are made directly to the codebase without updating the OpenAPI specification file accordingly.
+  version: "1.0"
 externalDocs:
-  description: Find out more about Stregsystemet
+  description: Find out more about Stregsystemet at GitHub
   url: https://github.com/f-klubben/stregsystemet/
 tags:
   - name: Member
