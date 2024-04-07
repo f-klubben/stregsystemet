@@ -11,6 +11,8 @@ info:
 externalDocs:
   description: Find out more about Stregsystemet at GitHub
   url: https://github.com/f-klubben/stregsystemet/
+servers:
+  - url: https://stregsystem.fklub.dk
 tags:
   - name: Member
     description: Related to the individual member page.
