@@ -520,11 +520,13 @@ def check_user_active(request):
 def convert_username_to_id(request):
     username = request.GET.get('username') or None
     if username is None:
-        return HttpResponseBadRequest("Missing username")
+        return HttpResponseBadRequest("Invalid username")
+
     try:
         member = Member.objects.get(username=username)
     except Member.DoesNotExist:
-        return HttpResponseBadRequest("Invalid username")
+        return HttpResponseBadRequest("Member not found")
+
     return JsonResponse({'member_id': member.id})
 
 
