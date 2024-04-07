@@ -37,6 +37,22 @@ paths:
           $ref: '#/components/responses/MemberNotFound'
         '400 Invalid Member Id':
           $ref: '#/components/responses/InvalidMemberId'
+  /api/member/balance:
+    get:
+      tags:
+        - Member
+      summary: Get member balance
+      description: Gets a member's balance
+      operationId: getMemberBalance
+      parameters:
+        - $ref: '#/components/parameters/member_id'
+      responses:
+        '200 Success':
+          $ref: '#/components/responses/MemberFound_Balance'
+        '400 Member Not Found':
+          $ref: '#/components/responses/MemberNotFound'
+        '400 Invalid Member Id':
+          $ref: '#/components/responses/InvalidMemberId'
 components:
   parameters:
     member_id:
@@ -78,6 +94,15 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/MemberInfo'
+    MemberFound_Balance:
+      description: Member found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              balance:
+                $ref: '#/components/schemas/balance'
     MemberNotFound:
       content:
         text/html:
