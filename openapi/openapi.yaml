@@ -27,7 +27,7 @@ paths:
         - Member
       summary: Get member info
       description: Gets a member's balance, username, active-status and name.
-      operationId: getMemberInfo
+      operationId: get_member_info
       parameters:
         - $ref: '#/components/parameters/member_id'
       responses:
@@ -43,7 +43,7 @@ paths:
         - Member
       summary: Get member balance
       description: Gets a member's balance.
-      operationId: getMemberBalance
+      operationId: get_member_balance
       parameters:
         - $ref: '#/components/parameters/member_id'
       responses:
@@ -59,7 +59,7 @@ paths:
         - Member
       summary: Get member ID
       description: Gets a member's ID from their username.
-      operationId: getMemberId
+      operationId: get_member_id
       parameters:
        - $ref: '#/components/parameters/username'
       responses:
