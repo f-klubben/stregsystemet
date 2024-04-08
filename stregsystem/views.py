@@ -504,7 +504,7 @@ def dump_active_items(request):
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
 
 
-def check_member_active(request):
+def get_member_active(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
         return HttpResponseBadRequest("Missing member_id")
