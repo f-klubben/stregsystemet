@@ -53,6 +53,22 @@ paths:
           $ref: '#/components/responses/MemberNotFound'
         '400 Invalid Member ID':
           $ref: '#/components/responses/InvalidMemberId'
+  /api/member/active:
+    get:
+      tags:
+        - Member
+      summary: Get member active-status
+      description: Gets whether a member is active.
+      operationId: get_member_active
+      parameters:
+        - $ref: '#/components/parameters/member_id'
+      responses:
+        '200 Success':
+          $ref: '#/components/responses/MemberFound_Active'
+        '400 Member Not Found':
+          $ref: '#/components/responses/MemberNotFound'
+        '400 Invalid member ID':
+          $ref: '#/components/responses/InvalidMemberId'
   /api/member/get_id:
     get:
       tags:
@@ -137,6 +153,15 @@ components:
             properties:
               balance:
                 $ref: '#/components/schemas/balance'
+    MemberFound_Active:
+      description: Member found.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              active:
+                $ref: '#/components/schemas/active'
     MemberNotFound:
       description: Member does not exist.
       content:
