@@ -21,7 +21,6 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django_select2 import forms as s2forms
-import urllib.parse
 
 from stregsystem import parser
 from stregsystem.models import (
@@ -41,6 +40,7 @@ from stregsystem.models import (
 from stregsystem.utils import (
     make_active_productlist_query,
     qr_code,
+    mobilepay_launch_uri,
     make_room_specific_query,
     make_unprocessed_mobilepayment_query,
     parse_csv_and_create_mobile_payments,
@@ -476,21 +476,18 @@ def mobilepaytool(request):
     return render(request, "admin/stregsystem/mobilepaytool.html", data)
 
 
+# API views
+
+
 def get_payment_qr(request):
     form = QRPaymentForm(request.GET)
     if not form.is_valid():
         return HttpResponseBadRequest("Invalid input for MobilePay QR code generation")
 
-    query = {'phone': '90601', 'comment': form.cleaned_data.get('member')}
+    username = form.cleaned_data.get('member')
+    amount = form.cleaned_data.get('amount')
 
-    if form.cleaned_data.get("amount") is not None:
-        query['amount'] = form.cleaned_data.get("amount")
-
-    data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
-    return qr_code(data)
-
-
-# API views
+    return qr_code(mobilepay_launch_uri(username, amount))
 
 
 def dump_active_items(request):
