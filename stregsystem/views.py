@@ -504,7 +504,7 @@ def dump_active_items(request):
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
 
 
-def check_user_active(request):
+def check_member_active(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
         return HttpResponseBadRequest("Missing member_id")
@@ -534,7 +534,7 @@ def dump_product_category_mappings(request):
     return JsonResponse({p.id: [(cat.id, cat.name) for cat in p.categories.all()] for p in Product.objects.all()})
 
 
-def get_user_sales(request):
+def get_member_sales(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
         return HttpResponseBadRequest("Missing member_id")
@@ -547,7 +547,7 @@ def get_user_sales(request):
     )
 
 
-def get_user_balance(request):
+def get_member_balance(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
         return HttpResponseBadRequest("Missing member_id")
@@ -560,7 +560,7 @@ def get_user_balance(request):
     return JsonResponse({'balance': member.balance})
 
 
-def get_user_info(request):
+def get_member_info(request):
     member_id = str(request.GET.get('member_id')) or None
     if member_id is None or not member_id.isdigit():
         return HttpResponseBadRequest("Missing or invalid member_id")
