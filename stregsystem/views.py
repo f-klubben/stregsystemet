@@ -517,7 +517,7 @@ def get_member_active(request):
     return JsonResponse({'active': member.active})
 
 
-def convert_username_to_id(request):
+def get_member_id(request):
     username = request.GET.get('username') or None
     if username is None:
         return HttpResponseBadRequest("Invalid username")
