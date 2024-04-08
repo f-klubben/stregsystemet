@@ -140,9 +140,12 @@ components:
     product_name:
       type: string
       example: Beer
-    product_price:
+    stregdollar_price:
       type: integer
       example: 600
+    stregdollar_balance:
+      type: integer
+      example: 20000
     sale:
       type: object
       properties:
@@ -151,7 +154,7 @@ components:
         product:
           $ref: '#/components/schemas/product_name'
         price:
-          $ref: '#/components/schemas/product_price'
+          $ref: '#/components/schemas/stregdollar_price'
     sales:
       type: array
       items:
