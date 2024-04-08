@@ -69,6 +69,22 @@ paths:
           $ref: '#/components/responses/MemberNotFound'
         '400 Invalid member ID':
           $ref: '#/components/responses/InvalidMemberId'
+  /api/member/sales:
+    get:
+      tags:
+        - Member
+      summary: Get member sales
+      description: Gets a list of a member's sales.
+      operationId: get_member_sales
+      parameters:
+        - $ref: '#/components/parameters/member_id'
+      responses:
+        '200 Success':
+          $ref: '#/components/responses/MemberFound_Sales'
+        '400 Member Not Found':
+          $ref: '#/components/responses/MemberNotFound'
+        '400 Invalid member ID':
+          $ref: '#/components/responses/InvalidMemberId'
   /api/member/get_id:
     get:
       tags:
@@ -117,6 +133,29 @@ components:
     member_id:
       type: integer
       example: 321
+    timestamp:
+      type: string
+      format: date-time
+      example: 2004-01-07T15:30:55Z
+    product_name:
+      type: string
+      example: Beer
+    product_price:
+      type: integer
+      example: 600
+    sale:
+      type: object
+      properties:
+        timestamp:
+          $ref: '#/components/schemas/timestamp'
+        product:
+          $ref: '#/components/schemas/product_name'
+        price:
+          $ref: '#/components/schemas/product_price'
+    sales:
+      type: array
+      items:
+        $ref: '#/components/schemas/sale'
     MemberInfo:
       type: object
       properties:
@@ -162,6 +201,15 @@ components:
             properties:
               active:
                 $ref: '#/components/schemas/active'
+    MemberFound_Sales:
+      description: Member found.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              sales:
+                $ref: '#/components/schemas/sales'
     MemberNotFound:
       description: Member does not exist.
       content:
