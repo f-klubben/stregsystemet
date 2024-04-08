@@ -476,7 +476,7 @@ def mobilepaytool(request):
     return render(request, "admin/stregsystem/mobilepaytool.html", data)
 
 
-def qr_payment(request):
+def get_payment_qr(request):
     form = QRPaymentForm(request.GET)
     if not form.is_valid():
         return HttpResponseBadRequest("Invalid input for MobilePay QR code generation")
