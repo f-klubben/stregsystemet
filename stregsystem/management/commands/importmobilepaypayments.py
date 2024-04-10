@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, date
+
 from django.core.management.base import BaseCommand
 from django.utils.dateparse import parse_datetime
 from pathlib import Path
@@ -97,7 +98,12 @@ class Command(BaseCommand):
         self.tokens['ledger_id'] = self.get_ledger_id(self.myshop_number)
 
     # Fetches the transactions for a given payment-point (MobilePay phone-number) in a given period (from-to)
-    def get_transactions(self, transaction_date: date):
+    def get_transactions_historic(self, transaction_date: date) -> list:
+        """
+        Fetches historic transactions (only complete days (e.g. not today)) by date.
+        :param transaction_date: The date to look up.
+        :return: List of transactions on that date.
+        """
         ledger_date = transaction_date.strftime('%Y-%m-%d')
 
         url = f"{self.api_endpoint}/report/v2/ledgers/{self.tokens['ledger_id']}/funds/dates/{ledger_date}"
@@ -111,6 +117,13 @@ class Command(BaseCommand):
         response = requests.get(url, params=params, headers=headers)
         response.raise_for_status()
         return response.json()['items']
+
+    def get_transactions_latest_feed(self) -> list:
+        """
+        Fetches transactions ahead of cursor. Used to fetch very recent transactions.
+        :return: All transactions from the current cursor till it's emptied.
+        """
+        pass
 
     # Client side check if the token has expired.
     def refresh_expired_token(self):
@@ -141,7 +154,7 @@ class Command(BaseCommand):
                 if past_date < self.manual_cutoff_date:
                     break
 
-                transactions.extend(self.get_transactions(past_date))
+                transactions.extend(self.get_transactions_historic(past_date))
 
             return transactions
         except HTTPError as e:
