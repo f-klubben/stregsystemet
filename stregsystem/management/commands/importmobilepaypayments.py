@@ -197,6 +197,12 @@ class Command(BaseCommand):
         if transaction['entryType'] != 'capture':
             return
 
+        payment_datetime = parse_datetime(transaction['time'])
+
+        if payment_datetime.date() < self.manual_cutoff_date:
+            self.write_debug(f'Skipping transaction because it is before payment cutoff date {payment_datetime}')
+            return
+
         trans_id = transaction['pspReference']
 
         if MobilePayment.objects.filter(transaction_id=trans_id).exists():
@@ -211,8 +217,6 @@ class Command(BaseCommand):
         amount = transaction['amount']
 
         comment = strip_emoji(transaction['message'])
-
-        payment_datetime = parse_datetime(transaction['time'])
 
         MobilePayment.objects.create(
             amount=amount,  # already in streg-ører
