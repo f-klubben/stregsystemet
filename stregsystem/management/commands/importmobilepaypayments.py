@@ -139,12 +139,13 @@ class Command(BaseCommand):
 
             cursor = res['cursor']
 
-            has_more = res['hasMore'] == "true"
-
-            if not has_more:
+            # Note: Since MobilePay API doesn't return 'hasMore' like the docs says it does.
+            # We can just tell whether we're at the end by how many items are left.
+            if len(res['items']) == 0:
                 break
 
         self.tokens['cursor'] = cursor
+        self.update_token_storage()
         return transactions
 
     def fetch_report_by_feed(self, cursor: str):
