@@ -121,9 +121,47 @@ class Command(BaseCommand):
     def get_transactions_latest_feed(self) -> list:
         """
         Fetches transactions ahead of cursor. Used to fetch very recent transactions.
+        Moves the cursor as well.
         :return: All transactions from the current cursor till it's emptied.
         """
-        pass
+
+        transactions = []
+        cursor = self.tokens.get('cursor', "")
+
+        while True:
+            res = self.fetch_report_by_feed(cursor)
+            transactions.extend(res['items'])
+
+            try_later = res['tryLater'] == "true"
+
+            if try_later:
+                break
+
+            cursor = res['cursor']
+
+            has_more = res['hasMore'] == "true"
+
+            if not has_more:
+                break
+
+        self.tokens['cursor'] = cursor
+        return transactions
+
+    def fetch_report_by_feed(self, cursor: str):
+        url = f"{self.api_endpoint}/report/v2/ledgers/{self.tokens['ledger_id']}/funds/feed"
+
+        params = {
+            'includeGDPRSensitiveData': "true",
+            'cursor': cursor,
+        }
+        headers = {
+            'authorization': "Bearer {}".format(self.tokens['access_token']),
+        }
+
+        response = requests.get(url, params=params, headers=headers)
+        response.raise_for_status()
+
+        return response.json()
 
     # Client side check if the token has expired.
     def refresh_expired_token(self):
@@ -148,6 +186,8 @@ class Command(BaseCommand):
             assert self.days_back is not None
 
             transactions = []
+
+            transactions.extend(self.get_transactions_latest_feed())
 
             for i in range(self.days_back):
                 past_date = date.today() - timedelta(days=i)
