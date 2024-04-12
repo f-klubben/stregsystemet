@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, date
+
 from django.core.management.base import BaseCommand
 from django.utils.dateparse import parse_datetime
 from pathlib import Path
@@ -97,7 +98,12 @@ class Command(BaseCommand):
         self.tokens['ledger_id'] = self.get_ledger_id(self.myshop_number)
 
     # Fetches the transactions for a given payment-point (MobilePay phone-number) in a given period (from-to)
-    def get_transactions(self, transaction_date: date):
+    def get_transactions_historic(self, transaction_date: date) -> list:
+        """
+        Fetches historic transactions (only complete days (e.g. not today)) by date.
+        :param transaction_date: The date to look up.
+        :return: List of transactions on that date.
+        """
         ledger_date = transaction_date.strftime('%Y-%m-%d')
 
         url = f"{self.api_endpoint}/report/v2/ledgers/{self.tokens['ledger_id']}/funds/dates/{ledger_date}"
@@ -111,6 +117,52 @@ class Command(BaseCommand):
         response = requests.get(url, params=params, headers=headers)
         response.raise_for_status()
         return response.json()['items']
+
+    def get_transactions_latest_feed(self) -> list:
+        """
+        Fetches transactions ahead of cursor. Used to fetch very recent transactions.
+        Moves the cursor as well.
+        :return: All transactions from the current cursor till it's emptied.
+        """
+
+        transactions = []
+        cursor = self.tokens.get('cursor', "")
+
+        while True:
+            res = self.fetch_report_by_feed(cursor)
+            transactions.extend(res['items'])
+
+            try_later = res['tryLater'] == "true"
+
+            if try_later:
+                break
+
+            cursor = res['cursor']
+
+            # Note: Since MobilePay API doesn't return 'hasMore' like the docs says it does.
+            # We can just tell whether we're at the end by how many items are left.
+            if len(res['items']) == 0:
+                break
+
+        self.tokens['cursor'] = cursor
+        self.update_token_storage()
+        return transactions
+
+    def fetch_report_by_feed(self, cursor: str):
+        url = f"{self.api_endpoint}/report/v2/ledgers/{self.tokens['ledger_id']}/funds/feed"
+
+        params = {
+            'includeGDPRSensitiveData': "true",
+            'cursor': cursor,
+        }
+        headers = {
+            'authorization': "Bearer {}".format(self.tokens['access_token']),
+        }
+
+        response = requests.get(url, params=params, headers=headers)
+        response.raise_for_status()
+
+        return response.json()
 
     # Client side check if the token has expired.
     def refresh_expired_token(self):
@@ -136,12 +188,14 @@ class Command(BaseCommand):
 
             transactions = []
 
+            transactions.extend(self.get_transactions_latest_feed())
+
             for i in range(self.days_back):
                 past_date = date.today() - timedelta(days=i)
                 if past_date < self.manual_cutoff_date:
                     break
 
-                transactions.extend(self.get_transactions(past_date))
+                transactions.extend(self.get_transactions_historic(past_date))
 
             return transactions
         except HTTPError as e:
@@ -184,6 +238,12 @@ class Command(BaseCommand):
         if transaction['entryType'] != 'capture':
             return
 
+        payment_datetime = parse_datetime(transaction['time'])
+
+        if payment_datetime.date() < self.manual_cutoff_date:
+            self.write_debug(f'Skipping transaction because it is before payment cutoff date {payment_datetime}')
+            return
+
         trans_id = transaction['pspReference']
 
         if MobilePayment.objects.filter(transaction_id=trans_id).exists():
@@ -198,8 +258,6 @@ class Command(BaseCommand):
         amount = transaction['amount']
 
         comment = strip_emoji(transaction['message'])
-
-        payment_datetime = parse_datetime(transaction['time'])
 
         MobilePayment.objects.create(
             amount=amount,  # already in streg-ører
