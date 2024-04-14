@@ -36,7 +36,7 @@ from stregsystem.models import (
     StregForbudError,
     MobilePayment,
     Category,
-    NamedProduct,
+    NamedProduct, Reimbursement,
 )
 from stregsystem.utils import (
     make_active_productlist_query,
@@ -48,6 +48,7 @@ from stregsystem.utils import (
 )
 
 from .booze import ballmer_peak
+from .business.reimburse import reimburse_sale
 from .caffeine import caffeine_mg_to_coffee_cups
 from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, RankingDateForm
 
@@ -225,7 +226,12 @@ def usermenu(request, room, member, bought, from_sale=False):
 def menu_userinfo(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
+
+    if request.method == 'POST' and request.POST.get('action') is not None and request.POST['action'] == 'reimburse':
+        reimburse_sale(int(request.POST['sale_id']))
+
     member = Member.objects.get(pk=member_id, active=True)
+
     stats = Sale.objects.filter(member_id=member_id).aggregate(
         total_amount=Sum('price'), total_purchases=Count('timestamp')
     )
@@ -239,7 +245,8 @@ def menu_userinfo(request, room_id, member_id):
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()
 
-    return render(request, 'stregsystem/menu_userinfo.html', locals())
+    return render(request, 'stregsystem/menu_userinfo.html',
+                  locals())  # this is very bad for refactoring. Idk what variables are used in the templates.
 
 
 def menu_userpay(request, room_id, member_id):
