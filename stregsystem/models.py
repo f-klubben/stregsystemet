@@ -688,5 +688,6 @@ class Reimbursement(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     amount = models.IntegerField()
+    models.DateTimeField(auto_now_add=True)
 
 
