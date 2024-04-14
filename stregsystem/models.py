@@ -44,6 +44,7 @@ class StregForbudError(Exception):
 class NoMoreInventoryError(Exception):
     pass
 
+
 class SaleNotFoundError(Exception):
     pass
 
@@ -689,5 +690,3 @@ class Reimbursement(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     amount = models.IntegerField()
     models.DateTimeField(auto_now_add=True)
-
-
