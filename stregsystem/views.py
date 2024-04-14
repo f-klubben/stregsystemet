@@ -36,7 +36,7 @@ from stregsystem.models import (
     StregForbudError,
     MobilePayment,
     Category,
-    NamedProduct, Reimbursement,
+    NamedProduct,
 )
 from stregsystem.utils import (
     make_active_productlist_query,
@@ -245,8 +245,9 @@ def menu_userinfo(request, room_id, member_id):
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()
 
-    return render(request, 'stregsystem/menu_userinfo.html',
-                  locals())  # this is very bad for refactoring. Idk what variables are used in the templates.
+    return render(
+        request, 'stregsystem/menu_userinfo.html', locals()
+    )  # this is very bad for refactoring. Idk what variables are used in the templates.
 
 
 def menu_userpay(request, room_id, member_id):

@@ -1,5 +1,5 @@
 import datetime
-import re
+from datetime import timedelta
 from collections import Counter
 from email.utils import parseaddr
 
@@ -304,8 +304,8 @@ class Member(models.Model):  # id automatisk...
             [
                 Intake(x.timestamp, x.product.caffeine_content_mg)
                 for x in self.sale_set.filter(
-                timestamp__gt=timezone.now() - CAFFEINE_TIME_INTERVAL, product__caffeine_content_mg__gt=0
-            ).order_by('timestamp')
+                    timestamp__gt=timezone.now() - CAFFEINE_TIME_INTERVAL, product__caffeine_content_mg__gt=0
+                ).order_by('timestamp')
             ]
         )
 
@@ -645,7 +645,6 @@ class Sale(models.Model):
     price_display.admin_order_field = 'price'
 
     def is_reimbursable(self):
-        from datetime import timedelta
         return timedelta(hours=MAX_REIMBUSEMENT_HOURS) >= timezone.now() - self.timestamp
 
     @deprecated
