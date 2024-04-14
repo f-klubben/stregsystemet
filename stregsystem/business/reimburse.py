@@ -13,7 +13,7 @@ def reimburse_sale(sale_id):
     """
     sale: Sale = Sale.objects.get(id=sale_id)
     if not sale:
-        raise SaleNotFoundError
+        raise SaleNotFoundError()
     product = sale.product
     product.quantity = product.quantity + 1
 
