@@ -116,6 +116,16 @@ paths:
           $ref: '#/components/responses/QRCodeGenerated'
         '400 Invalid Input':
           $ref: '#/components/responses/InvalidQRInput'
+  /api/products/named_products:
+    get:
+      tags:
+        - Products
+      summary: Gets dictionary of named products
+      description: Returns a dictionary of all named products with their product ID. A named product is a shorthand associated with a product ID.
+      operationId: dump_named_products
+      responses:
+        '200 Success':
+          $ref: '#/components/responses/NamedProducts'
 components:
   parameters:
     member_id:
@@ -162,6 +172,13 @@ components:
     product_name:
       type: string
       example: Beer
+    named_product:
+      type: object
+      properties:
+        beer:
+          type: integer
+      example:
+        beer: 123
     stregdollar_price:
       type: integer
       example: 600
@@ -235,6 +252,12 @@ components:
             properties:
               sales:
                 $ref: '#/components/schemas/sales'
+    NamedProducts:
+      description: Dictionary of all named_product names.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/named_product'
     QRCodeGenerated:
       description: QR code with link to open MobilePay with the provided information.
       content:
