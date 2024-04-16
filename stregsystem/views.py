@@ -582,7 +582,7 @@ def find_user_from_id(user_id: int):
         return None
 
 
-def dump_named_items(request):
+def dump_named_products(request):
     items = NamedProduct.objects.all()
     items_dict = {item.name: item.product.id for item in items}
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
