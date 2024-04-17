@@ -156,7 +156,7 @@ components:
       description: Amount of money in streg-oere.
       required: false
       schema:
-        $ref: '#/components/schemas/stregdollar_balance'
+        $ref: '#/components/schemas/stregoere_balance'
   schemas:
     balance:
       type: integer
@@ -181,18 +181,18 @@ components:
       type: string
       example: Beer
     named_product:
+    stregoere_price:
+      type: integer
+      example: 600
+    stregoere_balance:
+      type: integer
+      example: 20000
       type: object
       properties:
         beer:
           type: integer
       example:
         beer: 123
-    stregdollar_price:
-      type: integer
-      example: 600
-    stregdollar_balance:
-      type: integer
-      example: 20000
     sale:
       type: object
       properties:
@@ -201,7 +201,7 @@ components:
         product:
           $ref: '#/components/schemas/product_name'
         price:
-          $ref: '#/components/schemas/stregdollar_price'
+          $ref: '#/components/schemas/stregoere_price'
     sales:
       type: array
       items:
