@@ -497,7 +497,7 @@ def dump_active_items(request):
     elif not room_id.isdigit():
         return HttpResponseBadRequest("Parameter invalid: room_id")
     items = __get_productlist(room_id)
-    items_dict = {item.id: (item.name, item.price) for item in items}
+    items_dict = {item.id: {'name': item.name, 'price': item.price} for item in items}
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
 
 
