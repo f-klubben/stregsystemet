@@ -134,6 +134,22 @@ paths:
       responses:
         '200 Success':
           $ref: '#/components/responses/NamedProducts'
+  /api/products/active_products:
+    get:
+      tags:
+        - Products
+      summary: Gets dictionary of products that are active
+      description: Dictionary of products, key is product ID, value is product name and product price.
+      operationId: dump_active_products
+      responses:
+        '200 Success':
+          $ref: '#/components/responses/ActiveProducts'
+        '400 Room Not Found':
+          $ref: '#/components/responses/RoomNotFound'
+        '400 Invalid Room ID':
+          $ref: '#/components/responses/InvalidRoomId'
+        '400 Missing Room ID':
+          $ref: '#/components/responses/MissingRoomId'
 components:
   parameters:
     member_id:
@@ -194,6 +210,18 @@ components:
       properties:
         beer:
           $ref: '#/components/schemas/product_id'
+    active_product:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/product_name'
+        price:
+          $ref: '#/components/schemas/stregoere_price'
+    active_products_example:
+      type: object
+      properties:
+        123:
+          $ref: '#/components/schemas/active_product'
     sale:
       type: object
       properties:
@@ -267,6 +295,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/named_products_example'
+    ActiveProducts:
+      description: Dictionary of all activated products, with their name and price (in stregører).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/active_products_example'
     QRCodeGenerated:
       description: QR code with link to open MobilePay with the provided information.
       content:
@@ -287,6 +321,13 @@ components:
           schema:
             type: string
             example: Member not found
+    RoomNotFound:
+      description: Room does not exist.
+      content:
+        text/html:
+          schema:
+            type: string
+            example: Room not found
     InvalidMemberId:
       description: Member ID is invalid.
       content:
@@ -301,6 +342,20 @@ components:
           schema:
             type: string
             example: "Parameter missing: member_id"
+    InvalidRoomId:
+      description: Room ID is invalid.
+      content:
+        text/html:
+          schema:
+            type: string
+            example: "Parameter invalid: room_id"
+    MissingRoomId:
+      description: No room ID given.
+      content:
+        text/html:
+          schema:
+            type: string
+            example: "Parameter missing: room_id"
     MissingMemberUsername:
       description: No username given.
       content:
