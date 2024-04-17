@@ -37,6 +37,8 @@ paths:
           $ref: '#/components/responses/MemberNotFound'
         '400 Invalid Member ID':
           $ref: '#/components/responses/InvalidMemberId'
+        '400 Missing Member ID':
+          $ref: '#/components/responses/MissingMemberId'
   /api/member/balance:
     get:
       tags:
@@ -53,6 +55,8 @@ paths:
           $ref: '#/components/responses/MemberNotFound'
         '400 Invalid Member ID':
           $ref: '#/components/responses/InvalidMemberId'
+        '400 Missing Member ID':
+          $ref: '#/components/responses/MissingMemberId'
   /api/member/active:
     get:
       tags:
@@ -69,6 +73,8 @@ paths:
           $ref: '#/components/responses/MemberNotFound'
         '400 Invalid member ID':
           $ref: '#/components/responses/InvalidMemberId'
+        '400 Missing Member ID':
+          $ref: '#/components/responses/MissingMemberId'
   /api/member/sales:
     get:
       tags:
@@ -85,6 +91,8 @@ paths:
           $ref: '#/components/responses/MemberNotFound'
         '400 Invalid member ID':
           $ref: '#/components/responses/InvalidMemberId'
+        '400 Missing Member ID':
+          $ref: '#/components/responses/MissingMemberId'
   /api/member/get_id:
     get:
       tags:
@@ -99,8 +107,8 @@ paths:
           $ref: '#/components/responses/MemberFound_ID'
         '400 Member Not Found':
           $ref: '#/components/responses/MemberNotFound'
-        '400 Invalid Username':
-          $ref: '#/components/responses/InvalidMemberUsername'
+        '400 Missing Username':
+          $ref: '#/components/responses/MissingMemberUsername'
   /api/member/payment/qr:
     get:
       tags:
@@ -279,16 +287,23 @@ components:
             type: string
             example: Member not found
     InvalidMemberId:
-      description: No id given or id is invalid.
+      description: Member ID is invalid.
       content:
         text/html:
           schema:
             type: string
-            example: Missing or invalid member_id
-    InvalidMemberUsername:
-      description: No username given or username is invalid.
+            example: "Parameter invalid: member_id"
+    MissingMemberId:
+      description: No member ID given.
       content:
         text/html:
           schema:
             type: string
-            example: Missing or invalid username
+            example: "Parameter missing: member_id"
+    MissingMemberUsername:
+      description: No username given.
+      content:
+        text/html:
+          schema:
+            type: string
+            example: "Parameter missing: username"
