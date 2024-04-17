@@ -180,19 +180,20 @@ components:
     product_name:
       type: string
       example: Beer
-    named_product:
+    product_id:
+      type: integer
+      example: 123
     stregoere_price:
       type: integer
       example: 600
     stregoere_balance:
       type: integer
       example: 20000
+    named_products_example:
       type: object
       properties:
         beer:
-          type: integer
-      example:
-        beer: 123
+          $ref: '#/components/schemas/product_id'
     sale:
       type: object
       properties:
@@ -265,7 +266,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/named_product'
+            $ref: '#/components/schemas/named_products_example'
     QRCodeGenerated:
       description: QR code with link to open MobilePay with the provided information.
       content:
