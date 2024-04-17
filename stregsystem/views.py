@@ -493,9 +493,9 @@ def get_payment_qr(request):
 def dump_active_items(request):
     room_id = request.GET.get('room_id') or None
     if room_id is None:
-        return HttpResponseBadRequest("Missing room_id")
+        return HttpResponseBadRequest("Parameter missing: room_id")
     elif not room_id.isdigit():
-        return HttpResponseBadRequest("Invalid room_id")
+        return HttpResponseBadRequest("Parameter invalid: room_id")
     items = __get_productlist(room_id)
     items_dict = {item.id: (item.name, item.price) for item in items}
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
@@ -504,9 +504,9 @@ def dump_active_items(request):
 def get_member_active(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
-        return HttpResponseBadRequest("Missing member_id")
+        return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
-        return HttpResponseBadRequest("Invalid member_id")
+        return HttpResponseBadRequest("Parameter invalid: member_id")
     try:
         member = Member.objects.get(pk=member_id)
     except Member.DoesNotExist:
@@ -517,7 +517,7 @@ def get_member_active(request):
 def get_member_id(request):
     username = request.GET.get('username') or None
     if username is None:
-        return HttpResponseBadRequest("Invalid username")
+        return HttpResponseBadRequest("Parameter missing: username")
 
     try:
         member = Member.objects.get(username=username)
@@ -534,9 +534,9 @@ def dump_product_category_mappings(request):
 def get_member_sales(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
-        return HttpResponseBadRequest("Missing member_id")
+        return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
-        return HttpResponseBadRequest("Invalid member_id")
+        return HttpResponseBadRequest("Parameter invalid: member_id")
     count = 10 if request.GET.get('count') is None else int(request.GET.get('count') or 10)
     sales = Sale.objects.filter(member=member_id).order_by('-timestamp')[:count]
     return JsonResponse(
@@ -547,9 +547,9 @@ def get_member_sales(request):
 def get_member_balance(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
-        return HttpResponseBadRequest("Missing member_id")
+        return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
-        return HttpResponseBadRequest("Invalid member_id")
+        return HttpResponseBadRequest("Parameter invalid: member_id")
     try:
         member = Member.objects.get(pk=member_id)
     except Member.DoesNotExist:
@@ -559,8 +559,10 @@ def get_member_balance(request):
 
 def get_member_info(request):
     member_id = str(request.GET.get('member_id')) or None
-    if member_id is None or not member_id.isdigit():
-        return HttpResponseBadRequest("Missing or invalid member_id")
+    if member_id is None:
+        return HttpResponseBadRequest("Parameter missing: member_id")
+    elif not member_id.isdigit():
+        return HttpResponseBadRequest("Parameter invalid: member_id")
 
     member = find_user_from_id(int(member_id))
     if member is None:
