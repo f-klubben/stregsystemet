@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import logging
 import re
 
@@ -152,7 +150,7 @@ def qr_code(data) -> HttpResponse:
     return response
 
 
-def mobilepay_launch_uri(username: str, amount: int | None) -> str:
+def mobilepay_launch_uri(username: str, amount) -> str:
     query = {'phone': '90601', 'comment': username}
 
     if amount is not None:
