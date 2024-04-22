@@ -141,6 +141,8 @@ paths:
       summary: Gets dictionary of products that are active
       description: Dictionary of products, key is product ID, value is product name and product price.
       operationId: dump_active_products
+      parameters:
+        - $ref: '#/components/parameters/room_id'
       responses:
         '200 Success':
           $ref: '#/components/responses/ActiveProducts'
@@ -150,6 +152,15 @@ paths:
           $ref: '#/components/responses/InvalidRoomId'
         '400 Missing Room ID':
           $ref: '#/components/responses/MissingRoomId'
+  /api/products/category_mappings:
+    get:
+      tags:
+        - Products
+      summary: Gets a dictionary of products with categories
+      description: Dictionary of product IDs with category ID and category name as value.
+      operationId: dump_category_mappings
+      #responses:
+        #'200 Success':
 components:
   parameters:
     member_id:
@@ -159,6 +170,13 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/member_id'
+    room_id:
+      name: room_id
+      in: query
+      description: ID of the room to retrieve.
+      required: true
+      schema:
+        $ref: '#/components/schemas/room_id'
     username:
       name: username
       in: query
@@ -189,6 +207,9 @@ components:
     member_id:
       type: integer
       example: 321
+    room_id:
+      type: integer
+      example: 10
     timestamp:
       type: string
       format: date-time
