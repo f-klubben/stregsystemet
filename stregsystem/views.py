@@ -196,7 +196,7 @@ def quicksale(request, room, member: Member, bought_ids):
         member_balance,
     ) = __set_local_values(member, room, products, order, now)
 
-    products = Counter([re.sub("[\(].*?[\)]|[\+]", "", str(product)) for product in products]).most_common()
+    products = Counter([str(product.name) for product in products]).most_common()
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
