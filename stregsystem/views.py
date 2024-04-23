@@ -148,7 +148,7 @@ def _multibuy_hint(now, member):
             else:
                 sale_dict[str(sale.product.id)] = sale_dict[str(sale.product.id)] + 1
         sale_hints = ["<span class=\"username\">{}</span>".format(member.username)]
-        if (all(sale_count == 1 for sale_count in sale_dict.values())):
+        if all(sale_count == 1 for sale_count in sale_dict.values()):
             return (False, None)
         for key in sale_dict:
             if sale_dict[key] > 1:
