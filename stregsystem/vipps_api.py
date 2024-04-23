@@ -9,7 +9,7 @@ import json
 import logging
 
 
-class VippsAPI(object):
+class AccountingAPI(object):
     api_endpoint = 'https://api.vipps.no'
     # Saves secret tokens to the file "tokens.json" right next to this file.
     # Important to use a separate file since the tokens can change and is thus not suitable for django settings.

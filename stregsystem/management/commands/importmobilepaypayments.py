@@ -10,7 +10,7 @@ import logging
 
 from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji
 
-from stregsystem.vipps_api import VippsAPI
+from stregsystem.vipps_api import AccountingAPI
 
 
 class Command(BaseCommand):
@@ -54,14 +54,14 @@ class Command(BaseCommand):
 
             transactions = []
 
-            transactions.extend(VippsAPI.get_transactions_latest_feed())
+            transactions.extend(AccountingAPI.get_transactions_latest_feed())
 
             for i in range(self.days_back):
                 past_date = date.today() - timedelta(days=i)
                 if past_date < self.manual_cutoff_date:
                     break
 
-                transactions.extend(VippsAPI.get_transactions_historic(past_date))
+                transactions.extend(AccountingAPI.get_transactions_historic(past_date))
 
             return transactions
         except HTTPError as e:
