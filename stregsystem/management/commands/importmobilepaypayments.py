@@ -35,18 +35,6 @@ class Command(BaseCommand):
         self.days_back = options['days_back'] if options['days_back'] <= 31 else 7
         self.import_mobilepay_payments()
 
-    def write_debug(self, s):
-        self.logger.debug(s)
-
-    def write_info(self, s):
-        self.logger.info(s)
-
-    def write_warning(self, s):
-        self.logger.warning(s)
-
-    def write_error(self, s):
-        self.logger.error(s)
-
     def fetch_transactions(self) -> list:
         # Do a client side check if token is good. If not - fetch another token.
         try:
@@ -65,20 +53,20 @@ class Command(BaseCommand):
 
             return transactions
         except HTTPError as e:
-            self.write_error(f"Got an HTTP error when trying to fetch transactions: {e.response}")
+            self.logger.error(f"Got an HTTP error when trying to fetch transactions: {e.response}")
         except Exception as e:
-            self.write_error(f'Got an error when trying to fetch transactions: {e}')
+            self.logger.error(f'Got an error when trying to fetch transactions: {e}')
 
     def import_mobilepay_payments(self):
         transactions = self.fetch_transactions()
         if len(transactions) == 0:
-            self.write_info(f'Ran, but no transactions found')
+            self.logger.info(f'Ran, but no transactions found')
             return
 
         for transaction in transactions:
             self.import_mobilepay_payment(transaction)
 
-        self.write_info('Successfully ran MobilePayment API import')
+        self.logger.info('Successfully ran MobilePayment API import')
 
     def import_mobilepay_payment(self, transaction):
         """
@@ -107,18 +95,18 @@ class Command(BaseCommand):
         payment_datetime = parse_datetime(transaction['time'])
 
         if payment_datetime.date() < self.manual_cutoff_date:
-            self.write_debug(f'Skipping transaction because it is before payment cutoff date {payment_datetime}')
+            self.logger.debug(f'Skipping transaction because it is before payment cutoff date {payment_datetime}')
             return
 
         trans_id = transaction['pspReference']
 
         if MobilePayment.objects.filter(transaction_id=trans_id).exists():
-            self.write_debug(f'Skipping transaction since it already exists (PSP-Reference: {trans_id})')
+            self.logger.debug(f'Skipping transaction since it already exists (PSP-Reference: {trans_id})')
             return
 
         currency_code = transaction['currency']
         if currency_code != 'DKK':
-            self.write_warning(f'Does ONLY support DKK (Transaction ID: {trans_id}), was {currency_code}')
+            self.logger.warning(f'Does ONLY support DKK (Transaction ID: {trans_id}), was {currency_code}')
             return
 
         amount = transaction['amount']
@@ -134,4 +122,4 @@ class Command(BaseCommand):
             status=MobilePayment.UNSET,
         )
 
-        self.write_info(f'Imported transaction id: {trans_id} for amount: {amount}')
+        self.logger.info(f'Imported transaction id: {trans_id} for amount: {amount}')

@@ -20,18 +20,6 @@ class AccountingAPI(object):
     myshop_number = 90601
     logger = logging.getLogger(__name__)
 
-    def write_debug(self, s):
-        self.logger.debug(s)
-
-    def write_info(self, s):
-        self.logger.info(s)
-
-    def write_warning(self, s):
-        self.logger.warning(s)
-
-    def write_error(self, s):
-        self.logger.error(s)
-
     @classmethod
     def __read_token_storage(cls):
         """
@@ -41,7 +29,7 @@ class AccountingAPI(object):
             cls.tokens = json.load(json_file)
 
         if cls.tokens is None:
-            cls.write_error("read token from storage. 'tokens' is None. Reverting to backup tokens")
+            cls.logger.error("read token from storage. 'tokens' is None. Reverting to backup tokens")
 
             with open(cls.tokens_file_backup, 'r') as json_file_backup:
                 cls.tokens = json.load(json_file_backup)
@@ -52,7 +40,7 @@ class AccountingAPI(object):
         Saves the token variable to disk
         """
         if cls.tokens is None:
-            cls.write_error(f"'tokens' is None. Aborted writing.")
+            cls.logger.error(f"'tokens' is None. Aborted writing.")
             return
 
         with open(cls.tokens_file, 'w') as json_file:
