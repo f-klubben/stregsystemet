@@ -53,7 +53,13 @@ Ingen indbetalinger!
 </center>
 
 <br />
-
+<div style='text-align:center;'>
+   {%for line in csv%}
+      <script>console.log("{{line}}")</script>
+   {%endfor%}
+<button id="csvbutton">Download købs info (csv)</button> 
+<button>Send mig købs info (mail)</button>
+</div>
 <center><b>I databasen ligger desuden følgende informationer om dig</b></center>
 <table border=1 width="100%">
    <tr>

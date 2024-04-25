@@ -239,6 +239,8 @@ def menu_userinfo(request, room_id, member_id):
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()
 
+    csv = [f'{sale.product.name},{sale.price},{sale.timestamp}' for sale in member.sale_set.order_by('-timestamp')]
+
     return render(request, 'stregsystem/menu_userinfo.html', locals())
 
 
