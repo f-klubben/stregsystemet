@@ -16,11 +16,7 @@ from django.contrib.auth.decorators import permission_required
 from django.conf import settings
 from django.db.models import Q, Count, Sum
 from django import forms
-from django.http import (
-    HttpResponsePermanentRedirect,
-    HttpResponseBadRequest,
-    JsonResponse,
-)
+from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -65,7 +61,7 @@ from .purchase_heatmap import (
 def __get_news():
     try:
         current_time = timezone.now()
-        return News.objects.filter(stop_date__gte=current_time, pub_date__lte=current_time).order_by("?").first()
+        return News.objects.filter(stop_date__gte=current_time, pub_date__lte=current_time).order_by('?').first()
     except News.DoesNotExist:
         return None
 
@@ -75,7 +71,7 @@ def __get_productlist(room_id):
 
 
 def roomindex(request):
-    return HttpResponsePermanentRedirect("/1/")
+    return HttpResponsePermanentRedirect('/1/')
 
 
 #    room_list = Room.objects.all().order_by('name', 'description')
@@ -86,21 +82,21 @@ def index(request, room_id):
     room = get_object_or_404(Room, pk=int(room_id))
     product_list = __get_productlist(room_id)
     news = __get_news()
-    return render(request, "stregsystem/index.html", locals())
+    return render(request, 'stregsystem/index.html', locals())
 
 
 def _pre_process(buy_string):
-    items = buy_string.split(" ")
+    items = buy_string.split(' ')
     _items = [items[0]]
 
     for item in items[1:]:
         if type(item) is not int:
-            _item = NamedProduct.objects.filter(name=item.split(":")[0].lower() if ":" in item else item)
+            _item = NamedProduct.objects.filter(name=item.split(':')[0].lower() if ':' in item else item)
             if _item:
-                item = item.replace(item.split(":")[0], str(_item.get().product.pk))
+                item = item.replace(item.split(':')[0], str(_item.get().product.pk))
         _items.append(str(item))
 
-    return " ".join(_items)
+    return ' '.join(_items)
 
 
 def sale(request, room_id):
@@ -108,27 +104,27 @@ def sale(request, room_id):
     news = __get_news()
     product_list = __get_productlist(room_id)
 
-    buy_string = request.POST["quickbuy"].strip()
+    buy_string = request.POST['quickbuy'].strip()
     # Handle empty line
     if buy_string == "":
-        return render(request, "stregsystem/index.html", locals())
+        return render(request, 'stregsystem/index.html', locals())
     # Extract username and product ids
     try:
         username, bought_ids = parser.parse(_pre_process(buy_string))
     except parser.QuickBuyError as err:
         values = {
-            "correct": err.parsed_part,
-            "incorrect": err.failed_part,
-            "error_ptr": "~" * (len(err.parsed_part)) + "^",
-            "error_msg": " " * (len(err.parsed_part) - 4) + "Fejl her",
-            "room": room,
+            'correct': err.parsed_part,
+            'incorrect': err.failed_part,
+            'error_ptr': '~' * (len(err.parsed_part)) + '^',
+            'error_msg': ' ' * (len(err.parsed_part) - 4) + 'Fejl her',
+            'room': room,
         }
-        return render(request, "stregsystem/error_invalidquickbuy.html", values)
+        return render(request, 'stregsystem/error_invalidquickbuy.html', values)
     # Fetch member from DB
     try:
         member = Member.objects.get(username=username, active=True)
     except Member.DoesNotExist:
-        return render(request, "stregsystem/error_usernotfound.html", locals())
+        return render(request, 'stregsystem/error_usernotfound.html', locals())
 
     if len(bought_ids):
         return quicksale(request, room, member, bought_ids)
@@ -141,7 +137,7 @@ def _multibuy_hint(now, member):
     earliest_recent_purchase = now - datetime.timedelta(seconds=60)
     # get the sales with this timestamp
     recent_purchases = Sale.objects.filter(member=member, timestamp__gt=earliest_recent_purchase)
-    number_of_recent_distinct_purchases = recent_purchases.values("timestamp").distinct().count()
+    number_of_recent_distinct_purchases = recent_purchases.values('timestamp').distinct().count()
 
     # add hint for multibuy
     if number_of_recent_distinct_purchases > 1:
@@ -151,13 +147,13 @@ def _multibuy_hint(now, member):
                 sale_dict[str(sale.product.id)] = 1
             else:
                 sale_dict[str(sale.product.id)] = sale_dict[str(sale.product.id)] + 1
-        sale_hints = ['<span class="username">{}</span>'.format(member.username)]
+        sale_hints = ["<span class=\"username\">{}</span>".format(member.username)]
         for key in sale_dict:
             if sale_dict[key] > 1:
                 sale_hints.append("{}:{}".format(key, sale_dict[key]))
             else:
                 sale_hints.append(key)
-        return (True, " ".join(sale_hints))
+        return (True, ' '.join(sale_hints))
 
     return (False, None)
 
@@ -171,19 +167,15 @@ def quicksale(request, room, member: Member, bought_ids):
     products: List[Product] = []
     msg, status, result = __append_bought_ids_to_product_list(products, bought_ids, now, room)
     if status == 400:
-        return render(
-            request,
-            "stregsystem/error_productdoesntexist.html",
-            {"failedProduct": result, "room": room},
-        )
+        return render(request, 'stregsystem/error_productdoesntexist.html', {'failedProduct': result, 'room': room})
 
     order = Order.from_products(member=member, products=products, room=room)
 
     msg, status, result = __execute_order(order)
-    if "Out of stock" in msg:
-        return render(request, "stregsystem/error_stregforbud.html", locals())
-    elif "Stregforbud" in msg:
-        return render(request, "stregsystem/error_stregforbud.html", locals(), status=402)
+    if 'Out of stock' in msg:
+        return render(request, 'stregsystem/error_stregforbud.html', locals())
+    elif 'Stregforbud' in msg:
+        return render(request, 'stregsystem/error_stregforbud.html', locals(), status=402)
 
     (
         promille,
@@ -201,7 +193,7 @@ def quicksale(request, room, member: Member, bought_ids):
         member_balance,
     ) = __set_local_values(member, room, products, order, now)
 
-    return render(request, "stregsystem/index_sale.html", locals())
+    return render(request, 'stregsystem/index_sale.html', locals())
 
 
 def usermenu(request, room, member, bought, from_sale=False):
@@ -225,9 +217,9 @@ def usermenu(request, room, member, bought, from_sale=False):
     heatmap_context = prepare_heatmap_template_context(member, 12, datetime.date.today())
 
     if member.has_stregforbud():
-        return render(request, "stregsystem/error_stregforbud.html", locals())
+        return render(request, 'stregsystem/error_stregforbud.html', locals())
     else:
-        return render(request, "stregsystem/menu.html", {**locals(), **heatmap_context})
+        return render(request, 'stregsystem/menu.html', {**locals(), **heatmap_context})
 
 
 def menu_userinfo(request, room_id, member_id):
@@ -235,19 +227,19 @@ def menu_userinfo(request, room_id, member_id):
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
     stats = Sale.objects.filter(member_id=member_id).aggregate(
-        total_amount=Sum("price"), total_purchases=Count("timestamp")
+        total_amount=Sum('price'), total_purchases=Count('timestamp')
     )
 
-    last_sale_list = member.sale_set.order_by("-timestamp")[:10]
+    last_sale_list = member.sale_set.order_by('-timestamp')[:10]
     try:
-        last_payment = member.payment_set.order_by("-timestamp")[0]
+        last_payment = member.payment_set.order_by('-timestamp')[0]
     except IndexError:
         last_payment = None
 
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()
 
-    return render(request, "stregsystem/menu_userinfo.html", locals())
+    return render(request, 'stregsystem/menu_userinfo.html', locals())
 
 
 def send_csv_mail(request, room_id, member_id):
@@ -268,7 +260,7 @@ def menu_userpay(request, room_id, member_id):
     amounts = {100, 200}
 
     try:
-        last_payment = member.payment_set.order_by("-timestamp")[0]
+        last_payment = member.payment_set.order_by('-timestamp')[0]
         amounts.add(last_payment.amount / 100.0)
     except IndexError:
         last_payment = None
@@ -279,7 +271,7 @@ def menu_userpay(request, room_id, member_id):
 
     amounts = sorted(amounts)
 
-    return render(request, "stregsystem/menu_userpay.html", locals())
+    return render(request, 'stregsystem/menu_userpay.html', locals())
 
 
 def menu_userrank(request, room_id, member_id):
@@ -290,13 +282,9 @@ def menu_userrank(request, room_id, member_id):
 
     def ranking(category_ids, from_d, to_d):
         qs = (
-            Member.objects.filter(
-                sale__product__in=category_ids,
-                sale__timestamp__gt=from_d,
-                sale__timestamp__lte=to_d,
-            )
-            .annotate(Count("sale"))
-            .order_by("-sale__count", "username")
+            Member.objects.filter(sale__product__in=category_ids, sale__timestamp__gt=from_d, sale__timestamp__lte=to_d)
+            .annotate(Count('sale'))
+            .order_by('-sale__count', 'username')
         )
         if member not in qs:
             return 0, qs.count()
@@ -305,7 +293,7 @@ def menu_userrank(request, room_id, member_id):
     def get_product_ids_for_category(category) -> list:
         return list(
             Product.objects.filter(categories__exact=Category.objects.get(name__exact=category)).values_list(
-                "id", flat=True
+                'id', flat=True
             )
         )
 
@@ -323,19 +311,19 @@ def menu_userrank(request, room_id, member_id):
 
     # let user know when they first purchased a product
     member_first_purchase = "Ikke endnu, køb en limfjordsporter!"
-    first_purchase = Sale.objects.filter(member=member_id).order_by("-timestamp")
+    first_purchase = Sale.objects.filter(member=member_id).order_by('-timestamp')
     if first_purchase.exists():
         member_first_purchase = first_purchase.last().timestamp
 
     form = RankingDateForm()
-    if request.method == "POST" and request.POST["custom-range"]:
+    if request.method == "POST" and request.POST['custom-range']:
         form = RankingDateForm(request.POST)
         if form.is_valid():
-            from_date = form.cleaned_data["from_date"]
-            to_date = form.cleaned_data["to_date"] + datetime.timedelta(days=1)
+            from_date = form.cleaned_data['from_date']
+            to_date = form.cleaned_data['to_date'] + datetime.timedelta(days=1)
     else:
         # setup initial dates for form and results
-        form = RankingDateForm(initial={"from_date": from_date, "to_date": to_date})
+        form = RankingDateForm(initial={'from_date': from_date, 'to_date': to_date})
 
     # get prod_ids for each category as dict {cat: [key1, key2])}, then flatten list of singleton
     # dicts into one dict, lastly calculate member_id rating and units/weekday for category_ids
@@ -346,15 +334,12 @@ def menu_userrank(request, room_id, member_id):
         )
         for key, category_ids in {
             k: v
-            for x in map(
-                lambda x: {x: get_product_ids_for_category(x)},
-                list(Category.objects.all()),
-            )
+            for x in map(lambda x: {x: get_product_ids_for_category(x)}, list(Category.objects.all()))
             for k, v in x.items()
         }.items()
     }
 
-    return render(request, "stregsystem/menu_userrank.html", locals())
+    return render(request, 'stregsystem/menu_userrank.html', locals())
 
 
 def menu_sale(request, room_id, member_id, product_id=None):
@@ -363,7 +348,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
     member = Member.objects.get(pk=member_id, active=True)
 
     product = None
-    if request.method == "POST":
+    if request.method == 'POST':
         purchase = PurchaseForm(request.POST)
         if not purchase.is_valid():
             return HttpResponseBadRequest(
@@ -372,7 +357,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
 
         try:
             product = Product.objects.get(
-                Q(pk=purchase.cleaned_data["product_id"]),
+                Q(pk=purchase.cleaned_data['product_id']),
                 Q(active=True),
                 Q(rooms__id=room_id) | Q(rooms=None),
                 Q(deactivate_date__gte=timezone.now()) | Q(deactivate_date__isnull=True),
@@ -385,10 +370,10 @@ def menu_sale(request, room_id, member_id, product_id=None):
         except Product.DoesNotExist:
             pass
         except StregForbudError:
-            return render(request, "stregsystem/error_stregforbud.html", locals())
+            return render(request, 'stregsystem/error_stregforbud.html', locals())
         except NoMoreInventoryError:
             # @INCOMPLETE this should render with a different template
-            return render(request, "stregsystem/error_stregforbud.html", locals())
+            return render(request, 'stregsystem/error_stregforbud.html', locals())
 
     # Refresh member, to get new amount
     member = Member.objects.get(pk=member_id, active=True)
@@ -399,9 +384,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
 @permission_required("stregsystem.import_batch_payments")
 def batch_payment(request):
     PaymentFormSet = forms.modelformset_factory(
-        Payment,
-        fields=("member", "amount"),
-        widgets={"member": forms.Select(attrs={"class": "select2"})},
+        Payment, fields=("member", "amount"), widgets={"member": forms.Select(attrs={"class": "select2"})}
     )
     if request.method == "POST":
         formset = PaymentFormSet(request.POST, request.FILES)
@@ -446,63 +429,60 @@ def batch_payment(request):
 @permission_required("stregsystem.mobilepaytool_access")
 def mobilepaytool(request):
     paytool_form_set = modelformset_factory(
-        MobilePayment,
-        form=MobilePayToolForm,
-        extra=0,
-        fields=("timestamp", "amount", "member", "comment", "status"),
+        MobilePayment, form=MobilePayToolForm, extra=0, fields=('timestamp', 'amount', 'member', 'comment', 'status')
     )  # TODO: 'customer_name' removed, MobilepayAPI does not
     # TODO-cont: have that information at this point in time - add back 'customer_name' if available in future
     data = dict()
     if request.method == "GET":
-        data["formset"] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
-    elif request.method == "POST" and "csv_file" in request.FILES and request.POST["action"] == "Import MobilePay CSV":
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+    elif request.method == "POST" and 'csv_file' in request.FILES and request.POST['action'] == "Import MobilePay CSV":
         # Prepare uploaded CSV to be read
-        csv_file = request.FILES["csv_file"]
+        csv_file = request.FILES['csv_file']
         csv_file.seek(0)
 
-        data["imports"], data["duplicates"] = parse_csv_and_create_mobile_payments(
-            str(csv_file.read().decode("utf-8")).splitlines()
+        data['imports'], data['duplicates'] = parse_csv_and_create_mobile_payments(
+            str(csv_file.read().decode('utf-8')).splitlines()
         )
 
         # refresh form after submission
-        data["formset"] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
-    elif request.method == "POST" and request.POST["action"] == "Import via MobilePay API":
+    elif request.method == "POST" and request.POST['action'] == "Import via MobilePay API":
         before_count = MobilePayment.objects.count()
-        management.call_command("importmobilepaypayments")
+        management.call_command('importmobilepaypayments')
         count = MobilePayment.objects.count() - before_count
 
-        data["api"] = f"Successfully imported {count} MobilePay transactions"
-        data["formset"] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+        data['api'] = f"Successfully imported {count} MobilePay transactions"
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
-    elif request.method == "POST" and request.POST["action"] == "Submit matched payments":
+    elif request.method == "POST" and request.POST['action'] == "Submit matched payments":
         before_count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count()
         MobilePayment.approve_member_filled_mobile_payments()
         MobilePayment.submit_processed_mobile_payments(request.user)
         count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count() - before_count
 
-        data["submitted_count"] = count
-        data["formset"] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+        data['submitted_count'] = count
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
-    elif request.method == "POST" and request.POST["action"] == "Submit payments":
+    elif request.method == "POST" and request.POST['action'] == "Submit payments":
         form = paytool_form_set(request.POST)
 
         if form.is_valid():
             try:
                 # Do custom validation on form to avoid race conditions with autopayment
                 count = MobilePayment.process_submitted_mobile_payments(form.cleaned_data, request.user)
-                data["submitted_count"] = count
+                data['submitted_count'] = count
             except MobilePaytoolException as e:
-                data["error_count"] = e.inconsistent_mbpayments_count
-                data["error_transaction_ids"] = e.inconsistent_transaction_ids
+                data['error_count'] = e.inconsistent_mbpayments_count
+                data['error_transaction_ids'] = e.inconsistent_transaction_ids
 
             # refresh form after submission
-            data["formset"] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+            data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
         else:
             # update form with errors
-            data["formset"] = form
+            data['formset'] = form
     else:
-        data["formset"] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
     return render(request, "admin/stregsystem/mobilepaytool.html", data)
 
@@ -512,12 +492,12 @@ def qr_payment(request):
     if not form.is_valid():
         return HttpResponseBadRequest("Invalid input for MobilePay QR code generation")
 
-    query = {"phone": "90601", "comment": form.cleaned_data.get("member")}
+    query = {'phone': '90601', 'comment': form.cleaned_data.get('member')}
 
     if form.cleaned_data.get("amount") is not None:
-        query["amount"] = form.cleaned_data.get("amount")
+        query['amount'] = form.cleaned_data.get("amount")
 
-    data = "mobilepay://send?{}".format(urllib.parse.urlencode(query))
+    data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
     return qr_code(data)
 
 
@@ -525,18 +505,18 @@ def qr_payment(request):
 
 
 def dump_active_items(request):
-    room_id = request.GET.get("room_id") or None
+    room_id = request.GET.get('room_id') or None
     if room_id is None:
         return HttpResponseBadRequest("Missing room_id")
     elif not room_id.isdigit():
         return HttpResponseBadRequest("Invalid room_id")
     items = __get_productlist(room_id)
     items_dict = {item.id: (item.name, item.price) for item in items}
-    return JsonResponse(items_dict, json_dumps_params={"ensure_ascii": False})
+    return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
 
 
 def check_user_active(request):
-    member_id = request.GET.get("member_id") or None
+    member_id = request.GET.get('member_id') or None
     if member_id is None:
         return HttpResponseBadRequest("Missing member_id")
     elif not member_id.isdigit():
@@ -545,18 +525,18 @@ def check_user_active(request):
         member = Member.objects.get(pk=member_id)
     except Member.DoesNotExist:
         return HttpResponseBadRequest("Member not found")
-    return JsonResponse({"active": member.active})
+    return JsonResponse({'active': member.active})
 
 
 def convert_username_to_id(request):
-    username = request.GET.get("username") or None
+    username = request.GET.get('username') or None
     if username is None:
         return HttpResponseBadRequest("Missing username")
     try:
         member = Member.objects.get(username=username)
     except Member.DoesNotExist:
         return HttpResponseBadRequest("Invalid username")
-    return JsonResponse({"member_id": member.id})
+    return JsonResponse({'member_id': member.id})
 
 
 def dump_product_category_mappings(request):
@@ -564,29 +544,20 @@ def dump_product_category_mappings(request):
 
 
 def get_user_sales(request):
-    member_id = request.GET.get("member_id") or None
+    member_id = request.GET.get('member_id') or None
     if member_id is None:
         return HttpResponseBadRequest("Missing member_id")
     elif not member_id.isdigit():
         return HttpResponseBadRequest("Invalid member_id")
-    count = 10 if request.GET.get("count") is None else int(request.GET.get("count") or 10)
-    sales = Sale.objects.filter(member=member_id).order_by("-timestamp")[:count]
+    count = 10 if request.GET.get('count') is None else int(request.GET.get('count') or 10)
+    sales = Sale.objects.filter(member=member_id).order_by('-timestamp')[:count]
     return JsonResponse(
-        {
-            "sales": [
-                {
-                    "timestamp": s.timestamp,
-                    "product": s.product.name,
-                    "price": s.product.price,
-                }
-                for s in sales
-            ]
-        }
+        {'sales': [{'timestamp': s.timestamp, 'product': s.product.name, 'price': s.product.price} for s in sales]}
     )
 
 
 def get_user_balance(request):
-    member_id = request.GET.get("member_id") or None
+    member_id = request.GET.get('member_id') or None
     if member_id is None:
         return HttpResponseBadRequest("Missing member_id")
     elif not member_id.isdigit():
@@ -595,11 +566,11 @@ def get_user_balance(request):
         member = Member.objects.get(pk=member_id)
     except Member.DoesNotExist:
         return HttpResponseBadRequest("Member not found")
-    return JsonResponse({"balance": member.balance})
+    return JsonResponse({'balance': member.balance})
 
 
 def get_user_info(request):
-    member_id = str(request.GET.get("member_id")) or None
+    member_id = str(request.GET.get('member_id')) or None
     if member_id is None or not member_id.isdigit():
         return HttpResponseBadRequest("Missing or invalid member_id")
 
@@ -608,10 +579,10 @@ def get_user_info(request):
         return HttpResponseBadRequest("Member not found")
     return JsonResponse(
         {
-            "balance": member.balance,
-            "username": member.username,
-            "active": member.active,
-            "name": f"{member.firstname} {member.lastname}",
+            'balance': member.balance,
+            'username': member.username,
+            'active': member.active,
+            'name': f'{member.firstname} {member.lastname}',
         }
     )
 
@@ -626,7 +597,7 @@ def find_user_from_id(user_id: int):
 def dump_named_items(request):
     items = NamedProduct.objects.all()
     items_dict = {item.name: item.product.id for item in items}
-    return JsonResponse(items_dict, json_dumps_params={"ensure_ascii": False})
+    return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
 
 
 @csrf_exempt
@@ -635,9 +606,9 @@ def api_sale(request):
         return HttpResponseBadRequest()
     else:
         data = json.loads(request.body)
-        buy_string = str(data["buystring"]).strip()
-        room = str(data["room"]) or None
-        member_id = str(data["member_id"]) or None
+        buy_string = str(data['buystring']).strip()
+        room = str(data['room']) or None
+        member_id = str(data['member_id']) or None
 
         if room is None or not room.isdigit():
             return HttpResponseBadRequest("Missing or invalid room")
@@ -659,7 +630,7 @@ def api_sale(request):
             return HttpResponseBadRequest("Username does not match member_id")
 
         if not buy_string.startswith(member.username):
-            buy_string = f"{member.username} {buy_string}"
+            buy_string = f'{member.username} {buy_string}'
 
         try:
             room = Room.objects.get(pk=room)
@@ -667,8 +638,7 @@ def api_sale(request):
             return HttpResponseBadRequest("Invalid room")
         msg, status, ret_obj = api_quicksale(request, room, member, bought_ids)
         return JsonResponse(
-            {"status": status, "msg": msg, "values": ret_obj},
-            json_dumps_params={"ensure_ascii": False},
+            {'status': status, 'msg': msg, 'values': ret_obj}, json_dumps_params={'ensure_ascii': False}
         )
 
 
@@ -708,25 +678,25 @@ def api_quicksale(request, room, member: Member, bought_ids):
         "OK",
         200 if len(bought_ids) > 0 else 201,
         {
-            "order": {
-                "room": order.room.id,
-                "member": order.member.id,
-                "created_on": order.created_on,
-                "items": bought_ids,
+            'order': {
+                'room': order.room.id,
+                'member': order.member.id,
+                'created_on': order.created_on,
+                'items': bought_ids,
             },
-            "promille": promille,
-            "is_ballmer_peaking": is_ballmer_peaking,
-            "bp_minutes": bp_minutes,
-            "bp_seconds": bp_seconds,
-            "caffeine": caffeine,
-            "cups": cups,
-            "product_contains_caffeine": product_contains_caffeine,
-            "is_coffee_master": is_coffee_master,
-            "cost": cost(),
-            "give_multibuy_hint": give_multibuy_hint,
-            "sale_hints": sale_hints,
-            "member_has_low_balance": member_has_low_balance,
-            "member_balance": member_balance,
+            'promille': promille,
+            'is_ballmer_peaking': is_ballmer_peaking,
+            'bp_minutes': bp_minutes,
+            'bp_seconds': bp_seconds,
+            'caffeine': caffeine,
+            'cups': cups,
+            'product_contains_caffeine': product_contains_caffeine,
+            'is_coffee_master': is_coffee_master,
+            'cost': cost(),
+            'give_multibuy_hint': give_multibuy_hint,
+            'sale_hints': sale_hints,
+            'member_has_low_balance': member_has_low_balance,
+            'member_balance': member_balance,
         },
     )
 
