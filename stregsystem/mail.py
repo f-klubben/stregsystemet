@@ -75,13 +75,9 @@ def send_csv_mail(member):
     payments: list[Payment] = member.payment_set.order_by("-timestamp")
 
     sales_csv = "Name, Price, Timestamp"
-    sales_csv += "\n".join(
-        [f"{sale.product.name},{sale.price},{sale.timestamp}" for sale in sales]
-    )
+    sales_csv += "\n".join([f"{sale.product.name},{sale.price},{sale.timestamp}" for sale in sales])
     payments_csv = "Timestamp, Amount"
-    payments_csv += "\n".join(
-        [f"{payment.timestamp},{payment.amount}" for payment in payments]
-    )
+    payments_csv += "\n".join([f"{payment.timestamp},{payment.amount}" for payment in payments])
     userdata_csv = "Id, Name, First name, Last name, Email, Registration year"
     userdata_csv += f"{member.id},{member.username},{member.firstname},{member.lastname},{member.email},{member.year}"
 
@@ -89,11 +85,7 @@ def send_csv_mail(member):
     msg["From"] = "treo@fklub.dk"
     msg["To"] = member.email
     msg["Subject"] = f"[TREO] {member.username} user data request"
-    msg.attach(
-        MIMEText(
-            render_to_string("mail/send_csv.html", {"fember": member.username}), "html"
-        )
-    )
+    msg.attach(MIMEText(render_to_string("mail/send_csv.html", {"fember": member.username}), "html"))
     for name, csv in {
         "sales": sales_csv,
         "payments": payments_csv,
