@@ -49,7 +49,7 @@ def send_template_mail(member, target_template: str, context: dict, subject: str
     except Exception as e:
         logger.error(str(e))
 
-users_who_has_requested:dict[int,datetime] = {}
+users_who_has_requested = {}
 
 def send_csv_mail(member):
     global users_who_has_requested
@@ -59,6 +59,8 @@ def send_csv_mail(member):
         ten_days_ago = now  - timedelta(days=10)
         if users_who_has_requested[member.id] > ten_days_ago:
             return False
+    else:
+        users_who_has_requested[member.id] = datetime.now()
 
     # haha linting as i have no idea how django works otherwise
     from .models import Payment, Sale
