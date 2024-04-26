@@ -239,10 +239,17 @@ def menu_userinfo(request, room_id, member_id):
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()
 
-    csv = [f'{sale.product.name},{sale.price},{sale.timestamp}' for sale in member.sale_set.order_by('-timestamp')]
-
     return render(request, 'stregsystem/menu_userinfo.html', locals())
 
+def send_csv_mail(request, room_id, member_id):
+    from .mail import send_csv_mail as _send_csv_mail
+    room = Room.objects.get(pk=room_id)
+    member = Member.objects.get(pk=member_id, active=True)
+
+    mail_sent_text = "Ingen mail sendt!" if _send_csv_mail(member) else "Mail sendt."
+
+
+    return render(request, "stregsystem/sent_csv_mail.html", locals())
 
 def menu_userpay(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
