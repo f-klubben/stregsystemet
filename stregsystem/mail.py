@@ -31,25 +31,6 @@ def send_payment_mail(member, amount, mobilepay_comment):
         "Stregsystem payment",
     )
 
-
-def send_template_mail(member, target_template: str, context: dict, subject: str):
-    msg = MIMEMultipart()
-    msg['From'] = 'treo@fklub.dk'
-    msg['To'] = member.email
-    msg['Subject'] = subject
-    html = render_to_string(f"mail/{target_template}", context)
-    msg.attach(MIMEText(html, 'html'))
-
-    if hasattr(settings, 'TEST_MODE'):
-        return
-
-    try:
-        smtpObj = smtplib.SMTP('localhost', 25)
-        smtpObj.sendmail('treo@fklub.dk', member.email, msg.as_string())
-    except Exception as e:
-        logger.error(str(e))
-
-
 def send_csv_mail(member):
     if member.requested_data_time is not None:
         ten_minutes_ago = datetime.now() - timedelta(minutes=10)
@@ -59,7 +40,7 @@ def send_csv_mail(member):
             member.requested_data_time = datetime.now()
     else:
         member.requested_data_time = datetime.now()
-
+    
     # haha linting as i have no idea how django works otherwise
     from .models import Payment, Sale
 
@@ -73,14 +54,31 @@ def send_csv_mail(member):
     userdata_csv = "Id, Name, First name, Last name, Email, Registration year\n"
     userdata_csv += f"{member.id},{member.username},{member.firstname},{member.lastname},{member.email},{member.year}"
 
+    send_template_mail(
+        member,
+        "send_csv.html",
+        {**vars(member), "fember": member.username},
+        f'{member.username} has requested their user data!',
+        {"sales.csv":sales_csv, "payments.csv":payments_csv, "userdata.csv":userdata_csv}
+    )
+    return True
+
+
+
+def send_template_mail(member, target_template: str, context: dict, subject: str, attachments:dict = {}):
     msg = MIMEMultipart()
     msg['From'] = 'treo@fklub.dk'
     msg['To'] = member.email
-    msg['Subject'] = f'[TREO] {member.username} user data request'
-    msg.attach(MIMEText(render_to_string("mail/send_csv.html", {"fember": member.username}), 'html'))
-    for name, csv in {"sales": sales_csv, "payments": payments_csv, "userdata": userdata_csv}.items():
-        attachment = MIMEApplication(csv, Name=f"{name}.csv")
-        attachment['Content-Disposition'] = f'attachment; filename="{name}.csv"'
+    msg['Subject'] = subject
+    html = render_to_string(f"mail/{target_template}", context)
+    msg.attach(MIMEText(html, 'html'))
+
+    if hasattr(settings, 'TEST_MODE'):
+        return
+    
+    for name, attachment in attachments.items():
+        attachment = MIMEApplication(attachment, Name=name)
+        attachment['Content-Disposition'] = f'attachment; filename={name}'
         msg.attach(attachment)
 
     try:
@@ -88,4 +86,3 @@ def send_csv_mail(member):
         smtpObj.sendmail('treo@fklub.dk', member.email, msg.as_string())
     except Exception as e:
         logger.error(str(e))
-    return True
