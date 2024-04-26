@@ -50,31 +50,27 @@ def send_template_mail(member, target_template: str, context: dict, subject: str
         logger.error(str(e))
 
 
-users_who_has_requested = {}
-
-
 def send_csv_mail(member):
-    global users_who_has_requested
-
-    if member.id in users_who_has_requested.keys():
-        now = datetime.now()
-        ten_days_ago = now - timedelta(days=10)
-        if users_who_has_requested[member.id] > ten_days_ago:
+    if member.requested_data_time is not None:
+        ten_minutes_ago = datetime.now() - timedelta(minutes=10)
+        if member.requested_data_time > ten_minutes_ago:
             return False
+        else:
+            member.requested_data_time = datetime.now()
     else:
-        users_who_has_requested[member.id] = datetime.now()
+        member.requested_data_time = datetime.now()
 
     # haha linting as i have no idea how django works otherwise
     from .models import Payment, Sale
 
-    sales: list[Sale] = member.sale_set.order_by("-timestamp")
-    payments: list[Payment] = member.payment_set.order_by("-timestamp")
+    sales: list[Sale] = member.sale_set.order_by("timestamp")
+    payments: list[Payment] = member.payment_set.order_by("timestamp")
 
-    sales_csv = "Name, Price, Timestamp"
+    sales_csv = "Name, Price, Timestamp\n"
     sales_csv += "\n".join([f'{sale.product.name},{sale.price},{sale.timestamp}' for sale in sales])
-    payments_csv = "Timestamp, Amount"
+    payments_csv = "Timestamp, Amount\n"
     payments_csv += "\n".join([f'{payment.timestamp},{payment.amount}' for payment in payments])
-    userdata_csv = "Id, Name, First name, Last name, Email, Registration year"
+    userdata_csv = "Id, Name, First name, Last name, Email, Registration year\n"
     userdata_csv += f"{member.id},{member.username},{member.firstname},{member.lastname},{member.email},{member.year}"
 
     msg = MIMEMultipart()

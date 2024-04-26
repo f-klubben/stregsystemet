@@ -248,7 +248,7 @@ def send_csv_mail(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     member = Member.objects.get(pk=member_id, active=True)
 
-    mail_sent_text = "Ingen mail sendt!" if _send_csv_mail(member) else "Mail sendt."
+    mail_sent_text = "Mail sendt!" if _send_csv_mail(member) else "Ingen mail sendt."
 
     return render(request, "stregsystem/sent_csv_mail.html", locals())
 

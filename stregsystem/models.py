@@ -172,6 +172,7 @@ class Member(models.Model):  # id automatisk...
     balance = models.IntegerField(default=0)  # hvor mange oerer vedkommende har til gode
     undo_count = models.IntegerField(default=0)  # for 'undos' i alt
     notes = models.TextField(blank=True)
+    requested_data_time = None
 
     stregforbud_override = False
 
