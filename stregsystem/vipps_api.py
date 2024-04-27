@@ -11,10 +11,10 @@ import logging
 
 class AccountingAPI(object):
     api_endpoint = 'https://api.vipps.no'
-    # Saves secret tokens to the file "tokens.json" right next to this file.
+    # Saves secret tokens to the file "vipps-tokens.json" right next to this file.
     # Important to use a separate file since the tokens can change and is thus not suitable for django settings.
-    tokens_file = (Path(__file__).parent / 'tokens.json').as_posix()
-    tokens_file_backup = (Path(__file__).parent / 'tokens.json.bak').as_posix()
+    tokens_file = (Path(__file__).parent / 'vipps-tokens.json').as_posix()
+    tokens_file_backup = (Path(__file__).parent / 'vipps-tokens.json.bak').as_posix()
     tokens = None
 
     myshop_number = 90601
