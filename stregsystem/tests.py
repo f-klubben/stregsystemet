@@ -917,6 +917,7 @@ class MemberTests(TestCase):
 
         stregsystem_views.send_csv_mail(None, room.id, user.id)
 
+
 class BallmerPeakTests(TestCase):
     def test_close_to_maximum(self):
         bac = 1.337 + 0.049
@@ -1830,9 +1831,7 @@ class CaffeineCalculatorTest(TestCase):
 
     def test_caffeine_str_is_correct_length(self):
         user = Member.objects.create(username="test", gender='F', balance=100)
-        coffee = Product.objects.create(
-            name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True
-        )
+        coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True)
 
         # do five sales of coffee and assert that emoji renderer returns same amount of emoji
         sales = 5
@@ -1863,9 +1862,7 @@ class CaffeineCalculatorTest(TestCase):
         average_developer = Member.objects.create(username="my-gal", gender="F", balance=50)
         coffee_category = Category.objects.create(name="Caffeine☕☕☕", pk=6)
         coffee_category.save()
-        coffee = Product.objects.create(
-            name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True
-        )
+        coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True)
         # matches coffee id in production. Will be implemented with categories later, when production have a coffee
         # category
         coffee.save()
