@@ -907,6 +907,15 @@ class MemberTests(TestCase):
         with freeze_time(timezone.datetime(year=2000, month=1, day=1, hour=0, minute=50)) as ft:
             self.assertAlmostEqual(1.15, user.calculate_alcohol_promille(), places=2)
 
+    def test_send_userdata(self):
+        user = Member.objects.create()
+        room = Room.objects.create()
+
+        t = timezone.datetime.fromtimestamp(0)
+
+        self.assertEqual(user.requested_data_time, t)
+
+        stregsystem_views.send_csv_mail(None, room.id, user.id)
 
 class BallmerPeakTests(TestCase):
     def test_close_to_maximum(self):
