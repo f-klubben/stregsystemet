@@ -1,6 +1,5 @@
 import smtplib
 import logging
-from datetime import datetime, timedelta
 
 
 from email.mime.multipart import MIMEMultipart
@@ -9,6 +8,7 @@ from email.mime.text import MIMEText
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.html import escape
+from django.utils import timezone
 from stregsystem.templatetags.stregsystem_extras import money
 
 logger = logging.getLogger(__name__)
@@ -33,14 +33,15 @@ def send_payment_mail(member, amount, mobilepay_comment):
 
 
 def send_csv_mail(member):
+    now = timezone.now()
     if member.requested_data_time is not None:
-        ten_minutes_ago = datetime.now() - timedelta(minutes=10)
+        ten_minutes_ago = now - timezone.timedelta(minutes=10)
         if member.requested_data_time > ten_minutes_ago:
             return False
         else:
-            member.requested_data_time = datetime.now()
+            member.requested_data_time = now
     else:
-        member.requested_data_time = datetime.now()
+        member.requested_data_time = now
 
     # haha linting as i have no idea how django works otherwise
     from .models import Payment, Sale
@@ -62,6 +63,7 @@ def send_csv_mail(member):
         f'{member.username} has requested their user data!',
         {"sales.csv": sales_csv, "payments.csv": payments_csv, "userdata.csv": userdata_csv},
     )
+    member.save()
     return True
 
 

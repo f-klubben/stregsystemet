@@ -5,10 +5,22 @@
     <h2>Ærede fember ({{member.username}}), hvis du ikke har efterspurgt data de sidste 10 dage, skulle du gerne have modtaget en email.</h2>
 
     <h3>Filer:</h3>
+    <table border=1 width="40%">
+        <tr>
+            <th><b>sales.csv</b></th>
+            <th>indeholder alle køb du har foretaget dig i stregsystemet.</th>
+        </tr>
+        <tr>
+            <th><b>payments.csv</b></th> 
+            <th>indeholder alle indbetalinger du har gjort gennem Mobilepay.</th>
+        </tr>
+        <tr>
+            <th><b>userdata.csv</b></th> 
+            <th>indeholder alt data i den nederste tabel på forrige side.</th>
+        </tr>
+    </table><br>
 
-    <b>sales.csv</b> indeholder alle køb du har foretaget dig i stregsystemet.<br>
-    <b>payments.csv</b> indeholder alle indbetalinger du har gjort gennem Mobilepay.<br>
-    <b>userdata.csv</b> indeholder alt data i den nederste tabel på forrige side.<br><br>
+    Sidst du fik sendt mail: <b>{{member.requested_data_time}}</b><br>
 
     Blev der sendt en mail? <b>{{mail_sent_text}}</b>
     
