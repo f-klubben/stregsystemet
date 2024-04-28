@@ -242,15 +242,16 @@ def menu_userinfo(request, room_id, member_id):
     return render(request, 'stregsystem/menu_userinfo.html', locals())
 
 
-def send_csv_mail(request, room_id, member_id):
-    from .mail import send_csv_mail as _send_csv_mail
+def send_userdata(request, room_id, member_id):
+    from .mail import send_userdata_mail, data_sent
 
     room = Room.objects.get(pk=room_id)
     member = Member.objects.get(pk=member_id, active=True)
 
-    mail_sent_text = "Mail sendt!" if _send_csv_mail(member) else "Ingen mail sendt."
+    mail_sent = send_userdata_mail(member)
+    sent_time = data_sent[member.id]
 
-    return render(request, "stregsystem/sent_csv_mail.html", locals())
+    return render(request, "stregsystem/sent_userdata.html", locals())
 
 
 def menu_userpay(request, room_id, member_id):

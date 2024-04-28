@@ -915,7 +915,7 @@ class MemberTests(TestCase):
 
         self.assertEqual(user.requested_data_time, t)
 
-        stregsystem_views.send_csv_mail(None, room.id, user.id)
+        stregsystem_views.send_userdata(None, room.id, user.id)
 
 
 class BallmerPeakTests(TestCase):
