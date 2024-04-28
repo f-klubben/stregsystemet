@@ -43,6 +43,7 @@ from stregsystem.models import (
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
 from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, MobilePaytoolException
+from stregsystem.mail import data_sent
 
 
 def assertCountEqual(case, *args, **kwargs):
@@ -913,9 +914,9 @@ class MemberTests(TestCase):
 
         t = timezone.datetime.fromtimestamp(0)
 
-        self.assertEqual(user.requested_data_time, t)
-
         stregsystem_views.send_userdata(None, room.id, user.id)
+
+        self.assertNotEqual(data_sent[user.id], t)
 
 
 class BallmerPeakTests(TestCase):
