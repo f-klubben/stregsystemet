@@ -31,7 +31,7 @@ def send_payment_mail(member, amount, mobilepay_comment):
         "Stregsystem payment",
     )
 
-data_sent:dict[int, timezone.datetime] = {}
+data_sent = {}
 
 def send_userdata_mail(member):
     from .models import Payment, Sale, MobilePayment
