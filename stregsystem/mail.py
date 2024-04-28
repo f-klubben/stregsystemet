@@ -31,10 +31,13 @@ def send_payment_mail(member, amount, mobilepay_comment):
         "Stregsystem payment",
     )
 
+
 data_sent = {}
+
 
 def send_userdata_mail(member):
     from .models import Payment, Sale, MobilePayment
+
     now = timezone.now()
     td = now - timezone.timedelta(minutes=5)
     if member.id in data_sent.keys() and data_sent[member.id] > td:
@@ -49,7 +52,9 @@ def send_userdata_mail(member):
     sales_csv = "Name,Price,Timestamp\n"
     sales_csv += "\n".join([f'{sale.product.name},{sale.price},{sale.timestamp}' for sale in sales])
     payments_csv = "Timestamp,Amount,Is Mobilepay\n"
-    payments_csv += "\n".join([f'{payment.timestamp},{payment.amount},{payment in mobilepay_payments}' for payment in payments])
+    payments_csv += "\n".join(
+        [f'{payment.timestamp},{payment.amount},{payment in mobilepay_payments}' for payment in payments]
+    )
     userdata_csv = "Id,Name,First name,Last name,Email,Registration year\n"
     userdata_csv += f"{member.id},{member.username},{member.firstname},{member.lastname},{member.email},{member.year}"
 
