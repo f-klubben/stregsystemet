@@ -33,6 +33,9 @@ def send_payment_mail(member, amount, mobilepay_comment):
 
 
 data_sent = {}
+# little function to make sure the csv data always has the same format
+def rows_to_csv(rows:list[list]) -> str:
+    return "\n".join(','.join([str(item) for item in row]) for row in rows)
 
 
 def send_userdata_mail(member):
@@ -49,14 +52,15 @@ def send_userdata_mail(member):
     mobilepayments: list[MobilePayment] = member.mobilepayment_set.order_by("timestamp")
     mobilepay_payments: list[Payment] = [mobilepayment.payment for mobilepayment in mobilepayments]
 
-    sales_csv = "Name,Price,Timestamp\n"
-    sales_csv += "\n".join([f'{sale.product.name},{sale.price},{sale.timestamp}' for sale in sales])
-    payments_csv = "Timestamp,Amount,Is Mobilepay\n"
-    payments_csv += "\n".join(
-        [f'{payment.timestamp},{payment.amount},{payment in mobilepay_payments}' for payment in payments]
-    )
-    userdata_csv = "Id,Name,First name,Last name,Email,Registration year\n"
-    userdata_csv += f"{member.id},{member.username},{member.firstname},{member.lastname},{member.email},{member.year}"
+    sales_csv = rows_to_csv([
+        ["Timestamp", "Name", "Price"]] +
+        [[sale.timestamp, sale.product.name, sale.price] for sale in sales])
+    payments_csv = rows_to_csv([
+        ["Timestamp", "Amount", "Is Mobilepay"]] +
+        [[payment.timestamp, payment.amount, payment in mobilepay_payments] for payment in payments])
+    userdata_csv = rows_to_csv([
+        ["Id", "Name", "First name", "Last name", "Email", "Registration year"],
+        [member.id, member.username, member.firstname, member.lastname, member.email, member.year]])
 
     send_template_mail(
         member,

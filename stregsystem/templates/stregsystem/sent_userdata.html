@@ -2,7 +2,11 @@
 
 {% block content %}
 <center>
-    <h2>Ærede fember ({{member.username}}), hvis du ikke har efterspurgt data de sidste 5 minutter, skulle du gerne have modtaget en email.</h2>
+    <h2>{% if mail_sent %}
+    Hej {{member.username}}, du skulle gerne have modtaget din bruger data.
+    {% else %}
+    Hej {{member.username}}, du har efterspurgt brugerdata for nylig og bliver nødt til at vente.
+    {% endif %}</h2>
 
     <h3>Filer:</h3>
     <table border=1 width="40%">
@@ -20,7 +24,11 @@
         </tr>
     </table><br>
 
-    Sidst du fik sendt mail: <b>{{sent_time}}</b><br>
+    {% if mail_sent %}
+    {% else %}
+    Vent {{minutes}} minutter før du kan anmode om dit data igen.<br>
+    <a href="/{{room.id}}/send_csv_mail/{{member.id}}/">Anmod igen</a><br>
+    {% endif %}
 
     Blev der sendt en mail? <b>{% if mail_sent %}Mail sendt{% else %}Ingen mail sendt{% endif %}</b>!
     

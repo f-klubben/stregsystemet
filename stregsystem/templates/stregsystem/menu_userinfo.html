@@ -54,9 +54,6 @@ Ingen indbetalinger!
 
 <br />
 
-<center>
-   <a href="/{{room.id}}/send_csv_mail/{{member.id}}/">Send alt bruger info på mail</a>
-</center>
 <center><b>I databasen ligger desuden følgende informationer om dig</b></center>
 <table border=1 width="100%">
    <tr>
@@ -92,6 +89,9 @@ Ingen indbetalinger!
       <td>{{stats.total_amount|money}} 𝓕$ / {{stats.total_purchases}} køb</td>
    </tr>
 </table>
+<center>
+   <a href="/{{room.id}}/send_csv_mail/{{member.id}}/">Anmod om bruger data</a>
+</center>
 
 {% endblock %}
 

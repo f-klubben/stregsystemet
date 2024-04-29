@@ -250,7 +250,10 @@ def send_userdata(request, room_id, member_id):
 
     mail_sent = send_userdata_mail(member)
     sent_time = data_sent[member.id]
-
+    current_time = timezone.now()
+    td = (current_time - sent_time)
+    minutes = 5 - ((td.seconds % 3600) // 60)
+    
     return render(request, "stregsystem/sent_userdata.html", locals())
 
 
