@@ -43,8 +43,12 @@ class SignupForm(forms.Form):
             'required': 'Udfyldning af `Brugernavn` er påkrævet.',
             'max_length': 'Længden af `Brugernavn` må ikke overstige 16 tegn.',
         },
+        widget=forms.TextInput(attrs={'autocomplete': "off"}),
     )
-    email = forms.EmailField(label='E-Mail')
+    email = forms.EmailField(
+        label='E-Mail',
+        widget=forms.TextInput(attrs={'autocomplete': "off"}),
+    )
     firstname = forms.CharField(
         max_length=20,
         label='Fornavn',
@@ -52,6 +56,7 @@ class SignupForm(forms.Form):
             'required': 'Udfyldning af `Fornavn` er påkrævet.',
             'max_length': 'Længden af `Fornavn` må ikke overstige 16 tegn.',
         },
+        widget=forms.TextInput(attrs={'autocomplete': "off"}),
     )
     lastname = forms.CharField(
         max_length=30,
@@ -60,6 +65,7 @@ class SignupForm(forms.Form):
             'required': 'Udfyldning af `Efternavn` er påkrævet.',
             'max_length': 'Længden af `Efternavn` må ikke overstige 16 tegn.',
         },
+        widget=forms.TextInput(attrs={'autocomplete': "off"}),
     )
 
 
