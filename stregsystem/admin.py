@@ -15,6 +15,7 @@ from stregsystem.models import (
     Sale,
     MobilePayment,
     NamedProduct,
+    PendingSignup,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
@@ -351,3 +352,4 @@ admin.site.register(NamedProduct, NamedProductAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Room)
 admin.site.register(MobilePayment, MobilePaymentAdmin)
+admin.site.register(PendingSignup)
