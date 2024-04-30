@@ -35,38 +35,36 @@ class PurchaseForm(forms.Form):
     product_id = forms.IntegerField()
 
 
-class SignupForm(forms.Form):
-    username = forms.CharField(
-        max_length=16,
-        label='Brugernavn',
-        error_messages={
-            'required': 'Udfyldning af `Brugernavn` er påkrævet.',
-            'max_length': 'Længden af `Brugernavn` må ikke overstige 16 tegn.',
-        },
-        widget=forms.TextInput(attrs={'autocomplete': "off"}),
-    )
-    email = forms.EmailField(
-        label='E-Mail',
-        widget=forms.TextInput(attrs={'autocomplete': "off"}),
-    )
-    firstname = forms.CharField(
-        max_length=20,
-        label='Fornavn',
-        error_messages={
-            'required': 'Udfyldning af `Fornavn` er påkrævet.',
-            'max_length': 'Længden af `Fornavn` må ikke overstige 16 tegn.',
-        },
-        widget=forms.TextInput(attrs={'autocomplete': "off"}),
-    )
-    lastname = forms.CharField(
-        max_length=30,
-        label='Efternavn',
-        error_messages={
-            'required': 'Udfyldning af `Efternavn` er påkrævet.',
-            'max_length': 'Længden af `Efternavn` må ikke overstige 16 tegn.',
-        },
-        widget=forms.TextInput(attrs={'autocomplete': "off"}),
-    )
+class SignupForm(forms.ModelForm):
+    class Meta:
+        model = Member
+        fields = ('username', 'email', 'firstname', 'lastname')
+        widgets = {
+            'username': forms.TextInput(attrs={'autocomplete': "off"}),
+            'email': forms.TextInput(attrs={'autocomplete': "off"}),
+            'firstname': forms.TextInput(attrs={'autocomplete': "off"}),
+            'lastname': forms.TextInput(attrs={'autocomplete': "off"}),
+        }
+        labels = {
+            'username': "Brugernavn",
+            'email': "E-Mail",
+            'firstname': "Fornavn",
+            'lastname': "Efternavn",
+        }
+        error_messages = {
+            'username': {
+                'required': 'Udfyldning af `Brugernavn` er påkrævet.',
+                'max_length': 'Længden af `Brugernavn` må ikke overstige 16 tegn.',
+            },
+            'firstname': {
+                'required': 'Udfyldning af `Fornavn` er påkrævet.',
+                'max_length': 'Længden af `Fornavn` må ikke overstige 16 tegn.',
+            },
+            'lastname': {
+                'required': 'Udfyldning af `Efternavn` er påkrævet.',
+                'max_length': 'Længden af `Efternavn` må ikke overstige 16 tegn.',
+            },
+        }
 
 
 class RankingDateForm(forms.Form):
