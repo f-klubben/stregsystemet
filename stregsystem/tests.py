@@ -1884,6 +1884,7 @@ class SignupTest(TestCase):
             'firstname': 'John',
             'lastname': 'doe',
             'email': 'johndoe@example.com',
+            'gender': 'M',
         }
 
         self.client.post(reverse('signup'), user_info)

@@ -38,18 +38,20 @@ class PurchaseForm(forms.Form):
 class SignupForm(forms.ModelForm):
     class Meta:
         model = Member
-        fields = ('username', 'email', 'firstname', 'lastname')
+        fields = ('username', 'email', 'firstname', 'lastname', 'gender')
         widgets = {
             'username': forms.TextInput(attrs={'autocomplete': "off"}),
             'email': forms.TextInput(attrs={'autocomplete': "off"}),
             'firstname': forms.TextInput(attrs={'autocomplete': "off"}),
             'lastname': forms.TextInput(attrs={'autocomplete': "off"}),
+            'gender': forms.Select(),
         }
         labels = {
             'username': "Brugernavn",
             'email': "E-Mail",
             'firstname': "Fornavn",
             'lastname': "Efternavn",
+            'gender': 'Biologisk køn',
         }
         error_messages = {
             'username': {
