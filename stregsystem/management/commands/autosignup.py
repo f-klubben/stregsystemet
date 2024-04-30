@@ -24,7 +24,7 @@ class Command(BaseCommand):
 
         signup_info = [scan_comment(p) for p in unprocessed_payments]
 
-        for (index, payment) in enumerate(unprocessed_payments):
+        for index, payment in enumerate(unprocessed_payments):
             payment: MobilePayment
 
             # This should not be possible since the db query already checks

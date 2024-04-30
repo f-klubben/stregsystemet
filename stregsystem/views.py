@@ -1,31 +1,25 @@
 import datetime
-import random
 import io
+import json
+import urllib.parse
 from typing import List
 
 import pytz
-from pytz import UTC
-
-from stregreport.views import fjule_party
-
 import qrcode
 import qrcode.image.svg
-from django.core import management
-from django.forms import modelformset_factory, formset_factory
-
-from django.contrib.admin.views.decorators import staff_member_required
-from stregsystem.templatetags.stregsystem_extras import money
-from django.contrib.auth.decorators import permission_required
-from django.conf import settings
-from django.db.models import Q, Count, Sum
 from django import forms
+from django.conf import settings
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import permission_required
+from django.core import management
+from django.db.models import Q, Count, Sum
+from django.forms import modelformset_factory
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django_select2 import forms as s2forms
-import urllib.parse
 
+from stregreport.views import fjule_party
 from stregsystem import parser
 from stregsystem.models import (
     Member,
@@ -42,6 +36,7 @@ from stregsystem.models import (
     Category,
     NamedProduct,
 )
+from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
     make_active_productlist_query,
     qr_code,
@@ -50,13 +45,9 @@ from stregsystem.utils import (
     parse_csv_and_create_mobile_payments,
     MobilePaytoolException,
 )
-
 from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
 from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, SignupForm, RankingDateForm
-
-import json
-
 from .purchase_heatmap import (
     prepare_heatmap_template_context,
 )

@@ -1,7 +1,7 @@
-from django.urls import include, re_path
+from django.shortcuts import redirect
+from django.urls import re_path
 
 from . import views
-from django.shortcuts import redirect
 
 """stregsystem URL Configuration
 
