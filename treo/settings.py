@@ -49,9 +49,10 @@ PASSWORD =
 
 [logging]
 HANDLERS = [
-    "console"
+    "console",
+    "file"
     ]
-FILE = /tmp/stregsystem.log
+FILE = stregsystem.log
 LEVEL = DEBUG
 """
 
@@ -70,6 +71,7 @@ DEBUG = cfg.getboolean("debug", "DEBUG")
 
 CSRF_COOKIE_SECURE = cfg.getboolean("debug", "CSRF_COOKIE_SECURE")
 CSRF_COOKIE_HTTPONLY = cfg.getboolean("debug", "CSRF_COOKIE_HTTPONLY")
+CSRF_TRUSTED_ORIGINS = ["fappen.fklub.dk"]
 SESSION_COOKIE_SECURE = cfg.getboolean("debug", "SESSION_COOKIT_SECURE")
 
 SECURE_BROWSER_XSS_FILTER = cfg.getboolean("debug", "SECURE_BROWSER_XSS_FILTER")
@@ -104,6 +106,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'stregsystem.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

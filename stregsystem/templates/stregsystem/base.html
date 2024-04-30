@@ -9,6 +9,9 @@
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/bat.css" %}">
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/snow.css" %}">
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/easter.css" %}">
+<link rel="stylesheet" media="screen" href="{% static "/stregsystem/fireworks.css" %}">
+<link rel="stylesheet" media="screen" href="{% static "/stregsystem/cursor.css" %}">
+<link rel="stylesheet" media="screen" href="{% static "/stregsystem/men.css" %}">
 <script>
     var static_url = "{% get_static_prefix %}";
     var media_url = "{% get_media_prefix %}";
@@ -20,7 +23,11 @@
 
 {% endcomment %}
 
-<table width="100%%">
+<div id="canvas-container"></div>
+<img id="rocket" src="{% static "/stregsystem/rocket.png" %}">
+<script src="{% static "/stregsystem/fireworks.js" %}"></script>
+
+<table width="100%">
     <tr>
         <td>
           <center>
@@ -59,8 +66,11 @@
 <script async src="{% static "/stregsystem/snow.js" %}"></script>
 <script async src="{% static "/stregsystem/easter.js" %}"></script>
 <script async src="{% static "/stregsystem/gdpr.js" %}"></script>
+<script async src="{% static "/stregsystem/bober.js" %}"></script>
 <div class="bat-container"></div>
 <div class="snow-container"></div>
+<div class="men-container"></div>
+<div class="beaver-container"></div>
 <div class="easter-container"></div>
 {% show_candle %}
 </body>

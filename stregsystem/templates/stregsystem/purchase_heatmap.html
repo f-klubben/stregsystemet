@@ -1,0 +1,212 @@
+<div class="heatmap-table-container" onmouseenter="updateAllProductNumbers(false)" onmouseleave="updateAllProductNumbers(true);changeTile('', true)">
+    <div class="heatmap-header">
+        <h2 class="heatmap-header-title">Forbrugsoversigt (Antal)</h2>
+    </div>
+    <table class="heatmap-table">
+        <thead>
+            <tr class="heatmap-row">
+                <td class="heatmap-label heatmap-label-first"><span>Uge nr.</span></td>
+                {% for label in column_labels %}
+                <td class="heatmap-label" colspan="1"><span>{{label}}</span></td>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+        {% for weekday_label, weekday_data in rows %}
+            <tr class="heatmap-row">
+                <td class="heatmap-label heatmap-label-first"><span>{{weekday_label}}</span></td>
+                {% for day_data in weekday_data %}
+                <td class="heatmap-cell" title="{{day_data.date}}" data-date="{{day_data.date}}" data-products="{{day_data.products}}" onmouseenter="dayCellOnEnter(this)" onmouseleave="dayCellOnLeave(this)"
+                    {% for summary in day_data.summary %}data-summary{{forloop.counter0}}="{{summary}}"{% endfor %}
+                    style="{% for color_value in day_data.color %}--cell-color-{{forloop.counter0}}: rgb{{color_value}};{% endfor %}">
+                </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div class="heatmap-footer">
+        <div id="heatmap-table-mode-description-ItemCount" style="display: inline-flex">
+            <div class="heatmap-cell" style="fill: lightgreen;background-color: lightgreen;"></div> =få køb.
+            <div class="heatmap-cell" style="fill: darkgreen;background-color: darkgreen;"></div> =mange køb.
+        </div>
+        <div id="heatmap-table-mode-description-MoneySum" style="display: none">
+            <div class="heatmap-cell" style="fill: lightyellow;background-color: lightyellow;"></div> =mindre forbrug.
+            <div class="heatmap-cell" style="fill: yellow;background-color: yellow;"></div> =større forbrug.
+        </div>
+        <div id="heatmap-table-mode-description-ColorCategorized" style="display: none">
+            <div class="heatmap-cell" style="fill: red;background-color: red;"></div> =ØL.
+            <div class="heatmap-cell" style="fill: lightgreen;background-color: lightgreen;"></div> =Energi.
+            <div class="heatmap-cell" style="fill: cornflowerblue;background-color: cornflowerblue;"></div> =Soda.
+        </div>
+        <div style="height: 2em">
+            {% for color_mode in heatmap_modes %}
+            <a class="heatmap-mode-button" href="javascript:void(0)" onclick="swapTableType({{forloop.counter0}});">{{color_mode.mode_description}}</a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<style>
+    .heatmap-table-container{
+        border-collapse: separate;
+        border-style: outset;
+        padding: 1em 2em 0.5em 2em;
+        display: inline-block;
+    }
+    .heatmap-footer {
+        margin-top: 0.5em;
+    }
+    .heatmap-header-title {
+        margin: 0 -1em 0.5em -1em;
+    }
+
+    .heatmap-table {
+        position: relative;
+        overflow: hidden;
+    }
+    .heatmap-label {
+        position: relative;
+        padding: .125em .5em .125em 0;
+        font-size: 12.5pt;
+    }
+    .heatmap-label-first {
+        width: 4em;
+    }
+    .heatmap-label > span {
+        clip-path: None;
+        position: absolute;
+        bottom: 2px
+    }
+    .heatmap-label[colspan="1"] > span {
+        text-align: center;
+        width: 100%;
+    }
+    .heatmap-row {
+        height: 24px;
+    }
+    .heatmap-cell {
+        width: 24px;
+        height: 24px;
+        border-radius: 3px;
+        outline-offset: -1px;
+        shape-rendering: geometricPrecision;
+        padding: 0;
+        outline: 1px solid rgba(27, 31, 35, 0.06);
+
+        fill: var(--cell-color);
+        background-color: var(--cell-color);
+    }
+    .heatmap-cell:hover {
+        border-radius: 5px;
+    }
+    .heatmap-mode-button {
+        font-weight: normal;
+    }
+    .heatmap-mode-button[data-active="yes"] {
+        text-decoration: none;
+        font-weight: bold;
+        cursor: default;
+    }
+
+    .product-count {
+        font-weight: bold;
+        width: 1em;
+        float: right;
+        text-align: center;
+    }
+</style>
+<style id="heatmap-cell-variable">
+    .heatmap-cell {
+        --cell-color: var(--cell-color-0);
+    }
+</style>
+<script>
+    let current_heatmap_mode = 0;
+    const heatmap_mode_names = [
+        {% for heatmap_mode in heatmap_modes %}
+            "{{heatmap_mode.mode_name}}",
+        {% endfor %}
+    ]
+
+    const heatmap_mode_description = [
+        {% for heatmap_mode in heatmap_modes %}
+            "{{heatmap_mode.mode_description}}",
+        {% endfor %}
+    ]
+
+    window.addEventListener("load", (_) => swapTableType(0));
+
+    function swapTableType(index){
+        const header_title = `Forbrugsoversigt (${heatmap_mode_description[index]})`
+        document.getElementsByClassName("heatmap-header-title")[0].dataset.originaltext = header_title;
+        document.getElementsByClassName("heatmap-header-title")[0].innerText = header_title;
+
+        document.getElementById("heatmap-cell-variable").innerHTML = `.heatmap-cell{--cell-color: var(--cell-color-${index});}`;
+
+        document.getElementsByClassName("heatmap-mode-button")[current_heatmap_mode].dataset.active = "";
+        document.getElementsByClassName("heatmap-mode-button")[index].dataset.active = "yes";
+
+        document.getElementById(`heatmap-table-mode-description-${heatmap_mode_names[current_heatmap_mode]}`).style.display = 'none';
+        document.getElementById(`heatmap-table-mode-description-${heatmap_mode_names[index]}`).style.display = 'inline-flex';
+        current_heatmap_mode = index;
+    }
+
+    function updateAllProductNumbers(hide=false){
+        document.querySelectorAll("input[name='product_id']")
+            .forEach(p => changeProductCountElement(p.parentElement, 0, hide))
+    }
+
+    function changeTile(newTitle, revert=false){
+        const titleElement = document.getElementsByClassName("heatmap-header-title")[0];
+        if (revert){
+            titleElement.innerText = titleElement.dataset.originaltext;
+            return;
+        }
+
+        titleElement.innerText = newTitle;
+    }
+
+    function dayCellOnEnter(sender){
+        updateProductCounts(JSON.parse(sender.dataset.products));
+        const day_summary = sender.dataset[`summary${current_heatmap_mode}`];
+        changeTile(`${sender.dataset.date} - ${day_summary}`);
+    }
+
+    function dayCellOnLeave(sender){
+        updateProductCounts(JSON.parse(sender.dataset.products), true);
+    }
+
+    function updateProductCounts(products, clear=false){
+        const product_counts = {};
+
+        for (const num of products){
+            product_counts[num] = product_counts[num] ? product_counts[num] + 1 : 1;
+        }
+
+        for (const [product_id, count] of Object.entries(product_counts)){
+            const productCountElement = document.querySelector(`input[name='product_id'][value='${product_id}']`)?.parentElement;
+
+            if (productCountElement === undefined){
+                console.warn(`Product doesn't exist in tabel: ${product_id}`);
+                continue;
+            }
+
+            changeProductCountElement(
+                productCountElement,
+                clear ? 0 : count,
+                false);
+        }
+    }
+
+    function changeProductCountElement(productFormElement, count, hide=false){
+        let productCountElement = productFormElement.getElementsByClassName("product-count")[0];
+        if (productCountElement === undefined){
+            productCountElement = document.createElement("a");
+            productCountElement.setAttribute("class", "product-count");
+            productFormElement.appendChild(productCountElement);
+        }
+
+        productCountElement.style.display = hide ? 'none' : 'inline';
+        productCountElement.innerText = `${count}`
+    }
+</script>

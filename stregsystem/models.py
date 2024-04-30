@@ -23,8 +23,7 @@ from stregsystem.utils import (
     make_unprocessed_member_filled_mobilepayment_query,
     MobilePaytoolException,
 )
-from stregsystem.utils import send_payment_mail
-from stregsystem.mail import send_welcome_mail
+from stregsystem.mail import send_payment_mail, send_welcome_mail
 
 
 def price_display(value):
@@ -48,6 +47,7 @@ class NoMoreInventoryError(Exception):
 
 
 # Create your models here.
+
 
 # So we have two "basic" operations to do with money
 # we can take money from a user and we can give them money
@@ -107,7 +107,7 @@ class Order(object):
     def from_products(cls, member, room, products):
         counts = Counter(products)
         order = cls(member, room)
-        for (product, count) in counts.items():
+        for product, count in counts.items():
             item = OrderItem(product=product, order=order, count=count)
             order.items.add(item)
         return order
@@ -430,7 +430,6 @@ class MobilePayment(models.Model):
     def submit_processed_mobile_payments(admin_user: User):
         processed_mobile_payment: MobilePayment  # annotate iterated variable (PEP 526)
         for processed_mobile_payment in make_processed_mobilepayment_query():
-
             if processed_mobile_payment.status == MobilePayment.APPROVED:
                 payment = Payment(member=processed_mobile_payment.member, amount=processed_mobile_payment.amount)
                 # Save payment and foreign key to MobilePayment field

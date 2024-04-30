@@ -1,12 +1,17 @@
 name: Black formatter check
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+      - next
+  pull_request:
 
 jobs:
   black:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Black Code Formatter
       uses: lgeiger/black-action@v1.0.1
       with:

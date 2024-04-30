@@ -47,7 +47,7 @@ def current_caffeine_in_body_compound_interest(intakes: List[Intake]) -> float:
             * ((1 - CAFFEINE_DEGRADATION_PR_HOUR) ** ((intake.timestamp - last_intake_time) / timedelta(hours=1))),
             0,
         )
-        # swap curr timestamp with last intake time to calculate degradation timespan in next iteration
+        # swap current timestamp with last intake time to calculate degradation timespan in next iteration
         last_intake_time = intake.timestamp
 
         # finally, add current intake of caffeine to mg_blood

@@ -1,7 +1,7 @@
 d = new Date();
 
-if(d.getMonth() === 11){
-    for(let snowflakes=0; snowflakes < Math.min(d.getDate(), 24); snowflakes++){
+if(d.getMonth() === 11 && d.getDate() <= 24){
+    for(let snowflakes=0; snowflakes < d.getDate(); snowflakes++){
         SpawnSnowflake();
     }
 
@@ -13,6 +13,7 @@ if(d.getMonth() === 11){
     document.body.querySelector(".snow-container").appendChild(santa);
 
     SetBodyChristmasStyle();
+    InjectChristmasCSS();
 }
 
 function SpawnSnowflake () {
@@ -24,7 +25,7 @@ function SpawnSnowflake () {
 function SetBodyChristmasStyle() {
     const bodyStyle = document.body.style;
     bodyStyle.color = "white";
-    bodyStyle.backgroundImage = "url(\"" + media_url + "stregsystem/background.jpg\")";
+    bodyStyle.backgroundImage = "url(\"" + media_url + "stregsystem/background.png\")";
     bodyStyle.backgroundRepeat = "repeat-x";
     bodyStyle.backgroundSize = "auto 100%";
     bodyStyle.padding = "0";
@@ -32,4 +33,11 @@ function SetBodyChristmasStyle() {
     bodyStyle.width = "100vw";
     bodyStyle.height = "100vh";
     bodyStyle.position = "relative"
+}
+
+function InjectChristmasCSS(){
+    let el = document.createElement('style');
+    el.type = 'text/css';
+    el.innerText = "a, a:hover, a:active, a:visited { color: white; }";
+    document.head.appendChild(el);
 }

@@ -41,6 +41,7 @@ from stregsystem.models import (
     PendingSignup,
     NamedProduct,
 )
+from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
 from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, MobilePaytoolException
 
@@ -460,6 +461,60 @@ class UserInfoViewTests(TestCase):
     # @INCOMPLETE: Strictly speaking there are two more variables here. Are
     # they actually necessary, since we don't allow people to go negative
     # anymore anyway? - Jesper 18/09-2017
+
+
+class PurchaseHeatmapTests(TestCase):
+    def setUp(self):
+        self.room = Room.objects.create(name="test")
+        self.jokke = Member.objects.create(username="jokke")
+        self.coke = Product.objects.create(name="coke", price=100, active=True)
+        self.flan = Product.objects.create(name="flan", price=200, active=True)
+        self.sales = []
+        self.payments = []
+
+    def test_empty_user(self):
+        with freeze_time(timezone.datetime(2000, 1, 1)) as frozen_time:
+            heatmap_context = prepare_heatmap_template_context(self.jokke, 5, datetime.date.today())
+
+        for weekday_header, rows in heatmap_context['rows']:
+            for row_data in rows:
+                self.assertEqual(len(row_data.products), 0)
+
+    def test_weeks_correct(self):
+        with freeze_time(timezone.datetime(2000, 1, 1)) as frozen_time:
+            heatmap_context = prepare_heatmap_template_context(self.jokke, 5, datetime.date.today())
+
+            self.assertEqual(heatmap_context['column_labels'], ['48', '49', '50', '51', '52'])
+
+    def test_user_with_some_purchases(self):
+        # TODO: Do test methods endure side-effects ? Or do they reset.
+        with freeze_time(timezone.datetime(2000, 1, 1)) as frozen_time:
+            for i in range(1, 4):
+                self.sales.append(
+                    Sale.objects.create(
+                        member=self.jokke,
+                        product=self.coke,
+                        price=100,
+                    )
+                )
+                frozen_time.tick()
+
+            frozen_time.tick(datetime.timedelta(days=1))
+            heatmap_context = prepare_heatmap_template_context(self.jokke, 5, datetime.date.today())
+
+            found_date = False
+
+            for weekday_header, rows in heatmap_context['rows']:
+                for row_data in rows:
+                    if str(row_data.date) == "2000-01-01":
+                        found_date = True
+                        self.assertEqual(len(row_data.products), 3)
+                    else:
+                        self.assertEqual(len(row_data.products), 0)
+
+            self.assertEqual(found_date, True)
+
+        self.sales.clear()
 
 
 class TransactionTests(TestCase):
@@ -1767,7 +1822,9 @@ class CaffeineCalculatorTest(TestCase):
 
     def test_caffeine_str_is_correct_length(self):
         user = Member.objects.create(username="test", gender='F', balance=100)
-        coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True)
+        coffee = Product.objects.create(
+            name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True
+        )
 
         # do five sales of coffee and assert that emoji renderer returns same amount of emoji
         sales = 5
@@ -1798,7 +1855,9 @@ class CaffeineCalculatorTest(TestCase):
         average_developer = Member.objects.create(username="my-gal", gender="F", balance=50)
         coffee_category = Category.objects.create(name="Caffeine☕☕☕", pk=6)
         coffee_category.save()
-        coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True)
+        coffee = Product.objects.create(
+            name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True
+        )
         # matches coffee id in production. Will be implemented with categories later, when production have a coffee
         # category
         coffee.save()

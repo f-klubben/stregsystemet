@@ -84,14 +84,16 @@ class SaleAdmin(admin.ModelAdmin):
     get_price_display.short_description = "Price"
     get_price_display.admin_order_field = "price"
 
-    def refund(modeladmin, request, queryset):
-        for obj in queryset:
-            transaction = PayTransaction(obj.price)
-            obj.member.rollback(transaction)
-            obj.member.save()
-        queryset.delete()
 
-    refund.short_description = "Refund selected"
+def refund(modeladmin, request, queryset):
+    for obj in queryset:
+        transaction = PayTransaction(obj.price)
+        obj.member.rollback(transaction)
+        obj.member.save()
+    queryset.delete()
+
+
+refund.short_description = "Refund selected"
 
 
 def toggle_active_selected_products(modeladmin, request, queryset):

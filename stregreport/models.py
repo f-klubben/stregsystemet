@@ -5,11 +5,12 @@ from stregsystem.models import Member
 
 class BreadRazzia(models.Model):
     class Meta:
-        permissions = (("host_razzia", "Can host a foobar or bread razzia"),)
+        permissions = (("host_razzia", "Can host a foobar, fnugfald or bread razzia"),)
 
     BREAD = 'BR'
     FOOBAR = 'FB'
-    RAZZIA_CHOICES = [(BREAD, "Brødrazzia"), (FOOBAR, "Foobar razzia")]
+    FNUGFALD = 'FF'
+    RAZZIA_CHOICES = [(BREAD, "Brødrazzia"), (FOOBAR, "Foobar razzia"), (FNUGFALD, "Fnugfald razzia")]
     members = models.ManyToManyField(Member, through='RazziaEntry')
     start_date = models.DateTimeField(auto_now_add=True)
     razzia_type = models.CharField(max_length=2, choices=RAZZIA_CHOICES, default=BREAD)
