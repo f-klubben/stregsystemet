@@ -3,28 +3,29 @@
 {% block breadcrumbs %}<div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Foobar razzia</a></div>{% endblock %}
 
 {% block member_present %}
-<div class="status">
-    {% if drunkard %}
-            <script>
-                // fade/flash background color to more easily notify foobar crew
-                let ofs = 0;
-                let el = document.body;
-                window.setInterval(function(){
-                  el.style.background = 'rgba(255,255,0,'+Math.abs(Math.sin(ofs))+')';
-                  ofs += 0.02;
-                }, 10);
-            </script>
+<div class="result">
+    <div class="status">
+        {% if drunkard %}
+        <script>
+            // fade/flash background color to more easily notify foobar crew
+            let ofs = 0;
+            let el = document.body;
+            window.setInterval(function(){
+              el.style.background = 'rgba(255,255,0,'+Math.abs(Math.sin(ofs))+')';
+              ofs += 0.02;
+            }, 10);
+        </script>
         <div class="fa fa-exclamation-triangle failure" aria-hidden="true"></div>
-	{% else %}
+        {% else %}
         <div class="fa {% if already_used %} fa-exclamation-circle sucess {% else %} fa-check-circle sucess {% endif %}" aria-hidden="true"></div>
+        {% endif %}
+    </div>
+    {% if drunkard %}
+        {{member.firstname}} {{member.lastname}} ({{member.username}}) <b>wait {{ remaining_time_mins }}m {{ remaining_time_secs }}s </b> before next free beer
+    {% else %}
+        {{member.firstname}} {{member.lastname}} ({{member.username}}) {% if already_checked_in %} last checked in at {{last_entry.time}} {% endif %}
     {% endif %}
 </div>
-{% if drunkard %}
-    {{member.firstname}} {{member.lastname}} ({{member.username}}) <b>wait {{ remaining_time_mins }}m {{ remaining_time_secs }}s </b> before next free beer
-{% else %}
-    {{member.firstname}} {{member.lastname}} ({{member.username}}) {% if already_checked_in %} last checked in at {{last_entry.time}} {% endif %}
-{% endif %}
-
 {% endblock %}
 
 {% block drunkard_present %}

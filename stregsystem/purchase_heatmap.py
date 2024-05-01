@@ -1,8 +1,7 @@
+from datetime import datetime, timedelta, date
 from typing import List, NamedTuple, Tuple
 
 from stregsystem.models import Product, Member, Category
-from datetime import datetime, timedelta, date
-
 from stregsystem.templatetags.stregsystem_extras import money
 
 
@@ -79,7 +78,7 @@ class ItemCountHeatmapColorMode(HeatmapColorMode):
         super().__init__(mode_name="ItemCount", mode_description="Antal")
 
     def get_day_color(self, products: List[Product]) -> Tuple[int, int, int]:
-        if len(products) == 0:
+        if len(products) == 0 or self.max_items_day == 0:
             return 235, 237, 240  # Grey
 
         lerp_value = len(products) / self.max_items_day
@@ -107,7 +106,7 @@ class MoneySumHeatmapColorMode(HeatmapColorMode):
         super().__init__(mode_name="MoneySum", mode_description="Penge brugt")
 
     def get_day_color(self, products: List[Product]) -> Tuple[int, int, int]:
-        if len(products) == 0:
+        if len(products) == 0 or self.max_money_day_oere == 0:
             return 235, 237, 240  # Grey
 
         day_sum = sum(p.price for p in products)
@@ -116,7 +115,7 @@ class MoneySumHeatmapColorMode(HeatmapColorMode):
         return lerp_color((255, 255, 200), (255, 255, 0), lerp_value)  # Lightyellow - Yellow
 
     def get_day_summary(self, products: List[Product]) -> str:
-        return f"{money(sum(p.price for p in products))} F$ brugt"
+        return f"{money(sum(p.price for p in products))} 𝓕$ brugt"
 
     @staticmethod
     def get_products_money_sum(day_list: List[Tuple[date, List[Product]]]) -> int:
@@ -133,7 +132,7 @@ def prepare_heatmap_template_context(member: Member, weeks_to_display: int, end_
     __raw_heatmap_data = __get_heatmap_data_by_date(member, end_date, weeks_to_display)
 
     __products_in_color_categories = ColorCategorizedHeatmapColorMode.get_products_by_categories(
-        ("beer", "energy", "soda")
+        ("Øl", "Energidrik", "Sodavand")
     )
 
     __max_items_bought = ItemCountHeatmapColorMode.get_max_product_count(__raw_heatmap_data)
@@ -184,6 +183,9 @@ def __get_heatmap_data_by_date(
     end_date: datetime.date,
     weeks_to_display: int,
 ) -> List[Tuple[date, List[Product]]]:
+    # add a day
+    end_date += timedelta(days=1)
+
     days_to_go_back = (7 * weeks_to_display) - (6 - end_date.weekday() - 1)
     cutoff_date = end_date - timedelta(days=days_to_go_back)
 
@@ -204,6 +206,10 @@ def __get_heatmap_data_by_date(
         while sale_index < len(last_sale_list) and last_sale_list[sale_index].timestamp.date() == single_date:
             products_by_day[-1].append(last_sale_list[sale_index].product)
             sale_index += 1
+
+    # remove added day
+    products_by_day.pop(0)
+    dates_by_day.pop(0)
 
     return list(zip(dates_by_day, products_by_day))
 

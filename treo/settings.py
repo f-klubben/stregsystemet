@@ -49,9 +49,10 @@ PASSWORD =
 
 [logging]
 HANDLERS = [
-    "console"
+    "console",
+    "file"
     ]
-FILE = /tmp/stregsystem.log
+FILE = stregsystem.log
 LEVEL = DEBUG
 """
 
