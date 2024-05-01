@@ -10,7 +10,8 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = []
+    dependencies = [
+    ]
 
     operations = [
         migrations.CreateModel(
@@ -22,10 +23,7 @@ class Migration(migrations.Migration):
                 ('year', models.CharField(max_length=4)),
                 ('firstname', models.CharField(max_length=20)),
                 ('lastname', models.CharField(max_length=30)),
-                (
-                    'gender',
-                    models.CharField(choices=[(b'U', b'Unknown'), (b'M', b'Male'), (b'F', b'Female')], max_length=1),
-                ),
+                ('gender', models.CharField(choices=[(b'U', b'Unknown'), (b'M', b'Male'), (b'F', b'Female')], max_length=1)),
                 ('email', models.EmailField(blank=True, max_length=254)),
                 ('want_spam', models.BooleanField(default=True)),
                 ('balance', models.IntegerField(default=0)),
@@ -89,17 +87,12 @@ class Migration(migrations.Migration):
                 ('price', models.IntegerField()),
                 ('member', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='stregsystem.Member')),
                 ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='stregsystem.Product')),
-                (
-                    'room',
-                    models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='stregsystem.Room'),
-                ),
+                ('room', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='stregsystem.Room')),
             ],
         ),
         migrations.AddField(
             model_name='oldprice',
             name='product',
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, related_name='old_prices', to='stregsystem.Product'
-            ),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='old_prices', to='stregsystem.Product'),
         ),
     ]

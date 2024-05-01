@@ -24,6 +24,7 @@ urlpatterns = [
     re_path(r'^', include("stregreport.urls")),
     re_path(r'^kiosk/', include("kiosk.urls")),
     re_path(r'^admin/', admin.site.urls),
+
     re_path(r'^select2/', include('django_select2.urls')),
 ]
 
@@ -31,7 +32,6 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
     import debug_toolbar
-
     urlpatterns = [
         re_path(r'^__debug__/', include(debug_toolbar.urls)),
     ] + urlpatterns

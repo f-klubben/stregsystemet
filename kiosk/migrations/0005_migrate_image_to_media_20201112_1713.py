@@ -22,4 +22,6 @@ class Migration(migrations.Migration):
         ('kiosk', '0004_kioskitem_media'),
     ]
 
-    operations = [migrations.RunPython(migrate_all_data, reverse_migrate_all_data)]
+    operations = [
+        migrations.RunPython(migrate_all_data, reverse_migrate_all_data)
+    ]
