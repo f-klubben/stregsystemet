@@ -505,7 +505,7 @@ def signup(request):
             gender='U',
             signup_due_paid=False,
         )
-        signup_request = PendingSignup(member=member)
+        signup_request = PendingSignup(member=member, due=200*100)
         signup_request.save()
 
         return redirect('signup_status', signup_id=signup_request.id)
