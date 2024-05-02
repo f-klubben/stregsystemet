@@ -612,6 +612,7 @@ def get_user_info(request):
             'username': member.username,
             'active': member.active,
             'name': f'{member.firstname} {member.lastname}',
+            'signup_due_paid': member.signup_due_paid,
         }
     )
 
