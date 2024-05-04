@@ -159,8 +159,9 @@ paths:
       summary: Gets a dictionary of products with categories
       description: Dictionary of product IDs with category ID and category name as value.
       operationId: dump_category_mappings
-      #responses:
-        #'200 Success':
+      responses:
+        '200 Success':
+          $ref: '#/components/responses/CategoryMappings'
 components:
   parameters:
     member_id:
@@ -243,6 +244,28 @@ components:
       properties:
         123:
           $ref: '#/components/schemas/active_product'
+    category_name:
+      type: string
+      example: "Alcohol"
+    category_id:
+      type: integer
+      example: 11
+    category:
+      type: object
+      properties:
+        category_id:
+          $ref: '#/components/schemas/category_id'
+        category_name:
+          $ref: '#/components/schemas/category_name'
+    category_mapping:
+      type: array
+      items:
+        $ref: '#/components/schemas/category'
+    category_mappings_example:
+      type: object
+      properties:
+        123:
+          $ref: '#/components/schemas/category_mapping'
     sale:
       type: object
       properties:
@@ -322,6 +345,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/active_products_example'
+    CategoryMappings:
+      description: Dictionary of all activated products, with their mapped categories (both category name and ID).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/category_mappings_example'
     QRCodeGenerated:
       description: QR code with link to open MobilePay with the provided information.
       content:
