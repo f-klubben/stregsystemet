@@ -529,7 +529,12 @@ def get_member_id(request):
 
 
 def dump_product_category_mappings(request):
-    return JsonResponse({p.id: [(cat.id, cat.name) for cat in p.categories.all()] for p in Product.objects.all()})
+    return JsonResponse(
+        {
+            p.id: [{'category_id': cat.id, 'category_name': cat.name} for cat in p.categories.all()]
+            for p in Product.objects.all()
+        }
+    )
 
 
 def get_member_sales(request):
