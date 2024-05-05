@@ -1,6 +1,5 @@
 import datetime
 import random
-import re
 from typing import List
 
 import pytz
