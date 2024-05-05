@@ -43,6 +43,7 @@ from stregsystem.models import (
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
 from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, MobilePaytoolException
+from stregsystem.mail import data_sent
 
 
 def assertCountEqual(case, *args, **kwargs):
@@ -906,6 +907,16 @@ class MemberTests(TestCase):
 
         with freeze_time(timezone.datetime(year=2000, month=1, day=1, hour=0, minute=50)) as ft:
             self.assertAlmostEqual(1.15, user.calculate_alcohol_promille(), places=2)
+
+    def test_send_userdata(self):
+        user = Member.objects.create()
+        room = Room.objects.create()
+
+        t = timezone.datetime.fromtimestamp(0)
+
+        stregsystem_views.send_userdata(None, room.id, user.id)
+
+        self.assertNotEqual(data_sent[user.id], t)
 
 
 class BallmerPeakTests(TestCase):
