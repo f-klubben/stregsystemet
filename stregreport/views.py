@@ -344,6 +344,7 @@ def ranks_for_year(request, year):
 
     FORMAT = '%d/%m/%Y kl. %H:%M'
     last_year = year - 1
+    next_year = year + 1
     from_time = fjule_party(year - 1)
     to_time = fjule_party(year)
     kr_stat_list = sale_money_rank(from_time, to_time)
@@ -355,6 +356,7 @@ def ranks_for_year(request, year):
     from_time_string = from_time.strftime(FORMAT)
     to_time_string = to_time.strftime(FORMAT)
     current_date = timezone.now()
+    show_next_year = year < current_date.year
     is_ongoing = current_date > from_time and current_date <= to_time
     return render(request, 'admin/stregsystem/report/ranks.html', locals())
 

@@ -242,6 +242,21 @@ def menu_userinfo(request, room_id, member_id):
     return render(request, 'stregsystem/menu_userinfo.html', locals())
 
 
+def send_userdata(request, room_id, member_id):
+    from .mail import send_userdata_mail, data_sent
+
+    room = Room.objects.get(pk=room_id)
+    member = Member.objects.get(pk=member_id, active=True)
+
+    mail_sent = send_userdata_mail(member)
+    sent_time = data_sent[member.id]
+    current_time = timezone.now()
+    td = current_time - sent_time
+    minutes = 5 - ((td.seconds % 3600) // 60)
+
+    return render(request, "stregsystem/sent_userdata.html", locals())
+
+
 def menu_userpay(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     member = Member.objects.get(pk=member_id, active=True)
@@ -418,9 +433,11 @@ def batch_payment(request):
 @permission_required("stregsystem.mobilepaytool_access")
 def mobilepaytool(request):
     paytool_form_set = modelformset_factory(
-        MobilePayment, form=MobilePayToolForm, extra=0, fields=('timestamp', 'amount', 'member', 'comment', 'status')
-    )  # TODO: 'customer_name' removed, MobilepayAPI does not
-    # TODO-cont: have that information at this point in time - add back 'customer_name' if available in future
+        MobilePayment,
+        form=MobilePayToolForm,
+        extra=0,
+        fields=('timestamp', 'amount', 'member', 'customer_name', 'comment', 'status'),
+    )
     data = dict()
     if request.method == "GET":
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
