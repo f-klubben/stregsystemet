@@ -112,11 +112,13 @@ class Command(BaseCommand):
         amount = transaction['amount']
 
         comment = strip_emoji(transaction['message'])
+        name = transaction['name']  # Danish legal name, no reason to sanitize.
 
         MobilePayment.objects.create(
             amount=amount,  # already in streg-ører
             member=mobile_payment_exact_match_member(comment),
             comment=comment,
+            name=name,
             timestamp=payment_datetime,
             transaction_id=trans_id,
             status=MobilePayment.UNSET,
