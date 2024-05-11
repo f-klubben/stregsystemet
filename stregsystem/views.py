@@ -4,6 +4,7 @@ from typing import List
 
 import pytz
 from pytz import UTC
+from collections import Counter
 
 from stregreport.views import fjule_party
 
@@ -22,6 +23,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django_select2 import forms as s2forms
 import urllib.parse
+
 
 from stregsystem import parser
 from stregsystem.models import (
@@ -194,6 +196,8 @@ def quicksale(request, room, member: Member, bought_ids):
         member_has_low_balance,
         member_balance,
     ) = __set_local_values(member, room, products, order, now)
+
+    products = Counter([str(product.name) for product in products]).most_common()
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
