@@ -14,6 +14,8 @@ htmlcov/
 
 # ignore mobilepay api token
 stregsystem/management/commands/tokens.json
+stregsystem/*-tokens.json
+stregsystem/*-tokens.json.bak
 
 # ignore default log file location
 stregsystem.log

@@ -12,7 +12,7 @@
  og
 {% else %}{% if not forloop.first %},
 {% endif %}{% endif %}
-{{product.name}}{% endfor %}
+{{ product.1 }} {{ product.0 }}{% endfor %}
 for tilsammen {{cost|money}} kr.
 </b>
 {% if member_has_low_balance %}
