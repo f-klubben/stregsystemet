@@ -150,6 +150,8 @@ def _multibuy_hint(now, member):
             else:
                 sale_dict[str(sale.product.id)] = sale_dict[str(sale.product.id)] + 1
         sale_hints = ["<span class=\"username\">{}</span>".format(member.username)]
+        if all(sale_count == 1 for sale_count in sale_dict.values()):
+            return (False, None)
         for key in sale_dict:
             if sale_dict[key] > 1:
                 sale_hints.append("{}:{}".format(key, sale_dict[key]))
@@ -437,9 +439,11 @@ def batch_payment(request):
 @permission_required("stregsystem.mobilepaytool_access")
 def mobilepaytool(request):
     paytool_form_set = modelformset_factory(
-        MobilePayment, form=MobilePayToolForm, extra=0, fields=('timestamp', 'amount', 'member', 'comment', 'status')
-    )  # TODO: 'customer_name' removed, MobilepayAPI does not
-    # TODO-cont: have that information at this point in time - add back 'customer_name' if available in future
+        MobilePayment,
+        form=MobilePayToolForm,
+        extra=0,
+        fields=('timestamp', 'amount', 'member', 'customer_name', 'comment', 'status'),
+    )
     data = dict()
     if request.method == "GET":
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
