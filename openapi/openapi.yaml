@@ -299,6 +299,14 @@ components:
     is_ballmer_peaking:
       type: boolean
       example: false
+    bp_minutes:
+      type: int
+      nullable: true
+      example: 2
+    bp_seconds:
+      type: int
+      nullable: true
+      example: 30
     caffeine:
       type: integer
       example: 2
@@ -340,8 +348,10 @@ components:
           $ref: '#/components/schemas/promille'
         is_ballmer_peaking:
           $ref: '#/components/schemas/is_ballmer_peaking'
-        #bp_minutes
-        #bp_seconds
+        bp_minutes:
+          $ref: '#/components/schemas/bp_minutes'
+        bp_seconds:
+          $ref: '#/components/schemas/bp_seconds'
         caffeine:
           $ref: '#/components/schemas/caffeine'
         cups:
