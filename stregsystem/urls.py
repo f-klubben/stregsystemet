@@ -29,6 +29,7 @@ urlpatterns = [
     re_path(r'^(?P<room_id>\d+)/user/(?P<member_id>\d+)/$', views.menu_userinfo, name="userinfo"),
     re_path(r'^(?P<room_id>\d+)/user/(?P<member_id>\d+)/pay$', views.menu_userpay, name="userpay"),
     re_path(r'^(?P<room_id>\d+)/user/(?P<member_id>\d+)/rank$', views.menu_userrank, name="userrank"),
+    re_path(r'^(?P<room_id>\d+)/send_csv_mail/(?P<member_id>\d+)/$', views.send_userdata, name="send_userdata"),
     re_path(r'^api/member/payment/qr$', views.get_payment_qr, name="get_payment_qr"),
     re_path(r'^api/member/active$', views.get_member_active, name="get_member_active"),
     re_path(r'^api/member/sales$', views.get_member_sales, name="get_member_sales"),
