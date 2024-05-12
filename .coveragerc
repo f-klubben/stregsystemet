@@ -8,4 +8,5 @@ omit =
         */migrations/*
         treo/wsgi.py
         */apps.py
+        stregsystem/vipps_api.py
 source = .
