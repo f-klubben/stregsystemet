@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from stregsystem.models import Reimbursement, Sale, SaleNotFoundError, Payment
+from stregsystem.models import Reimbursement, Sale, SaleNotFoundError, ReimbursementTransaction
 
 
 @transaction.atomic
@@ -16,9 +16,10 @@ def reimburse_sale(sale_id):
         raise SaleNotFoundError()
     product = sale.product
     product.quantity = product.quantity + 1
-
-    sale.member.balance = sale.member.balance + sale.price
+    product.save()
+    sale.member.fulfill(ReimbursementTransaction(amount=sale.price))
     sale.member.save()
+    sale.save()
 
     Sale.delete(sale)
     reimbursement = Reimbursement(product=product, amount=sale.price, member=sale.member)

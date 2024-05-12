@@ -49,6 +49,15 @@ class SaleNotFoundError(Exception):
     pass
 
 
+class MoneyTransactionError(Exception):
+    pass
+
+
+class ReimbursementError(Exception):
+    def __init__(self, message):
+        super({'message': message})
+
+
 # Create your models here.
 
 
@@ -145,6 +154,17 @@ class Order(object):
             # to update it
         # We changed the user balance, so save that
         self.member.save()
+
+
+class ReimbursementTransaction(MoneyTransaction):
+    def change(self):
+        """
+        Returns the change to the users account
+        caused by fulfilling this transaction.
+        """
+        if self.amount <= 0:
+            raise ReimbursementError("Cannot perform negative reimbursement")
+        return self.amount
 
 
 class GetTransaction(MoneyTransaction):
