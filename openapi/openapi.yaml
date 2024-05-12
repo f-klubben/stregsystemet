@@ -162,6 +162,28 @@ paths:
       responses:
         '200 Success':
           $ref: '#/components/responses/CategoryMappings'
+  /api/sale:
+    post:
+      tags:
+        - Sale
+      summary: Perform a sale using a buy-string
+      description: something.
+      operationId: sale
+      responses:
+        '200 Success':
+          $ref: '#/components/responses/SaleSuccess'
+        '400 Room Not Found':
+          $ref: '#/components/responses/RoomNotFound'
+        '400 Invalid Room ID':
+          $ref: '#/components/responses/InvalidRoomId'
+        '400 Missing Room ID':
+          $ref: '#/components/responses/MissingRoomId'
+        '400 Member Not Found':
+          $ref: '#/components/responses/MemberNotFound'
+        '400 Invalid member ID':
+          $ref: '#/components/responses/InvalidMemberId'
+        '400 Missing Member ID':
+          $ref: '#/components/responses/MissingMemberId'
 components:
   parameters:
     member_id:
@@ -266,6 +288,36 @@ components:
       properties:
         123:
           $ref: '#/components/schemas/category_mapping'
+    created_on:
+      type: string
+      format: date
+      example: "2024-05-12T18:26:09.508Z"
+    sale_values_result_example:
+      type: object
+      properties:
+        order:
+          type: object
+          properties:
+            room:
+              $ref: '#/components/schemas/room_id'
+            member:
+              $ref: '#/components/schemas/member_id'
+            created_on:
+              $ref: '#/components/schemas/created_on'
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/product_id'
+        
+    sale_result_examle:
+      type: object
+      properties:
+        status:
+          200
+        msg:
+          "OK"
+        values:
+          $ref: '#/components/schemas/sale_values_result_example'
     sale:
       type: object
       properties:
@@ -351,6 +403,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/category_mappings_example'
+    SaleSuccess:
+      description: An object containing various statistics and info regarding the purchase.
+      content:
+        application/json:
+          schemas:
+            $ref: '#/components/schemas/sale_result_examle'
     QRCodeGenerated:
       description: QR code with link to open MobilePay with the provided information.
       content:
