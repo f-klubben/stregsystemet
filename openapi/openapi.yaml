@@ -292,6 +292,34 @@ components:
       type: string
       format: date
       example: "2024-05-12T18:26:09.508Z"
+    promille:
+      type: number
+      format: float
+      example: 0.2
+    is_ballmer_peaking:
+      type: boolean
+      example: false
+    caffeine:
+      type: integer
+      example: 2
+    cups:
+      type: integer
+      example: 4
+    product_contains_caffeine:
+      type: boolean
+      example: true
+    is_coffee_master:
+      type: boolean
+      example: false
+    give_multibuy_hint:
+      type: boolean
+      example: true
+    sale_hints:
+      type: string
+      example: "<span class=\"username\">kresten</span> beer:3"
+    member_has_low_balance:
+      type: boolean
+      example: false
     sale_values_result_example:
       type: object
       properties:
@@ -308,7 +336,30 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/product_id'
-        
+        promille:
+          $ref: '#/components/schemas/promille'
+        is_ballmer_peaking:
+          $ref: '#/components/schemas/is_ballmer_peaking'
+        #bp_minutes
+        #bp_seconds
+        caffeine:
+          $ref: '#/components/schemas/caffeine'
+        cups:
+          $ref: '#/components/schemas/cups'
+        product_contains_caffeine:
+          $ref: '#/components/schemas/product_contains_caffeine'
+        is_coffee_master:
+          $ref: '#/components/schemas/is_coffee_master'
+        cost:
+          $ref: '#/components/schemas/stregoere_price'
+        give_multibuy_hint:
+          $ref: '#/components/schemas/give_multibuy_hint'
+        sale_hints:
+          $ref: '#/components/schemas/sale_hints'
+        member_has_low_balance:
+          $ref: '#/components/schemas/member_has_low_balance'
+        member_balance:
+          $ref: '#/components/schemas/stregoere_balance'
     sale_result_examle:
       type: object
       properties:
