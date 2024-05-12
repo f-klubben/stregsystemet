@@ -28,7 +28,7 @@ class MobilePayToolForm(forms.ModelForm):
 
 class QRPaymentForm(forms.Form):
     member = forms.CharField(max_length=16)
-    amount = forms.DecimalField(min_value=50, decimal_places=2, required=False)
+    amount = forms.DecimalField(min_value=0.01, decimal_places=2, required=False)
 
 
 class PurchaseForm(forms.Form):

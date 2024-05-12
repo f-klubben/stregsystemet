@@ -150,8 +150,8 @@ def qr_code(data) -> HttpResponse:
     return response
 
 
-def mobilepay_launch_uri(username: str, amount) -> str:
-    query = {'phone': '90601', 'comment': username}
+def mobilepay_launch_uri(comment: str, amount: float) -> str:
+    query = {'phone': '90601', 'comment': comment}
 
     if amount is not None:
         query['amount'] = amount
