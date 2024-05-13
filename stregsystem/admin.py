@@ -21,6 +21,17 @@ from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
 
 
+def refund(modeladmin, request, queryset):
+    for obj in queryset:
+        transaction = PayTransaction(obj.price)
+        obj.member.rollback(transaction)
+        obj.member.save()
+    queryset.delete()
+
+
+refund.short_description = "Refund selected"
+
+
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
     list_display = (
@@ -31,7 +42,7 @@ class SaleAdmin(admin.ModelAdmin):
         'timestamp',
         'get_price_display',
     )
-    actions = ['refund']
+    actions = [refund]
     search_fields = ['^member__username', '=product__id', 'product__name']
     valid_lookups = 'member'
     autocomplete_fields = ['member', 'product']
@@ -84,17 +95,6 @@ class SaleAdmin(admin.ModelAdmin):
 
     get_price_display.short_description = "Price"
     get_price_display.admin_order_field = "price"
-
-
-def refund(modeladmin, request, queryset):
-    for obj in queryset:
-        transaction = PayTransaction(obj.price)
-        obj.member.rollback(transaction)
-        obj.member.save()
-    queryset.delete()
-
-
-refund.short_description = "Refund selected"
 
 
 def toggle_active_selected_products(modeladmin, request, queryset):

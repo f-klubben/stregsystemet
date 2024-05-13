@@ -9,6 +9,8 @@ import qrcode
 import qrcode.image.svg
 from django import forms
 from django.conf import settings
+from collections import Counter
+
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.core import management
@@ -20,6 +22,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from stregreport.views import fjule_party
+
 from stregsystem import parser
 from stregsystem.models import (
     Member,
@@ -45,6 +48,7 @@ from stregsystem.utils import (
     parse_csv_and_create_mobile_payments,
     MobilePaytoolException,
 )
+
 from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
 from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, SignupForm, RankingDateForm
@@ -146,6 +150,8 @@ def _multibuy_hint(now, member):
             else:
                 sale_dict[str(sale.product.id)] = sale_dict[str(sale.product.id)] + 1
         sale_hints = ["<span class=\"username\">{}</span>".format(member.username)]
+        if all(sale_count == 1 for sale_count in sale_dict.values()):
+            return (False, None)
         for key in sale_dict:
             if sale_dict[key] > 1:
                 sale_hints.append("{}:{}".format(key, sale_dict[key]))
@@ -190,6 +196,8 @@ def quicksale(request, room, member: Member, bought_ids):
         member_has_low_balance,
         member_balance,
     ) = __set_local_values(member, room, products, order, now)
+
+    products = Counter([str(product.name) for product in products]).most_common()
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
@@ -238,6 +246,21 @@ def menu_userinfo(request, room_id, member_id):
     stregforbud = member.has_stregforbud()
 
     return render(request, 'stregsystem/menu_userinfo.html', locals())
+
+
+def send_userdata(request, room_id, member_id):
+    from .mail import send_userdata_mail, data_sent
+
+    room = Room.objects.get(pk=room_id)
+    member = Member.objects.get(pk=member_id, active=True)
+
+    mail_sent = send_userdata_mail(member)
+    sent_time = data_sent[member.id]
+    current_time = timezone.now()
+    td = current_time - sent_time
+    minutes = 5 - ((td.seconds % 3600) // 60)
+
+    return render(request, "stregsystem/sent_userdata.html", locals())
 
 
 def menu_userpay(request, room_id, member_id):
@@ -416,9 +439,11 @@ def batch_payment(request):
 @permission_required("stregsystem.mobilepaytool_access")
 def mobilepaytool(request):
     paytool_form_set = modelformset_factory(
-        MobilePayment, form=MobilePayToolForm, extra=0, fields=('timestamp', 'amount', 'member', 'comment', 'status')
-    )  # TODO: 'customer_name' removed, MobilepayAPI does not
-    # TODO-cont: have that information at this point in time - add back 'customer_name' if available in future
+        MobilePayment,
+        form=MobilePayToolForm,
+        extra=0,
+        fields=('timestamp', 'amount', 'member', 'customer_name', 'comment', 'status'),
+    )
     data = dict()
     if request.method == "GET":
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
@@ -505,7 +530,7 @@ def signup(request):
             gender='U',
             signup_due_paid=False,
         )
-        signup_request = PendingSignup(member=member, due=200*100)
+        signup_request = PendingSignup(member=member, due=200 * 100)
         signup_request.save()
 
         return redirect('signup_status', signup_id=signup_request.id)
