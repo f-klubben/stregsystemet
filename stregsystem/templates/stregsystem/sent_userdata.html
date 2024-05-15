@@ -1,0 +1,39 @@
+{% extends "stregsystem/base.html" %}
+
+{% block content %}
+<center>
+    <h2>{% if mail_sent %}
+    Hej {{member.username}}, du skulle gerne have modtaget din bruger data.
+    {% else %}
+    Hej {{member.username}}, du har anmodet om brugerdata for nylig og bliver nødt til at vente.
+    {% endif %}</h2>
+
+    <h3>Filer:</h3>
+    <table border=1 width="40%">
+        <tr>
+            <th><b>sales.csv</b></th>
+            <th>indeholder alle køb du har foretaget dig i stregsystemet.</th>
+        </tr>
+        <tr>
+            <th><b>payments.csv</b></th> 
+            <th>indeholder alle indbetalinger du har gjort gennem Mobilepay.</th>
+        </tr>
+        <tr>
+            <th><b>userdata.csv</b></th> 
+            <th>indeholder alt data i den nederste tabel på forrige side.</th>
+        </tr>
+    </table><br>
+
+    {% if mail_sent %}
+    {% else %}
+    Vent {{minutes}} minutter før du kan anmode om dit data igen.<br>
+    <a href="/{{room.id}}/send_csv_mail/{{member.id}}/">Anmod igen</a><br>
+    {% endif %}
+
+    Blev der sendt en mail? <b>{% if mail_sent %}Mail sendt{% else %}Ingen mail sendt{% endif %}</b>!
+    
+    <h3><a href="/{{room.id}}/user/{{member.id}}">Tilbage til forrige side</a></h3>
+
+</center>
+
+{% endblock %}
