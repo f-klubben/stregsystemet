@@ -37,7 +37,7 @@ data_sent = {}
 
 # little function to make sure the csv data always has the same format
 def rows_to_csv(rows) -> str:
-    return "\n".join(','.join([str(item) for item in row]) for row in rows)
+    return "\n".join(','.join([str(item) if not ',' in str(item) else f'"{item}"' for item in row]) for row in rows)
 
 
 def send_userdata_mail(member):
