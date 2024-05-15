@@ -14,7 +14,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: ["3.6.9", "3.7.17", "3.11.5"] # 3.6.9 is what is running on prod
+        python-version: ["3.10.14", "3.11.5"] # 3.11.5 is what is running on prod
 
     steps:
     - uses: actions/checkout@v2
