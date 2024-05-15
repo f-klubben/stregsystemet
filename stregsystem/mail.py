@@ -39,7 +39,7 @@ data_sent = {}
 def rows_to_csv(rows: 'list[list[str]]') -> str:
     print(rows)
     # `"` is the escape character in csv, so replacing " with "" works to cover this edge case
-    return "\n".join(','.join(['"'+str(item).replace('"', '""')+'"' for item in row]) for row in rows)
+    return "\n".join(','.join(['"' + str(item).replace('"', '""') + '"' for item in row]) for row in rows)
 
 
 def send_userdata_mail(member):
