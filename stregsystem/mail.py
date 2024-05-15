@@ -36,8 +36,7 @@ data_sent = {}
 
 
 # little function to make sure the csv data always has the same format
-def rows_to_csv(rows: 'list[list[str]]') -> str:
-    print(rows)
+def rows_to_csv(rows) -> str:
     # `"` is the escape character in csv, so replacing " with "" works to cover this edge case
     return "\n".join(','.join(['"' + str(item).replace('"', '""') + '"' for item in row]) for row in rows)
 
