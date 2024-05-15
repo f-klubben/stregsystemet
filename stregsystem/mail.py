@@ -1,5 +1,6 @@
 import smtplib
 import logging
+import csv
 
 
 from email.mime.multipart import MIMEMultipart
@@ -33,13 +34,17 @@ def send_payment_mail(member, amount, mobilepay_comment):
 
 
 data_sent = {}
-
+class fakefile:
+    data = ""
+    def write(self, data):
+        self.data += data
 
 # little function to make sure the csv data always has the same format
 def rows_to_csv(rows) -> str:
-    # `"` is the escape character in csv, so replacing " with "" works to cover this edge case
-    return "\n".join(','.join(['"' + str(item).replace('"', '""') + '"' for item in row]) for row in rows)
-
+    file = fakefile()
+    # Converting elements in rows to strings to ensure it can be written to the file object
+    csv.writer(file).writerows([[str(item) for item in row] for row in rows])
+    return file.data
 
 def send_userdata_mail(member):
     from .models import Payment, Sale, MobilePayment
