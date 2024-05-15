@@ -1,8 +1,8 @@
 Django==5.0.2
-Pillow==10.2.0
-Coverage==7.4.3
+Pillow==10.3.0
+Coverage==7.5.1
 pytz==2024.1
-freezegun==1.4.0
+freezegun==1.5.1
 Django-Select2==8.1.2
 django-debug-toolbar==4.3.0
 requests==2.31.0
