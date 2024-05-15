@@ -13,7 +13,7 @@ Python Environment
 For windows using Anaconda and virtual environments:
 1. Download and install Anaconda
 2. In a shell:
-  - `conda create -n stregsystem python=3.11.5`
+  - `conda create -n stregsystem python=3.11.9`
   - `activate stregsystem`
   - `pip install -r requirements.txt`
 3. ???
