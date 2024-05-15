@@ -16,6 +16,7 @@ from configparser import ConfigParser
 from io import StringIO
 import json
 
+from django.conf.global_settings import DEFAULT_AUTO_FIELD
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -135,6 +136,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'treo.wsgi.application'
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
