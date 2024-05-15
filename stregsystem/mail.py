@@ -34,10 +34,14 @@ def send_payment_mail(member, amount, mobilepay_comment):
 
 
 data_sent = {}
+
+
 class fakefile:
     data = ""
+
     def write(self, data):
         self.data += data
+
 
 # little function to make sure the csv data always has the same format
 def rows_to_csv(rows) -> str:
@@ -45,6 +49,7 @@ def rows_to_csv(rows) -> str:
     # Converting elements in rows to strings to ensure it can be written to the file object
     csv.writer(file).writerows([[str(item) for item in row] for row in rows])
     return file.data
+
 
 def send_userdata_mail(member):
     from .models import Payment, Sale, MobilePayment
