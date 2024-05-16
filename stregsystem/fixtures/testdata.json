@@ -60,6 +60,19 @@
   },
   {
     "model": "stregsystem.product",
+    "pk": 42,
+    "fields": {
+      "name": "Fadøl, en is og et søm\"",
+      "price": 3000,
+      "active": true,
+      "deactivate_date": null,
+      "rooms": [
+        1
+      ]
+    }
+  },
+  {
+    "model": "stregsystem.product",
     "pk": 13,
     "fields": {
       "name": "Fake ØL",
@@ -139,6 +152,17 @@
     "fields": {
       "member": 1,
       "product": 13,
+      "room": 1,
+      "timestamp": "2017-03-13T13:38:10.573+00:00",
+      "price": 300
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 3,
+    "fields": {
+      "member": 1,
+      "product": 42,
       "room": 1,
       "timestamp": "2017-03-13T13:38:10.573+00:00",
       "price": 300
