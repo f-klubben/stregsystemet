@@ -16,6 +16,7 @@ from configparser import ConfigParser
 from io import StringIO
 import json
 
+from django.conf.global_settings import DEFAULT_AUTO_FIELD
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -71,7 +72,7 @@ DEBUG = cfg.getboolean("debug", "DEBUG")
 
 CSRF_COOKIE_SECURE = cfg.getboolean("debug", "CSRF_COOKIE_SECURE")
 CSRF_COOKIE_HTTPONLY = cfg.getboolean("debug", "CSRF_COOKIE_HTTPONLY")
-CSRF_TRUSTED_ORIGINS = ["fappen.fklub.dk"]
+CSRF_TRUSTED_ORIGINS = ["https://fappen.fklub.dk"]
 SESSION_COOKIE_SECURE = cfg.getboolean("debug", "SESSION_COOKIT_SECURE")
 
 SECURE_BROWSER_XSS_FILTER = cfg.getboolean("debug", "SECURE_BROWSER_XSS_FILTER")
@@ -135,6 +136,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'treo.wsgi.application'
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
