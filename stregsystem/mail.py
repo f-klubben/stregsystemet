@@ -10,6 +10,7 @@ from django.template.loader import render_to_string
 from django.utils.html import escape
 from django.utils import timezone
 from stregsystem.templatetags.stregsystem_extras import money
+from stregsystem.utils import rows_to_csv
 
 logger = logging.getLogger(__name__)
 
@@ -33,11 +34,6 @@ def send_payment_mail(member, amount, mobilepay_comment):
 
 
 data_sent = {}
-
-
-# little function to make sure the csv data always has the same format
-def rows_to_csv(rows) -> str:
-    return "\n".join(','.join([str(item) for item in row]) for row in rows)
 
 
 def send_userdata_mail(member):
@@ -73,7 +69,7 @@ def send_userdata_mail(member):
         "send_csv.html",
         {**vars(member), "fember": member.username},
         f'{member.username} has requested their user data!',
-        {"sales.csv": sales_csv, "payments.csv": payments_csv, "userdata.csv": userdata_csv},
+        {"sales.csv": sales_csv.encode(), "payments.csv": payments_csv.encode(), "userdata.csv": userdata_csv.encode()},
     )
     member.save()
     return True
