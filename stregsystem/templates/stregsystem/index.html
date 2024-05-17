@@ -4,9 +4,9 @@
 {% load listutil %}
 
 {% block title %}TREOENs STREGSYSTEM
-{% ifnotequal room.id 1 %}
- : {{room.description}}
-{% endifnotequal %}
+{% if room.id != 1 %} 
+: {{room.description}}
+{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -98,6 +98,11 @@
 
 <div style="clear: both;">&nbsp;</div>
 
+<script>
+  window.addEventListener("pageshow", (event) => {
+    document.getElementById('buybutton').disabled = false;
+  });
+</script>
 
 {% endblock %}
 
