@@ -1,5 +1,6 @@
 import logging
 import re
+import csv
 
 from django.utils.dateparse import parse_datetime
 from django.conf import settings
@@ -163,3 +164,18 @@ class MobilePaytoolException(RuntimeError):
         self.racy_mbpayments = racy_mbpayments
         self.inconsistent_mbpayments_count = self.racy_mbpayments.count()
         self.inconsistent_transaction_ids = [x.transaction_id for x in self.racy_mbpayments]
+
+
+class fakefile:
+    data = ""
+
+    def write(self, data):
+        self.data += data
+
+
+# little function to make sure the csv data always has the same format
+def rows_to_csv(rows) -> str:
+    file = fakefile()
+    # Converting elements in rows to strings to ensure it can be written to the file object
+    csv.writer(file).writerows([[str(item) for item in row] for row in rows])
+    return file.data
