@@ -16,16 +16,16 @@
 	<a class="fember-link" href="./members">View registered fembers</a>
 </div>
 {% if queryname %}
-<div id="result" class="result">
 	{% if member %}
 		{% block member_present %}{% endblock %}
 	{% else %}
 		{% block member_not_present %}
-		<div class="status">
-			<div class="fa fa-times-circle failure" aria-hidden="true"></div></div>
-		{{queryname}} is not a fember!!!
+		<div class="result">
+			<div class="status">
+				<div class="fa fa-times-circle failure" aria-hidden="true"></div></div>
+			{{queryname}} is not a fember!!!
+		</div>
 		{% endblock %}
 	{% endif %}
-</div>
 {% endif %}
 {% endblock %}

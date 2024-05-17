@@ -11,6 +11,7 @@
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/easter.css" %}">
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/fireworks.css" %}">
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/cursor.css" %}">
+<link rel="stylesheet" media="screen" href="{% static "/stregsystem/men.css" %}">
 <script>
     var static_url = "{% get_static_prefix %}";
     var media_url = "{% get_media_prefix %}";
@@ -35,9 +36,9 @@
         </td>
         <td align=center>
             <h1>{% block heading %}TREOENs STREGSYSTEM
-{% ifnotequal room.id 1 %}
+{% if room.id != 1 %}
  : {{room.description}}
-{% endifnotequal %}
+{% endif %}
 {% endblock %}</h1>
         </td>
         <td>
@@ -64,8 +65,11 @@
 <script async src="{% static "/stregsystem/snow.js" %}"></script>
 <script async src="{% static "/stregsystem/easter.js" %}"></script>
 <script async src="{% static "/stregsystem/gdpr.js" %}"></script>
+<script async src="{% static "/stregsystem/bober.js" %}"></script>
 <div class="bat-container"></div>
 <div class="snow-container"></div>
+<div class="men-container"></div>
+<div class="beaver-container"></div>
 <div class="easter-container"></div>
 {% show_candle %}
 </body>
