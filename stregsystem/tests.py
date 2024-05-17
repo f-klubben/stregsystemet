@@ -677,7 +677,7 @@ class PaymentTests(TestCase):
     def test_payment_delete_not_saved(self, make_payment):
         payment = Payment(member=self.member, amount=100)
 
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             payment.delete()
 
 
