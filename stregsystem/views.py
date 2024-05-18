@@ -53,6 +53,7 @@ from stregsystem.utils import (
 from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
 from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, SignupForm, RankingDateForm
+from .management.commands.autopayment import submit_filled_mobilepayments
 from .purchase_heatmap import (
     prepare_heatmap_template_context,
 )
@@ -443,12 +444,7 @@ def approval_tool_context(request, approval_formset_factory, approval_queryset, 
     if request.method == "GET":
         data['formset'] = approval_formset_factory(queryset=approval_queryset)
     elif request.method == "POST" and request.POST['action'] == "Submit matched entries":
-        before_count = approval_model.objects.filter(status=ApprovalModel.APPROVED).count()
-
-        MobilePayment.approve_member_filled_mobile_payments()
-        MobilePayment.submit_processed_mobile_payments(request.user)
-
-        count = approval_model.objects.filter(status=ApprovalModel.APPROVED).count() - before_count
+        count = submit_filled_mobilepayments(request.user)
 
         data['submitted_count'] = count
         data['formset'] = approval_formset_factory(queryset=approval_queryset)
