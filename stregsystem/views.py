@@ -437,7 +437,7 @@ def batch_payment(request):
 
 
 @staff_member_required()
-def approval_tool(request, template_file, approval_formset_factory, approval_queryset, approval_model):
+def approval_tool_context(request, approval_formset_factory, approval_queryset, approval_model):
     data = dict()
 
     if request.method == "GET":
@@ -472,7 +472,7 @@ def approval_tool(request, template_file, approval_formset_factory, approval_que
     else:
         data['formset'] = approval_formset_factory(queryset=approval_queryset)
 
-    return render(request, template_file, data)
+    return data
 
 
 @staff_member_required()
@@ -484,7 +484,16 @@ def mobilepaytool(request):
         extra=0,
         fields=('timestamp', 'amount', 'member', 'customer_name', 'comment', 'status'),
     )
-    data = dict()
+
+    data = approval_tool_context(
+        request,
+        paytool_form_set,
+        make_unprocessed_mobilepayment_query(),
+        MobilePayment
+    )
+
+    if bool(data):
+        return render(request, "admin/stregsystem/mobilepaytool.html", data)
 
     if request.method == "POST" and 'csv_file' in request.FILES and request.POST['action'] == "Import MobilePay CSV":
         # Prepare uploaded CSV to be read
@@ -497,7 +506,6 @@ def mobilepaytool(request):
 
         # refresh form after submission
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
-        return render(request, "admin/stregsystem/mobilepaytool.html", data)
 
     elif request.method == "POST" and request.POST['action'] == "Import via MobilePay API":
         before_count = MobilePayment.objects.count()
@@ -506,15 +514,8 @@ def mobilepaytool(request):
 
         data['api'] = f"Successfully imported {count} MobilePay transactions"
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
-        return render(request, "admin/stregsystem/mobilepaytool.html", data)
 
-    return approval_tool(
-        request,
-        "admin/stregsystem/mobilepaytool.html",
-        paytool_form_set,
-        make_unprocessed_mobilepayment_query(),
-        MobilePayment,
-    )
+    return render(request, "admin/stregsystem/mobilepaytool.html", data)
 
 
 def qr_payment(request):
