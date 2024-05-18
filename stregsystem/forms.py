@@ -2,7 +2,7 @@ import datetime
 
 from django import forms
 
-from stregsystem.models import MobilePayment, Member, ApprovalModel
+from stregsystem.models import MobilePayment, Member, ApprovalModel, PendingSignup
 from django_select2 import forms as s2forms
 
 
@@ -37,6 +37,19 @@ class MobilePayToolForm(ApprovalToolForm):
             for field in self.fields:
                 if field in ['amount', 'customer_name', 'comment', 'timestamp']:
                     self.fields[field].widget.attrs['readonly'] = True
+
+
+class SignupToolForm(ApprovalToolForm):
+    class Meta:
+        model = PendingSignup
+        fields = ('due', 'member', 'status')
+
+    def __init__(self, *args, **kwargs):
+        super(SignupToolForm, self).__init__(*args, **kwargs)
+
+        for field in self.fields:
+            if field in ['due', 'member']:
+                self.fields[field].widget.attrs['readonly'] = True
 
 
 class QRPaymentForm(forms.Form):
