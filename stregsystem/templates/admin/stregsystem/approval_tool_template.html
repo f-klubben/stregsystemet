@@ -26,7 +26,6 @@
     {% load stregsystem_extras %}
 
     <div id="content-main">
-
         <div id="wrapper">
             <div id="mobilepaytool-description">
                 <h1>{% block tool_name %}{% endblock %}</h1>
@@ -93,19 +92,12 @@
                                     {{ field.errors.as_ul }}
 
                                     {#  Modify non-editable fields for printing only and hide real widgets #}
-                                    {% if field.name == "timestamp" %}
-                                        {{ field.value }}
-                                        <span class="hidden">{{ field }}</span>
-                                    {% elif field.name == "amount" %}
-                                        {{ field.value|money }} DKK
-                                        <span class="hidden">{{ field }}</span>
-                                    {% elif field.name == "member" %}
-                                        <span class="js-member">{{ field }}</span>
-                                    {% elif field.name == "customer_name" %}
-                                        {{ field.value }}
-                                        <span class="hidden">{{ field }}</span>
-                                    {% elif field.name == "comment" %}
-                                        {{ field.value }}
+                                    {% if field.field.widget.attrs.readonly %}
+                                        {% if field.name == "amount" %}
+                                            {{ field.value|money }} DKK
+                                        {% else %}
+                                            {{ field.value }}
+                                        {% endif %}
                                         <span class="hidden">{{ field }}</span>
                                     {% elif field.name == "status" %}
                                         {% for radio in form.status %}

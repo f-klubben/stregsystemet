@@ -35,7 +35,7 @@ class MobilePayToolForm(ApprovalToolForm):
         # Make fields not meant for editing by user readonly (note that this is prevented in template as well)
         if self.instance.id:
             for field in self.fields:
-                if field in ['amount', 'customer_name', 'comment']:
+                if field in ['amount', 'customer_name', 'comment', 'timestamp']:
                     self.fields[field].widget.attrs['readonly'] = True
 
 
