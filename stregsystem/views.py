@@ -52,7 +52,7 @@ from stregsystem.utils import (
 
 from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
-from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, SignupForm, RankingDateForm
+from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, SignupForm, RankingDateForm, SignupToolForm
 from .management.commands.autopayment import submit_filled_mobilepayments
 from .purchase_heatmap import (
     prepare_heatmap_template_context,
@@ -507,7 +507,26 @@ def mobilepaytool(request):
     return render(request, "admin/stregsystem/approval_tools/mobilepay_tool.html", data)
 
 
-    return render(request, "admin/stregsystem/approval_tools/mobilepay_tool.html", data)
+@staff_member_required()
+@permission_required("stregsystem.signuptool_access")
+def signuptool(request):
+    signuptool_form_set = modelformset_factory(
+        PendingSignup,
+        form=SignupToolForm,
+        extra=0,
+        fields=('due', 'member', 'status'),
+    )
+
+    data = approval_tool_context(request, signuptool_form_set, make_unprocessed_mobilepayment_query(), MobilePayment)
+
+    if bool(data):
+        return render(request, "admin/stregsystem/approval_tools/signup_tool.html", data)
+
+    if request.method == "POST" and request.POST['action'] == "Process transactions for sign-ups":
+        management.call_command('autosignup')
+        data['formset'] = signuptool_form_set(queryset=make_unprocessed_mobilepayment_query())
+
+    return render(request, "admin/stregsystem/approval_tools/signup_tool.html", data)
 
 
 def qr_payment(request):

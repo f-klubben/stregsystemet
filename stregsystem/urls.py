@@ -22,6 +22,7 @@ urlpatterns = [
     re_path(r'^$', views.roomindex, name="index"),
     re_path(r'^admin/batch/$', views.batch_payment, name="batch"),
     re_path(r'^admin/mobilepaytool/$', views.mobilepaytool, name="mobilepaytool"),
+    re_path(r'^admin/signuptool/$', views.signuptool, name="signuptool"),
     re_path(r'^signup/$', views.signup, name="signup"),
     re_path(r'^signup/(?P<signup_id>\d+)$', views.signup_status, name="signup_status"),
     re_path(r'^(?P<room_id>\d+)/$', views.index, name="menu_index"),
