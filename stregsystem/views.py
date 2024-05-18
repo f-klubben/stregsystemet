@@ -483,7 +483,7 @@ def mobilepaytool(request):
     data = approval_tool_context(request, paytool_form_set, make_unprocessed_mobilepayment_query(), MobilePayment)
 
     if bool(data):
-        return render(request, "admin/stregsystem/approval_tools/mobilepaytool.html", data)
+        return render(request, "admin/stregsystem/approval_tools/mobilepay_tool.html", data)
 
     if request.method == "POST" and 'csv_file' in request.FILES and request.POST['action'] == "Import MobilePay CSV":
         # Prepare uploaded CSV to be read
@@ -505,7 +505,7 @@ def mobilepaytool(request):
         data['api'] = f"Successfully imported {count} MobilePay transactions"
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
-    return render(request, "admin/stregsystem/approval_tools/mobilepaytool.html", data)
+    return render(request, "admin/stregsystem/approval_tools/mobilepay_tool.html", data)
 
 
 def qr_payment(request):
