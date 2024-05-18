@@ -63,9 +63,7 @@ def unprocessed_mobilepayments_filter() -> Q:
 def make_unprocessed_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
 
-    return MobilePayment.objects.filter(unprocessed_mobilepayments_filter()).order_by(
-        '-timestamp'
-    )
+    return MobilePayment.objects.filter(unprocessed_mobilepayments_filter()).order_by('-timestamp')
 
 
 def make_processed_mobilepayment_query() -> QuerySet:

@@ -1596,9 +1596,7 @@ class MobilePaymentTests(TestCase):
         MobilePayment.approve_member_filled_mobile_payments()
         MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
         # assert that no changes have been made, also that MobilePaytoolException is not thrown
-        self.assertEqual(
-            MobilePayment.process_submitted(self.fixture_form_data_no_change, self.super_user), 0
-        )
+        self.assertEqual(MobilePayment.process_submitted(self.fixture_form_data_no_change, self.super_user), 0)
 
     def test_mobilepaytool_race_error_marx(self):
         # do autopayment
@@ -1622,9 +1620,7 @@ class MobilePaymentTests(TestCase):
         # assert exception is thrown and values in exception are as expected
         with self.assertRaises(MobilePaytoolException):
             try:
-                MobilePayment.process_submitted(
-                    self.fixture_form_data_marx_jdoe_approved, self.super_user
-                )
+                MobilePayment.process_submitted(self.fixture_form_data_marx_jdoe_approved, self.super_user)
             except MobilePaytoolException as e:
                 self.assertEqual(e.inconsistent_mbpayments_count, 2)
                 self.assertEqual(e.inconsistent_transaction_ids, ["241E027449465355", "016E027417049990"])
