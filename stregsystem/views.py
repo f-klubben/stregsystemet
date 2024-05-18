@@ -458,7 +458,7 @@ def approval_tool_context(request, approval_formset_factory, approval_queryset, 
         if form.is_valid():
             try:
                 # Do custom validation on form to avoid race conditions with autopayment
-                count = MobilePayment.process_submitted_mobile_payments(form.cleaned_data, request.user)
+                count = MobilePayment.process_submitted(form.cleaned_data, request.user)
                 data['submitted_count'] = count
             except MobilePaytoolException as e:
                 data['error_count'] = e.inconsistent_mbpayments_count

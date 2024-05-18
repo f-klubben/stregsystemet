@@ -1,6 +1,7 @@
 import datetime
 import urllib.parse
 import uuid
+from abc import abstractmethod
 from collections import Counter
 from email.utils import parseaddr
 
@@ -420,6 +421,12 @@ class ApprovalModel(models.Model):
             change_message=msg,
         )
 
+    @classmethod
+    @abstractmethod
+    @transaction.atomic
+    def process_submitted(cls, submitted_data, admin_user: User):
+        pass
+
 
 class MobilePayment(ApprovalModel):
     class Meta:
@@ -470,9 +477,9 @@ class MobilePayment(ApprovalModel):
             elif processed_mobile_payment.status == ApprovalModel.IGNORED:
                 processed_mobile_payment.log_approval(admin_user, "Ignored")
 
-    @staticmethod
+    @classmethod
     @transaction.atomic
-    def process_submitted_mobile_payments(submitted_data, admin_user: User):
+    def process_submitted(cls, submitted_data, admin_user: User):
         """
         Takes a cleaned_form from a MobilePayToolFormSet and processes them.
         The return value is the number of rows procesed.
@@ -723,3 +730,8 @@ class PendingSignup(ApprovalModel):
         self.delete()
 
         send_welcome_mail(self.member)
+
+    @classmethod
+    @transaction.atomic
+    def process_submitted(cls, submitted_data, admin_user: User):
+        pass
