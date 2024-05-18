@@ -2,7 +2,7 @@ import datetime
 
 from django import forms
 
-from stregsystem.models import MobilePayment, Member
+from stregsystem.models import MobilePayment, Member, ApprovalModel
 from django_select2 import forms as s2forms
 
 
@@ -11,14 +11,27 @@ class Select2MemberWidget(s2forms.ModelSelect2Widget):
     model = Member
 
 
-class MobilePayToolForm(forms.ModelForm):
+class ApprovalToolForm(forms.ModelForm):
+    class Meta:
+        abstract = True
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['status'].widget = forms.RadioSelect(choices=ApprovalModel.STATUS_CHOICES)
+
+
+class MobilePayToolForm(ApprovalToolForm):
     class Meta:
         model = MobilePayment
         fields = ('timestamp', 'amount', 'member', 'customer_name', 'comment', 'status')
-        widgets = {"member": Select2MemberWidget, "status": forms.RadioSelect(choices=MobilePayment.STATUS_CHOICES)}
+        widgets = {"member": Select2MemberWidget}
 
     def __init__(self, *args, **kwargs):
         super(MobilePayToolForm, self).__init__(*args, **kwargs)
+
+        # Remove 'Rejected' as it has no implemented behavior
+        self.fields['status'].widget.choices = ApprovalModel.STATUS_CHOICES[:-1]
+
         # Make fields not meant for editing by user readonly (note that this is prevented in template as well)
         if self.instance.id:
             for field in self.fields:
