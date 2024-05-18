@@ -14,7 +14,7 @@
     {{ formset.media.js }}
     <script>
         // Count number of member-fields filled at point of invocation
-        const prompt = () => confirm('Are you sure you want to submit all matched transactions (' + //
+        const prompt = () => confirm('Are you sure you want to submit all matched entries (' + //
             Array.from(document.getElementsByTagName('select')).filter((foo, x, _) => //
                 document.getElementsByTagName('select')[x].value !== "").length + //
             ') where member is set?')
@@ -61,11 +61,11 @@
             {% endif %}
 
             {% if not formset.forms and submitted_count %}
-                <h2> No more MobilePay transactions needs processing, submitted {{ submitted_count }} transactions </h2>
+                <h2> No more entries needs processing. Submitted {{ submitted_count }} entries </h2>
             {% elif not formset.forms %}
-                <h2> No MobilePay transactions needs processing</h2>
+                <h2> No entries needs processing</h2>
             {% elif submitted_count %}
-                <h2 style="padding-bottom: 20px">Submitted {{ submitted_count }} transactions</h2>
+                <h2 style="padding-bottom: 20px">Submitted {{ submitted_count }} entries</h2>
             {% endif %}
             <form method="post" class="js-formset"> {% csrf_token %}
                 {{ formset.management_form }}
