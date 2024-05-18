@@ -414,7 +414,7 @@ class ApprovalModel(models.Model):
     def log_approval(self, admin_user: User, msg):
         LogEntry.objects.log_action(
             user_id=admin_user.pk,
-            content_type_id=ContentType.objects.get_for_model(ApprovalModel).pk,
+            content_type_id=ContentType.objects.get_for_model(type(self)).pk,
             object_id=self.id,
             object_repr=str(self),
             action_flag=CHANGE,
