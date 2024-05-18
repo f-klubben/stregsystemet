@@ -54,6 +54,12 @@ def make_room_specific_query(room) -> QuerySet:
     return Q(rooms__id=room) | Q(rooms=None)
 
 
+def make_unprocessed_signups_query() -> QuerySet:
+    from stregsystem.models import PendingSignup, ApprovalModel
+
+    return PendingSignup.objects.filter(status__exact=ApprovalModel.UNSET)
+
+
 def unprocessed_mobilepayments_filter() -> Q:
     from stregsystem.models import ApprovalModel
 

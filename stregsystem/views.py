@@ -48,6 +48,7 @@ from stregsystem.utils import (
     make_unprocessed_mobilepayment_query,
     parse_csv_and_create_mobile_payments,
     MobilePaytoolException,
+    make_unprocessed_signups_query,
 )
 
 from .booze import ballmer_peak
@@ -517,14 +518,14 @@ def signuptool(request):
         fields=('due', 'member', 'status'),
     )
 
-    data = approval_tool_context(request, signuptool_form_set, make_unprocessed_mobilepayment_query(), MobilePayment)
+    data = approval_tool_context(request, signuptool_form_set, make_unprocessed_signups_query(), MobilePayment)
 
     if bool(data):
         return render(request, "admin/stregsystem/approval_tools/signup_tool.html", data)
 
     if request.method == "POST" and request.POST['action'] == "Process transactions for sign-ups":
         management.call_command('autosignup')
-        data['formset'] = signuptool_form_set(queryset=make_unprocessed_mobilepayment_query())
+        data['formset'] = signuptool_form_set(queryset=make_unprocessed_signups_query())
 
     return render(request, "admin/stregsystem/approval_tools/signup_tool.html", data)
 
