@@ -485,12 +485,7 @@ def mobilepaytool(request):
         fields=('timestamp', 'amount', 'member', 'customer_name', 'comment', 'status'),
     )
 
-    data = approval_tool_context(
-        request,
-        paytool_form_set,
-        make_unprocessed_mobilepayment_query(),
-        MobilePayment
-    )
+    data = approval_tool_context(request, paytool_form_set, make_unprocessed_mobilepayment_query(), MobilePayment)
 
     if bool(data):
         return render(request, "admin/stregsystem/approval_tools/mobilepaytool.html", data)
