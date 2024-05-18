@@ -464,6 +464,13 @@ def approval_tool_context(request, approval_formset_factory, approval_queryset, 
         else:
             # update form with errors
             data['formset'] = form
+    elif request.method == "POST" and request.POST['action'] == "Import via MobilePay API":
+        before_count = MobilePayment.objects.count()
+        management.call_command('importmobilepaypayments')
+        count = MobilePayment.objects.count() - before_count
+
+        data['api'] = f"Successfully imported {count} MobilePay transactions"
+        data['formset'] = approval_formset_factory(queryset=approval_queryset)
     else:
         data['formset'] = approval_formset_factory(queryset=approval_queryset)
 
@@ -497,13 +504,8 @@ def mobilepaytool(request):
         # refresh form after submission
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
-    elif request.method == "POST" and request.POST['action'] == "Import via MobilePay API":
-        before_count = MobilePayment.objects.count()
-        management.call_command('importmobilepaypayments')
-        count = MobilePayment.objects.count() - before_count
+    return render(request, "admin/stregsystem/approval_tools/mobilepay_tool.html", data)
 
-        data['api'] = f"Successfully imported {count} MobilePay transactions"
-        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
     return render(request, "admin/stregsystem/approval_tools/mobilepay_tool.html", data)
 
