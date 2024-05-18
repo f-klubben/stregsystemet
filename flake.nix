@@ -32,7 +32,7 @@
 
     in {
         devShells.x86_64-linux.default = pkgs.mkShell {
-            packages = dependencies;
+            packages = dependencies ++ [pkgs.mailhog];
         };
     };
 }
