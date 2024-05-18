@@ -540,8 +540,7 @@ class MobilePayment(ApprovalModel):
     def approve_member_filled_mobile_payments():
         for payment in make_unprocessed_member_filled_mobilepayment_query():
             if payment.status == ApprovalModel.UNSET:
-                payment.status = ApprovalModel.APPROVED
-                payment.save()
+                payment.approve()
 
 
 class Category(models.Model):
