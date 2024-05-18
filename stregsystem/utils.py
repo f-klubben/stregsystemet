@@ -54,10 +54,16 @@ def make_room_specific_query(room) -> QuerySet:
     return Q(rooms__id=room) | Q(rooms=None)
 
 
+def unprocessed_mobilepayments_filter() -> Q:
+    from stregsystem.models import ApprovalModel
+
+    return Q(payment__isnull=True) & Q(status__exact=ApprovalModel.UNSET)
+
+
 def make_unprocessed_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
 
-    return MobilePayment.objects.filter(Q(payment__isnull=True) & Q(status__exact=MobilePayment.UNSET)).order_by(
+    return MobilePayment.objects.filter(unprocessed_mobilepayments_filter()).order_by(
         '-timestamp'
     )
 
@@ -76,7 +82,7 @@ def make_unprocessed_member_filled_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
 
     return MobilePayment.objects.filter(
-        Q(payment__isnull=True) & Q(status=MobilePayment.UNSET) & Q(amount__gte=5000) & Q(member__isnull=False)
+        unprocessed_mobilepayments_filter() & Q(amount__gte=5000) & Q(member__isnull=False)
     )
 
 
@@ -84,8 +90,7 @@ def make_unprocessed_membership_payment_query() -> QuerySet:
     from stregsystem.models import MobilePayment
 
     return MobilePayment.objects.filter(
-        Q(payment__isnull=True)
-        & Q(status=MobilePayment.UNSET)
+        unprocessed_mobilepayments_filter()
         & Q(member__isnull=True)
         & Q(comment__regex=r'^signup:[0-9a-fA-F-]{36}\+.{1,16}$')
     )
