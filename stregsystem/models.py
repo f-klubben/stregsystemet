@@ -380,19 +380,41 @@ class Payment(models.Model):  # id automatisk...
             super(Payment, self).delete(*args, **kwargs)
 
 
-class MobilePayment(models.Model):
+class ApprovalModel(models.Model):
     class Meta:
-        permissions = (("mobilepaytool_access", "MobilePaytool access"),)
+        abstract = True
 
     UNSET = 'U'
     APPROVED = 'A'
     IGNORED = 'I'
+    REJECTED = 'R'
 
     STATUS_CHOICES = (
         (UNSET, 'Unset'),
         (APPROVED, 'Approved'),
         (IGNORED, 'Ignored'),
+        (REJECTED, 'Rejected'),
     )
+
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=UNSET)
+
+    def approve(self):
+        self.status = ApprovalModel.APPROVED
+        self.save()
+
+    def reject(self):
+        self.status = ApprovalModel.REJECTED
+        self.save()
+
+    def ignore(self):
+        self.status = ApprovalModel.IGNORED
+        self.save()
+
+
+class MobilePayment(ApprovalModel):
+    class Meta:
+        permissions = (("mobilepaytool_access", "MobilePaytool access"),)
+
     member = models.ForeignKey(
         Member, on_delete=models.CASCADE, null=True, blank=True
     )  # nullable as mobile payment may not have match yet
@@ -406,7 +428,6 @@ class MobilePayment(models.Model):
         max_length=32, unique=True
     )  # trans_ids are at most 17 chars, assumed to be unique
     comment = models.CharField(max_length=128, blank=True, null=True)
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=UNSET)
 
     def __str__(self):
         return (
@@ -677,7 +698,7 @@ class News(models.Model):
         return self.title + " -- " + str(self.pub_date)
 
 
-class PendingSignup(models.Model):
+class PendingSignup(ApprovalModel):
     member = models.ForeignKey(Member, on_delete=models.CASCADE, null=False)
     due = models.IntegerField(default=200 * 100)
     token = models.UUIDField(default=uuid.uuid4, db_index=True)
