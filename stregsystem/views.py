@@ -2,7 +2,7 @@ import datetime
 import io
 import json
 import urllib.parse
-from typing import List
+from typing import List, Type
 
 import pytz
 import qrcode
@@ -437,8 +437,7 @@ def batch_payment(request):
     )
 
 
-@staff_member_required()
-def approval_tool_context(request, approval_formset_factory, approval_queryset, approval_model):
+def approval_tool_context(request, approval_formset_factory, approval_queryset, approval_model: Type[ApprovalModel]):
     data = dict()
 
     if request.method == "GET":
@@ -454,7 +453,7 @@ def approval_tool_context(request, approval_formset_factory, approval_queryset, 
         if form.is_valid():
             try:
                 # Do custom validation on form to avoid race conditions with autopayment
-                count = MobilePayment.process_submitted(form.cleaned_data, request.user)
+                count = approval_model.process_submitted(form.cleaned_data, request.user)
                 data['submitted_count'] = count
             except MobilePaytoolException as e:
                 data['error_count'] = e.inconsistent_mbpayments_count
