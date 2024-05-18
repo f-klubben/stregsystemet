@@ -19,3 +19,7 @@ stregsystem/*-tokens.json.bak
 
 # ignore default log file location
 stregsystem.log
+
+# nix
+.direnv
+.envrc
