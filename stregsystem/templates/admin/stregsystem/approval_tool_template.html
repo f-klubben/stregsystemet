@@ -94,10 +94,8 @@
 
                                     {#  Modify non-editable fields for printing only and hide real widgets #}
                                     {% if field.name == "timestamp" %}
-                                        {% timezone "Europe/Copenhagen" %} {# TODO: remove when #212 is merged #}
-                                            {{ field.value }}
-                                            <span class="hidden">{{ field }}</span>
-                                        {% endtimezone %}
+                                        {{ field.value }}
+                                        <span class="hidden">{{ field }}</span>
                                     {% elif field.name == "amount" %}
                                         {{ field.value|money }} DKK
                                         <span class="hidden">{{ field }}</span>
