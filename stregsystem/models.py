@@ -410,6 +410,16 @@ class ApprovalModel(models.Model):
         self.status = ApprovalModel.IGNORED
         self.save()
 
+    def log_approval(self, admin_user: User, msg):
+        LogEntry.objects.log_action(
+            user_id=admin_user.pk,
+            content_type_id=ContentType.objects.get_for_model(ApprovalModel).pk,
+            object_id=self.id,
+            object_repr=str(self),
+            action_flag=CHANGE,
+            change_message=msg,
+        )
+
 
 class MobilePayment(ApprovalModel):
     class Meta:
@@ -458,7 +468,7 @@ class MobilePayment(ApprovalModel):
                 processed_mobile_payment.save()
 
             elif processed_mobile_payment.status == ApprovalModel.IGNORED:
-                processed_mobile_payment.log_mobile_payment(admin_user, "Ignored")
+                processed_mobile_payment.log_approval(admin_user, "Ignored")
 
     @staticmethod
     @transaction.atomic
@@ -507,26 +517,16 @@ class MobilePayment(ApprovalModel):
 
                 processed_mobile_payment.payment = payment
                 processed_mobile_payment.member = member
-                processed_mobile_payment.log_mobile_payment(admin_user, "Approved")
+                processed_mobile_payment.log_approval(admin_user, "Approved")
             # If ignored, we need to log who did it.
             elif row['status'] == ApprovalModel.IGNORED:
-                processed_mobile_payment.log_mobile_payment(admin_user, "Ignored")
+                processed_mobile_payment.log_approval(admin_user, "Ignored")
 
             processed_mobile_payment.status = row['status']
             processed_mobile_payment.save()
 
         # Return how many records were modified.
         return len(mobile_payment_ids)
-
-    def log_mobile_payment(self, admin_user: User, msg):
-        LogEntry.objects.log_action(
-            user_id=admin_user.pk,
-            content_type_id=ContentType.objects.get_for_model(MobilePayment).pk,
-            object_id=self.id,
-            object_repr=str(self),
-            action_flag=CHANGE,
-            change_message=msg,
-        )
 
     @staticmethod
     @transaction.atomic
