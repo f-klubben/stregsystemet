@@ -449,7 +449,7 @@ class MobilePayment(ApprovalModel):
     def submit_processed_mobile_payments(admin_user: User):
         processed_mobile_payment: MobilePayment  # annotate iterated variable (PEP 526)
         for processed_mobile_payment in make_processed_mobilepayment_query():
-            if processed_mobile_payment.status == MobilePayment.APPROVED:
+            if processed_mobile_payment.status == ApprovalModel.APPROVED:
                 payment = Payment(member=processed_mobile_payment.member, amount=processed_mobile_payment.amount)
                 # Save payment and foreign key to MobilePayment field
                 payment.save()
@@ -457,7 +457,7 @@ class MobilePayment(ApprovalModel):
                 processed_mobile_payment.payment = payment
                 processed_mobile_payment.save()
 
-            elif processed_mobile_payment.status == MobilePayment.IGNORED:
+            elif processed_mobile_payment.status == ApprovalModel.IGNORED:
                 processed_mobile_payment.log_mobile_payment(admin_user, "Ignored")
 
     @staticmethod
@@ -472,10 +472,10 @@ class MobilePayment(ApprovalModel):
 
         for row in submitted_data:
             # Skip rows which are set to "unset" (the default).
-            if row['status'] == MobilePayment.UNSET:
+            if row['status'] == ApprovalModel.UNSET:
                 continue
             # Skip rows which are set to "approved" without member. A Payment MUST have a Member.
-            if row['status'] == MobilePayment.APPROVED and row['member'] is None:
+            if row['status'] == ApprovalModel.APPROVED and row['member'] is None:
                 continue
             cleaned_data.append(row)
 
@@ -483,21 +483,21 @@ class MobilePayment(ApprovalModel):
         mobile_payment_ids = [row['id'].id for row in cleaned_data]
         # Count how many id of the id's who are set to status "unset".
         database_mobile_payment_count = MobilePayment.objects.filter(
-            id__in=mobile_payment_ids, status=MobilePayment.UNSET
+            id__in=mobile_payment_ids, status=ApprovalModel.UNSET
         ).count()
         # If there's a discrepancy in the number of rows, the user must have an outdated image. Throw an error.
         if len(mobile_payment_ids) != database_mobile_payment_count:
             # get database mobilepayments matching cleaned ids and having been processed while form has been active
             raise MobilePaytoolException(
                 MobilePayment.objects.filter(
-                    id__in=mobile_payment_ids, status__in=(MobilePayment.APPROVED, MobilePayment.IGNORED)
+                    id__in=mobile_payment_ids, status__in=(ApprovalModel.APPROVED, ApprovalModel.IGNORED)
                 )
             )
 
         for row in cleaned_data:
             processed_mobile_payment = MobilePayment.objects.get(id=row['id'].id)
             # If approved, we need to create a payment and relate said payment to the mobilepayment.
-            if row['status'] == MobilePayment.APPROVED:
+            if row['status'] == ApprovalModel.APPROVED:
                 payment_amount = processed_mobile_payment.amount
                 member = Member.objects.get(id=row['member'].id)
 
@@ -509,7 +509,7 @@ class MobilePayment(ApprovalModel):
                 processed_mobile_payment.member = member
                 processed_mobile_payment.log_mobile_payment(admin_user, "Approved")
             # If ignored, we need to log who did it.
-            elif row['status'] == MobilePayment.IGNORED:
+            elif row['status'] == ApprovalModel.IGNORED:
                 processed_mobile_payment.log_mobile_payment(admin_user, "Ignored")
 
             processed_mobile_payment.status = row['status']
@@ -532,8 +532,8 @@ class MobilePayment(ApprovalModel):
     @transaction.atomic
     def approve_member_filled_mobile_payments():
         for payment in make_unprocessed_member_filled_mobilepayment_query():
-            if payment.status == MobilePayment.UNSET:
-                payment.status = MobilePayment.APPROVED
+            if payment.status == ApprovalModel.UNSET:
+                payment.status = ApprovalModel.APPROVED
                 payment.save()
 
 
