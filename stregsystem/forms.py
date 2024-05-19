@@ -20,14 +20,14 @@ class ApprovalToolForm(forms.ModelForm):
         self.fields['status'].widget = forms.RadioSelect(choices=ApprovalModel.STATUS_CHOICES)
 
 
-class MobilePayToolForm(ApprovalToolForm):
+class PaymentToolForm(ApprovalToolForm):
     class Meta:
         model = MobilePayment
         fields = ('timestamp', 'amount', 'member', 'customer_name', 'comment', 'status')
         widgets = {"member": Select2MemberWidget}
 
     def __init__(self, *args, **kwargs):
-        super(MobilePayToolForm, self).__init__(*args, **kwargs)
+        super(PaymentToolForm, self).__init__(*args, **kwargs)
 
         # Remove 'Rejected' as it has no implemented behavior
         self.fields['status'].widget.choices = ApprovalModel.STATUS_CHOICES[:-1]

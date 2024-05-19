@@ -47,13 +47,13 @@ from stregsystem.utils import (
     make_room_specific_query,
     make_unprocessed_mobilepayment_query,
     parse_csv_and_create_mobile_payments,
-    MobilePaytoolException,
+    PaymentToolException,
     make_unprocessed_signups_query,
 )
 
 from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
-from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, SignupForm, RankingDateForm, SignupToolForm
+from .forms import PaymentToolForm, QRPaymentForm, PurchaseForm, SignupForm, RankingDateForm, SignupToolForm
 from .management.commands.autopayment import submit_filled_mobilepayments
 from .purchase_heatmap import (
     prepare_heatmap_template_context,
@@ -456,7 +456,7 @@ def approval_tool_context(request, approval_formset_factory, approval_queryset, 
                 # Do custom validation on form to avoid race conditions with autopayment
                 count = approval_model.process_submitted(form.cleaned_data, request.user)
                 data['submitted_count'] = count
-            except MobilePaytoolException as e:
+            except PaymentToolException as e:
                 data['error_count'] = e.inconsistent_mbpayments_count
                 data['error_transaction_ids'] = e.inconsistent_transaction_ids
 
@@ -480,10 +480,10 @@ def approval_tool_context(request, approval_formset_factory, approval_queryset, 
 
 @staff_member_required()
 @permission_required("stregsystem.mobilepaytool_access")
-def mobilepaytool(request):
+def payment_tool(request):
     paytool_form_set = modelformset_factory(
         MobilePayment,
-        form=MobilePayToolForm,
+        form=PaymentToolForm,
         extra=0,
         fields=('timestamp', 'amount', 'member', 'customer_name', 'comment', 'status'),
     )
@@ -491,7 +491,7 @@ def mobilepaytool(request):
     data = approval_tool_context(request, paytool_form_set, make_unprocessed_mobilepayment_query(), MobilePayment)
 
     if bool(data):
-        return render(request, "admin/stregsystem/approval_tools/mobilepay_tool.html", data)
+        return render(request, "admin/stregsystem/approval_tools/payment_tool.html", data)
 
     if request.method == "POST" and 'csv_file' in request.FILES and request.POST['action'] == "Import MobilePay CSV":
         # Prepare uploaded CSV to be read
@@ -505,12 +505,12 @@ def mobilepaytool(request):
         # refresh form after submission
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
-    return render(request, "admin/stregsystem/approval_tools/mobilepay_tool.html", data)
+    return render(request, "admin/stregsystem/approval_tools/payment_tool.html", data)
 
 
 @staff_member_required()
 @permission_required("stregsystem.signuptool_access")
-def signuptool(request):
+def signup_tool(request):
     signuptool_form_set = modelformset_factory(
         PendingSignup,
         form=SignupToolForm,

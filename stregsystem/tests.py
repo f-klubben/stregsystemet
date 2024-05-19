@@ -43,7 +43,7 @@ from stregsystem.models import (
 )
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
-from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, MobilePaytoolException
+from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, PaymentToolException
 from stregsystem.mail import data_sent
 
 
@@ -1604,10 +1604,10 @@ class MobilePaymentTests(TestCase):
         MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
 
         # assert exception is thrown and values in exception are as expected
-        with self.assertRaises(MobilePaytoolException):
+        with self.assertRaises(PaymentToolException):
             try:
                 MobilePayment.process_submitted(self.fixture_form_data_marx_approved, self.super_user)
-            except MobilePaytoolException as e:
+            except PaymentToolException as e:
                 self.assertEqual(e.inconsistent_mbpayments_count, 1)
                 self.assertEqual(e.inconsistent_transaction_ids, ["241E027449465355"])
                 raise e
@@ -1618,10 +1618,10 @@ class MobilePaymentTests(TestCase):
         MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
 
         # assert exception is thrown and values in exception are as expected
-        with self.assertRaises(MobilePaytoolException):
+        with self.assertRaises(PaymentToolException):
             try:
                 MobilePayment.process_submitted(self.fixture_form_data_marx_jdoe_approved, self.super_user)
-            except MobilePaytoolException as e:
+            except PaymentToolException as e:
                 self.assertEqual(e.inconsistent_mbpayments_count, 2)
                 self.assertEqual(e.inconsistent_transaction_ids, ["241E027449465355", "016E027417049990"])
                 raise e

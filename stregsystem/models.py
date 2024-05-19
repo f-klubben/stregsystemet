@@ -21,7 +21,7 @@ from stregsystem.utils import (
     date_to_midnight,
     make_processed_mobilepayment_query,
     make_unprocessed_member_filled_mobilepayment_query,
-    MobilePaytoolException,
+    PaymentToolException,
 )
 
 
@@ -481,7 +481,7 @@ class MobilePayment(ApprovalModel):
     @transaction.atomic
     def process_submitted(cls, submitted_data, admin_user: User):
         """
-        Takes a cleaned_form from a MobilePayToolFormSet and processes them.
+        Takes a cleaned_form from a PaymentToolFormSet and processes them.
         The return value is the number of rows procesed.
         If one of the MobilePayments have been altered compared to the data, a RuntimeError will be raised.
         """
@@ -505,7 +505,7 @@ class MobilePayment(ApprovalModel):
         # If there's a discrepancy in the number of rows, the user must have an outdated image. Throw an error.
         if len(mobile_payment_ids) != database_mobile_payment_count:
             # get database mobilepayments matching cleaned ids and having been processed while form has been active
-            raise MobilePaytoolException(
+            raise PaymentToolException(
                 MobilePayment.objects.filter(
                     id__in=mobile_payment_ids, status__in=(ApprovalModel.APPROVED, ApprovalModel.IGNORED)
                 )

@@ -175,9 +175,9 @@ class stregsystemTestRunner(DiscoverRunner):
         super(stregsystemTestRunner, self).__init__(*args, **kwargs)
 
 
-class MobilePaytoolException(RuntimeError):
+class PaymentToolException(RuntimeError):
     """
-    Structured exception for runtime error due to race condition during submission of MobilePaytool form
+    Structured exception for runtime error due to race condition during submission of Paymenttool form
     """
 
     def __init__(self, racy_mbpayments: QuerySet):

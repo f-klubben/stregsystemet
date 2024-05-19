@@ -86,13 +86,13 @@
         <caption><a class="section">{% blocktrans with app.name as name %}Indbetalinger{% endblocktrans %}</a></caption>
             {% if perms.stregsystem.mobilepaytool_access %}
             <tr>
-                <th scope="row"><a href = "/admin/mobilepaytool/">MobilePaytool</a></th>
+                <th scope="row"><a href = "/admin/payment_tool/">Payment Tool (MobilePaytool)</a></th>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
             </tr>
             {% elif perms.stregsystem.signuptool_access %}
             <tr>
-                <th scope="row"><a href = "/admin/signuptool/">Signup Tool</a></th>
+                <th scope="row"><a href = "/admin/signup_tool/">Signup Tool</a></th>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
             </tr>
