@@ -251,3 +251,13 @@ LOGGING = {
         }
     }
 }
+
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+
+CONSTANCE_CONFIG = {
+    'VIPPS_MYSHOP_NUMBER': ('90601', 'MobilePay Myshop Number'),
+}
+
+CONSTANCE_CONFIG_FIELDSETS = {
+    'Accounting': ('VIPPS_MYSHOP_NUMBER',),
+}
