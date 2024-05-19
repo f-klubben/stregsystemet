@@ -256,8 +256,9 @@ CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
 CONSTANCE_CONFIG = {
     'VIPPS_MYSHOP_NUMBER': ('90601', 'MobilePay Myshop Number'),
+    'MINIMUM_PAYMENT_STREGOERE': (5000, 'Minimum Pay Amount in Stregoere'),
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
-    'Accounting': ('VIPPS_MYSHOP_NUMBER',),
+    'Accounting': ('VIPPS_MYSHOP_NUMBER', 'MINIMUM_PAYMENT_STREGOERE',),
 }
