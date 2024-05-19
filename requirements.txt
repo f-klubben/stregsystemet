@@ -5,5 +5,7 @@ pytz==2024.1
 freezegun==1.5.1
 Django-Select2==8.1.2
 django-debug-toolbar==4.3.0
+django-constance==3.1.0
+redis==5.0.4
 requests==2.31.0
 qrcode==7.4.2

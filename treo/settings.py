@@ -91,6 +91,8 @@ for e in cfg.items("hostnames"):
 # Application definition
 
 INSTALLED_APPS = [
+    'constance',
+    'constance.backends.database',
     'stregsystem',
     'stregreport',
     'kiosk',
