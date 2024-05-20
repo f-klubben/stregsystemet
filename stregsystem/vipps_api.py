@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, date
 from django.utils.dateparse import parse_datetime
-
+from constance import config
 from requests.auth import HTTPBasicAuth
 import requests
 from pathlib import Path
@@ -17,7 +17,7 @@ class AccountingAPI(object):
     tokens_file_backup = (Path(__file__).parent / 'vipps-tokens.json.bak').as_posix()
     tokens = None
 
-    myshop_number = 90601
+    myshop_number = config.VIPPS_MYSHOP_NUMBER
     logger = logging.getLogger(__name__)
 
     @classmethod

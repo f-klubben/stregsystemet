@@ -2,6 +2,7 @@ import datetime
 import random
 from typing import List
 
+from constance import config
 import pytz
 from pytz import UTC
 from collections import Counter
@@ -281,6 +282,8 @@ def menu_userpay(request, room_id, member_id):
 
     amounts = sorted(amounts)
 
+    myshop_number = config.VIPPS_MYSHOP_NUMBER
+
     return render(request, 'stregsystem/menu_userpay.html', locals())
 
 
@@ -504,7 +507,7 @@ def qr_payment(request):
     if not form.is_valid():
         return HttpResponseBadRequest("Invalid input for MobilePay QR code generation")
 
-    query = {'phone': '90601', 'comment': form.cleaned_data.get('member')}
+    query = {'phone': config.VIPPS_MYSHOP_NUMBER, 'comment': form.cleaned_data.get('member')}
 
     if form.cleaned_data.get("amount") is not None:
         query['amount'] = form.cleaned_data.get("amount")

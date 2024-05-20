@@ -4,6 +4,7 @@ from collections import Counter
 from copy import deepcopy
 from unittest.mock import patch
 
+from constance import config
 import pytz
 from django.utils.dateparse import parse_datetime
 import stregsystem.parser as parser
@@ -1656,7 +1657,7 @@ class AutoPaymentTests(TestCase):
     def test_ignore_lt_50_49(self):
         comment = 'tester'
         MobilePayment.objects.create(
-            amount=4999,
+            amount=int(config.MINIMUM_PAYMENT_STREGOERE) - 1,
             comment=comment,
             timestamp=parse_datetime("2022-05-16T13:51:08.8574424+01:00"),
             transaction_id='156E027485173228',
@@ -1672,7 +1673,7 @@ class AutoPaymentTests(TestCase):
     def test_approve_gte_50(self):
         comment = 'tester'
         MobilePayment.objects.create(
-            amount=5000,
+            amount=int(config.MINIMUM_PAYMENT_STREGOERE),
             comment=comment,
             timestamp=parse_datetime("2022-05-16T13:51:09.8574424+01:00"),
             transaction_id='156E027485173229',

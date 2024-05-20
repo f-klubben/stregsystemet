@@ -91,6 +91,8 @@ for e in cfg.items("hostnames"):
 # Application definition
 
 INSTALLED_APPS = [
+    'constance',
+    'constance.backends.database',
     'stregsystem',
     'stregreport',
     'kiosk',
@@ -248,4 +250,15 @@ LOGGING = {
             'handlers': json.loads(cfg.get('logging', 'HANDLERS'))
         }
     }
+}
+
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+
+CONSTANCE_CONFIG = {
+    'VIPPS_MYSHOP_NUMBER': ('90601', 'MobilePay Myshop Number'),
+    'MINIMUM_PAYMENT_STREGOERE': (5000, 'Minimum Pay Amount in Stregoere'),
+}
+
+CONSTANCE_CONFIG_FIELDSETS = {
+    'Accounting': ('VIPPS_MYSHOP_NUMBER', 'MINIMUM_PAYMENT_STREGOERE',),
 }

@@ -2,6 +2,7 @@ import logging
 import re
 import csv
 
+from constance import config
 from django.utils.dateparse import parse_datetime
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -76,7 +77,10 @@ def make_unprocessed_member_filled_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
 
     return MobilePayment.objects.filter(
-        Q(payment__isnull=True) & Q(status=MobilePayment.UNSET) & Q(amount__gte=5000) & Q(member__isnull=False)
+        Q(payment__isnull=True)
+        & Q(status=MobilePayment.UNSET)
+        & Q(amount__gte=int(config.MINIMUM_PAYMENT_STREGOERE))
+        & Q(member__isnull=False)
     )
 
 
