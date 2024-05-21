@@ -80,7 +80,7 @@
 
     {% endif %}
 
-  {% if perms.stregsystem.import_batch_payments or perms.stregsystem.mobilepaytool_access %}
+  {% if perms.stregsystem.import_batch_payments or perms.stregsystem.mobilepaytool_access or perms.stregsystem.signuptool_access %}
     <div class="module">
         <table>
         <caption><a class="section">{% blocktrans with app.name as name %}Indbetalinger{% endblocktrans %}</a></caption>
@@ -90,13 +90,15 @@
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
             </tr>
-            {% elif perms.stregsystem.signuptool_access %}
+            {% endif %}
+            {% if perms.stregsystem.signuptool_access %}
             <tr>
                 <th scope="row"><a href = "/admin/signup_tool/">Signup Tool</a></th>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
             </tr>
-            {% elif perms.stregsystem.import_batch_payments %}
+            {% endif %}
+            {% if perms.stregsystem.import_batch_payments %}
             <tr>
                 <th scope="row"><a href = "/admin/batch/">Multi-indbetaling</a></th>
                 <td>&nbsp;</td>
