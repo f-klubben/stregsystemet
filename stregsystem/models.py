@@ -705,6 +705,9 @@ class News(models.Model):
 
 
 class PendingSignup(ApprovalModel):
+    class Meta:
+        permissions = (("signuptool_access", "Sign-up Tool access"),)
+
     member = models.ForeignKey(Member, on_delete=models.CASCADE, null=False)
     due = models.IntegerField(default=200 * 100)
     token = models.UUIDField(default=uuid.uuid4, db_index=True)
