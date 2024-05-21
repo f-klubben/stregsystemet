@@ -6,6 +6,8 @@ from unittest.mock import patch
 
 import pytz
 from django.utils.dateparse import parse_datetime
+
+import razzia.views
 import stregsystem.parser as parser
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
@@ -1266,7 +1268,7 @@ class RazziaTests(TestCase):
             Sale.objects.create(member=self.alan, product=self.notflan, price=1.0)
 
     def test_sales_to_user_in_period(self):
-        res = views._sales_to_user_in_period(
+        res = razzia.views._sales_to_user_in_period(
             self.alan.username,
             timezone.datetime(2017, 2, 1, 0, 0, tzinfo=pytz.UTC),
             timezone.datetime(2017, 2, 17, 0, 0, tzinfo=pytz.UTC),
@@ -1278,7 +1280,7 @@ class RazziaTests(TestCase):
         self.assertEqual(1, res[self.flanmad.name])
 
     def test_sales_to_user_no_results_out_of_period(self):
-        res = views._sales_to_user_in_period(
+        res = razzia.views._sales_to_user_in_period(
             self.bob.username,
             timezone.datetime(2017, 2, 1, 0, 0, tzinfo=pytz.UTC),
             timezone.datetime(2017, 2, 17, 0, 0, tzinfo=pytz.UTC),
