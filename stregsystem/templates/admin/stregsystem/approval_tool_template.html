@@ -95,6 +95,8 @@
                                     {% if field.field.widget.attrs.readonly %}
                                         {% if field.name == "amount" or field.name == "due" %}
                                             {{ field.value|money }} DKK
+                                        {% elif field.field.widget.input_type == "select" %}
+                                            {{ field }}
                                         {% else %}
                                             {{ field.value }}
                                         {% endif %}

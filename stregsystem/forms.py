@@ -50,6 +50,7 @@ class SignupToolForm(ApprovalToolForm):
         for field in self.fields:
             if field in ['due', 'member']:
                 self.fields[field].widget.attrs['readonly'] = True
+                self.fields[field].widget.attrs['disabled'] = True
 
 
 class QRPaymentForm(forms.Form):
