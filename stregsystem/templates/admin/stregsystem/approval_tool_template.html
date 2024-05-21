@@ -93,7 +93,7 @@
 
                                     {#  Modify non-editable fields for printing only and hide real widgets #}
                                     {% if field.field.widget.attrs.readonly %}
-                                        {% if field.name == "amount" %}
+                                        {% if field.name == "amount" or field.name == "due" %}
                                             {{ field.value|money }} DKK
                                         {% else %}
                                             {{ field.value }}
