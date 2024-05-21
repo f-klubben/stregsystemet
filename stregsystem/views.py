@@ -515,10 +515,9 @@ def signup_tool(request):
         PendingSignup,
         form=SignupToolForm,
         extra=0,
-        fields=('due', 'member', 'status'),
     )
 
-    data = approval_tool_context(request, signuptool_form_set, make_unprocessed_signups_query(), MobilePayment)
+    data = approval_tool_context(request, signuptool_form_set, make_unprocessed_signups_query(), PendingSignup)
 
     if bool(data):
         return render(request, "admin/stregsystem/approval_tools/signup_tool.html", data)

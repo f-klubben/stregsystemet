@@ -39,18 +39,32 @@ class PaymentToolForm(ApprovalToolForm):
                     self.fields[field].widget.attrs['readonly'] = True
 
 
+class SignupMemberInlineForm(forms.ModelForm):
+    class Meta:
+        model = Member
+        fields = ('firstname', 'lastname', 'username', 'email', 'notes')
+
+
 class SignupToolForm(ApprovalToolForm):
     class Meta:
         model = PendingSignup
         fields = ('due', 'member', 'status')
+        widgets = {'member': forms.HiddenInput()}
 
     def __init__(self, *args, **kwargs):
         super(SignupToolForm, self).__init__(*args, **kwargs)
 
+        member_form = SignupMemberInlineForm(instance=self.instance.member)
+
+        for field in member_form.fields:
+            member_form.fields[field].initial = member_form.initial[field]
+        self.fields = member_form.fields | self.fields
+
         for field in self.fields:
-            if field in ['due', 'member']:
+            if field not in ['status']:
                 self.fields[field].widget.attrs['readonly'] = True
                 self.fields[field].widget.attrs['disabled'] = True
+                self.fields[field].required = False
 
 
 class QRPaymentForm(forms.Form):
