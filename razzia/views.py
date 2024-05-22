@@ -9,21 +9,21 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
 from django.utils import dateparse, timezone
 
-from razzia.models import BreadRazzia, RazziaEntry
+from razzia.models import Razzia, RazziaEntry
 from stregsystem.models import Member, Product
 
 
 @permission_required("stregreport.host_razzia")
-def razzia(request, razzia_id, razzia_type=BreadRazzia.BREAD, title=None):
+def razzia(request, razzia_id, razzia_name, title=None):
     if request.method == 'POST':
-        return razzia_view_single(request, razzia_id, request.POST['username'], razzia_type=razzia_type, title=title)
+        return razzia_view_single(request, razzia_id, request.POST['username'], name=razzia_name, title=title)
     else:
-        return razzia_view_single(request, razzia_id, None, razzia_type=razzia_type, title=title)
+        return razzia_view_single(request, razzia_id, None, name=razzia_name, title=title)
 
 
 @permission_required("stregreport.host_razzia")
-def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BREAD, title=None):
-    razzia = get_object_or_404(BreadRazzia, pk=razzia_id, razzia_type=razzia_type)
+def razzia_view_single(request, razzia_id, queryname, razzia_name, title=None):
+    razzia = get_object_or_404(Razzia, pk=razzia_id, name=razzia_name)
 
     templates = {
         BreadRazzia.BREAD: 'bread.html',
@@ -32,15 +32,15 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
     }
 
     if queryname is None:
-        return render(request, templates[razzia_type], locals())
+        return render(request, templates[razzia_name], locals())
 
     result = list(Member.objects.filter(username__iexact=queryname))
     if len(result) == 0:
-        return render(request, templates[razzia_type], locals())
+        return render(request, templates[razzia_name], locals())
 
     member = result[0]
 
-    if razzia_type == BreadRazzia.FNUGFALD:
+    if razzia_name == BreadRazzia.FNUGFALD:
         username = queryname
         member_name = member.firstname + " " + member.lastname
         start_date = dateparse.parse_date("2023-9-15")
@@ -53,9 +53,9 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
         try:
             item_bought_count = sales_to_user[list(sales_to_user.keys())[0]]
             if item_bought_count == 0:
-                return render(request, templates[razzia_type], locals())
+                return render(request, templates[razzia_name], locals())
         except IndexError:
-            return render(request, templates[razzia_type], locals())
+            return render(request, templates[razzia_name], locals())
 
     entries = list(razzia.razziaentry_set.filter(member__pk=member.pk).order_by('-time'))
     already_checked_in = len(entries) > 0
@@ -67,41 +67,41 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
     if (
         already_checked_in
         and within_wait
-        and (razzia_type == BreadRazzia.FOOBAR or razzia_type == BreadRazzia.FNUGFALD)
+        and (razzia_name == BreadRazzia.FOOBAR or razzia_name == BreadRazzia.FNUGFALD)
     ):
         drunkard = True
         # time until next check in is legal
         remaining_time_secs = int(((last_entry.time + wait_time) - timezone.now()).total_seconds() % 60)
         remaining_time_mins = int(((last_entry.time + wait_time) - timezone.now()).total_seconds() // 60)
     if not already_checked_in or (
-        (razzia_type == BreadRazzia.FOOBAR or razzia_type == BreadRazzia.FNUGFALD) and not within_wait
+            (razzia_name == BreadRazzia.FOOBAR or razzia_name == BreadRazzia.FNUGFALD) and not within_wait
     ):
         RazziaEntry(member=member, razzia=razzia).save()
 
-    return render(request, templates[razzia_type], locals())
+    return render(request, templates[razzia_name], locals())
 
 
 @permission_required("stregreport.host_razzia")
-def razzia_menu(request, razzia_type=BreadRazzia.BREAD, new_text=None, title=None):
-    razzias = BreadRazzia.objects.filter(razzia_type=razzia_type).order_by('-pk')[:3]
+def razzia_menu(request, razzia_name, new_text=None, title=None):
+    razzias = Razzia.objects.filter(name=razzia_name).order_by('-pk')[:3]
     if len(razzias) == 0:
-        return redirect('razzia_new_' + razzia_type)
+        return redirect('razzia_new_' + razzia_name)
     return render(request, 'menu.html', locals())
 
 
 @permission_required("stregreport.host_razzia")
-def new_razzia(request, razzia_type=BreadRazzia.BREAD):
-    razzia = BreadRazzia(razzia_type=razzia_type)
+def new_razzia(request, razzia_name):
+    razzia = Razzia(name=razzia_name)
     razzia.save()
 
     views = {BreadRazzia.BREAD: 'bread_view', BreadRazzia.FOOBAR: 'foobar_view', BreadRazzia.FNUGFALD: 'fnugfald_view'}
 
-    return redirect(views[razzia_type], razzia_id=razzia.pk)
+    return redirect(views[razzia_name], razzia_id=razzia.pk)
 
 
 @permission_required("stregreport.host_razzia")
-def razzia_members(request, razzia_id, razzia_type=BreadRazzia.BREAD, title=None):
-    razzia = get_object_or_404(BreadRazzia, pk=razzia_id, razzia_type=razzia_type)
+def razzia_members(request, razzia_id, razzia_name, title=None):
+    razzia = get_object_or_404(Razzia, pk=razzia_id, name=razzia_name)
     return render(request, 'members.html', locals())
 
 

@@ -3,7 +3,7 @@ import datetime
 from django.test import TestCase
 from django.urls import reverse
 
-from razzia.models import BreadRazzia
+from razzia.models import Razzia
 from freezegun import freeze_time
 
 
