@@ -11,6 +11,7 @@ from django.utils import dateparse, timezone
 
 from razzia.models import Razzia, RazziaEntry
 from stregsystem.models import Member, Product
+from stregsystem.utils import sales_to_user_in_period
 
 
 @permission_required("stregreport.host_razzia")
@@ -47,7 +48,7 @@ def razzia_view_single(request, razzia_id, queryname, razzia_name, title=None):
         end_date = dateparse.parse_date("2023-11-4")
         product_list = [1910]
         product_dict = {k.name: 0 for k in Product.objects.filter(id__in=product_list)}
-        sales_to_user = _sales_to_user_in_period(queryname, start_date, end_date, product_list, product_dict)
+        sales_to_user = sales_to_user_in_period(queryname, start_date, end_date, product_list, product_dict)
         items_bought = sales_to_user.items()
 
         try:
@@ -141,7 +142,7 @@ def razzia_view(request):
 
     start_date = dateparse.parse_date(start)
     end_date = dateparse.parse_date(end)
-    sales_to_user = _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict)
+    sales_to_user = sales_to_user_in_period(username, start_date, end_date, product_list, product_dict)
 
     return render(
         request,
@@ -199,18 +200,3 @@ def razzia_wizard(request):
 razzia_wizard = staff_member_required(razzia_wizard)
 
 
-def _sales_to_user_in_period(username, start_date, end_date, product_list, product_dict):
-    result = (
-        Product.objects.filter(
-            sale__member__username__iexact=username,
-            id__in=product_list,
-            sale__timestamp__gte=start_date,
-            sale__timestamp__lte=end_date,
-        )
-        .annotate(cnt=Count("id"))
-        .values_list("name", "cnt")
-    )
-
-    products_bought = {product: count for product, count in result}
-
-    return {product: products_bought.get(product, 0) for product in product_dict}

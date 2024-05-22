@@ -7,7 +7,6 @@ from unittest.mock import patch
 import pytz
 from django.utils.dateparse import parse_datetime
 
-import razzia.views
 import stregsystem.parser as parser
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
@@ -18,7 +17,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from freezegun import freeze_time
-from stregreport import views
+
 from stregsystem import admin
 from stregsystem import views as stregsystem_views
 from stregsystem.admin import CategoryAdmin, ProductAdmin, MemberForm, MemberAdmin
@@ -44,7 +43,12 @@ from stregsystem.models import (
 )
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
-from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, MobilePaytoolException
+from stregsystem.utils import (
+    mobile_payment_exact_match_member,
+    strip_emoji,
+    MobilePaytoolException,
+    sales_to_user_in_period
+)
 from stregsystem.mail import data_sent
 
 
@@ -1268,7 +1272,7 @@ class RazziaTests(TestCase):
             Sale.objects.create(member=self.alan, product=self.notflan, price=1.0)
 
     def test_sales_to_user_in_period(self):
-        res = razzia.views._sales_to_user_in_period(
+        res = sales_to_user_in_period(
             self.alan.username,
             timezone.datetime(2017, 2, 1, 0, 0, tzinfo=pytz.UTC),
             timezone.datetime(2017, 2, 17, 0, 0, tzinfo=pytz.UTC),
@@ -1280,7 +1284,7 @@ class RazziaTests(TestCase):
         self.assertEqual(1, res[self.flanmad.name])
 
     def test_sales_to_user_no_results_out_of_period(self):
-        res = razzia.views._sales_to_user_in_period(
+        res = sales_to_user_in_period(
             self.bob.username,
             timezone.datetime(2017, 2, 1, 0, 0, tzinfo=pytz.UTC),
             timezone.datetime(2017, 2, 17, 0, 0, tzinfo=pytz.UTC),

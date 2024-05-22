@@ -179,3 +179,22 @@ def rows_to_csv(rows) -> str:
     # Converting elements in rows to strings to ensure it can be written to the file object
     csv.writer(file).writerows([[str(item) for item in row] for row in rows])
     return file.data
+
+
+def sales_to_user_in_period(username, start_date, end_date, product_list, product_dict):
+    from stregsystem.models import Product
+
+    result = (
+        Product.objects.filter(
+            sale__member__username__iexact=username,
+            id__in=product_list,
+            sale__timestamp__gte=start_date,
+            sale__timestamp__lte=end_date,
+        )
+        .annotate(cnt=Count("id"))
+        .values_list("name", "cnt")
+    )
+
+    products_bought = {product: count for product, count in result}
+
+    return {product: products_bought.get(product, 0) for product in product_dict}
