@@ -736,4 +736,49 @@ class PendingSignup(ApprovalModel):
     @classmethod
     @transaction.atomic
     def process_submitted(cls, submitted_data, admin_user: User):
-        pass
+        """
+        Takes a cleaned_form from a SignupToolFormSet and processes them.
+        The return value is the number of rows procesed.
+        If one of the MobilePayments have been altered compared to the data, a RuntimeError will be raised.
+        """
+        cleaned_data = []
+
+        for row in submitted_data:
+            # Skip rows which are set to "unset" (the default).
+            if row['status'] == ApprovalModel.UNSET:
+                continue
+
+            cleaned_data.append(row)
+
+        # Find the id's of the remaining cleaned data.
+        pending_signup_ids = [row['id'].id for row in cleaned_data]
+
+        # Count how many id of the id's who are set to status "unset".
+        database_approval_count = PendingSignup.objects.filter(
+            id__in=pending_signup_ids, status=ApprovalModel.UNSET
+        ).count()
+
+        # If there's a discrepancy in the number of rows, the user must have an outdated image. Throw an error.
+        if len(pending_signup_ids) != database_approval_count:
+            # get database mobilepayments matching cleaned ids and having been processed while form has been active
+            raise PaymentToolException(
+                PendingSignup.objects.filter(
+                    id__in=pending_signup_ids, status__in=(ApprovalModel.APPROVED, ApprovalModel.IGNORED)
+                )
+            )
+
+        for row in cleaned_data:
+            processed_signup = PendingSignup.objects.get(id=row['id'].id)
+
+            if row['status'] == ApprovalModel.APPROVED:
+                processed_signup.log_approval(admin_user, "Approved")
+            elif row['status'] == ApprovalModel.IGNORED:
+                processed_signup.log_approval(admin_user, "Ignored")
+            elif row['status'] == ApprovalModel.REJECTED:
+                processed_signup.log_approval(admin_user, "Rejected")
+
+            processed_signup.status = row['status']
+            processed_signup.save()
+
+        # Return how many records were modified.
+        return len(pending_signup_ids)
