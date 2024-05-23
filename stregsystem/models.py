@@ -191,20 +191,10 @@ class Member(models.Model):  # id automatisk...
         return self.__str__()
 
     def __str__(self):
-        return (
-            active_str(self.active)
-            + " "
-            + self.username
-            + ": "
-            + self.firstname
-            + " "
-            + self.lastname
-            + " | "
-            + self.email
-            + " ("
-            + money(self.balance)
-            + ")"
-        )
+        return f"{active_str(self.active)} {self.username}: {self.firstname} {self.lastname} | {self.email} ({money(self.balance)})"
+
+    def member_details_string(self) -> str:
+        return f"{self.username}: {self.firstname} {self.lastname} | {self.email}"
 
     # XXX - virker ikke
     #    def get_absolute_url(self):
