@@ -481,18 +481,13 @@ def approval_tool_context(request, approval_formset_factory, approval_queryset, 
 @staff_member_required()
 @permission_required("stregsystem.mobilepaytool_access")
 def payment_tool(request):
-    paytool_form_set = modelformset_factory(
-        MobilePayment,
-        form=PaymentToolForm,
-        extra=0,
-    )
+    paytool_form_set = modelformset_factory(MobilePayment, form=PaymentToolForm, extra=0)
 
     data = approval_tool_context(request, paytool_form_set, make_unprocessed_mobilepayment_query(), MobilePayment)
 
     if bool(data):
-        return render(request, "admin/stregsystem/approval_tools/payment_tool.html", data)
-
-    if request.method == "POST" and 'csv_file' in request.FILES and request.POST['action'] == "Import MobilePay CSV":
+        pass
+    elif request.method == "POST" and 'csv_file' in request.FILES and request.POST['action'] == "Import MobilePay CSV":
         # Prepare uploaded CSV to be read
         csv_file = request.FILES['csv_file']
         csv_file.seek(0)
@@ -510,18 +505,13 @@ def payment_tool(request):
 @staff_member_required()
 @permission_required("stregsystem.signuptool_access")
 def signup_tool(request):
-    signuptool_form_set = modelformset_factory(
-        PendingSignup,
-        form=SignupToolForm,
-        extra=0,
-    )
+    signuptool_form_set = modelformset_factory(PendingSignup, form=SignupToolForm, extra=0)
 
     data = approval_tool_context(request, signuptool_form_set, make_unprocessed_signups_query(), PendingSignup)
 
     if bool(data):
-        return render(request, "admin/stregsystem/approval_tools/signup_tool.html", data)
-
-    if request.method == "POST" and request.POST['action'] == "Process transactions for sign-ups":
+        pass
+    elif request.method == "POST" and request.POST['action'] == "Process transactions for sign-ups":
         management.call_command('autosignup')
         data['formset'] = signuptool_form_set(queryset=make_unprocessed_signups_query())
 
