@@ -485,7 +485,6 @@ def payment_tool(request):
         MobilePayment,
         form=PaymentToolForm,
         extra=0,
-        fields=('timestamp', 'amount', 'member', 'customer_name', 'comment', 'status'),
     )
 
     data = approval_tool_context(request, paytool_form_set, make_unprocessed_mobilepayment_query(), MobilePayment)
