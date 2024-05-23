@@ -193,7 +193,7 @@ class Member(models.Model):  # id automatisk...
     def __str__(self):
         return f"{active_str(self.active)} {self.username}: {self.firstname} {self.lastname} | {self.email} ({money(self.balance)})"
 
-    def member_details_string(self) -> str:
+    def info_string(self) -> str:
         return f"{self.username}: {self.firstname} {self.lastname} | {self.email}"
 
     # XXX - virker ikke
@@ -709,6 +709,12 @@ class PendingSignup(ApprovalModel):
         comment = self.get_mobilepay_comment()
         query = {'phone': '90601', 'comment': comment, 'amount': "{0:.2f}".format(self.due / 100.0)}
         return 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
+
+    def __str__(self):
+        return (
+            f"{self.member.info_string() if self.member is not None else 'Not assigned'}, "
+            f"{self.due}, {self.member.notes}"
+        )
 
     @transaction.atomic
     def complete(self, payment: MobilePayment):
