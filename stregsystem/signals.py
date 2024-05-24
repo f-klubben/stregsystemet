@@ -12,5 +12,7 @@ def after_member_save(sender, instance, created, **kwargs):
         return
     if not instance.signup_due_paid:
         return
+    if not instance.signup_approved:
+        return
 
     send_welcome_mail(instance)

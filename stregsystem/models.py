@@ -196,6 +196,17 @@ class Member(models.Model):  # id automatisk...
     def info_string(self) -> str:
         return f"{self.username}: {self.firstname} {self.lastname} | {self.email}"
 
+    def signup_approved(self) -> bool:
+        """
+        :return: True if there's no pending signup, or it is approved.
+        """
+        signups = list(PendingSignup.objects.filter(member=self))
+
+        if len(signups) == 0:
+            return True
+
+        return signups[0].status == ApprovalModel.APPROVED
+
     # XXX - virker ikke
     #    def get_absolute_url(self):
     #        return "/stregsystem/1/user/%i/" % self.id
