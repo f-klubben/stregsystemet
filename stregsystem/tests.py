@@ -1965,9 +1965,11 @@ class SignupTest(TestCase):
         with self.assertRaises(PendingSignup.DoesNotExist):
             _ = PendingSignup.objects.get(member=member)
 
-    # tests that signup payments that are split over more than one
-    # mobile payment work properly
     def test_autosignup_command_split_payment(self):
+        """
+        tests that signup payments that are split over more than one
+        mobile payment work properly
+        """
         from stregsystem.management.commands.autosignup import Command
 
         member = Member.objects.create(username='john', signup_due_paid=False)
@@ -2009,9 +2011,11 @@ class SignupTest(TestCase):
         with self.assertRaises(PendingSignup.DoesNotExist):
             _ = PendingSignup.objects.get(member=member)
 
-    # tests that signup payments that are split over more than one
-    # mobile payment work properly, while not approved.
     def test_autosignup_command_double_payment_unset_approval(self):
+        """
+        tests that signup payments that are split over more than one
+        mobile payment work properly, while not approved.
+        """
         from stregsystem.management.commands.autosignup import Command
 
         member = Member.objects.create(username='john', signup_due_paid=False)
