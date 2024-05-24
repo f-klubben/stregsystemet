@@ -215,7 +215,6 @@ class Member(models.Model):  # id automatisk...
 
         send_welcome_mail(self)
 
-
     # XXX - virker ikke
     #    def get_absolute_url(self):
     #        return "/stregsystem/1/user/%i/" % self.id

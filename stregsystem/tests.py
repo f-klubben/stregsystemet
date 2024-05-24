@@ -2,7 +2,8 @@
 import datetime
 from collections import Counter
 from copy import deepcopy
-from unittest.mock import patch
+from unittest import mock
+from unittest.mock import patch, MagicMock
 
 import pytz
 from django.utils.dateparse import parse_datetime
@@ -40,6 +41,7 @@ from stregsystem.models import (
     MobilePayment,
     PendingSignup,
     NamedProduct,
+    ApprovalModel,
 )
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
@@ -1907,7 +1909,7 @@ class SignupTest(TestCase):
 
     def test_signup_completion(self):
         member = Member.objects.create(username='john', signup_due_paid=False)
-        signup = PendingSignup.objects.create(member=member)
+        signup = PendingSignup.objects.create(member=member, status=ApprovalModel.APPROVED)
         signup.complete(self.mock_mobile_payment)
 
         # Assert that the signup due payment status has been updated correctly
@@ -1943,7 +1945,7 @@ class SignupTest(TestCase):
         from stregsystem.management.commands.autosignup import Command
 
         member = Member.objects.create(username='john', signup_due_paid=False)
-        signup = PendingSignup.objects.create(member=member)
+        signup = PendingSignup.objects.create(member=member, status=ApprovalModel.APPROVED)
 
         self.mock_mobile_payment.comment = signup.get_mobilepay_comment()
         self.mock_mobile_payment.save()
@@ -1969,7 +1971,9 @@ class SignupTest(TestCase):
         from stregsystem.management.commands.autosignup import Command
 
         member = Member.objects.create(username='john', signup_due_paid=False)
-        signup = PendingSignup.objects.create(member=member, due=self.mock_mobile_payment.amount * 2)
+        signup = PendingSignup.objects.create(
+            member=member, due=self.mock_mobile_payment.amount * 2, status=ApprovalModel.APPROVED
+        )
 
         self.mock_mobile_payment.comment = signup.get_mobilepay_comment()
         self.mock_mobile_payment.save()
