@@ -207,6 +207,15 @@ class Member(models.Model):  # id automatisk...
 
         return signups[0].status == ApprovalModel.APPROVED
 
+    def trigger_welcome_mail(self):
+        if not self.signup_due_paid:
+            return
+        if not self.signup_approved:
+            return
+
+        send_welcome_mail(self)
+
+
     # XXX - virker ikke
     #    def get_absolute_url(self):
     #        return "/stregsystem/1/user/%i/" % self.id
@@ -729,6 +738,9 @@ class PendingSignup(ApprovalModel):
 
     @transaction.atomic
     def complete(self, payment: MobilePayment):
+        """
+        Triggered when due has been paid
+        """
         # If the user payed more than their due add it to their balance
         if self.due < 0:
             payment.payment = Payment.objects.create(member=self.member, amount=-self.due)
@@ -738,7 +750,7 @@ class PendingSignup(ApprovalModel):
         self.member.save()
         self.delete()
 
-        send_welcome_mail(self.member)
+        self.member.trigger_welcome_mail()
 
     @classmethod
     @transaction.atomic
@@ -786,6 +798,9 @@ class PendingSignup(ApprovalModel):
 
             processed_signup.status = row['status']
             processed_signup.save()
+
+            # Trigger welcome mail if sign-up is also paid.
+            processed_signup.member.trigger_welcome_mail()
 
         # Return how many records were modified.
         return len(pending_signup_ids)

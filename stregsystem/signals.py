@@ -4,15 +4,9 @@ from django.dispatch import receiver
 
 
 def after_member_save(sender, instance, created, **kwargs):
-    from .mail import send_welcome_mail
-
     if sender.__name__ != "Member":
         return
     if not created:
         return
-    if not instance.signup_due_paid:
-        return
-    if not instance.signup_approved:
-        return
 
-    send_welcome_mail(instance)
+    instance.trigger_welcome_mail()
