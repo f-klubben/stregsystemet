@@ -210,7 +210,7 @@ class Member(models.Model):  # id automatisk...
     def trigger_welcome_mail(self):
         if not self.signup_due_paid:
             return
-        if not self.signup_approved:
+        if not self.signup_approved():
             return
 
         send_welcome_mail(self)
@@ -748,7 +748,10 @@ class PendingSignup(ApprovalModel):
 
         self.member.signup_due_paid = True
         self.member.save()
-        self.delete()
+
+        # Only delete Pending Signup if approved.
+        if self.status == ApprovalModel.APPROVED:
+            self.delete()
 
         self.member.trigger_welcome_mail()
 
