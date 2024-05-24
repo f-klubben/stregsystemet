@@ -2008,3 +2008,57 @@ class SignupTest(TestCase):
         # Assert that the PendingSignup instance has been deleted
         with self.assertRaises(PendingSignup.DoesNotExist):
             _ = PendingSignup.objects.get(member=member)
+
+
+class MailTests(TestCase):
+    def setUp(self):
+        pass
+
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_welcome_mail_manual_create_member(self, mock_mail_method: MagicMock):
+        mock_mail_method.return_value = None
+
+        member = Member.objects.create(username="jeff", email="test@example.com")
+
+        mock_mail_method.assert_called_once()
+
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_no_welcome_mail_no_paid_approved(self, mock_mail_method: MagicMock):
+        mock_mail_method.return_value = None
+
+        member = Member.objects.create(username="jeff", email="test@example.com", signup_due_paid=False)
+        signup_request = PendingSignup(member=member, due=200 * 100)
+        signup_request.save()
+
+        signup_request.approve()
+
+        mock_mail_method.assert_not_called()
+
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_no_welcome_mail_paid_unset(self, mock_mail_method: MagicMock):
+        mock_mail_method.return_value = None
+
+        # Create member with no due paid
+        member = Member.objects.create(username="jeff", email="test@example.com", signup_due_paid=False)
+        signup_request = PendingSignup(member=member, due=200)
+        signup_request.save()
+
+        # Add payment but still not approved
+        payment = MobilePayment.objects.create(amount=200, timestamp=timezone.now())
+        signup_request.complete(payment)
+        mock_mail_method.assert_not_called()
+
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_welcome_mail_paid_approved(self, mock_mail_method: MagicMock):
+        mock_mail_method.return_value = None
+
+        # Create member with no due paid, then attach pendingsignup, and then say they've paid.
+        member = Member.objects.create(username="jeff", email="test@example.com", signup_due_paid=False)
+        signup_request = PendingSignup(member=member, due=200)
+        signup_request.save()
+
+        payment = MobilePayment.objects.create(amount=200, timestamp=timezone.now())
+        signup_request.complete(payment)
+
+        signup_request.approve()
+        mock_mail_method.assert_called_once()
