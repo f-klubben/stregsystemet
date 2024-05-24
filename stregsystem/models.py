@@ -750,9 +750,10 @@ class PendingSignup(ApprovalModel):
 
         # Only delete Pending Signup if approved.
         if self.status == ApprovalModel.APPROVED:
+            self.member.trigger_welcome_mail()
             self.delete()
-
-        self.member.trigger_welcome_mail()
+        else:
+            self.save()
 
     @classmethod
     @transaction.atomic

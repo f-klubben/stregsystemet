@@ -2009,6 +2009,49 @@ class SignupTest(TestCase):
         with self.assertRaises(PendingSignup.DoesNotExist):
             _ = PendingSignup.objects.get(member=member)
 
+    # tests that signup payments that are split over more than one
+    # mobile payment work properly, while not approved.
+    def test_autosignup_command_double_payment_unset_approval(self):
+        from stregsystem.management.commands.autosignup import Command
+
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        signup = PendingSignup.objects.create(
+            member=member, due=self.mock_mobile_payment.amount, status=ApprovalModel.UNSET
+        )
+
+        self.mock_mobile_payment.comment = signup.get_mobilepay_comment()
+        self.mock_mobile_payment.save()
+
+        second_payment = MobilePayment(
+            timestamp=timezone.now(), amount=20000, transaction_id="2", comment=signup.get_mobilepay_comment()
+        )
+
+        cmd = Command()
+        cmd.handle()
+
+        # Assert that the signup due payment status is true
+        member = Member.objects.get(pk=member.pk)
+        self.assertTrue(member.signup_due_paid)
+
+        # Assert that the payment status has been set correctly
+        payment = MobilePayment.objects.get(pk=self.mock_mobile_payment.pk)
+        self.assertEqual(payment.status, MobilePayment.APPROVED)
+
+        # Register second payment and rerun command
+        second_payment.save()
+        cmd.handle()
+
+        # Assert that the payment status has been set correctly
+        payment = MobilePayment.objects.get(pk=second_payment.pk)
+        self.assertEqual(payment.status, MobilePayment.APPROVED)
+
+        # Assert that the payment has been added to the member account
+        member = Member.objects.get(pk=member.pk)
+        self.assertEqual(member.balance, second_payment.amount)
+
+        # Assert that the PendingSignup instance has not been deleted (since it isn't approved)
+        _ = PendingSignup.objects.get(member=member)
+
 
 class MailTests(TestCase):
     def setUp(self):
