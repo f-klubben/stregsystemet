@@ -10,3 +10,10 @@ def after_member_save(sender, instance, created, **kwargs):
         return
 
     instance.trigger_welcome_mail()
+
+
+def after_pending_signup_save(sender, instance, created, **kwargs):
+    if sender.__name__ != "PendingSignup":
+        return
+
+    instance.member.trigger_welcome_mail()
