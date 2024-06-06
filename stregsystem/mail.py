@@ -59,8 +59,8 @@ def send_userdata_mail(member):
     )
     userdata_csv = rows_to_csv(
         [
-            ["Id", "Name", "First name", "Last name", "Email", "Registration year"],
-            [member.id, member.username, member.firstname, member.lastname, member.email, member.year],
+            ["Id", "Name", "First name", "Last name", "Email", "Registration year", "Active", "Gender", "Want spam", "Balance", "Undo count", "Notes"],
+            [member.id, member.username, member.firstname, member.lastname, member.email, member.year, member.active, [text for (identifier,text) in member.GENDER_CHOICES if identifier == member.gender][0], member.want_spam, member.balance, member.undo_count, member.notes],
         ]
     )
 
