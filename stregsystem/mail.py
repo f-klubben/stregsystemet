@@ -50,6 +50,11 @@ def send_userdata_mail(member):
     mobilepayments: list[MobilePayment] = member.mobilepayment_set.order_by("timestamp")
     mobilepay_payments: list[Payment] = [mobilepayment.payment for mobilepayment in mobilepayments]
 
+    if member.gender in [i for (i,_) in member.GENDER_CHOICES]:
+        gender = [text for (i,text) in member.GENDER_CHOICES if member.gender == i][0]
+    else:
+        gender = member.gender
+
     sales_csv = rows_to_csv(
         [["Timestamp", "Name", "Price"]] + [[sale.timestamp, sale.product.name, sale.price] for sale in sales]
     )
@@ -59,8 +64,34 @@ def send_userdata_mail(member):
     )
     userdata_csv = rows_to_csv(
         [
-            ["Id", "Name", "First name", "Last name", "Email", "Registration year", "Active", "Gender", "Want spam", "Balance", "Undo count", "Notes"],
-            [member.id, member.username, member.firstname, member.lastname, member.email, member.year, member.active, [text for (identifier,text) in member.GENDER_CHOICES if identifier == member.gender][0], member.want_spam, member.balance, member.undo_count, member.notes],
+            [
+                "Id",
+                "Name",
+                "First name",
+                "Last name",
+                "Email",
+                "Registration year",
+                "Active",
+                "Gender",
+                "Want spam",
+                "Balance",
+                "Undo count",
+                "Notes",
+            ],
+            [
+                member.id,
+                member.username,
+                member.firstname,
+                member.lastname,
+                member.email,
+                member.year,
+                member.active,
+                gender,
+                member.want_spam,
+                member.balance,
+                member.undo_count,
+                member.notes,
+            ],
         ]
     )
 
