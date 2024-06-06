@@ -47,7 +47,7 @@
     in {
         # Define the shell, here we're just setting the packages required for the devshell
         devShells.x86_64-linux.default = pkgs.mkShell {
-            packages = dependencies ++ [pkgs.mailhog];
+            packages = dependencies ++ [pkgs.mailhog pkgs.black];
         };
     };
 }
