@@ -362,7 +362,6 @@ class Payment(models.Model):  # id automatisk...
         if self.id:
             return  # update -- should not be allowed
         else:
-            # TODO: Make atomic
             self.member.make_payment(self.amount)
             super(Payment, self).save(*args, **kwargs)
             self.member.save()
@@ -380,9 +379,9 @@ class Payment(models.Model):  # id automatisk...
             change_message=f"{''}" f"MobilePayment (transaction_id: {processed_mobile_payment.transaction_id})",
         )
 
+    @transaction.atomic
     def delete(self, *args, **kwargs):
         if self.id:
-            # TODO: Make atomic
             self.member.make_payment(-self.amount)
             super(Payment, self).delete(*args, **kwargs)
             self.member.save()
@@ -432,7 +431,6 @@ class ApprovalModel(models.Model):
 
     @classmethod
     @abstractmethod
-    @transaction.atomic
     def process_submitted(cls, submitted_data, admin_user: User):
         pass
 
@@ -533,7 +531,6 @@ class MobilePayment(ApprovalModel):
         return len(mobile_payment_ids)
 
     @staticmethod
-    @transaction.atomic
     def approve_member_filled_mobile_payments():
         for payment in make_unprocessed_member_filled_mobilepayment_query():
             if payment.status == ApprovalModel.UNSET:
