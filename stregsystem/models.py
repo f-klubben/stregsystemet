@@ -471,20 +471,22 @@ class MobilePayment(ApprovalModel):
             super(MobilePayment, self).delete(*args, **kwargs)
 
     @staticmethod
-    @transaction.atomic
     def submit_processed_mobile_payments(admin_user: User):
         processed_mobile_payment: MobilePayment  # annotate iterated variable (PEP 526)
         for processed_mobile_payment in make_processed_mobilepayment_query():
-            if processed_mobile_payment.status == ApprovalModel.APPROVED:
-                payment = Payment(member=processed_mobile_payment.member, amount=processed_mobile_payment.amount)
-                # Save payment and foreign key to MobilePayment field
-                payment.save()
-                payment.log_from_mobile_payment(processed_mobile_payment, admin_user)
-                processed_mobile_payment.payment = payment
-                processed_mobile_payment.save()
+            processed_mobile_payment.submit_mobile_payment_with_member(admin_user)
 
-            elif processed_mobile_payment.status == ApprovalModel.IGNORED:
-                processed_mobile_payment.log_approval(admin_user, "Ignored")
+    @transaction.atomic
+    def submit_mobile_payment_with_member(self, admin_user: User):
+        if self.status == ApprovalModel.APPROVED:
+            payment = Payment(member=self.member, amount=self.amount)
+            # Save payment and foreign key to MobilePayment field
+            payment.save(mbpayment=self)
+            payment.log_from_mobile_payment(self, admin_user)
+            self.payment = payment
+            self.save()
+        elif self.status == ApprovalModel.IGNORED:
+            self.log_approval(admin_user, "Ignored")
 
     @classmethod
     @transaction.atomic
@@ -523,23 +525,9 @@ class MobilePayment(ApprovalModel):
         for row in cleaned_data:
             processed_mobile_payment = MobilePayment.objects.get(id=row['id'].id)
             # If approved, we need to create a payment and relate said payment to the mobilepayment.
-            if row['status'] == ApprovalModel.APPROVED:
-                payment_amount = processed_mobile_payment.amount
-                member = Member.objects.get(id=row['member'].id)
-
-                payment = Payment(member=member, amount=payment_amount)
-                payment.log_from_mobile_payment(processed_mobile_payment, admin_user)
-                payment.save(mbpayment=processed_mobile_payment)
-
-                processed_mobile_payment.payment = payment
-                processed_mobile_payment.member = member
-                processed_mobile_payment.log_approval(admin_user, "Approved")
-            # If ignored, we need to log who did it.
-            elif row['status'] == ApprovalModel.IGNORED:
-                processed_mobile_payment.log_approval(admin_user, "Ignored")
-
             processed_mobile_payment.status = row['status']
-            processed_mobile_payment.save()
+            processed_mobile_payment.member = Member.objects.get(id=row['member'].id)
+            processed_mobile_payment.submit_mobile_payment_with_member(admin_user)
 
         # Return how many records were modified.
         return len(mobile_payment_ids)
