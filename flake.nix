@@ -9,6 +9,7 @@
     outputs = { self, nixpkgs }: let 
         system = "x86_64-linux";
         pkgs = import nixpkgs { inherit system; };
+
         # Custom package as django-select2 is not in nixpkgs
         django-select2 = pkgVersion: pkgs.python311Packages.buildPythonPackage rec {
             pname = "django_select2";
@@ -29,7 +30,7 @@
         lines = pkgs.lib.lists.remove "" (pkgs.lib.strings.splitString "\n" (builtins.readFile requirements));
         
         # Map a function to convert the list of strings into a list of derivations
-        dependencies = builtins.map 
+        dependencies = ver: builtins.map 
             (package: let 
                 # pkgList is a function defined here via currying, it will just return the item at index in the list generated after splitting by ==
                 pkgList = builtins.elemAt (pkgs.lib.strings.splitString "==" package);
@@ -40,14 +41,37 @@
                 django-select2 pkgVersion
             else
                 # Add the standard derivation of the package, attempt to set the version
-                pkgs.python311Packages."${pkgName}".overrideAttrs { version = pkgVersion; }
+                ver."${pkgName}".overrideAttrs { version = pkgVersion; }
             )
             lines;
 
     in {
         # Define the shell, here we're just setting the packages required for the devshell
-        devShells.x86_64-linux.default = pkgs.mkShell {
-            packages = dependencies ++ [pkgs.mailhog pkgs.black];
+        devShells.${system}.default = pkgs.mkShell {
+            packages = (dependencies pkgs.python3Packages) ++ [pkgs.mailhog pkgs.black];
+        };
+
+        # Default package for the stregsystem
+        packages.${system}.default = let
+            env = pkgs.python3.withPackages (_: []);
+        in pkgs.stdenv.mkDerivation {
+            pname = "Stregsystemet";
+            version = "latest";
+            src = ./.;
+
+	          installPhase = ''
+		            mkdir -p $out/bin
+		            mkdir -p $out/share/stregsystemet
+
+                cp local.cfg.skel local.cfg
+                echo "${env.interpreter} $out/share/stregsystemet/manage.py \$@" > $out/bin/stregsystemet
+                sed -i '1 i #!${pkgs.bash}/bin/bash' $out/bin/stregsystemet
+                chmod +x $out/bin/stregsystemet
+
+                sed -i '1d' manage.py
+
+		            cp ./* $out/share/stregsystemet -r
+	          '';
         };
     };
 }
