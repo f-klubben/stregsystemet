@@ -1885,6 +1885,7 @@ class CaffeineCalculatorTest(TestCase):
 
 class SignupTest(TestCase):
     def setUp(self):
+        self.autopayment_user = User.objects.create_superuser('autopayment', 'foo@bar.com', 'hunter2')
         self.mock_mobile_payment = MobilePayment(timestamp=timezone.now(), amount=20000, transaction_id="1")
 
     def test_signup_request_creation(self):
@@ -1935,6 +1936,8 @@ class SignupTest(TestCase):
         member = Member.objects.create(username='john', signup_due_paid=False)
         PendingSignup.objects.create(member=member, status=ApprovalModel.APPROVED)
 
+        # TODO: Remove need to assign member
+        self.mock_mobile_payment.member = member
         self.mock_mobile_payment.comment = member.username
         self.mock_mobile_payment.save()
 
@@ -1965,11 +1968,13 @@ class SignupTest(TestCase):
             member=member, due=self.mock_mobile_payment.amount * 2, status=ApprovalModel.APPROVED
         )
 
+        # TODO: Remove need to assign member
+        self.mock_mobile_payment.member = member
         self.mock_mobile_payment.comment = member.username
         self.mock_mobile_payment.save()
 
         second_payment = MobilePayment(
-            timestamp=timezone.now(), amount=20000, transaction_id="2", comment=member.username
+            timestamp=timezone.now(), amount=20000, transaction_id="2", comment=member.username, member=member
         )
 
         cmd = Command()
@@ -2009,11 +2014,13 @@ class SignupTest(TestCase):
         member = Member.objects.create(username='john', signup_due_paid=False)
         PendingSignup.objects.create(member=member, due=self.mock_mobile_payment.amount, status=ApprovalModel.UNSET)
 
+        # TODO: Remove need to assign member
+        self.mock_mobile_payment.member = member
         self.mock_mobile_payment.comment = member.username
         self.mock_mobile_payment.save()
 
         second_payment = MobilePayment(
-            timestamp=timezone.now(), amount=20000, transaction_id="2", comment=member.username
+            timestamp=timezone.now(), amount=20000, transaction_id="2", comment=member.username, member=member
         )
 
         cmd = Command()

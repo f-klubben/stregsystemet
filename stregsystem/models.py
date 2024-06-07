@@ -476,12 +476,16 @@ class MobilePayment(ApprovalModel):
     @transaction.atomic
     def submit_processed_mobile_payment(self, admin_user: User):
         if self.status == ApprovalModel.APPROVED:
-            payment = Payment(member=self.member, amount=self.amount)
-            # Save payment and foreign key to MobilePayment field
-            payment.save(mbpayment=self)
-            payment.log_from_mobile_payment(self, admin_user)
-            self.payment = payment
-            self.save()
+            if not self.member.signup_due_paid:
+                signup = PendingSignup.objects.get(member=self.member)
+                signup.pay_towards_due(self)
+            else:
+                payment = Payment(member=self.member, amount=self.amount)
+                # Save payment and foreign key to MobilePayment field
+                payment.save(mbpayment=self)
+                payment.log_from_mobile_payment(self, admin_user)
+                self.payment = payment
+                self.save()
         elif self.status == ApprovalModel.IGNORED:
             self.log_approval(admin_user, "Ignored")
 
@@ -721,7 +725,7 @@ class PendingSignup(ApprovalModel):
         Triggered when due has been paid
         """
         # If the user payed more than their due add it to their balance
-        if self.due < 0:
+        if self.due <= 0:
             payment.payment = Payment.objects.create(member=self.member, amount=-self.due)
         payment.save()
 
@@ -733,6 +737,19 @@ class PendingSignup(ApprovalModel):
             self.member.trigger_welcome_mail()
             self.delete()
         else:
+            self.save()
+
+    @transaction.atomic
+    def pay_towards_due(self, payment: MobilePayment):
+        self.due -= payment.amount
+        payment.status = MobilePayment.APPROVED
+
+        # If their due has been payed activate the user and delete the signup object
+        if self.due <= 0:
+            self.complete(payment)
+        else:
+            payment.payment = Payment.objects.create(member=self.member, amount=0)
+            payment.save()
             self.save()
 
     @classmethod
