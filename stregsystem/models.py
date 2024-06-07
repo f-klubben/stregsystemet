@@ -468,13 +468,13 @@ class MobilePayment(ApprovalModel):
             super(MobilePayment, self).delete(*args, **kwargs)
 
     @staticmethod
-    def submit_processed_mobile_payments(admin_user: User):
+    def submit_all_processed_mobile_payments(admin_user: User):
         processed_mobile_payment: MobilePayment  # annotate iterated variable (PEP 526)
         for processed_mobile_payment in make_processed_mobilepayment_query():
-            processed_mobile_payment.submit_mobile_payment_with_member(admin_user)
+            processed_mobile_payment.submit_processed_mobile_payment(admin_user)
 
     @transaction.atomic
-    def submit_mobile_payment_with_member(self, admin_user: User):
+    def submit_processed_mobile_payment(self, admin_user: User):
         if self.status == ApprovalModel.APPROVED:
             payment = Payment(member=self.member, amount=self.amount)
             # Save payment and foreign key to MobilePayment field
@@ -524,7 +524,7 @@ class MobilePayment(ApprovalModel):
             # If approved, we need to create a payment and relate said payment to the mobilepayment.
             processed_mobile_payment.status = row['status']
             processed_mobile_payment.member = Member.objects.get(id=row['member'].id)
-            processed_mobile_payment.submit_mobile_payment_with_member(admin_user)
+            processed_mobile_payment.submit_processed_mobile_payment(admin_user)
 
         # Return how many records were modified.
         return len(mobile_payment_ids)

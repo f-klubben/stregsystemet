@@ -14,7 +14,7 @@ def submit_filled_mobilepayments(user: User) -> int:
     before_count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count()
 
     MobilePayment.approve_member_filled_mobile_payments()
-    MobilePayment.submit_processed_mobile_payments(user)
+    MobilePayment.submit_all_processed_mobile_payments(user)
 
     return MobilePayment.objects.filter(status=MobilePayment.APPROVED).count() - before_count
 
