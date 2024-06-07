@@ -1929,25 +1929,13 @@ class SignupTest(TestCase):
         member = Member.objects.get(pk=member.pk)
         self.assertEqual(member.balance, 50000)
 
-    def test_comment_scanning(self):
-        from stregsystem.management.commands.autosignup import scan_comment
+    def test_autopayment_command_single_payment(self):
+        from stregsystem.management.commands.autopayment import Command
 
         member = Member.objects.create(username='john', signup_due_paid=False)
-        signup = PendingSignup.objects.create(member=member)
+        PendingSignup.objects.create(member=member, status=ApprovalModel.APPROVED)
 
-        self.mock_mobile_payment.comment = signup.get_mobilepay_comment()
-        # Assert that the scanned token and username match the original values
-        token, username = scan_comment(self.mock_mobile_payment)
-        self.assertEqual(member.username, username)
-        self.assertEqual(signup.token, token)
-
-    def test_autosignup_command(self):
-        from stregsystem.management.commands.autosignup import Command
-
-        member = Member.objects.create(username='john', signup_due_paid=False)
-        signup = PendingSignup.objects.create(member=member, status=ApprovalModel.APPROVED)
-
-        self.mock_mobile_payment.comment = signup.get_mobilepay_comment()
+        self.mock_mobile_payment.comment = member.username
         self.mock_mobile_payment.save()
 
         cmd = Command()
@@ -1965,23 +1953,23 @@ class SignupTest(TestCase):
         with self.assertRaises(PendingSignup.DoesNotExist):
             _ = PendingSignup.objects.get(member=member)
 
-    def test_autosignup_command_split_payment(self):
+    def test_autopayment_command_split_payment(self):
         """
         tests that signup payments that are split over more than one
         mobile payment work properly
         """
-        from stregsystem.management.commands.autosignup import Command
+        from stregsystem.management.commands.autopayment import Command
 
         member = Member.objects.create(username='john', signup_due_paid=False)
-        signup = PendingSignup.objects.create(
+        PendingSignup.objects.create(
             member=member, due=self.mock_mobile_payment.amount * 2, status=ApprovalModel.APPROVED
         )
 
-        self.mock_mobile_payment.comment = signup.get_mobilepay_comment()
+        self.mock_mobile_payment.comment = member.username
         self.mock_mobile_payment.save()
 
         second_payment = MobilePayment(
-            timestamp=timezone.now(), amount=20000, transaction_id="2", comment=signup.get_mobilepay_comment()
+            timestamp=timezone.now(), amount=20000, transaction_id="2", comment=member.username
         )
 
         cmd = Command()
@@ -2011,23 +1999,21 @@ class SignupTest(TestCase):
         with self.assertRaises(PendingSignup.DoesNotExist):
             _ = PendingSignup.objects.get(member=member)
 
-    def test_autosignup_command_double_payment_unset_approval(self):
+    def test_autopayment_command_double_payment_unset_approval(self):
         """
         tests that signup payments that are split over more than one
         mobile payment work properly, while not approved.
         """
-        from stregsystem.management.commands.autosignup import Command
+        from stregsystem.management.commands.autopayment import Command
 
         member = Member.objects.create(username='john', signup_due_paid=False)
-        signup = PendingSignup.objects.create(
-            member=member, due=self.mock_mobile_payment.amount, status=ApprovalModel.UNSET
-        )
+        PendingSignup.objects.create(member=member, due=self.mock_mobile_payment.amount, status=ApprovalModel.UNSET)
 
-        self.mock_mobile_payment.comment = signup.get_mobilepay_comment()
+        self.mock_mobile_payment.comment = member.username
         self.mock_mobile_payment.save()
 
         second_payment = MobilePayment(
-            timestamp=timezone.now(), amount=20000, transaction_id="2", comment=signup.get_mobilepay_comment()
+            timestamp=timezone.now(), amount=20000, transaction_id="2", comment=member.username
         )
 
         cmd = Command()

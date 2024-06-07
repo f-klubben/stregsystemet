@@ -1,6 +1,5 @@
 import datetime
 import urllib.parse
-import uuid
 from abc import abstractmethod
 from collections import Counter
 from email.utils import parseaddr
@@ -704,13 +703,9 @@ class PendingSignup(ApprovalModel):
 
     member = models.ForeignKey(Member, on_delete=models.CASCADE, null=False)
     due = models.IntegerField(default=200 * 100)
-    token = models.UUIDField(default=uuid.uuid4, db_index=True)
-
-    def get_mobilepay_comment(self):
-        return "signup:{}+{}".format(self.token, self.member.username)
 
     def generate_mobilepay_url(self):
-        comment = self.get_mobilepay_comment()
+        comment = self.member.username
         query = {'phone': '90601', 'comment': comment, 'amount': "{0:.2f}".format(self.due / 100.0)}
         return 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
 
