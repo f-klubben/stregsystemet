@@ -199,12 +199,12 @@ class Member(models.Model):  # id automatisk...
         """
         :return: True if there's no pending signup, or it is approved.
         """
-        signups = list(PendingSignup.objects.filter(member=self))
+        pending_signup = PendingSignup.objects.filter(member=self).first()
 
-        if len(signups) == 0:
+        if pending_signup is None:
             return True
 
-        return signups[0].status == ApprovalModel.APPROVED
+        return pending_signup.status == ApprovalModel.APPROVED
 
     def trigger_welcome_mail(self):
         if not self.signup_due_paid:
