@@ -546,7 +546,8 @@ def signup_tool(request):
     if bool(data):
         pass
     elif request.method == "POST" and request.POST['action'] == "Process transactions for sign-ups":
-        management.call_command('autosignup')
+        # TODO: Make changes here
+        # management.call_command('autosignup')
         data['formset'] = signuptool_form_set(queryset=make_unprocessed_signups_query())
 
     return render(request, "admin/stregsystem/approval_tools/signup_tool.html", data)
