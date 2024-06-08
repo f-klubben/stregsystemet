@@ -1936,9 +1936,7 @@ class SignupTest(TestCase):
         member = Member.objects.create(username='john', signup_due_paid=False)
         PendingSignup.objects.create(member=member, status=ApprovalModel.APPROVED)
 
-        # TODO: Remove need to assign member
         self.mock_mobile_payment.member = member
-        self.mock_mobile_payment.comment = member.username
         self.mock_mobile_payment.save()
 
         cmd = Command()
@@ -1968,13 +1966,11 @@ class SignupTest(TestCase):
             member=member, due=self.mock_mobile_payment.amount * 2, status=ApprovalModel.APPROVED
         )
 
-        # TODO: Remove need to assign member
         self.mock_mobile_payment.member = member
-        self.mock_mobile_payment.comment = member.username
         self.mock_mobile_payment.save()
 
         second_payment = MobilePayment(
-            timestamp=timezone.now(), amount=20000, transaction_id="2", comment=member.username, member=member
+            timestamp=timezone.now(), amount=20000, transaction_id="2", member=member
         )
 
         cmd = Command()
@@ -2014,13 +2010,11 @@ class SignupTest(TestCase):
         member = Member.objects.create(username='john', signup_due_paid=False)
         PendingSignup.objects.create(member=member, due=self.mock_mobile_payment.amount, status=ApprovalModel.UNSET)
 
-        # TODO: Remove need to assign member
         self.mock_mobile_payment.member = member
-        self.mock_mobile_payment.comment = member.username
         self.mock_mobile_payment.save()
 
         second_payment = MobilePayment(
-            timestamp=timezone.now(), amount=20000, transaction_id="2", comment=member.username, member=member
+            timestamp=timezone.now(), amount=20000, transaction_id="2", member=member
         )
 
         cmd = Command()
