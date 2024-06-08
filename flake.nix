@@ -49,10 +49,10 @@
         # Define the shell, here we're just setting the packages required for the devshell
         devShells.${system}.default = pkgs.mkShell {
             packages = (dependencies pkgs.python3Packages) ++ [pkgs.mailhog pkgs.black];
+            shellHook = ''
+                export PS1="(FIT) $PS1"
+            '';
         };
-        shellHook = ''
-            export PS1="(FIT) $PS1"
-        ''
 
         # Default package for the stregsystem
         packages.${system}.default = let
