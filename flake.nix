@@ -51,6 +51,7 @@
             packages = (dependencies pkgs.python3Packages) ++ [pkgs.mailhog pkgs.black];
             shellHook = ''
                 export PS1="(FIT) $PS1"
+                export PROMPT="(FIT) $PS1"
             '';
         };
 
