@@ -30,8 +30,8 @@
             <div id="mobilepaytool-description">
                 <h1>{% block tool_name %}{% endblock %}</h1>
                 {% block tool_description %}{% endblock %}
-                <p>Clicking <code>Submit all</code> will process all entries which aren't <code>Unset</code>.</p>
-                <p><i>Protip: A good workflow is checking that prefilled rows are correct, clicking 'Submit matched
+                <p>Clicking <code>Submit</code> will process all entries which aren't <code>Unset</code>.</p>
+                <p><i>Protip: A good workflow is checking that prefilled rows are correct, clicking 'Submit pre-matched
                     entries', then manually going through any remaining entries.</i></p>
                 <br>
                 <p>If you need any help on how to use this tool, please contact <a
@@ -118,9 +118,9 @@
                 <br>
                 <input type="submit" class="submit-button" id="submit-matched-button" name="action"
                        onclick="return prompt()"
-                       value="Submit matched entries"/>
+                       value="Submit pre-matched entries"/>
                 <span style="color: white">fuck css</span>
-                <input type="submit" class="submit-button" name="action" value="Submit all"/>
+                <input type="submit" class="submit-button" name="action" value="Submit"/>
             </form>
         </center>
     </div>

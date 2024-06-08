@@ -477,12 +477,12 @@ def approval_tool_context(request, approval_formset_factory, approval_queryset, 
 
     if request.method == "GET":
         data['formset'] = approval_formset_factory(queryset=approval_queryset)
-    elif request.method == "POST" and request.POST['action'] == "Submit matched entries":
+    elif request.method == "POST" and request.POST['action'] == "Submit pre-matched entries":
         count = submit_filled_mobilepayments(request.user)
 
         data['submitted_count'] = count
         data['formset'] = approval_formset_factory(queryset=approval_queryset)
-    elif request.method == "POST" and request.POST['action'] == "Submit all":
+    elif request.method == "POST" and request.POST['action'] == "Submit":
         form = approval_formset_factory(request.POST)
 
         if form.is_valid():
