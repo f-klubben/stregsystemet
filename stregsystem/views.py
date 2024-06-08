@@ -131,6 +131,9 @@ def sale(request, room_id):
     if not member.signup_due_paid:
         return render(request, 'stregsystem/error_signupdue.html', locals())
 
+    if not member.signup_approved():
+        return render(request, 'stregsystem/error_signup_not_approved.html', locals())
+
     if len(bought_ids):
         return quicksale(request, room, member, bought_ids)
     else:
