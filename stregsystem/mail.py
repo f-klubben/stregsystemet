@@ -76,7 +76,6 @@ def send_userdata_mail(member):
                 "Want spam",
                 "Balance",
                 "Undo count",
-                "Notes",
             ],
             [
                 member.id,
@@ -90,7 +89,6 @@ def send_userdata_mail(member):
                 member.want_spam,
                 member.balance,
                 member.undo_count,
-                member.notes,
             ],
         ]
     )
