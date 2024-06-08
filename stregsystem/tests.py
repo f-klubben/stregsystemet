@@ -1632,7 +1632,7 @@ class MobilePaymentTests(TestCase):
 class AutoPaymentTests(TestCase):
     def setUp(self):
         self.autopayment_user = User.objects.create_superuser('autopayment', 'foo@bar.com', 'hunter2')
-        Member.objects.create(
+        self.member = Member.objects.create(
             username='tester', firstname='Test', lastname='Testsen', email='tables@nsa.gov', balance=178
         )
 
@@ -1699,6 +1699,19 @@ class AutoPaymentTests(TestCase):
 
         approved = MobilePayment.objects.get(transaction_id='156E027485173229')
         self.assertEqual(approved.status, MobilePayment.APPROVED)
+
+    @mock.patch('stregsystem.models.send_payment_mail', autospec=True)
+    def test_payment_mail_normal_mobile_payment(self, mock_mail_method: MagicMock):
+        from stregsystem.management.commands.autopayment import Command
+
+        mock_mail_method.return_value = None
+
+        MobilePayment.objects.create(amount=5000, timestamp=timezone.now(), member=self.member)
+
+        cmd = Command()
+        cmd.handle()
+
+        mock_mail_method.assert_called_once()
 
 
 class CaffeineCalculatorTest(TestCase):
@@ -1969,9 +1982,7 @@ class SignupTest(TestCase):
         self.mock_mobile_payment.member = member
         self.mock_mobile_payment.save()
 
-        second_payment = MobilePayment(
-            timestamp=timezone.now(), amount=20000, transaction_id="2", member=member
-        )
+        second_payment = MobilePayment(timestamp=timezone.now(), amount=20000, transaction_id="2", member=member)
 
         cmd = Command()
         cmd.handle()
@@ -2013,9 +2024,7 @@ class SignupTest(TestCase):
         self.mock_mobile_payment.member = member
         self.mock_mobile_payment.save()
 
-        second_payment = MobilePayment(
-            timestamp=timezone.now(), amount=20000, transaction_id="2", member=member
-        )
+        second_payment = MobilePayment(timestamp=timezone.now(), amount=20000, transaction_id="2", member=member)
 
         cmd = Command()
         cmd.handle()
@@ -2042,6 +2051,54 @@ class SignupTest(TestCase):
 
         # Assert that the PendingSignup instance has not been deleted (since it isn't approved)
         _ = PendingSignup.objects.get(member=member)
+
+    @mock.patch('stregsystem.models.send_payment_mail', autospec=True)
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_only_welcome_mail_excess_balance(self, mock_welcome_mail: MagicMock, mock_payment_mail: MagicMock):
+        """
+        Test that only welcome mail is sent, when a member is signed up with excess payment.
+        """
+        from stregsystem.management.commands.autopayment import Command
+
+        mock_welcome_mail.return_value = None
+        mock_payment_mail.return_value = None
+
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        PendingSignup.objects.create(
+            member=member, due=self.mock_mobile_payment.amount / 2, status=ApprovalModel.APPROVED
+        )
+
+        self.mock_mobile_payment.member = member
+        self.mock_mobile_payment.save()
+
+        cmd = Command()
+        cmd.handle()
+
+        mock_payment_mail.assert_not_called()
+        mock_welcome_mail.assert_called_once()
+
+    @mock.patch('stregsystem.models.send_payment_mail', autospec=True)
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_only_welcome_mail_no_excess_balance(self, mock_welcome_mail: MagicMock, mock_payment_mail: MagicMock):
+        """
+        Test that only welcome mail is sent, when a member is signed up.
+        """
+        from stregsystem.management.commands.autopayment import Command
+
+        mock_welcome_mail.return_value = None
+        mock_payment_mail.return_value = None
+
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        PendingSignup.objects.create(member=member, due=self.mock_mobile_payment.amount, status=ApprovalModel.APPROVED)
+
+        self.mock_mobile_payment.member = member
+        self.mock_mobile_payment.save()
+
+        cmd = Command()
+        cmd.handle()
+
+        mock_payment_mail.assert_not_called()
+        mock_welcome_mail.assert_called_once()
 
 
 class MailTests(TestCase):
