@@ -238,6 +238,13 @@ def menu_userinfo(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
+
+    if not member.signup_due_paid:
+        return render(request, 'stregsystem/error_signupdue.html', locals())
+
+    if not member.signup_approved():
+        return render(request, 'stregsystem/error_signup_not_approved.html', locals())
+
     stats = Sale.objects.filter(member_id=member_id).aggregate(
         total_amount=Sum('price'), total_purchases=Count('timestamp')
     )
@@ -260,6 +267,12 @@ def send_userdata(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     member = Member.objects.get(pk=member_id, active=True)
 
+    if not member.signup_due_paid:
+        return render(request, 'stregsystem/error_signupdue.html', locals())
+
+    if not member.signup_approved():
+        return render(request, 'stregsystem/error_signup_not_approved.html', locals())
+
     mail_sent = send_userdata_mail(member)
     sent_time = data_sent[member.id]
     current_time = timezone.now()
@@ -272,6 +285,12 @@ def send_userdata(request, room_id, member_id):
 def menu_userpay(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     member = Member.objects.get(pk=member_id, active=True)
+
+    if not member.signup_due_paid:
+        return render(request, 'stregsystem/error_signupdue.html', locals())
+
+    if not member.signup_approved():
+        return render(request, 'stregsystem/error_signup_not_approved.html', locals())
 
     amounts = {100, 200}
 
@@ -295,6 +314,12 @@ def menu_userrank(request, room_id, member_id):
     to_date = datetime.datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
     room = Room.objects.get(pk=room_id)
     member = Member.objects.get(pk=member_id, active=True)
+
+    if not member.signup_due_paid:
+        return render(request, 'stregsystem/error_signupdue.html', locals())
+
+    if not member.signup_approved():
+        return render(request, 'stregsystem/error_signup_not_approved.html', locals())
 
     def ranking(category_ids, from_d, to_d):
         qs = (
@@ -362,6 +387,12 @@ def menu_sale(request, room_id, member_id, product_id=None):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
+
+    if not member.signup_due_paid:
+        return render(request, 'stregsystem/error_signupdue.html', locals())
+
+    if not member.signup_approved():
+        return render(request, 'stregsystem/error_signup_not_approved.html', locals())
 
     product = None
     if request.method == 'POST':
@@ -702,6 +733,12 @@ def api_sale(request):
         member = find_user_from_id(int(member_id))
         if member is None:
             return HttpResponseBadRequest("Invalid member_id")
+
+        if not member.signup_due_paid:
+            return HttpResponseBadRequest("Signup due not paid")
+
+        if not member.signup_approved():
+            return HttpResponseBadRequest("Signup not manually approved")
 
         if username != member.username:
             return HttpResponseBadRequest("Username does not match member_id")
