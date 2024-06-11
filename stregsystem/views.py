@@ -24,7 +24,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django_select2 import forms as s2forms
 import urllib.parse
 
-
 from stregsystem import parser
 from stregsystem.models import (
     Member,
@@ -141,14 +140,15 @@ def _multibuy_hint(now, member):
     recent_purchases = Sale.objects.filter(member=member, timestamp__gt=earliest_recent_purchase)
     number_of_recent_distinct_purchases = recent_purchases.values('timestamp').distinct().count()
 
+    recent_unique_purchases = recent_purchases.values('product').distinct().annotate(total=Count('product'))
+    print("TEST TING" + str(recent_unique_purchases))
+
     # add hint for multibuy
     if number_of_recent_distinct_purchases > 1:
         sale_dict = {}
-        for sale in recent_purchases:
-            if not str(sale.product.id) in sale_dict:
-                sale_dict[str(sale.product.id)] = 1
-            else:
-                sale_dict[str(sale.product.id)] = sale_dict[str(sale.product.id)] + 1
+        for unique_sale in recent_unique_purchases:
+            sale_dict[str(unique_sale['product'])] = unique_sale['total']
+
         sale_hints = ["<span class=\"username\">{}</span>".format(member.username)]
         if all(sale_count == 1 for sale_count in sale_dict.values()):
             return (False, None)
