@@ -139,9 +139,7 @@ def _multibuy_hint(now, member):
     # get the sales with this timestamp
     recent_purchases = Sale.objects.filter(member=member, timestamp__gt=earliest_recent_purchase)
     number_of_recent_distinct_purchases = recent_purchases.values('timestamp').distinct().count()
-
     recent_unique_purchases = recent_purchases.values('product').distinct().annotate(total=Count('product'))
-    print("TEST TING" + str(recent_unique_purchases))
 
     # add hint for multibuy
     if number_of_recent_distinct_purchases > 1:
