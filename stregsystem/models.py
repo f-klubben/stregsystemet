@@ -128,15 +128,15 @@ class Order(object):
         self.member = Member.objects.select_for_update().get(id=self.member.id)
         self.member.fulfill(transaction)
 
+        # Collect all the sales of the order
+        Sales = []
         for item in self.items:
-            # @HACK Since we want to use the old database layout, we need to
-            # add a sale for every item and every instance of that item
             for i in range(item.count):
                 s = Sale(member=self.member, product=item.product, room=self.room, price=item.product.price)
-                s.save()
+                Sales.append(s)
+        # Save all the sales
+        Sale.objects.bulk_create(Sales)
 
-            # Bought (used above) is automatically calculated, so we don't need
-            # to update it
         # We changed the user balance, so save that
         self.member.save()
 
