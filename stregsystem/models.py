@@ -1,5 +1,5 @@
 import datetime
-import re
+from datetime import timedelta
 from collections import Counter
 from email.utils import parseaddr
 
@@ -22,6 +22,8 @@ from stregsystem.utils import (
 )
 from stregsystem.mail import send_payment_mail
 
+MAX_REIMBUSEMENT_HOURS = 12
+
 
 def price_display(value):
     return money(value) + " kr."
@@ -41,6 +43,19 @@ class StregForbudError(Exception):
 
 class NoMoreInventoryError(Exception):
     pass
+
+
+class SaleNotFoundError(Exception):
+    pass
+
+
+class MoneyTransactionError(Exception):
+    pass
+
+
+class ReimbursementError(Exception):
+    def __init__(self, message):
+        super({'message': message})
 
 
 # Create your models here.
@@ -139,6 +154,17 @@ class Order(object):
             # to update it
         # We changed the user balance, so save that
         self.member.save()
+
+
+class ReimbursementTransaction(MoneyTransaction):
+    def change(self):
+        """
+        Returns the change to the users account
+        caused by fulfilling this transaction.
+        """
+        if self.amount <= 0:
+            raise ReimbursementError("Cannot perform negative reimbursement")
+        return self.amount
 
 
 class GetTransaction(MoneyTransaction):
@@ -638,6 +664,9 @@ class Sale(models.Model):
     # XXX - django bug - kan ikke vaelge mellem desc og asc i admin, som ved normalt felt
     price_display.admin_order_field = 'price'
 
+    def is_reimbursable(self):
+        return timedelta(hours=MAX_REIMBUSEMENT_HOURS) >= timezone.now() - self.timestamp
+
     @deprecated
     def __unicode__(self):
         return self.__str__()
@@ -673,3 +702,10 @@ class News(models.Model):
 
     def __str__(self):
         return self.title + " -- " + str(self.pub_date)
+
+
+class Reimbursement(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    amount = models.IntegerField()
+    models.DateTimeField(auto_now_add=True)
