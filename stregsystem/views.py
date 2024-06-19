@@ -22,7 +22,6 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django_select2 import forms as s2forms
-import urllib.parse
 
 
 from stregsystem import parser
@@ -43,6 +42,7 @@ from stregsystem.models import (
 from stregsystem.utils import (
     make_active_productlist_query,
     qr_code,
+    mobilepay_launch_uri,
     make_room_specific_query,
     make_unprocessed_mobilepayment_query,
     parse_csv_and_create_mobile_payments,
@@ -499,40 +499,38 @@ def mobilepaytool(request):
     return render(request, "admin/stregsystem/mobilepaytool.html", data)
 
 
-def qr_payment(request):
+# API views
+
+
+def get_payment_qr(request):
     form = QRPaymentForm(request.GET)
     if not form.is_valid():
         return HttpResponseBadRequest("Invalid input for MobilePay QR code generation")
 
-    query = {'phone': '90601', 'comment': form.cleaned_data.get('member')}
+    username = form.cleaned_data.get('member')
+    amount = form.cleaned_data.get('amount')
 
-    if form.cleaned_data.get("amount") is not None:
-        query['amount'] = form.cleaned_data.get("amount")
-
-    data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
-    return qr_code(data)
-
-
-# API views
+    return qr_code(mobilepay_launch_uri(username, amount))
 
 
 def dump_active_items(request):
     room_id = request.GET.get('room_id') or None
     if room_id is None:
-        return HttpResponseBadRequest("Missing room_id")
+        return HttpResponseBadRequest("Parameter missing: room_id")
     elif not room_id.isdigit():
-        return HttpResponseBadRequest("Invalid room_id")
+        return HttpResponseBadRequest("Parameter invalid: room_id")
+    # TODO: Check whether room exists
     items = __get_productlist(room_id)
-    items_dict = {item.id: (item.name, item.price) for item in items}
+    items_dict = {item.id: {'name': item.name, 'price': item.price} for item in items}
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
 
 
-def check_user_active(request):
+def get_member_active(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
-        return HttpResponseBadRequest("Missing member_id")
+        return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
-        return HttpResponseBadRequest("Invalid member_id")
+        return HttpResponseBadRequest("Parameter invalid: member_id")
     try:
         member = Member.objects.get(pk=member_id)
     except Member.DoesNotExist:
@@ -540,27 +538,34 @@ def check_user_active(request):
     return JsonResponse({'active': member.active})
 
 
-def convert_username_to_id(request):
+def get_member_id(request):
     username = request.GET.get('username') or None
     if username is None:
-        return HttpResponseBadRequest("Missing username")
+        return HttpResponseBadRequest("Parameter missing: username")
+
     try:
         member = Member.objects.get(username=username)
     except Member.DoesNotExist:
-        return HttpResponseBadRequest("Invalid username")
+        return HttpResponseBadRequest("Member not found")
+
     return JsonResponse({'member_id': member.id})
 
 
 def dump_product_category_mappings(request):
-    return JsonResponse({p.id: [(cat.id, cat.name) for cat in p.categories.all()] for p in Product.objects.all()})
+    return JsonResponse(
+        {
+            p.id: [{'category_id': cat.id, 'category_name': cat.name} for cat in p.categories.all()]
+            for p in Product.objects.all()
+        }
+    )
 
 
-def get_user_sales(request):
+def get_member_sales(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
-        return HttpResponseBadRequest("Missing member_id")
+        return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
-        return HttpResponseBadRequest("Invalid member_id")
+        return HttpResponseBadRequest("Parameter invalid: member_id")
     count = 10 if request.GET.get('count') is None else int(request.GET.get('count') or 10)
     sales = Sale.objects.filter(member=member_id).order_by('-timestamp')[:count]
     return JsonResponse(
@@ -568,12 +573,12 @@ def get_user_sales(request):
     )
 
 
-def get_user_balance(request):
+def get_member_balance(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
-        return HttpResponseBadRequest("Missing member_id")
+        return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
-        return HttpResponseBadRequest("Invalid member_id")
+        return HttpResponseBadRequest("Parameter invalid: member_id")
     try:
         member = Member.objects.get(pk=member_id)
     except Member.DoesNotExist:
@@ -581,10 +586,12 @@ def get_user_balance(request):
     return JsonResponse({'balance': member.balance})
 
 
-def get_user_info(request):
+def get_member_info(request):
     member_id = str(request.GET.get('member_id')) or None
-    if member_id is None or not member_id.isdigit():
-        return HttpResponseBadRequest("Missing or invalid member_id")
+    if member_id is None:
+        return HttpResponseBadRequest("Parameter missing: member_id")
+    elif not member_id.isdigit():
+        return HttpResponseBadRequest("Parameter invalid: member_id")
 
     member = find_user_from_id(int(member_id))
     if member is None:
@@ -606,7 +613,7 @@ def find_user_from_id(user_id: int):
         return None
 
 
-def dump_named_items(request):
+def dump_named_products(request):
     items = NamedProduct.objects.all()
     items_dict = {item.name: item.product.id for item in items}
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
