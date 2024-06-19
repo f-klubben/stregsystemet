@@ -94,6 +94,7 @@ INSTALLED_APPS = [
     'stregsystem',
     'stregreport',
     'kiosk',
+    'razzia',
     'django_select2',
     'django.contrib.admin',
     'django.contrib.auth',
