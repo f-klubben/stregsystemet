@@ -2052,6 +2052,21 @@ class SignupTest(TestCase):
         # Assert that the PendingSignup instance has not been deleted (since it isn't approved)
         _ = PendingSignup.objects.get(member=member)
 
+    def test_signup_approval_after_due(self):
+        """
+        Tests that a signup is successful, when approved after due is paid.
+        """
+        member = Member.objects.create(username='john', signup_due_paid=True)
+        signup = PendingSignup.objects.create(member=member, status=ApprovalModel.UNSET)
+
+        # Approve signup after due has been paid.
+        signup.status = ApprovalModel.APPROVED
+        signup.save()
+
+        # Assert that the PendingSignup instance has been deleted
+        with self.assertRaises(PendingSignup.DoesNotExist):
+            _ = PendingSignup.objects.get(member=member)
+
     @mock.patch('stregsystem.models.send_payment_mail', autospec=True)
     @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
     def test_only_welcome_mail_excess_balance(self, mock_welcome_mail: MagicMock, mock_payment_mail: MagicMock):

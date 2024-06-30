@@ -17,3 +17,7 @@ def after_pending_signup_save(sender, instance, created, **kwargs):
         return
 
     instance.member.trigger_welcome_mail()
+
+    from stregsystem.models import ApprovalModel
+    if instance.status == ApprovalModel.APPROVED and instance.member.signup_due_paid:
+        instance.delete()
