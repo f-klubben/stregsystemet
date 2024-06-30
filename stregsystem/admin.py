@@ -6,6 +6,8 @@ from django.contrib.admin.models import LogEntry
 
 from stregsystem.models import (
     Category,
+    InventoryItem,
+    InventoryItemHistory,
     Member,
     News,
     Payment,
@@ -167,6 +169,50 @@ class ProductAdmin(admin.ModelAdmin):
         return product.is_active()
 
     activated.boolean = True
+
+
+class InventoryAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
+    list_display = (
+        'activated',
+        'name',
+        'quantity',
+        'desired_amount',
+    )
+    fields = (
+        'name',
+        'active',
+        (
+            'desired_amount',
+            'quantity',
+        ),
+        'products',
+    )
+
+    def activated(self, inventory_item: InventoryItem) -> bool:
+        return inventory_item.is_active()
+
+    activated.boolean = True
+
+
+class InventoryHistoryAdmin(admin.ModelAdmin):
+    search_fields = ('count_date',)
+    list_display = (
+        'item',
+        'old_quantity',
+        'new_quantity',
+        'count_date',
+        'sold_out',
+    )
+    readonly_fields = (
+        'item',
+        'old_quantity',
+        'new_quantity',
+        'loss',
+        'count_date',
+        'sold_out',
+        'sold_out_date',
+    )
 
 
 class NamedProductAdmin(admin.ModelAdmin):
@@ -345,6 +391,8 @@ admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(Member, MemberAdmin)
 admin.site.register(Payment, PaymentAdmin)
+admin.site.register(InventoryItem, InventoryAdmin)
+admin.site.register(InventoryItemHistory, InventoryHistoryAdmin)
 admin.site.register(News)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(NamedProduct, NamedProductAdmin)

@@ -17,5 +17,7 @@ stregsystem/management/commands/tokens.json
 stregsystem/*-tokens.json
 stregsystem/*-tokens.json.bak
 
+.vscode/
+
 # ignore default log file location
 stregsystem.log
