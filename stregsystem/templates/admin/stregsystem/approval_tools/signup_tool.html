@@ -1,0 +1,36 @@
+{% extends "admin/stregsystem/approval_tool_template.html" %}
+
+{% block tool_name %}Sign-up Tool{% endblock %}
+
+{% block tool_description %}
+<p>Displays a list of unapproved sign-ups for easy processing. For each
+    row:</p>
+<ol>
+    <li><p>Verify their comments are correctly typed.</p></li>
+    <li><p>Check <code>Approved</code> if member is allowed in. If the member can't be accepted into the F-club,
+        check <code>Rejected</code>, then their info will be removed. You should then inform them by mail,
+        and manually refund their money (via MobilePay portal) if they'd already paid.</p></li>
+</ol>
+{% endblock %}
+
+{% block tool_actions %}
+<h1>Import MobilePay API transactions</h1>
+<p><i>Automatically import MobilePay transactions from the past week</i></p>
+<form method="post"> {% csrf_token %}
+    <input type="submit" class="submit-button" name="action" value="Import via MobilePay API"/>
+</form>
+
+{% if api %}
+    <h2>{{ api }}</h2>
+{% endif %}
+
+<br>
+<hr style="background-color: white; border-top: thin dashed grey; width:500px">
+<br>
+
+<h1>Process transactions for sign-up payments</h1>
+<p><i>Look through transactions for comments matching a sign-up.</i></p>
+<form method="post"> {% csrf_token %}
+    <input type="submit" class="submit-button" name="action" value="Process transactions for sign-ups"/>
+</form>
+{% endblock %}

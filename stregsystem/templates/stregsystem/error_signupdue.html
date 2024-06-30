@@ -1,0 +1,14 @@
+{% extends "stregsystem/error.html" %}
+
+{% load stregsystem_extras %}
+
+
+{% block headline %}
+Bruger "{{username|escape}}" ikke færdig oprettet
+{% endblock %}
+
+{% block message %}
+Det ser ud til at kontoen, <b>{{username|escape}}</b> stadig mangler at betale oprettelses gebyret.<br />
+<br />
+Hvis du mener dette er en fejl kan du sende en e-mail til TREOEN på <a href="mailto:treo@fklub.dk">treo@fklub.dk</a>
+{% endblock %}

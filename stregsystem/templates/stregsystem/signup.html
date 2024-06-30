@@ -1,0 +1,39 @@
+{% extends "stregsystem/base.html" %}
+
+{% load stregsystem_extras %}
+
+{% block title %}F-Klub Tilmelding{% endblock %}
+
+{% block content %}
+    <!-- TODO move style block -->
+    <style>
+        #signup_form {
+            width: 400px;
+            margin: 0 auto;
+        }
+
+        #signup_form table {
+            width: 100%;
+        }
+
+        #signup_form table th {
+            text-align: left;
+        }
+
+        #signup_form table td {
+            text-align: right;
+        }
+    </style>
+
+    <form method="post" id="signup_form">
+        {% csrf_token %}
+        <table>
+            <tbody>
+            {{ form.as_table }}
+            </tbody>
+        </table>
+
+        <input type="submit" value="Tilmeld"/>
+        <p>* Biologisk køn bliver kun brugt til at beregne koffein- og promilletal.</p>
+    </form>
+{% endblock %}
