@@ -31,6 +31,14 @@ For Ubuntu with virtual envs:
 5. ???
 6. Profit
 
+For systems running the Nix package manager:
+1. Configure Nix to use nix-command and flakes
+ - `echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf`
+2. Start shell
+ - `nix develop`
+3. ???
+4. Profit
+
 Using Testdata
 --------
 In order to simplify development for all, we have included a test fixture.
