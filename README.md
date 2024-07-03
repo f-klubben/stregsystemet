@@ -31,6 +31,19 @@ For Ubuntu with virtual envs:
 5. ???
 6. Profit
 
+For Mac users with virtual envs:
+1. Install python3.11 with pip
+ - `brew install python@3.11`
+2. Create virtual environment
+ - `python -m venv venv`
+3. Activate virtualenv
+ - `source venv/bin/activate`
+4. Install packages
+ - `pip install -r requirements.txt`
+5. ???
+6. Profit
+
+
 Using Testdata
 --------
 In order to simplify development for all, we have included a test fixture.
