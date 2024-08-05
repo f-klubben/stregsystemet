@@ -74,3 +74,12 @@ From then on
 1. `python manage.py runserver`
 2. ???
 3. Profit
+
+Testing Mailserver
+-------
+Using the debugging tool [MailHog](https://github.com/mailhog/MailHog) (Follow their README for install instructions) and test the mailserver like this:
+1. `MailHog --smtp-bind-addr 127.0.0.1:25`
+2. Go to [http://127.0.0.1:8025](http://127.0.0.1:8025) in your browser
+3. `python manage.py runserver`
+4. ???
+5. Profit
