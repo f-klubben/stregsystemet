@@ -54,6 +54,9 @@ class SignupToolForm(ApprovalToolForm):
     def __init__(self, *args, **kwargs):
         super(SignupToolForm, self).__init__(*args, **kwargs)
 
+        # Remove 'Rejected' as it has no implemented behavior
+        self.fields['status'].widget.choices = ApprovalModel.STATUS_CHOICES[:-1]
+
         member_form = SignupMemberInlineForm(instance=self.instance.member)
 
         for field in member_form.fields:
