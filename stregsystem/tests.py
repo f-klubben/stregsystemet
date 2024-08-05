@@ -676,7 +676,7 @@ class PaymentTests(TestCase):
     def test_payment_delete_not_saved(self, make_payment):
         payment = Payment(member=self.member, amount=100)
 
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             payment.delete()
 
 
@@ -961,6 +961,11 @@ class MemberModelFormTests(TestCase):
 
     def test_cant_create_duplicate_username(self):
         jeff = Member(username="jeff", firstname="jeffrey", lastname="jefferson", gender="M")
+        form = MemberForm(model_to_dict(jeff))
+        self.assertFalse(form.is_valid())
+
+    def test_cant_create_duplicate_username_in_other_case(self):
+        jeff = Member(username="JeFf", firstname="jeffrey", lastname="jefferson", gender="M")
         form = MemberForm(model_to_dict(jeff))
         self.assertFalse(form.is_valid())
 

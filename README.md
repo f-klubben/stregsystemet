@@ -13,7 +13,7 @@ Python Environment
 For windows using Anaconda and virtual environments:
 1. Download and install Anaconda
 2. In a shell:
-  - `conda create -n stregsystem python=3.6`
+  - `conda create -n stregsystem python=3.11`
   - `activate stregsystem`
   - `pip install -r requirements.txt`
 3. ???
@@ -61,3 +61,12 @@ From then on
 1. `python manage.py runserver`
 2. ???
 3. Profit
+
+Testing Mailserver
+-------
+Using the debugging tool [MailHog](https://github.com/mailhog/MailHog) (Follow their README for install instructions) and test the mailserver like this:
+1. `MailHog --smtp-bind-addr 127.0.0.1:25`
+2. Go to [http://127.0.0.1:8025](http://127.0.0.1:8025) in your browser
+3. `python manage.py runserver`
+4. ???
+5. Profit

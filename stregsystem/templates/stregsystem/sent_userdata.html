@@ -2,11 +2,12 @@
 
 {% block content %}
 <center>
-    <h2>{% if mail_sent %}
-    Hej {{member.username}}, du skulle gerne have modtaget din bruger data.
+    {% if mail_sent %}
+    <h2>Hej {{member.username}}, du skulle gerne modtage dit brugerdata indenfor få minutter</h2>
     {% else %}
-    Hej {{member.username}}, du har anmodet om brugerdata for nylig og bliver nødt til at vente.
-    {% endif %}</h2>
+    <h2>Vent {{minutes}} minutter før du kan anmode om dit data igen</h2><br>
+    <a href="/{{room.id}}/send_csv_mail/{{member.id}}/">Anmod igen</a><br>
+    {% endif %}
 
     <h3>Filer:</h3>
     <table border=1 width="40%">
@@ -23,12 +24,6 @@
             <th>indeholder alt data i den nederste tabel på forrige side.</th>
         </tr>
     </table><br>
-
-    {% if mail_sent %}
-    {% else %}
-    Vent {{minutes}} minutter før du kan anmode om dit data igen.<br>
-    <a href="/{{room.id}}/send_csv_mail/{{member.id}}/">Anmod igen</a><br>
-    {% endif %}
 
     Blev der sendt en mail? <b>{% if mail_sent %}Mail sendt{% else %}Ingen mail sendt{% endif %}</b>!
     

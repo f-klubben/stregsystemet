@@ -10,6 +10,7 @@ from django.template.loader import render_to_string
 from django.utils.html import escape
 from django.utils import timezone
 from stregsystem.templatetags.stregsystem_extras import money
+from stregsystem.utils import rows_to_csv
 
 logger = logging.getLogger(__name__)
 
@@ -35,11 +36,6 @@ def send_payment_mail(member, amount, mobilepay_comment):
 data_sent = {}
 
 
-# little function to make sure the csv data always has the same format
-def rows_to_csv(rows) -> str:
-    return "\n".join(','.join([str(item) for item in row]) for row in rows)
-
-
 def send_userdata_mail(member):
     from .models import Payment, Sale, MobilePayment
 
@@ -54,6 +50,11 @@ def send_userdata_mail(member):
     mobilepayments: list[MobilePayment] = member.mobilepayment_set.order_by("timestamp")
     mobilepay_payments: list[Payment] = [mobilepayment.payment for mobilepayment in mobilepayments]
 
+    if member.gender in [i for (i, _) in member.GENDER_CHOICES]:
+        gender = [text for (i, text) in member.GENDER_CHOICES if member.gender == i][0]
+    else:
+        gender = member.gender
+
     sales_csv = rows_to_csv(
         [["Timestamp", "Name", "Price"]] + [[sale.timestamp, sale.product.name, sale.price] for sale in sales]
     )
@@ -63,8 +64,32 @@ def send_userdata_mail(member):
     )
     userdata_csv = rows_to_csv(
         [
-            ["Id", "Name", "First name", "Last name", "Email", "Registration year"],
-            [member.id, member.username, member.firstname, member.lastname, member.email, member.year],
+            [
+                "Id",
+                "Name",
+                "First name",
+                "Last name",
+                "Email",
+                "Registration year",
+                "Active",
+                "Gender",
+                "Want spam",
+                "Balance",
+                "Undo count",
+            ],
+            [
+                member.id,
+                member.username,
+                member.firstname,
+                member.lastname,
+                member.email,
+                member.year,
+                member.active,
+                gender,
+                member.want_spam,
+                member.balance,
+                member.undo_count,
+            ],
         ]
     )
 
@@ -73,7 +98,7 @@ def send_userdata_mail(member):
         "send_csv.html",
         {**vars(member), "fember": member.username},
         f'{member.username} has requested their user data!',
-        {"sales.csv": sales_csv, "payments.csv": payments_csv, "userdata.csv": userdata_csv},
+        {"sales.csv": sales_csv.encode(), "payments.csv": payments_csv.encode(), "userdata.csv": userdata_csv.encode()},
     )
     member.save()
     return True

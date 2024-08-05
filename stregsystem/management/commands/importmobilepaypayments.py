@@ -118,7 +118,7 @@ class Command(BaseCommand):
             amount=amount,  # already in streg-ører
             member=mobile_payment_exact_match_member(comment),
             comment=comment,
-            name=name,
+            customer_name=name,
             timestamp=payment_datetime,
             transaction_id=trans_id,
             status=MobilePayment.UNSET,
