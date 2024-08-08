@@ -202,7 +202,7 @@ class MemberForm(forms.ModelForm):
     def clean_username(self):
         username = self.cleaned_data['username']
         if self.instance is None or self.instance.pk is None:
-            if Member.objects.filter(username=username).exists():
+            if Member.objects.filter(username__iexact=username).exists():
                 raise forms.ValidationError("Brugernavnet er allerede taget")
         return username
 
@@ -234,7 +234,7 @@ class MemberAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if 'username' in form.changed_data and change:
-            if Member.objects.filter(username=obj.username).exclude(pk=obj.pk).exists():
+            if Member.objects.filter(username__iexact=obj.username).exclude(pk=obj.pk).exists():
                 messages.add_message(request, messages.WARNING, 'Det brugernavn var allerede optaget')
         super().save_model(request, obj, form, change)
 
