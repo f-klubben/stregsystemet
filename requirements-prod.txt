@@ -1,0 +1,2 @@
+mysqlclient==1.4.6
+gunicorn==22.0.0
