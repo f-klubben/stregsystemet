@@ -82,8 +82,9 @@ class PurchaseForm(forms.Form):
 class SignupForm(forms.ModelForm):
     class Meta:
         model = Member
-        fields = ('username', 'email', 'firstname', 'lastname', 'gender')
+        fields = ('notes', 'username', 'email', 'firstname', 'lastname', 'gender')
         widgets = {
+            'notes': forms.TextInput(attrs={'autocomplete': "off", 'placeholder': "sw, dat, bait, ixd, dad, etc."}),
             'username': forms.TextInput(attrs={'autocomplete': "off"}),
             'email': forms.TextInput(attrs={'autocomplete': "off"}),
             'firstname': forms.TextInput(attrs={'autocomplete': "off"}),
@@ -91,6 +92,7 @@ class SignupForm(forms.ModelForm):
             'gender': forms.Select(),
         }
         labels = {
+            'notes': 'Studieretning (Anerkendt forkortelse)',
             'username': "Brugernavn",
             'email': "E-Mail",
             'firstname': "Fornavn",

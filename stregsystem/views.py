@@ -581,6 +581,7 @@ def signup(request):
             firstname=form.cleaned_data.get('firstname'),
             lastname=form.cleaned_data.get('lastname'),
             email=form.cleaned_data.get('email'),
+            notes=form.cleaned_data.get('notes'),
             gender='U',
             signup_due_paid=False,
         )
