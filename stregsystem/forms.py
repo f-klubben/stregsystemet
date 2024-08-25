@@ -94,10 +94,10 @@ class SignupForm(forms.ModelForm):
         labels = {
             'notes': 'Studieretning (Anerkendt forkortelse)',
             'username': "Brugernavn",
-            'email': "E-Mail",
+            'email': "E-Mail (behøver ikke være AAU)",
             'firstname': "Fornavn",
             'lastname': "Efternavn",
-            'gender': 'Biologisk køn',
+            'gender': 'Biologisk køn(*)',
         }
         error_messages = {
             'username': {
