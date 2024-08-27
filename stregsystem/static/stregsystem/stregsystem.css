@@ -96,54 +96,34 @@ table h2, table h3 {
 }
 
 .flame-main {
-  -webkit-animation-name: flameWobble;
   animation-name: flameWobble;
-  -webkit-animation-duration: 1.5s;
   animation-duration: 1.5s;
-  -webkit-animation-timing-function: linear;
   animation-timing-function: linear;
-  -webkit-animation-iteration-count: infinite;
   animation-iteration-count: infinite;
 }
 .flame-main.one {
-  -webkit-animation-duration: 2s;
   animation-duration: 2s;
-  -webkit-animation-delay: .5s;
   animation-delay: .5s;
 }
 .flame-main.two {
-  -webkit-animation-duration: 1.5s;
   animation-duration: 1.5s;
-  -webkit-animation-delay: 1s;
   animation-delay: 1s;
 }
 .flame-main.three {
-  -webkit-animation-duration: 1.05s;
   animation-duration: 1.05s;
-  -webkit-animation-delay: 1.5s;
   animation-delay: 1.5s;
 }
 .flame-main.four {
-  -webkit-animation-duration: 1.6s;
   animation-duration: 1.6s;
-  -webkit-animation-delay: 2s;
   animation-delay: 2s;
 }
 .flame-main.five {
-  -webkit-animation-duration: 1.25s;
   animation-duration: 1.25s;
-  -webkit-animation-delay: 2.5s;
   animation-delay: 2.5s;
 }
 @keyframes flameWobble {
   50% {
       transform: scale(1,1) translate(0, -2px) rotate(.2deg);
-  }
-}
-
-@-webkit-keyframes flameWobble {
-  50% {
-      -webkit-transform: scale(1,1) translate(0, -2px) rotate(.2deg);
   }
 }
 
