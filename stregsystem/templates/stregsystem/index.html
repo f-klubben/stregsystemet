@@ -9,6 +9,18 @@
 {% endif %}
 {% endblock %}
 
+{% block head %}
+<style>
+  #products {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 30px;
+    margin-bottom: 26px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 
 
@@ -43,60 +55,49 @@
 <div id="message">{% block message %}{% endblock %}</div>
 </center>
 
-<center>
-{% block products %}
-{% if product_list %}
-{% autoescape off %}
-<table cellpadding="0" cellspacing="0" border="0">
-    <tr>
-        <td valign="top">
-            <table border="1" cellspacing="2" cellpadding="2">
-              <tr>
-              <th>ID</th>
-                <th>Produkt</th>
-                <th>Pris</th>
-            </tr>
-            {% for product in product_list|partition:"2"|first %}
-            <tr>
+<div id="products">
+  {% block products %}
+    {% if product_list %}
+      {% autoescape off %}
+      <table class="default">
+        <tr>
+          <th>ID</th>
+          <th>Produkt</th>
+          <th>Pris</th>
+        </tr>
+        {% for product in product_list|partition:"2"|first %}
+          <tr>
             <td>
-                {{ product.id|product_id_and_alias_string }}
+              {{product.id|product_id_and_alias_string}}
             </td>
+            <td>{{product.name}}</td>
+            <td class="price">{{product.price|money}} kr</td>
+          </tr>
+        {% endfor %}
+      </table>
+      {% if product_list|partition:"2"|last %}
+        <table class="default">
+          <tr>
+            <th>ID</th>
+            <th>Produkt</th>
+            <th>Pris</th>
+          </tr>
+          {% for product in product_list|partition:"2"|last %}
+            <tr>
+              <td>{{product.id|product_id_and_alias_string}}</td>
               <td>{{product.name}}</td>
-            <td align="right">{{product.price|money}} kr</td>
-              </tr>
-            {% endfor %}
-            </table>
-        </td>
-        {% if product_list|partition:"2"|last %}
-        <td width="30">&nbsp;</td>
-            <td valign="top">
-                <table border="1" cellspacing="2" cellpadding="2">
-                  <tr>
-                    <th>ID</th>
-                    <th>Produkt</th>
-                    <th>Pris</th>
-                  </tr>
-                  {% for product in product_list|partition:"2"|last %}
-                  <tr>
-                    <td>{{product.id|product_id_and_alias_string }}</td>
-                    <td>{{product.name}}</td>
-                    <td align="right">{{product.price|money}} kr</td>
-                  </tr>
-                  {% endfor %}
-                </table>
-            </td>
-        {% endif %}
-    </tr>
-</table>
-{% endautoescape %}
-{% else %}
-<p>Ingen produkter.</p>
-
-{% endif %}
-{% endblock %}
-</center>
-
-<div style="clear: both;">&nbsp;</div>
+              <td class="price">{{product.price|money}} kr</td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% endif %}
+      {% endautoescape %}
+    {% else %}
+      <p>Ingen produkter.</p>
+      
+    {% endif %}
+  {% endblock %}
+</div>
 
 <script>
   window.addEventListener("pageshow", (event) => {
