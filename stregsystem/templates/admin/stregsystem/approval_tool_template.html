@@ -14,7 +14,7 @@
     {{ formset.media.js }}
     <script>
         // Count number of member-fields filled at point of invocation
-        const prompt = () => confirm('Are you sure you want to submit all matched transactions (' + //
+        const prompt = () => confirm('Are you sure you want to submit all matched entries (' + //
             Array.from(document.getElementsByTagName('select')).filter((foo, x, _) => //
                 document.getElementsByTagName('select')[x].value !== "").length + //
             ') where member is set?')
@@ -26,58 +26,21 @@
     {% load stregsystem_extras %}
 
     <div id="content-main">
-
         <div id="wrapper">
             <div id="mobilepaytool-description">
-                <h1>MobilePaytool</h1>
-                <p>Displays a list of unprocessed MobilePay transactions for easy processing of payments. For each
-                    row:</p>
-                <ol>
-
-                    <li><p>Input correct member in member column. If prefilled, member wrote their username
-                        correctly.</p></li>
-                    <li><p>Check <code>Approved</code> if member is correctly filled. If transaction has already been
-                        processed (in case of 'tilmelding' or 'er indsat') check <code>Ignored</code>.</p></li>
-                </ol>
-                <p>Clicking <code>Submit payments</code> will process all <code>Approved</code> and <code>Ignored</code>
-                    transactions.</p>
+                <h1>{% block tool_name %}{% endblock %}</h1>
+                {% block tool_description %}{% endblock %}
+                <p>Clicking <code>Submit</code> will process all entries which aren't <code>Unset</code>.</p>
+                <p><i>Protip: A good workflow is checking that prefilled rows are correct, clicking 'Submit pre-matched
+                    entries', then manually going through any remaining entries.</i></p>
+                <br>
                 <p>If you need any help on how to use this tool, please contact <a
                         href="mailto:treo@fklub.dk">treo@fklub.dk</a> and for any bugs or suggestions <a
                         href="mailto:fit@fklub.dk">fit@fklub.dk</a> or submit them directly at <a
                         href="https://github.com/f-klubben/stregsystemet/issues">f-klubben/stregsystemet</a>.</p>
-                <br>
-                <p><i>Protip: A good workflow is checking that prefilled rows are correct, clicking 'Submit matched
-                    payments', then manually matching any remaining transactions to members.</i></p>
-
-
             </div>
             <div id="mobilepay-import">
-                <h1>Import MobilePay API transactions</h1>
-                <p><i>Automatically import MobilePay transactions from the past week</i></p>
-                <form method="post"> {% csrf_token %}
-                    <input type="submit" class="submit-button" name="action" value="Import via MobilePay API"/>
-                </form>
-
-                {% if api %}
-                    <h2>{{ api }}</h2>
-                {% endif %}
-
-
-                <br>
-                <hr style="background-color: white; border-top: thin dashed grey; width:500px">
-                <br>
-
-                <h1>Import MobilePay CSV transactions</h1>
-                <p><i>Existing MobilePay transactions are ignored, this function is <a
-                        href="https://en.wikipedia.org/wiki/Idempotence">idempotent</a></i></p>
-                <form method="post" enctype="multipart/form-data"> {% csrf_token %}
-                    <input type="submit" class="submit-button" name="action" value="Import MobilePay CSV"/>
-                    <input type="file" name="csv_file" id="csv_file" accept="text/csv"/>
-                </form>
-                {% if imports or duplicates %}
-                    <h2> Imported {{ imports }} MobilePay transactions{% if duplicates %}, and ignored {{ duplicates }}
-                        duplicates {% endif %} </h2>
-                {% endif %}
+                {% block tool_actions %}{% endblock %}
             </div>
         </div>
         <br>
@@ -97,11 +60,11 @@
             {% endif %}
 
             {% if not formset.forms and submitted_count %}
-                <h2> No more MobilePay transactions needs processing, submitted {{ submitted_count }} transactions </h2>
+                <h2> No more entries needs processing. Submitted {{ submitted_count }} entries </h2>
             {% elif not formset.forms %}
-                <h2> No MobilePay transactions needs processing</h2>
+                <h2> No entries needs processing</h2>
             {% elif submitted_count %}
-                <h2 style="padding-bottom: 20px">Submitted {{ submitted_count }} transactions</h2>
+                <h2 style="padding-bottom: 20px">Submitted {{ submitted_count }} entries</h2>
             {% endif %}
             <form method="post" class="js-formset"> {% csrf_token %}
                 {{ formset.management_form }}
@@ -129,21 +92,14 @@
                                     {{ field.errors.as_ul }}
 
                                     {#  Modify non-editable fields for printing only and hide real widgets #}
-                                    {% if field.name == "timestamp" %}
-                                        {% timezone "Europe/Copenhagen" %} {# TODO: remove when #212 is merged #}
+                                    {% if field.field.widget.attrs.readonly %}
+                                        {% if field.name == "amount" or field.name == "due" %}
+                                            {{ field.value|money }} DKK
+                                        {% elif field.field.widget.input_type == "select" %}
+                                            {{ field }}
+                                        {% else %}
                                             {{ field.value }}
-                                            <span class="hidden">{{ field }}</span>
-                                        {% endtimezone %}
-                                    {% elif field.name == "amount" %}
-                                        {{ field.value|money }} DKK
-                                        <span class="hidden">{{ field }}</span>
-                                    {% elif field.name == "member" %}
-                                        <span class="js-member">{{ field }}</span>
-                                    {% elif field.name == "customer_name" %}
-                                        {{ field.value }}
-                                        <span class="hidden">{{ field }}</span>
-                                    {% elif field.name == "comment" %}
-                                        {{ field.value }}
+                                        {% endif %}
                                         <span class="hidden">{{ field }}</span>
                                     {% elif field.name == "status" %}
                                         {% for radio in form.status %}
@@ -162,9 +118,9 @@
                 <br>
                 <input type="submit" class="submit-button" id="submit-matched-button" name="action"
                        onclick="return prompt()"
-                       value="Submit matched payments"/>
+                       value="Submit pre-matched entries"/>
                 <span style="color: white">fuck css</span>
-                <input type="submit" class="submit-button" name="action" value="Submit payments"/>
+                <input type="submit" class="submit-button" name="action" value="Submit"/>
             </form>
         </center>
     </div>

@@ -19,6 +19,19 @@ ol span {
     font-weight: normal;
 }
 
+table.default {
+  border: 1px outset black;
+
+  & td,
+  & th {
+    border: 1px inset black;
+    padding: 2px;
+  }
+  & td.price {
+    text-align: right;
+  }
+}
+
 table h2, table h3 {
     margin-top: 6px;
     margin-bottom: 6px;

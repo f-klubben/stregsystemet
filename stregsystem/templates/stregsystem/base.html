@@ -12,6 +12,8 @@
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/fireworks.css" %}">
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/cursor.css" %}">
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/men.css" %}">
+{% block head %}
+{% endblock %}
 <script>
     var static_url = "{% get_static_prefix %}";
     var media_url = "{% get_media_prefix %}";
@@ -43,7 +45,8 @@
         </td>
         <td>
           <center>
-            <input type="button" onclick="location.href='/{{room.id}}';" value="Menu" tabindex="11">
+            <input type="button" onclick="location.href='/{{room.id}}';" value="Menu" tabindex="11" />
+            <input type="button" onclick="location.href='/signup'" value="Tilmeld" tabindex="12"/>
           </center>
         </td>
     </tr>
