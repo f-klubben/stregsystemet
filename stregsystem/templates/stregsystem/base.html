@@ -1,5 +1,6 @@
 {% load static %}
 {% load stregsystem_extras %}
+{% load themes %}
 <!DOCTYPE html>
 <html lang="da-DK">
 <head>
@@ -12,12 +13,17 @@
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/fireworks.css" %}">
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/cursor.css" %}">
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/men.css" %}">
+{% theme_styles %}
 {% block head %}
 {% endblock %}
 <script>
     var static_url = "{% get_static_prefix %}";
     var media_url = "{% get_media_prefix %}";
+    globalThis.static_url = "{% get_static_prefix %}";
+    globalThis.media_url = "{% get_media_prefix %}";
+    globalThis.themes_static_url = "{% get_themes_static_prefix %}";
 </script>
+{% theme_scripts %}
 </head>
 <body onLoad='if (document.focusform) {document.focusform.quickbuy.focus()}'>
 {% comment %}
@@ -75,5 +81,6 @@
 <div class="beaver-container"></div>
 <div class="easter-container"></div>
 {% show_candle %}
+{% theme_content %}
 </body>
 </html>
