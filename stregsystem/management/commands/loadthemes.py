@@ -5,13 +5,17 @@ from django.conf import settings
 from django.db import transaction
 from stregsystem.models import Theme
 
+
 class Command(BaseCommand):
     help = 'Load themes configuration into the database and/or test fixture'
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "output", nargs="?", choices=["both", "database", "fixture"], default="both",
-            help="Choose where to load the themes data"
+            "output",
+            nargs="?",
+            choices=["both", "database", "fixture"],
+            default="both",
+            help="Choose where to load the themes data",
         )
 
     def handle(self, *args, **options):
@@ -63,11 +67,13 @@ class Command(BaseCommand):
                 pk = 0
                 for theme in themes:
                     pk += 1
-                    themes_models.append({
-                        "model": model_id,
-                        "pk": pk,
-                        "fields": convert_theme(theme),
-                    })
+                    themes_models.append(
+                        {
+                            "model": model_id,
+                            "pk": pk,
+                            "fields": convert_theme(theme),
+                        }
+                    )
 
                 # Append theme models to testdata
                 output = testdata_filtered + themes_models
@@ -78,7 +84,6 @@ class Command(BaseCommand):
 
             except Exception as e:
                 self.stdout.write(self.style.ERROR(f'Error loading themes into testdata-themes fixture: {str(e)}'))
-
 
         # Insert into database
         if options["output"] in ["both", "database"]:
@@ -93,7 +98,7 @@ class Command(BaseCommand):
                     # Add the themes to the database
                     for theme in themes:
                         Theme.objects.create(**convert_theme(theme))
-                        
+
                 self.stdout.write(self.style.SUCCESS('Successfully loaded themes into database'))
 
             except Exception as e:

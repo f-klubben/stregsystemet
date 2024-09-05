@@ -805,6 +805,7 @@ class PendingSignup(ApprovalModel):
         # Return how many records were modified.
         return len(pending_signup_ids)
 
+
 class Theme(models.Model):
     name = models.CharField("Name", max_length=50)
     html = models.CharField("HTML filename", max_length=50, blank=True, default="")

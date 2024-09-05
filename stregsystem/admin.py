@@ -354,7 +354,7 @@ class ThemeAdmin(admin.ModelAdmin):
     @admin.action(description="Force show chosen themes")
     def force_show(modeladmin, request, queryset):
         queryset.update(override=Theme.SHOW)
-    
+
     @admin.action(description="Force hide chosen themes")
     def force_hide(modeladmin, request, queryset):
         queryset.update(override=Theme.HIDE)
