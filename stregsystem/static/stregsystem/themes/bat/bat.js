@@ -1,6 +1,6 @@
 /*! JS Bat 2013 - v1.2 - Eric Grange - www.delphitools.info */
 
-spawn_bat = function() {
+function spawn_bat() {
     var v = document.createElement('video');
     var s = document.createElement('source');
     var z = document.createElement('div');
@@ -15,7 +15,7 @@ spawn_bat = function() {
     v.autoplay = true;
     v.loop = true;
     v.muted = true;
-    s.src = media_url + "stregsystem/bat.webm";
+    s.src = themes_static_url + "bat/bat.webm";
     s.type = "video/webm";
     document.body.querySelector(".bat-container").appendChild(z);
 
@@ -40,10 +40,8 @@ spawn_bat = function() {
     setTimeout(A, Math.random() * 3e3);
 };
 
-d = new Date();
+const d = new Date();
 
-if(d.getMonth() === 9){
-    for(n_bats=0; n_bats < d.getDate(); n_bats++){
-        spawn_bat();
-    }
+for(let n_bats=0; n_bats < d.getDate(); n_bats++){
+    spawn_bat();
 }

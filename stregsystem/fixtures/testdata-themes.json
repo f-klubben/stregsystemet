@@ -1,0 +1,267 @@
+[
+  {
+    "model": "stregsystem.member",
+    "pk": 1,
+    "fields": {
+      "active": true,
+      "username": "tester",
+      "year": "2017",
+      "firstname": "Test",
+      "lastname": "Testsen",
+      "gender": "U",
+      "email": "plznospam@fklub.dk",
+      "want_spam": true,
+      "balance": 13366037,
+      "undo_count": 0,
+      "notes": "This is a test user."
+    }
+  },
+  {
+    "fields": {
+      "name": "kaffe"
+    },
+    "model": "stregsystem.category",
+    "pk": "6"
+  },
+  {
+    "model": "stregsystem.product",
+    "pk": 1,
+    "fields": {
+      "name": "Test \u00d8L",
+      "price": 100,
+      "active": true,
+      "deactivate_date": null
+    }
+  },
+  {
+    "model": "stregsystem.product",
+    "pk": 32,
+    "fields": {
+      "name": "Kold Kaffe",
+      "price": 200,
+      "active": true,
+      "deactivate_date": null,
+      "caffeine_content_mg": 70,
+      "categories": [
+        6
+      ]
+    }
+  },
+  {
+    "model": "stregsystem.product",
+    "pk": 3,
+    "fields": {
+      "name": "Fad\u00f8l",
+      "price": 1500,
+      "active": true,
+      "deactivate_date": null,
+      "rooms": [
+        1
+      ]
+    }
+  },
+  {
+    "model": "stregsystem.product",
+    "pk": 42,
+    "fields": {
+      "name": "Fad\u00f8l, en is og et s\u00f8m\"",
+      "price": 3000,
+      "active": true,
+      "deactivate_date": null,
+      "rooms": [
+        1
+      ]
+    }
+  },
+  {
+    "model": "stregsystem.product",
+    "pk": 13,
+    "fields": {
+      "name": "Fake \u00d8L",
+      "price": 300,
+      "active": true,
+      "deactivate_date": null
+    }
+  },
+  {
+    "model": "stregsystem.oldprice",
+    "pk": 1,
+    "fields": {
+      "product": 1,
+      "price": 100,
+      "changed_on": "2017-03-13T12:43:28.044+00:00"
+    }
+  },
+  {
+    "model": "stregsystem.oldprice",
+    "pk": 2,
+    "fields": {
+      "product": 32,
+      "price": 200,
+      "changed_on": "2017-03-13T12:43:40.784+00:00"
+    }
+  },
+  {
+    "model": "stregsystem.oldprice",
+    "pk": 3,
+    "fields": {
+      "product": 32,
+      "price": 200,
+      "changed_on": "2017-03-13T12:43:42.151+00:00"
+    }
+  },
+  {
+    "model": "stregsystem.room",
+    "pk": 1,
+    "fields": {
+      "name": "testrummet",
+      "description": "127.0.0.1"
+    }
+  },
+  {
+    "model": "stregsystem.room",
+    "pk": 2,
+    "fields": {
+      "name": "maymayrummet",
+      "description": "svedigt"
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 1,
+    "fields": {
+      "member": 1,
+      "product": 1,
+      "room": 1,
+      "timestamp": "2017-03-13T12:52:52.142+00:00",
+      "price": 100
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 2,
+    "fields": {
+      "member": 1,
+      "product": 32,
+      "room": 1,
+      "timestamp": "2017-03-13T12:54:12.423+00:00",
+      "price": 200
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 3,
+    "fields": {
+      "member": 1,
+      "product": 13,
+      "room": 1,
+      "timestamp": "2017-03-13T13:38:10.573+00:00",
+      "price": 300
+    }
+  },
+  {
+    "model": "stregsystem.sale",
+    "pk": 3,
+    "fields": {
+      "member": 1,
+      "product": 42,
+      "room": 1,
+      "timestamp": "2017-03-13T13:38:10.573+00:00",
+      "price": 300
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$30000$ivRA8qABWClG$pxi2R4uyotlGpwa66RQuDOXFaO9JElQutMFJqXmnOdI=",
+      "last_login": "2017-03-13T12:41:13.546+00:00",
+      "is_superuser": true,
+      "username": "tester",
+      "first_name": "test",
+      "last_name": "testsen",
+      "email": "",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2017-03-06T10:53:54+00:00",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "stregsystem.theme",
+    "pk": 1,
+    "fields": {
+      "name": "easter",
+      "html": "easter.html",
+      "css": "easter.css",
+      "js": "easter.js",
+      "begin_month": 4,
+      "end_month": 4
+    }
+  },
+  {
+    "model": "stregsystem.theme",
+    "pk": 2,
+    "fields": {
+      "name": "bober",
+      "html": "bober.html",
+      "css": "men.css",
+      "js": "bober.js",
+      "begin_month": 4,
+      "begin_day": 20,
+      "end_month": 4,
+      "end_day": 20
+    }
+  },
+  {
+    "model": "stregsystem.theme",
+    "pk": 3,
+    "fields": {
+      "name": "bat",
+      "html": "bat.html",
+      "css": "bat.css",
+      "js": "bat.js",
+      "begin_month": 10,
+      "end_month": 10
+    }
+  },
+  {
+    "model": "stregsystem.theme",
+    "pk": 4,
+    "fields": {
+      "name": "adventcandle",
+      "html": "adventcandle.html",
+      "js": "adventcandle.js",
+      "begin_month": 12,
+      "end_month": 12,
+      "end_day": 24
+    }
+  },
+  {
+    "model": "stregsystem.theme",
+    "pk": 5,
+    "fields": {
+      "name": "snow",
+      "html": "snow.html",
+      "css": "snow.css",
+      "js": "snow.js",
+      "begin_month": 12,
+      "end_month": 12,
+      "end_day": 24
+    }
+  },
+  {
+    "model": "stregsystem.theme",
+    "pk": 6,
+    "fields": {
+      "name": "fireworks",
+      "html": "fireworks.html",
+      "css": "fireworks.css",
+      "js": "fireworks.js",
+      "begin_month": 12,
+      "begin_day": 25,
+      "end_month": 1
+    }
+  }
+]

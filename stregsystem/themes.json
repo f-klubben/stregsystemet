@@ -1,0 +1,78 @@
+[
+    {
+        "name": "easter",
+        "html": "easter.html",
+        "css": "easter.css",
+        "js": "easter.js",
+        "begin": {
+            "month": 4
+        },
+        "end": {
+            "month": 4
+        }
+    },
+    {
+        "name": "bober",
+        "html": "bober.html",
+        "css": "men.css",
+        "js": "bober.js",
+        "begin": {
+            "month": 4,
+            "day": 20
+        },
+        "end": {
+            "month": 4,
+            "day": 20
+        }
+    },
+    {
+        "name": "bat",
+        "html": "bat.html",
+        "css": "bat.css",
+        "js": "bat.js",
+        "begin": {
+            "month": 10
+        },
+        "end": {
+            "month": 10
+        }
+    },
+    {
+        "name": "adventcandle",
+        "html": "adventcandle.html",
+        "js": "adventcandle.js",
+        "begin": {
+            "month": 12
+        },
+        "end": {
+            "month": 12,
+            "day": 24
+        }
+    },
+    {
+        "name": "snow",
+        "html": "snow.html",
+        "css": "snow.css",
+        "js": "snow.js",
+        "begin": {
+            "month": 12
+        },
+        "end": {
+            "month": 12,
+            "day": 24
+        }
+    },
+    {
+        "name": "fireworks",
+        "html": "fireworks.html",
+        "css": "fireworks.css",
+        "js": "fireworks.js",
+        "begin": {
+            "month": 12,
+            "day": 25
+        },
+        "end": {
+            "month": 1
+        }
+    }
+]

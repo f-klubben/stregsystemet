@@ -24,11 +24,6 @@ def multiply(value, arg):
     return value * arg
 
 
-@register.inclusion_tag('stregsystem/adventcandle.html')
-def show_candle():
-    return {'date': timezone.now()}
-
-
 @register.filter
 def product_id_and_alias_string(product_id):
     from stregsystem.models import NamedProduct
