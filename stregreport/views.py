@@ -103,7 +103,7 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
         except IndexError:
             return render(request, templates[razzia_type], locals())
 
-    entries = list(razzia.razziaentry_set.filter(member__pk=member.pk).order_by('-time'))
+    entries = list(razzia.razziaentryold_set.filter(member__pk=member.pk).order_by('-time'))
     already_checked_in = len(entries) > 0
     wait_time = datetime.timedelta(minutes=30)
     if already_checked_in:
