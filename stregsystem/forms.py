@@ -84,7 +84,9 @@ class SignupForm(forms.ModelForm):
         model = Member
         fields = ('notes', 'username', 'email', 'firstname', 'lastname', 'gender')
         widgets = {
-            'notes': forms.TextInput(attrs={'autocomplete': "off", 'placeholder': "sw, dat, bait, ixd, dad, etc."}),
+            'notes': forms.TextInput(attrs={'autocomplete': "off",
+                                            'placeholder': "sw, dat, bait, ixd, dad, etc.",
+                                            'required': "required"}),
             'username': forms.TextInput(attrs={'autocomplete': "off"}),
             'email': forms.TextInput(attrs={'autocomplete': "off"}),
             'firstname': forms.TextInput(attrs={'autocomplete': "off"}),
@@ -100,6 +102,9 @@ class SignupForm(forms.ModelForm):
             'gender': 'Biologisk køn(*)',
         }
         error_messages = {
+            'notes': {
+                'required': 'Udfyldning af `Studieretning` er påkrævet.',
+            },
             'username': {
                 'required': 'Udfyldning af `Brugernavn` er påkrævet.',
                 'max_length': 'Længden af `Brugernavn` må ikke overstige 16 tegn.',
