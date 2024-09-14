@@ -529,6 +529,7 @@ class MobilePayment(ApprovalModel):
             processed_mobile_payment.status = row['status']
             processed_mobile_payment.member = Member.objects.get(id=row['member'].id)
             processed_mobile_payment.submit_processed_mobile_payment(admin_user)
+            processed_mobile_payment.save()
 
         # Return how many records were modified.
         return len(mobile_payment_ids)
