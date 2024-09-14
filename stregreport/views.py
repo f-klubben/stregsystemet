@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.utils import dateparse, timezone
 from stregreport.forms import CategoryReportForm
 from stregsystem.models import Category, Member, Product, Sale
-from stregreport.models import BreadRazzia, RazziaEntry
+from stregreport.models import BreadRazzia, RazziaEntryOld
 from stregsystem.templatetags.stregsystem_extras import money
 
 
@@ -122,7 +122,7 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
     if not already_checked_in or (
         (razzia_type == BreadRazzia.FOOBAR or razzia_type == BreadRazzia.FNUGFALD) and not within_wait
     ):
-        RazziaEntry(member=member, razzia=razzia).save()
+        RazziaEntryOld(member=member, razzia=razzia).save()
 
     return render(request, templates[razzia_type], locals())
 
