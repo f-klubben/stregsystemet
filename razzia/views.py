@@ -1,22 +1,11 @@
 import datetime
 
-from django.shortcuts import render
-
-from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
-from django.db.models import Count, Q, Sum
-from django.db.models.functions import TruncDay
-from django.forms import fields
-from django.forms.widgets import SelectDateWidget
-from django.http import JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
-from django.urls import reverse
-from django.utils import dateparse, timezone
+from django.utils import timezone
 
 from razzia.models import Razzia, RazziaEntry
-from stregreport.forms import CategoryReportForm
-from stregsystem.models import Category, Member, Product, Sale
-from stregsystem.templatetags.stregsystem_extras import money
+from stregsystem.models import Member
 
 
 # Create your views here.
