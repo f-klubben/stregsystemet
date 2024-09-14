@@ -3,6 +3,22 @@ body {
        background-color: white;
 }
 
+header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  padding: 3px 4vw;
+  column-gap: 4vw;
+  text-align: center;
+  place-items: center;
+
+  & .left {
+    justify-self: start;
+  }
+  & .right {
+    justify-self: end;
+  }
+}
+
 main {
   padding: 1em;
 
