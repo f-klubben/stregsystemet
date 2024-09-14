@@ -84,12 +84,11 @@ class SignupForm(forms.ModelForm):
         model = Member
         fields = ('notes', 'username', 'email', 'firstname', 'lastname', 'gender')
         widgets = {
-            'notes': forms.TextInput(attrs={'autocomplete': "off",
-                                            'placeholder': "sw, dat, bait, ixd, dad, etc.",
-                                            'required': "required"}),
+            'notes': forms.TextInput(
+                attrs={'autocomplete': "off", 'placeholder': "sw, dat, bait, ixd, dad, etc.", 'required': "required"}
+            ),
             'username': forms.TextInput(attrs={'autocomplete': "off"}),
-            'email': forms.TextInput(attrs={'autocomplete': "off",
-                                            'required': "required"}),
+            'email': forms.TextInput(attrs={'autocomplete': "off", 'required': "required"}),
             'firstname': forms.TextInput(attrs={'autocomplete': "off"}),
             'lastname': forms.TextInput(attrs={'autocomplete': "off"}),
             'gender': forms.Select(),
