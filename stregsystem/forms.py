@@ -88,7 +88,8 @@ class SignupForm(forms.ModelForm):
                                             'placeholder': "sw, dat, bait, ixd, dad, etc.",
                                             'required': "required"}),
             'username': forms.TextInput(attrs={'autocomplete': "off"}),
-            'email': forms.TextInput(attrs={'autocomplete': "off"}),
+            'email': forms.TextInput(attrs={'autocomplete': "off",
+                                            'required': "required"}),
             'firstname': forms.TextInput(attrs={'autocomplete': "off"}),
             'lastname': forms.TextInput(attrs={'autocomplete': "off"}),
             'gender': forms.Select(),
@@ -108,6 +109,9 @@ class SignupForm(forms.ModelForm):
             'username': {
                 'required': 'Udfyldning af `Brugernavn` er påkrævet.',
                 'max_length': 'Længden af `Brugernavn` må ikke overstige 16 tegn.',
+            },
+            'email': {
+                'required': 'Udfyldning af `E-Mail` er påkrævet.',
             },
             'firstname': {
                 'required': 'Udfyldning af `Fornavn` er påkrævet.',
