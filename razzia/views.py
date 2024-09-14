@@ -62,3 +62,23 @@ def razzia_view_single(request, razzia_id, queryname, title=None):
     RazziaEntry(member=member, razzia=razzia).save()
 
     return render(request, template, locals())
+
+
+@permission_required("stregreport.host_razzia")
+def razzia_menu(request, new_text=None, title=None):
+    razzias = Razzia.objects.order_by('-pk')[:3]
+    return render(request, 'menu.html', locals())
+
+
+@permission_required("stregreport.host_razzia")
+def new_razzia(request):
+    razzia = Razzia()
+    razzia.save()
+
+    return redirect('razzia_view', razzia_id=razzia.pk)
+
+
+@permission_required("stregreport.host_razzia")
+def razzia_members(request, razzia_id, title=None):
+    razzia = get_object_or_404(Razzia, pk=razzia_id)
+    return render(request, 'members.html', locals())
