@@ -8,7 +8,7 @@ class Razzia(models.Model):
         permissions = (("host_razzia", "Can host a foobar, fnugfald or bread razzia"),)
 
     name = models.CharField(max_length=20)
-    # turns_per_member = models.IntegerField(default=0)
+    turns_per_member = models.IntegerField(default=0)
     turn_interval = models.DurationField(default=0)
     # required_products = models.ManyToManyField(Product)
     # purchase_start_date = models.DateTimeField(null=True, blank=True)
