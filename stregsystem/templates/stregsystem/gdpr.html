@@ -1,0 +1,39 @@
+{% comment %}
+Hides sensitive user info after 5 seconds.
+This code is inlined to ensure that the page can never load without it.
+The JS removes the text outright from the page.
+The CSS visually hides the text, and also makes the whole thing look nice.
+If JS or CSS is disabled/broken, the other solution can still remove the information,
+which means this setup is much more likely to work even in weird browsers.
+{% endcomment %}
+<style>
+	.username,
+	.remainingbalance {
+		display: inline-block;
+		padding: 0;
+		transform-origin: 50% 60%;
+		animation: gdpr-blur 0.3s ease 4.7s forwards;
+	}
+	@keyframes gdpr-blur {
+		100% {
+			background-color: currentcolor;
+			-webkit-user-select: none;
+			user-select: none;
+			filter: blur(0.3em);
+			opacity: 0.4;
+			transform: scaleY(0.7);
+			border-radius: 0.5em;
+		}
+	}
+</style>
+<script type="module">
+	setTimeout(() => {
+		for (const element of document.querySelectorAll(
+			".username, .remainingbalance",
+		)) {
+			const { width } = element.getBoundingClientRect();
+			element.style.width = `${width}px`;
+			element.innerText = "_";
+		}
+	}, 5000);
+</script>
