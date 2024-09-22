@@ -45,6 +45,12 @@
                 <td class="ranking">{{ rank.1 }}</td>
                 {% endfor %}
             </tr>
+            <tr class="ranking">
+                <td>enheder</td>
+                {% for _, rank in rankings.items %}
+                <td class="ranking">{{ rank.2 }}</td>
+                {% endfor %}
+            </tr>
         </table>
         <br>
         <i>
