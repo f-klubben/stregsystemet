@@ -7,7 +7,7 @@
 <title>{% block title %}TREOENs STREGSYSTEM{% endblock %}</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/stregsystem.css" %}">
-<link rel="stylesheet" media="screen" href="{% static "/stregsystem/cursor.css" %}">
+<link rel="stylesheet" media="(hover: hover) and (pointer: fine)" href="{% static "/stregsystem/cursor.css" %}">
 {% theme_styles %}
 {% block head %}
 {% endblock %}
@@ -51,7 +51,6 @@
 {% endif %}
 {% endblock %}
 </div>
-<script async src="{% static "/stregsystem/gdpr.js" %}"></script>
 {% theme_content %}
 </body>
 </html>
