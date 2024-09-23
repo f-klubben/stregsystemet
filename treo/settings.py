@@ -72,7 +72,7 @@ DEBUG = cfg.getboolean("debug", "DEBUG")
 
 CSRF_COOKIE_SECURE = cfg.getboolean("debug", "CSRF_COOKIE_SECURE")
 CSRF_COOKIE_HTTPONLY = cfg.getboolean("debug", "CSRF_COOKIE_HTTPONLY")
-CSRF_TRUSTED_ORIGINS = ["https://fappen.fklub.dk"]
+CSRF_TRUSTED_ORIGINS = ["https://fappen.fklub.dk", "https://stregsystem.fklub.dk"]
 SESSION_COOKIE_SECURE = cfg.getboolean("debug", "SESSION_COOKIT_SECURE")
 
 SECURE_BROWSER_XSS_FILTER = cfg.getboolean("debug", "SECURE_BROWSER_XSS_FILTER")
@@ -94,6 +94,7 @@ INSTALLED_APPS = [
     'stregsystem',
     'stregreport',
     'kiosk',
+    'razzia',
     'django_select2',
     'django.contrib.admin',
     'django.contrib.auth',

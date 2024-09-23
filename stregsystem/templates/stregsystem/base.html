@@ -10,7 +10,7 @@
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/snow.css" %}">
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/easter.css" %}">
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/fireworks.css" %}">
-<link rel="stylesheet" media="screen" href="{% static "/stregsystem/cursor.css" %}">
+<link rel="stylesheet" media="(hover: hover) and (pointer: fine)" href="{% static "/stregsystem/cursor.css" %}">
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/men.css" %}">
 {% block head %}
 {% endblock %}
@@ -19,7 +19,7 @@
     var media_url = "{% get_media_prefix %}";
 </script>
 </head>
-<body onLoad='if (document.focusform) {document.focusform.quickbuy.focus()}'>
+<body>
 {% comment %}
 <pre>{% filter escape %}{% debug %}{% endfilter %}</pre>
 
@@ -28,29 +28,20 @@
 <div id="canvas-container"></div>
 <img id="rocket" src="{% static "/stregsystem/rocket.png" %}">
 <script src="{% static "/stregsystem/fireworks.js" %}"></script>
-
-<table width="100%">
-    <tr>
-        <td>
-          <center>
-            <input type="button" onclick="location.href='/{{room.id}}';" value="Genstart" tabindex="10" accesskey="q">
-          </center>
-        </td>
-        <td align=center>
-            <h1>{% block heading %}TREOENs STREGSYSTEM
-{% if room.id != 1 %}
- : {{room.description}}
-{% endif %}
-{% endblock %}</h1>
-        </td>
-        <td>
-          <center>
-            <input type="button" onclick="location.href='/{{room.id}}';" value="Menu" tabindex="11" />
-            <input type="button" onclick="location.href='/signup'" value="Tilmeld" tabindex="12"/>
-          </center>
-        </td>
-    </tr>
-</table>
+<header>
+  <div class="left">
+    <input type="button" onclick="location.href='/{{room.id}}';" value="Genstart" tabindex="10" accesskey="q">
+  </div>
+  <h1>
+    {% block heading %}
+      TREOENs STREGSYSTEM {% if room.id != 1 %} : {{room.description}} {% endif %}
+    {% endblock %}
+  </h1>
+  <div class="right">
+    <input type="button" onclick="location.href='/{{room.id}}';" value="Menu" tabindex="11" />
+    <input type="button" onclick="location.href='/signup'" value="Tilmeld" tabindex="12"/>
+  </div>
+</header>
 <hr>
 
 {% block content %}{% endblock %}
@@ -67,7 +58,6 @@
 <script async src="{% static "/stregsystem/bat.js" %}"></script>
 <script async src="{% static "/stregsystem/snow.js" %}"></script>
 <script async src="{% static "/stregsystem/easter.js" %}"></script>
-<script async src="{% static "/stregsystem/gdpr.js" %}"></script>
 <script async src="{% static "/stregsystem/bober.js" %}"></script>
 <div class="bat-container"></div>
 <div class="snow-container"></div>
