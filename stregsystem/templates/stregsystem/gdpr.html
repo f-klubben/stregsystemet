@@ -12,9 +12,13 @@ which means this setup is much more likely to work even in weird browsers.
 		display: inline-block;
 		padding: 0;
 		transform-origin: 50% 60%;
+		transition: width 0.3s ease;
 		animation: gdpr-blur 0.3s ease 4.7s forwards;
 	}
 	@keyframes gdpr-blur {
+		0% {
+			min-width: 0px;
+		}
 		100% {
 			background-color: currentcolor;
 			-webkit-user-select: none;
@@ -23,6 +27,7 @@ which means this setup is much more likely to work even in weird browsers.
 			opacity: 0.4;
 			transform: scaleY(0.7);
 			border-radius: 0.5em;
+			min-width: 35px;
 		}
 	}
 </style>
