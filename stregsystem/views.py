@@ -349,7 +349,6 @@ def menu_userrank(request, room_id, member_id):
             return 0
         else:
             return "{:.2f}".format(qs.count() / ((to_d - from_d).days * 162.14 / 365))  # university workdays in 2021
-        
 
     def sale_count_for_product(category_ids, from_d, to_d):
         qs = Sale.objects.filter(
