@@ -58,7 +58,13 @@ Admin panel: <http://127.0.0.1:8000/admin/>
 Login: `tester:treotreo`
 
 Stregsystem: <http://127.0.0.1:8000/1/>  
-User: `tester`
+There are different users that help you test different things:
+| Username | Superpower |
+|---|---|
+| tester | Default test profile |
+| q | Has short name for maximum testing speed |
+| nodough | Has no stregdollars |
+| lowdough | Only has 15 stregdollars |
 
 Persistent Testdata
 -------
