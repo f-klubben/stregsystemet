@@ -232,7 +232,7 @@
     "model": "stregsystem.product",
     "pk": 14,
     "fields": {
-      "name": "Øl(Grøn/Classic/<b>Gulddamer</b>) (excl. pant)",
+      "name": "Øl(Grøn, Classic, <b>Gulddamer</b>) (excl. pant)",
       "price": 750,
       "active": true,
       "rooms": [1],
@@ -342,7 +342,7 @@
     "model": "stregsystem.product",
     "pk": 1839,
     "fields": {
-      "name": "Kildevæld uden pant (excl. brus)",
+      "name": "Kildevæld uden pant (excl. brus)\"",
       "price": 706,
       "active": true,
       "rooms": [1],
