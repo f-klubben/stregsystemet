@@ -36,6 +36,8 @@ For systems running the Nix package manager:
  - `echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf`
 2. Start shell
  - `nix develop`
+2. Or run the system
+ - `nix run . -- testserver stregsystem/fixtures/testdata.json`
 3. ???
 4. Profit
 
