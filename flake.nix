@@ -15,7 +15,7 @@
     in {
         # Define the shell, here we're just setting the packages required for the devshell
         devShells.${system}.default = pkgs.mkShell {
-            packages = (dependencies pkgs.python3Packages) ++ [pkgs.mailhog pkgs.black];
+            packages = (dependencies pkgs.python311Packages) ++ [pkgs.mailhog pkgs.black];
         };
 
         # Default package for the stregsystem
