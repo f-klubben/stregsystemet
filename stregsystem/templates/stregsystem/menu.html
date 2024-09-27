@@ -53,7 +53,7 @@ har {{member.balance|money}} kroner til gode!
 <div id="message" style="text-align: center;">
 {% block message %}
 {% if bought %}
-<blink><b>Du har lige købt en {{bought.name}} til {{bought.price|money}} kr.</b></blink>
+<blink><b>Du har lige købt en {{bought.name}} til {{bought.price|money}} 𝓕$.</b></blink>
 {% endif %}
 {% if promille %}
     {% if is_ballmer_peaking %}
@@ -100,7 +100,7 @@ har {{member.balance|money}} kroner til gode!
                         <input type="hidden" value="{{ member.id }}" name="member_id">
                     </form>
                 </td>
-			    <td align="right">{{product.price|money}} kr</td>
+			    <td align="right">{{product.price|money}} 𝓕$</td>
 			  </tr>
 			  {% endfor %}
 			</table>
@@ -124,7 +124,7 @@ har {{member.balance|money}} kroner til gode!
                             <input type="hidden" value="{{ member.id }}" name="member_id">
                         </form>
                     </td>
-                    <td align="right">{{product.price|money}} kr</td>
+                    <td align="right">{{product.price|money}} 𝓕$</td>
                   </tr>
                   {% endfor %}
                 </table>
