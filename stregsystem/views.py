@@ -350,6 +350,15 @@ def menu_userrank(request, room_id, member_id):
         else:
             return "{:.2f}".format(qs.count() / ((to_d - from_d).days * 162.14 / 365))  # university workdays in 2021
 
+    def sale_count_for_product(category_ids, from_d, to_d):
+        qs = Sale.objects.filter(
+            member=member,
+            product__in=category_ids,
+            timestamp__gt=from_d,
+            timestamp__lte=to_d,
+        )
+        return qs.count()
+
     # let user know when they first purchased a product
     member_first_purchase = "Ikke endnu, køb en limfjordsporter!"
     first_purchase = Sale.objects.filter(member=member_id).order_by('-timestamp')
@@ -372,6 +381,7 @@ def menu_userrank(request, room_id, member_id):
         key: (
             ranking(category_ids, from_date, to_date),
             category_per_uni_day(category_ids, from_date, to_date),
+            sale_count_for_product(category_ids, from_date, to_date),
         )
         for key, category_ids in {
             k: v
