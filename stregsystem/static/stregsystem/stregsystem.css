@@ -147,6 +147,7 @@ table h2, table h3 {
 .qr-code {
     position: relative;
     z-index: 2147483647;
+    image-rendering: pixelated;
 }
 
 @keyframes blink-frame {
