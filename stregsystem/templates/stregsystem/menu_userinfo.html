@@ -13,7 +13,7 @@
 {% spaceless %}
 <center><h4>Du {% if negative_balance %}
 skylder <span style="color: red;">{{member.balance|money|cut:"-"}}</span> kroner
-{% else %}har {{member.balance|money}} kroner til gode!
+{% else %}har {{member.balance|money}} stregdollars til gode!
 {% endif %}
 </h4></center>
 {% endspaceless %}
@@ -45,7 +45,7 @@ Ingen indbetalinger!
    <tr>
       <td>{{sale.timestamp}}</td>
       <td>{{sale.product.name}}</td>
-      <td align="right">{{sale.price|money}}</td>
+      <td align="right">{{sale.price|money}} 𝓕$</td>
    </tr>
 {% endfor %}
 {% endautoescape %}
