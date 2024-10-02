@@ -1,0 +1,7 @@
+{% if paths %}
+    <div id="theme-content">
+        {% for path in paths %}
+            {% include path %}
+        {% endfor %}
+    </div>
+{% endif %}

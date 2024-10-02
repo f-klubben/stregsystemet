@@ -1,5 +1,6 @@
 {% load static %}
 {% load stregsystem_extras %}
+{% load themes %}
 <!DOCTYPE html>
 <html lang="da-DK">
 <head>
@@ -8,18 +9,16 @@
 <link rel="icon" sizes="any" type="image/svg+xml" href="{% static "/stregsystem/logo/logo.svg" %}">
 <link rel="manifest" href="{% static "/stregsystem/manifest.json" %}">
 <link rel="stylesheet" media="screen" href="{% static "/stregsystem/stregsystem.css" %}">
-<link rel="stylesheet" media="screen" href="{% static "/stregsystem/bat.css" %}">
-<link rel="stylesheet" media="screen" href="{% static "/stregsystem/snow.css" %}">
-<link rel="stylesheet" media="screen" href="{% static "/stregsystem/easter.css" %}">
-<link rel="stylesheet" media="screen" href="{% static "/stregsystem/fireworks.css" %}">
 <link rel="stylesheet" media="(hover: hover) and (pointer: fine)" href="{% static "/stregsystem/cursor.css" %}">
-<link rel="stylesheet" media="screen" href="{% static "/stregsystem/men.css" %}">
+{% theme_styles %}
 {% block head %}
 {% endblock %}
 <script>
-    var static_url = "{% get_static_prefix %}";
-    var media_url = "{% get_media_prefix %}";
+    globalThis.static_url = "{% get_static_prefix %}";
+    globalThis.media_url = "{% get_media_prefix %}";
+    globalThis.themes_static_url = "{% get_themes_static_prefix %}";
 </script>
+{% theme_scripts %}
 </head>
 <body>
 {% comment %}
@@ -27,9 +26,6 @@
 
 {% endcomment %}
 
-<div id="canvas-container"></div>
-<img id="rocket" src="{% static "/stregsystem/rocket.png" %}">
-<script src="{% static "/stregsystem/fireworks.js" %}"></script>
 <header>
   <div class="left">
     <input type="button" onclick="location.href='/{{room.id}}';" value="Genstart" tabindex="10" accesskey="q">
@@ -57,15 +53,6 @@
 {% endif %}
 {% endblock %}
 </div>
-<script async src="{% static "/stregsystem/bat.js" %}"></script>
-<script async src="{% static "/stregsystem/snow.js" %}"></script>
-<script async src="{% static "/stregsystem/easter.js" %}"></script>
-<script async src="{% static "/stregsystem/bober.js" %}"></script>
-<div class="bat-container"></div>
-<div class="snow-container"></div>
-<div class="men-container"></div>
-<div class="beaver-container"></div>
-<div class="easter-container"></div>
-{% show_candle %}
+{% theme_content %}
 </body>
 </html>

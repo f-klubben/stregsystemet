@@ -16,6 +16,7 @@ from stregsystem.models import (
     MobilePayment,
     NamedProduct,
     PendingSignup,
+    Theme,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
@@ -342,6 +343,25 @@ class LogEntryAdmin(admin.ModelAdmin):
         return False
 
 
+class ThemeAdmin(admin.ModelAdmin):
+    list_display = ["name", "override", "begin_month", "begin_day", "end_month", "end_day"]
+    search_fields = ["name"]
+
+    @admin.action(description="Do not force chosen themes")
+    def force_unset(modeladmin, request, queryset):
+        queryset.update(override=Theme.NONE)
+
+    @admin.action(description="Force show chosen themes")
+    def force_show(modeladmin, request, queryset):
+        queryset.update(override=Theme.SHOW)
+
+    @admin.action(description="Force hide chosen themes")
+    def force_hide(modeladmin, request, queryset):
+        queryset.update(override=Theme.HIDE)
+
+    actions = [force_unset, force_show, force_hide]
+
+
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(Member, MemberAdmin)
@@ -353,3 +373,4 @@ admin.site.register(Category, CategoryAdmin)
 admin.site.register(Room)
 admin.site.register(MobilePayment, MobilePaymentAdmin)
 admin.site.register(PendingSignup)
+admin.site.register(Theme, ThemeAdmin)

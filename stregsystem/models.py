@@ -805,3 +805,30 @@ class PendingSignup(ApprovalModel):
 
         # Return how many records were modified.
         return len(pending_signup_ids)
+
+
+class Theme(models.Model):
+    name = models.CharField("Name", max_length=50)
+    html = models.CharField("HTML filename", max_length=50, blank=True, default="")
+    css = models.CharField("CSS filename", max_length=50, blank=True, default="")
+    js = models.CharField("JS filename", max_length=50, blank=True, default="")
+    begin_month = models.PositiveSmallIntegerField("Begin month")
+    begin_day = models.PositiveSmallIntegerField("Begin day", default=1)
+    end_month = models.PositiveSmallIntegerField("End month")
+    end_day = models.PositiveSmallIntegerField("End day", default=31)
+
+    NONE = "N"
+    SHOW = "S"
+    HIDE = "H"
+    OVERRIDE_CHOICES = (
+        (NONE, "None"),
+        (SHOW, "Force show"),
+        (HIDE, "Force hide"),
+    )
+    override = models.CharField("Override", max_length=1, choices=OVERRIDE_CHOICES, default=NONE)
+
+    class Meta:
+        ordering = ["begin_month", "begin_day"]
+
+    def __str__(self):
+        return self.name

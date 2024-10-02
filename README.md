@@ -89,3 +89,7 @@ Using the debugging tool [MailHog](https://github.com/mailhog/MailHog) (Follow t
 3. `python manage.py runserver`
 4. ???
 5. Profit
+
+Themes
+-------
+[Read more about themes here.](./themes.md)
