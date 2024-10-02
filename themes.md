@@ -98,7 +98,7 @@ When you have added the json entry and corresponding files, you can load the the
 First, load the new theme configuration into the test fixture:
 
 ```sh
-python manage.py loadthemes fixture
+python manage.py reloadthemes fixture
 ```
 
 Now start the test server with the themes test fixture:
@@ -116,5 +116,5 @@ Alternatively, you can access the [admin panel](./README.md#using-testdata) and 
 If you are running the server in production mode, you can load the themes configuration into your database:
 
 ```sh
-python manage.py loadthemes database
+python manage.py reloadthemes database
 ```
