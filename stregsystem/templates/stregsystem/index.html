@@ -11,99 +11,104 @@
 
 {% block head %}
 <style>
-  #products {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 30px;
-    margin-bottom: 26px;
+  #instructions {
+    display: inline-block;
+    text-align: initial;
+
+    & > p {
+      font-weight: bold;
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: .3em;
+    }
+  }
+  #focusform {
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
   }
 </style>
 {% endblock %}
 
 {% block content %}
 
+<main class="center">
+  <div id="instructions">
+    {% block instructions %}
+    <p>Du kan "sætte streger" på to forskellige måder:</p>
+    <ol>  
+      <li><span>Indtast dit brugernavn nedenfor.
+      Du vil så blive præsenteret for en interaktiv menu.</span></li>
+      <li><span>Indtast dit brugernavn <em>og</em> et eller flere produkt
+      ID{#'er#} (adskilt med "space").
+      Købet vil blive<br>direkte registreret uden yderligere input.
+      Under feltet vil  der vises en bekræftelse af købet.</span></li>
+    </ol>
+    {% endblock %}
+  </div>
 
-<div id="instructions">
-{% block instructions %}
-<b>Du kan "sætte streger" på to forskellige måder:</b>
-<ol>  
-  <li><span>Indtast dit brugernavn nedenfor.
-  Du vil så blive præsenteret for en interaktiv menu.</span></li>
-  <li><span>Indtast dit brugernavn <em>og</em> et eller flere produkt
-  ID{#'er#} (adskilt med "space").
-  Købet vil blive direkte registreret uden yderligere input.
-  Under feltet vil  der vises en bekræftelse af købet.</span></li>
-</ol>
-{% endblock %}
-</div>
 
+  <form autocomplete="off" action="/{{room.id}}/sale/" method="post" id="focusform" name="focusform" onsubmit="document.getElementById('buybutton').disabled = true">{% csrf_token %}
+    {% block saleform %}
+    <p>
+      <label for="quickbuy">Quickbuy</label>
+      <input tabindex="1" type="text" size="20" id="quickbuy" name="quickbuy" autofocus />
+      <input tabindex="3" type="submit" value="Køb!" id="buybutton" />
+    </p>
+    {% endblock %}
+  </form>
 
-<center>
-    <form autocomplete="off" action="/{{room.id}}/sale/" method="post" id="focusform" name="focusform" onsubmit="document.getElementById('buybutton').disabled = true">{% csrf_token %}
-{% block saleform %}
-<p>
-<label for="quickbuy">Quickbuy</label>
-<input tabindex="1" type="text" size="20" id="quickbuy" name="quickbuy" autofocus />
-<input tabindex="3" type="submit" value="Køb!" id="buybutton" />
-</p>
-{% endblock %}
-</form>
-</center>
+  <div id="message">{% block message %}{% endblock %}</div>
 
-<center>
-<div id="message">{% block message %}{% endblock %}</div>
-</center>
-
-<div id="products">
-  {% block products %}
-    {% if product_list %}
-      {% autoescape off %}
-      <table class="default">
-        <tr>
-          <th>ID</th>
-          <th>Produkt</th>
-          <th>Pris</th>
-        </tr>
-        {% for product in product_list|partition:"2"|first %}
-          <tr>
-            <td>
-              {{product.id|product_id_and_alias_string}}
-            </td>
-            <td>{{product.name}}</td>
-            <td class="price">{{product.price|money}} kr</td>
-          </tr>
-        {% endfor %}
-      </table>
-      {% if product_list|partition:"2"|last %}
+  <div class="horizontal-table">
+    {% block products %}
+      {% if product_list %}
+        {% autoescape off %}
         <table class="default">
           <tr>
             <th>ID</th>
             <th>Produkt</th>
             <th>Pris</th>
           </tr>
-          {% for product in product_list|partition:"2"|last %}
+          {% for product in product_list|partition:"2"|first %}
             <tr>
-              <td>{{product.id|product_id_and_alias_string}}</td>
+              <td>
+                {{product.id|product_id_and_alias_string}}
+              </td>
               <td>{{product.name}}</td>
               <td class="price">{{product.price|money}} kr</td>
             </tr>
           {% endfor %}
         </table>
+        {% if product_list|partition:"2"|last %}
+          <table class="default">
+            <tr>
+              <th>ID</th>
+              <th>Produkt</th>
+              <th>Pris</th>
+            </tr>
+            {% for product in product_list|partition:"2"|last %}
+              <tr>
+                <td>{{product.id|product_id_and_alias_string}}</td>
+                <td>{{product.name}}</td>
+                <td class="price">{{product.price|money}} kr</td>
+              </tr>
+            {% endfor %}
+          </table>
+        {% endif %}
+        {% endautoescape %}
+      {% else %}
+        <p>Ingen produkter.</p>
+        
       {% endif %}
-      {% endautoescape %}
-    {% else %}
-      <p>Ingen produkter.</p>
-      
-    {% endif %}
-  {% endblock %}
-</div>
+    {% endblock %}
+  </div>
 
-<script>
-  window.addEventListener("pageshow", (event) => {
-    document.getElementById('buybutton').disabled = false;
-  });
-</script>
+  <script>
+    window.addEventListener("pageshow", (event) => {
+      document.getElementById('buybutton').disabled = false;
+    });
+  </script>
+</main>
 
 {% endblock %}
 
