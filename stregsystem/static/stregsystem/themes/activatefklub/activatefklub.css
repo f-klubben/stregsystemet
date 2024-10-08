@@ -1,4 +1,4 @@
-.activatefklub-container {
+#activatefklub-container {
     position: fixed;
     right: 0;
     bottom: 0;
@@ -7,9 +7,14 @@
     color: rgba(45, 45, 45, 0.5);
     float: right;
     padding: 2em;
+    display: none;
 }
 
-.activatefklub-container p {
+.activatefklub-shown {
+    display: initial !important;
+}
+
+#activatefklub-container p {
     padding: 0;
     margin: 0;
 }
@@ -17,4 +22,10 @@
 .activatefklub-header {
     font-size: 1.4em;
     font-weight: 600;
+}
+
+@media (prefers-contrast: more) or (prefers-reduced-transparency) {
+    .activatefklub-shown {
+        display: none !important;
+    }
 }
