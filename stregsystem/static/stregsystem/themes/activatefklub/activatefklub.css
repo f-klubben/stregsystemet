@@ -1,0 +1,20 @@
+.activatefklub-container {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    font-size: 12pt;
+    color: rgba(0, 0, 0, 0.33);
+    float: right;
+    padding: 36pt;
+}
+
+.activatefklub-container p {
+    padding: 0;
+    margin: 0;
+}
+
+.activatefklub-header {
+    font-size: 16pt;
+    font-weight: 600;
+}
