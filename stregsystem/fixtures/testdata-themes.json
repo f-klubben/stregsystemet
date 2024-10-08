@@ -1032,5 +1032,17 @@
       "begin_day": 25,
       "end_month": 1
     }
+  },
+  {
+    "model": "stregsystem.theme",
+    "pk": 7,
+    "fields": {
+      "name": "activatefklub",
+      "html": "activatefklub.html",
+      "css": "activatefklub.css",
+      "js": "activatefklub.js",
+      "begin_month": 1,
+      "end_month": 12
+    }
   }
 ]
