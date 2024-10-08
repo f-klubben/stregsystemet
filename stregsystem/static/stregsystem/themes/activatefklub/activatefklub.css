@@ -3,10 +3,10 @@
     right: 0;
     bottom: 0;
     pointer-events: none;
-    font-size: 12pt;
+    font-size: 1em;
     color: rgba(45, 45, 45, 0.5);
     float: right;
-    padding: 36pt;
+    padding: 2em;
 }
 
 .activatefklub-container p {
@@ -15,6 +15,6 @@
 }
 
 .activatefklub-header {
-    font-size: 16pt;
+    font-size: 1.4em;
     font-weight: 600;
 }
