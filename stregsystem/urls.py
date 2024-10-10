@@ -43,4 +43,5 @@ urlpatterns = [
     re_path(r'^api/products/active_products$', views.dump_active_items, name="active_products"),
     re_path(r'^api/products/category_mappings$', views.dump_product_category_mappings, name="product_mappings"),
     re_path(r'^api/sale$', views.api_sale, name="sale"),
+    re_path(r'.*?', views.page404, name="page404")
 ]

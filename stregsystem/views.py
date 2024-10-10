@@ -619,6 +619,9 @@ def signup_status(request, signup_id):
 
     return render(request, "stregsystem/signup_status.html", locals())
 
+def page404(request):
+    return render(request, "stregsystem/error404.html", locals(), status=404)
+
 
 # API views
 
