@@ -1,1 +1,17 @@
-<div class="bat-container"></div>
+{% load themes %}
+{% load stregsystem_extras %}
+{% day_of_month as day %}
+
+<div id="bat-container" class="stationary">
+	{% for i in day|to_range %}
+		<div
+			class="bat"
+			style="
+				--x: {% random 0 100 %};
+				--y: {% random 0 100 %};
+				--direction: {% random_choice 1 -1 %};
+				--delay: {% random 0 100 %};
+			"
+		></div>
+	{% endfor %}
+</div>
