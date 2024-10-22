@@ -78,23 +78,14 @@ function prepareNextShot() {
 	const timeToNextFly = Math.max(0, bat.nextFly - Date.now());
 	if (timeToNextFly < 10) {
 		// If the bat needs new coordinates RIGHT NOW, schedule it quick
-		// with a `setTimeout`.
+		// with a very short timeout.
 		// We do not run it directly, as running this back-to-back 30 times
 		// in a row would block user input and make the page feel janky.
-		timeoutId = setTimeout(() => {
-			timeoutId = undefined;
-			pointAndShoot();
-		}, 0);
+		timeoutId = setTimeout(pointAndShoot, 0);
 	} else if (timeToNextFly < maxAnimationBuffer) {
 		// If the bat needs new coordinates sometime before the max buffer time,
 		// schedule an idle callback, so it doesn't interfere with more important tasks.
-		timeoutId = requestIdleCallback(
-			() => {
-				timeoutId = undefined;
-				pointAndShoot();
-			},
-			{ timeout: timeToNextFly },
-		);
+		timeoutId = requestIdleCallback(pointAndShoot, { timeout: timeToNextFly });
 	} else {
 		// If the bat needs new coordinates later than our max buffer time,
 		// take a chill pill and schedule a timeout that wakes us up when
@@ -110,6 +101,9 @@ function prepareNextShot() {
  * DO NOT call this directly, call `prepareNextShot` instead.
  */
 function pointAndShoot() {
+	// Make it clear that a new timeout can be scheduled
+	timeoutId = undefined;
+
 	// Get the next bat in the queue.
 	const bat = batQueue.shift();
 
