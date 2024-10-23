@@ -1,3 +1,5 @@
+from datetime import datetime
+from random import randint, choice
 from django import template
 from django.template.loader import get_template
 from django.utils import timezone
@@ -45,3 +47,23 @@ def product_id_and_alias_string(product_id):
     else:
         #
         return str(product_id)
+
+
+@register.simple_tag
+def day_of_month():
+    return datetime.now().day
+
+
+@register.simple_tag
+def random(min, max):
+    return randint(min, max)
+
+
+@register.simple_tag
+def random_choice(str1, str2):
+    return choice([str1, str2])
+
+
+@register.filter
+def to_range(value):
+    return range(value)
