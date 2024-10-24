@@ -14,6 +14,8 @@ from django.utils import timezone
 import qrcode
 import qrcode.image.svg
 
+import urllib.parse
+
 logger = logging.getLogger(__name__)
 
 
@@ -161,12 +163,21 @@ def strip_emoji(text):
     ).strip()
 
 
-def qr_code(data):
+def qr_code(data) -> HttpResponse:
     response = HttpResponse(content_type="image/svg+xml")
     qr = qrcode.make(data, image_factory=qrcode.image.svg.SvgPathFillImage)
     qr.save(response)
 
     return response
+
+
+def mobilepay_launch_uri(comment: str, amount: float) -> str:
+    query = {'phone': '90601', 'comment': comment}
+
+    if amount is not None:
+        query['amount'] = amount
+
+    return 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
 
 
 class stregsystemTestRunner(DiscoverRunner):
