@@ -15,6 +15,8 @@ from stregsystem.models import (
     Sale,
     MobilePayment,
     NamedProduct,
+    PendingSignup,
+    Theme,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
@@ -202,7 +204,7 @@ class MemberForm(forms.ModelForm):
     def clean_username(self):
         username = self.cleaned_data['username']
         if self.instance is None or self.instance.pk is None:
-            if Member.objects.filter(username=username).exists():
+            if Member.objects.filter(username__iexact=username).exists():
                 raise forms.ValidationError("Brugernavnet er allerede taget")
         return username
 
@@ -226,7 +228,7 @@ class MemberAdmin(admin.ModelAdmin):
         (
             None,
             {
-                'fields': ('active', 'want_spam', 'balance', 'undo_count'),
+                'fields': ('active', 'want_spam', 'signup_due_paid', 'balance', 'undo_count'),
                 'description': "Lad være med at rode med disse, med mindre du ved hvad du laver ...",
             },
         ),
@@ -234,7 +236,7 @@ class MemberAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if 'username' in form.changed_data and change:
-            if Member.objects.filter(username=obj.username).exclude(pk=obj.pk).exists():
+            if Member.objects.filter(username__iexact=obj.username).exclude(pk=obj.pk).exists():
                 messages.add_message(request, messages.WARNING, 'Det brugernavn var allerede optaget')
         super().save_model(request, obj, form, change)
 
@@ -341,6 +343,25 @@ class LogEntryAdmin(admin.ModelAdmin):
         return False
 
 
+class ThemeAdmin(admin.ModelAdmin):
+    list_display = ["name", "override", "begin_month", "begin_day", "end_month", "end_day"]
+    search_fields = ["name"]
+
+    @admin.action(description="Do not force chosen themes")
+    def force_unset(modeladmin, request, queryset):
+        queryset.update(override=Theme.NONE)
+
+    @admin.action(description="Force show chosen themes")
+    def force_show(modeladmin, request, queryset):
+        queryset.update(override=Theme.SHOW)
+
+    @admin.action(description="Force hide chosen themes")
+    def force_hide(modeladmin, request, queryset):
+        queryset.update(override=Theme.HIDE)
+
+    actions = [force_unset, force_show, force_hide]
+
+
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(Member, MemberAdmin)
@@ -351,3 +372,5 @@ admin.site.register(NamedProduct, NamedProductAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Room)
 admin.site.register(MobilePayment, MobilePaymentAdmin)
+admin.site.register(PendingSignup)
+admin.site.register(Theme, ThemeAdmin)

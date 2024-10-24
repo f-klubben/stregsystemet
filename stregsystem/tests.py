@@ -2,7 +2,8 @@
 import datetime
 from collections import Counter
 from copy import deepcopy
-from unittest.mock import patch
+from unittest import mock
+from unittest.mock import patch, MagicMock
 
 import pytz
 from django.utils.dateparse import parse_datetime
@@ -38,11 +39,13 @@ from stregsystem.models import (
     active_str,
     price_display,
     MobilePayment,
+    PendingSignup,
     NamedProduct,
+    ApprovalModel,
 )
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
-from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, MobilePaytoolException
+from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, PaymentToolException
 from stregsystem.mail import data_sent
 
 
@@ -964,6 +967,11 @@ class MemberModelFormTests(TestCase):
         form = MemberForm(model_to_dict(jeff))
         self.assertFalse(form.is_valid())
 
+    def test_cant_create_duplicate_username_in_other_case(self):
+        jeff = Member(username="JeFf", firstname="jeffrey", lastname="jefferson", gender="M")
+        form = MemberForm(model_to_dict(jeff))
+        self.assertFalse(form.is_valid())
+
     def test_can_create_non_duplicate_username(self):
         not_jeff = Member(username="not_jeff", firstname="jeff", lastname="jefferson", gender="M")
         form = MemberForm(model_to_dict(not_jeff))
@@ -1448,7 +1456,7 @@ class MobilePaymentTests(TestCase):
         mobile_payment.status = MobilePayment.APPROVED
         mobile_payment.save()
 
-        MobilePayment.submit_processed_mobile_payments(self.super_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.super_user)
 
         self.assertEqual(
             Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'] + mobile_payment.amount
@@ -1465,7 +1473,7 @@ class MobilePaymentTests(TestCase):
         mobile_payment.status = MobilePayment.IGNORED
         mobile_payment.save()
 
-        MobilePayment.submit_processed_mobile_payments(self.super_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.super_user)
 
         self.assertEqual(Member.objects.get(username__exact="tester").balance, self.members["tester"]['balance'])
 
@@ -1491,7 +1499,7 @@ class MobilePaymentTests(TestCase):
         bobby_tables_mobile_payment1.status = MobilePayment.APPROVED
         bobby_tables_mobile_payment1.save()
 
-        MobilePayment.submit_processed_mobile_payments(self.super_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.super_user)
 
         # assert that each member who has an approved mobile payment has their balance updated by the amount given
         for approved_mobile_payment in MobilePayment.objects.filter(status__exact=MobilePayment.APPROVED):
@@ -1509,7 +1517,7 @@ class MobilePaymentTests(TestCase):
         mobile_payment.status = MobilePayment.APPROVED
         mobile_payment.save()
 
-        MobilePayment.submit_processed_mobile_payments(self.super_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.super_user)
 
         # ensure new balance is mobilepayment amount
         self.assertEqual(
@@ -1533,7 +1541,7 @@ class MobilePaymentTests(TestCase):
         mobile_payment.status = MobilePayment.IGNORED
         mobile_payment.save()
 
-        MobilePayment.submit_processed_mobile_payments(self.super_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.super_user)
 
         # ensure balance is still initial amount
         self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
@@ -1550,7 +1558,7 @@ class MobilePaymentTests(TestCase):
 
         # submit mobile payments
         self.client.login(username="superuser", password="hunter2")
-        MobilePayment.submit_processed_mobile_payments(self.super_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.super_user)
 
         # ensure balance is still initial amount
         self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
@@ -1593,22 +1601,20 @@ class MobilePaymentTests(TestCase):
     def test_mobilepaytool_race_no_error(self):
         # do autopayment
         MobilePayment.approve_member_filled_mobile_payments()
-        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
         # assert that no changes have been made, also that MobilePaytoolException is not thrown
-        self.assertEqual(
-            MobilePayment.process_submitted_mobile_payments(self.fixture_form_data_no_change, self.super_user), 0
-        )
+        self.assertEqual(MobilePayment.process_submitted(self.fixture_form_data_no_change, self.super_user), 0)
 
     def test_mobilepaytool_race_error_marx(self):
         # do autopayment
         MobilePayment.approve_member_filled_mobile_payments()
-        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
 
         # assert exception is thrown and values in exception are as expected
-        with self.assertRaises(MobilePaytoolException):
+        with self.assertRaises(PaymentToolException):
             try:
-                MobilePayment.process_submitted_mobile_payments(self.fixture_form_data_marx_approved, self.super_user)
-            except MobilePaytoolException as e:
+                MobilePayment.process_submitted(self.fixture_form_data_marx_approved, self.super_user)
+            except PaymentToolException as e:
                 self.assertEqual(e.inconsistent_mbpayments_count, 1)
                 self.assertEqual(e.inconsistent_transaction_ids, ["241E027449465355"])
                 raise e
@@ -1616,15 +1622,13 @@ class MobilePaymentTests(TestCase):
     def test_mobilepaytool_race_error_marx_jdoe(self):
         # do autopayment
         MobilePayment.approve_member_filled_mobile_payments()
-        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
 
         # assert exception is thrown and values in exception are as expected
-        with self.assertRaises(MobilePaytoolException):
+        with self.assertRaises(PaymentToolException):
             try:
-                MobilePayment.process_submitted_mobile_payments(
-                    self.fixture_form_data_marx_jdoe_approved, self.super_user
-                )
-            except MobilePaytoolException as e:
+                MobilePayment.process_submitted(self.fixture_form_data_marx_jdoe_approved, self.super_user)
+            except PaymentToolException as e:
                 self.assertEqual(e.inconsistent_mbpayments_count, 2)
                 self.assertEqual(e.inconsistent_transaction_ids, ["241E027449465355", "016E027417049990"])
                 raise e
@@ -1633,7 +1637,7 @@ class MobilePaymentTests(TestCase):
 class AutoPaymentTests(TestCase):
     def setUp(self):
         self.autopayment_user = User.objects.create_superuser('autopayment', 'foo@bar.com', 'hunter2')
-        Member.objects.create(
+        self.member = Member.objects.create(
             username='tester', firstname='Test', lastname='Testsen', email='tables@nsa.gov', balance=178
         )
 
@@ -1648,7 +1652,7 @@ class AutoPaymentTests(TestCase):
         )
 
         MobilePayment.approve_member_filled_mobile_payments()
-        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
 
         unset = MobilePayment.objects.get(transaction_id='156E027485173228')
         self.assertEqual(unset.status, MobilePayment.UNSET)
@@ -1664,7 +1668,7 @@ class AutoPaymentTests(TestCase):
         )
 
         MobilePayment.approve_member_filled_mobile_payments()
-        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
 
         unset = MobilePayment.objects.get(transaction_id='156E027485173228')
         self.assertEqual(unset.status, MobilePayment.UNSET)
@@ -1680,7 +1684,7 @@ class AutoPaymentTests(TestCase):
         )
 
         MobilePayment.approve_member_filled_mobile_payments()
-        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
 
         approved = MobilePayment.objects.get(transaction_id='156E027485173229')
         self.assertEqual(approved.status, MobilePayment.APPROVED)
@@ -1696,10 +1700,23 @@ class AutoPaymentTests(TestCase):
         )
 
         MobilePayment.approve_member_filled_mobile_payments()
-        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
 
         approved = MobilePayment.objects.get(transaction_id='156E027485173229')
         self.assertEqual(approved.status, MobilePayment.APPROVED)
+
+    @mock.patch('stregsystem.models.send_payment_mail', autospec=True)
+    def test_payment_mail_normal_mobile_payment(self, mock_mail_method: MagicMock):
+        from stregsystem.management.commands.autopayment import Command
+
+        mock_mail_method.return_value = None
+
+        MobilePayment.objects.create(amount=5000, timestamp=timezone.now(), member=self.member)
+
+        cmd = Command()
+        cmd.handle()
+
+        mock_mail_method.assert_called_once()
 
 
 class CaffeineCalculatorTest(TestCase):
@@ -1882,3 +1899,277 @@ class CaffeineCalculatorTest(TestCase):
 
             self.assertTrue(coffee_addict.is_leading_coffee_addict())
             self.assertFalse(average_developer.is_leading_coffee_addict())
+
+
+class SignupTest(TestCase):
+    def setUp(self):
+        self.autopayment_user = User.objects.create_superuser('autopayment', 'foo@bar.com', 'hunter2')
+        self.mock_mobile_payment = MobilePayment(timestamp=timezone.now(), amount=20000, transaction_id="1")
+
+    def test_signup_request_creation(self):
+        user_info = {
+            'username': 'john',
+            'firstname': 'John',
+            'lastname': 'doe',
+            'email': 'johndoe@example.com',
+            'gender': 'M',
+        }
+
+        self.client.post(reverse('signup'), user_info)
+
+        # assert that the member was created and that the due payment status is correctly set
+        member = Member.objects.get(username=user_info['username'])
+        self.assertIsNotNone(member)
+        self.assertFalse(member.signup_due_paid)
+
+        # assert that the PendingSignup for the new user was created
+        signup_request = PendingSignup.objects.get(member=member)
+        self.assertIsNotNone(signup_request)
+
+    def test_signup_completion(self):
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        signup = PendingSignup.objects.create(member=member, status=ApprovalModel.APPROVED)
+        signup.complete(self.mock_mobile_payment)
+
+        # Assert that the signup due payment status has been updated correctly
+        member = Member.objects.get(pk=member.pk)
+        self.assertTrue(member.signup_due_paid)
+
+        # Assert that the PendingSignup instance has been deleted
+        with self.assertRaises(PendingSignup.DoesNotExist):
+            _ = PendingSignup.objects.get(member=member)
+
+    def test_excess_payment_balance(self):
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        signup = PendingSignup.objects.create(member=member, due=-50000)
+        signup.complete(self.mock_mobile_payment)
+
+        # Assert that excess payment was added to the account balance
+        member = Member.objects.get(pk=member.pk)
+        self.assertEqual(member.balance, 50000)
+
+    def test_autopayment_command_single_payment(self):
+        from stregsystem.management.commands.autopayment import Command
+
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        PendingSignup.objects.create(member=member, status=ApprovalModel.APPROVED)
+
+        self.mock_mobile_payment.member = member
+        self.mock_mobile_payment.save()
+
+        cmd = Command()
+        cmd.handle()
+
+        # Assert that the signup due payment status has been updated correctly
+        member = Member.objects.get(pk=member.pk)
+        self.assertTrue(member.signup_due_paid)
+
+        # Assert that the payment status has been set correctly
+        payment = MobilePayment.objects.get(pk=self.mock_mobile_payment.pk)
+        self.assertEqual(payment.status, MobilePayment.APPROVED)
+
+        # Assert that the PendingSignup instance has been deleted
+        with self.assertRaises(PendingSignup.DoesNotExist):
+            _ = PendingSignup.objects.get(member=member)
+
+    def test_autopayment_command_split_payment(self):
+        """
+        tests that signup payments that are split over more than one
+        mobile payment work properly
+        """
+        from stregsystem.management.commands.autopayment import Command
+
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        PendingSignup.objects.create(
+            member=member, due=self.mock_mobile_payment.amount * 2, status=ApprovalModel.APPROVED
+        )
+
+        self.mock_mobile_payment.member = member
+        self.mock_mobile_payment.save()
+
+        second_payment = MobilePayment(timestamp=timezone.now(), amount=20000, transaction_id="2", member=member)
+
+        cmd = Command()
+        cmd.handle()
+
+        # Assert that the signup due payment status remains false
+        member = Member.objects.get(pk=member.pk)
+        self.assertFalse(member.signup_due_paid)
+
+        # Assert that the payment status has been set correctly
+        payment = MobilePayment.objects.get(pk=self.mock_mobile_payment.pk)
+        self.assertEqual(payment.status, MobilePayment.APPROVED)
+
+        # Register second payment and rerun command
+        second_payment.save()
+        cmd.handle()
+
+        # Assert that the signup due payment status has been updated correctly
+        member = Member.objects.get(pk=member.pk)
+        self.assertTrue(member.signup_due_paid)
+
+        # Assert that the payment status has been set correctly
+        payment = MobilePayment.objects.get(pk=second_payment.pk)
+        self.assertEqual(payment.status, MobilePayment.APPROVED)
+
+        # Assert that the PendingSignup instance has been deleted
+        with self.assertRaises(PendingSignup.DoesNotExist):
+            _ = PendingSignup.objects.get(member=member)
+
+    def test_autopayment_command_double_payment_unset_approval(self):
+        """
+        tests that signup payments that are split over more than one
+        mobile payment work properly, while not approved.
+        """
+        from stregsystem.management.commands.autopayment import Command
+
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        PendingSignup.objects.create(member=member, due=self.mock_mobile_payment.amount, status=ApprovalModel.UNSET)
+
+        self.mock_mobile_payment.member = member
+        self.mock_mobile_payment.save()
+
+        second_payment = MobilePayment(timestamp=timezone.now(), amount=20000, transaction_id="2", member=member)
+
+        cmd = Command()
+        cmd.handle()
+
+        # Assert that the signup due payment status is true
+        member = Member.objects.get(pk=member.pk)
+        self.assertTrue(member.signup_due_paid)
+
+        # Assert that the payment status has been set correctly
+        payment = MobilePayment.objects.get(pk=self.mock_mobile_payment.pk)
+        self.assertEqual(payment.status, MobilePayment.APPROVED)
+
+        # Register second payment and rerun command
+        second_payment.save()
+        cmd.handle()
+
+        # Assert that the payment status has been set correctly
+        payment = MobilePayment.objects.get(pk=second_payment.pk)
+        self.assertEqual(payment.status, MobilePayment.APPROVED)
+
+        # Assert that the payment has been added to the member account
+        member = Member.objects.get(pk=member.pk)
+        self.assertEqual(member.balance, second_payment.amount)
+
+        # Assert that the PendingSignup instance has not been deleted (since it isn't approved)
+        _ = PendingSignup.objects.get(member=member)
+
+    def test_signup_approval_after_due(self):
+        """
+        Tests that a signup is successful, when approved after due is paid.
+        """
+        member = Member.objects.create(username='john', signup_due_paid=True)
+        signup = PendingSignup.objects.create(member=member, status=ApprovalModel.UNSET)
+
+        # Approve signup after due has been paid.
+        signup.status = ApprovalModel.APPROVED
+        signup.save()
+
+        # Assert that the PendingSignup instance has been deleted
+        with self.assertRaises(PendingSignup.DoesNotExist):
+            _ = PendingSignup.objects.get(member=member)
+
+    @mock.patch('stregsystem.models.send_payment_mail', autospec=True)
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_only_welcome_mail_excess_balance(self, mock_welcome_mail: MagicMock, mock_payment_mail: MagicMock):
+        """
+        Test that only welcome mail is sent, when a member is signed up with excess payment.
+        """
+        from stregsystem.management.commands.autopayment import Command
+
+        mock_welcome_mail.return_value = None
+        mock_payment_mail.return_value = None
+
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        PendingSignup.objects.create(
+            member=member, due=self.mock_mobile_payment.amount / 2, status=ApprovalModel.APPROVED
+        )
+
+        self.mock_mobile_payment.member = member
+        self.mock_mobile_payment.save()
+
+        cmd = Command()
+        cmd.handle()
+
+        mock_payment_mail.assert_not_called()
+        mock_welcome_mail.assert_called_once()
+
+    @mock.patch('stregsystem.models.send_payment_mail', autospec=True)
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_only_welcome_mail_no_excess_balance(self, mock_welcome_mail: MagicMock, mock_payment_mail: MagicMock):
+        """
+        Test that only welcome mail is sent, when a member is signed up.
+        """
+        from stregsystem.management.commands.autopayment import Command
+
+        mock_welcome_mail.return_value = None
+        mock_payment_mail.return_value = None
+
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        PendingSignup.objects.create(member=member, due=self.mock_mobile_payment.amount, status=ApprovalModel.APPROVED)
+
+        self.mock_mobile_payment.member = member
+        self.mock_mobile_payment.save()
+
+        cmd = Command()
+        cmd.handle()
+
+        mock_payment_mail.assert_not_called()
+        mock_welcome_mail.assert_called_once()
+
+
+class MailTests(TestCase):
+    def setUp(self):
+        pass
+
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_welcome_mail_manual_create_member(self, mock_mail_method: MagicMock):
+        mock_mail_method.return_value = None
+
+        member = Member.objects.create(username="jeff", email="test@example.com")
+
+        mock_mail_method.assert_called_once()
+
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_no_welcome_mail_no_paid_approved(self, mock_mail_method: MagicMock):
+        mock_mail_method.return_value = None
+
+        member = Member.objects.create(username="jeff", email="test@example.com", signup_due_paid=False)
+        signup_request = PendingSignup(member=member, due=200 * 100)
+        signup_request.save()
+
+        signup_request.approve()
+
+        mock_mail_method.assert_not_called()
+
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_no_welcome_mail_paid_unset(self, mock_mail_method: MagicMock):
+        mock_mail_method.return_value = None
+
+        # Create member with no due paid
+        member = Member.objects.create(username="jeff", email="test@example.com", signup_due_paid=False)
+        signup_request = PendingSignup(member=member, due=200)
+        signup_request.save()
+
+        # Add payment but still not approved
+        payment = MobilePayment.objects.create(amount=200, timestamp=timezone.now())
+        signup_request.complete(payment)
+        mock_mail_method.assert_not_called()
+
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_welcome_mail_paid_approved(self, mock_mail_method: MagicMock):
+        mock_mail_method.return_value = None
+
+        # Create member with no due paid, then attach pendingsignup, and then say they've paid.
+        member = Member.objects.create(username="jeff", email="test@example.com", signup_due_paid=False)
+        signup_request = PendingSignup(member=member, due=200)
+        signup_request.save()
+
+        payment = MobilePayment.objects.create(amount=200, timestamp=timezone.now())
+        signup_request.complete(payment)
+
+        signup_request.approve()
+        mock_mail_method.assert_called_once()

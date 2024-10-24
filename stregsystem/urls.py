@@ -1,7 +1,7 @@
-from django.urls import include, re_path
+from django.shortcuts import redirect
+from django.urls import re_path
 
 from . import views
-from django.shortcuts import redirect
 
 """stregsystem URL Configuration
 
@@ -21,7 +21,10 @@ Including another URLconf
 urlpatterns = [
     re_path(r'^$', views.roomindex, name="index"),
     re_path(r'^admin/batch/$', views.batch_payment, name="batch"),
-    re_path(r'^admin/mobilepaytool/$', views.mobilepaytool, name="mobilepaytool"),
+    re_path(r'^admin/payment_tool/$', views.payment_tool, name="payment_tool"),
+    re_path(r'^admin/signup_tool/$', views.signup_tool, name="signup_tool"),
+    re_path(r'^signup/$', views.signup, name="signup"),
+    re_path(r'^signup/(?P<signup_id>\d+)$', views.signup_status, name="signup_status"),
     re_path(r'^(?P<room_id>\d+)/$', views.index, name="menu_index"),
     re_path(r'^(?P<room_id>\d+)/sale/$', views.sale, name="quickbuy"),
     re_path(r'^(?P<room_id>\d+)/sale/(?P<member_id>\d+)/$', views.menu_sale, name="menu"),

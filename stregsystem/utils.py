@@ -56,12 +56,22 @@ def make_room_specific_query(room) -> QuerySet:
     return Q(rooms__id=room) | Q(rooms=None)
 
 
+def make_unprocessed_signups_query() -> QuerySet:
+    from stregsystem.models import PendingSignup, ApprovalModel
+
+    return PendingSignup.objects.filter(status__exact=ApprovalModel.UNSET)
+
+
+def unprocessed_mobilepayments_filter() -> Q:
+    from stregsystem.models import ApprovalModel
+
+    return Q(payment__isnull=True) & Q(status__exact=ApprovalModel.UNSET)
+
+
 def make_unprocessed_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
 
-    return MobilePayment.objects.filter(Q(payment__isnull=True) & Q(status__exact=MobilePayment.UNSET)).order_by(
-        '-timestamp'
-    )
+    return MobilePayment.objects.filter(unprocessed_mobilepayments_filter()).order_by('-timestamp')
 
 
 def make_processed_mobilepayment_query() -> QuerySet:
@@ -78,7 +88,17 @@ def make_unprocessed_member_filled_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
 
     return MobilePayment.objects.filter(
-        Q(payment__isnull=True) & Q(status=MobilePayment.UNSET) & Q(amount__gte=5000) & Q(member__isnull=False)
+        unprocessed_mobilepayments_filter() & Q(amount__gte=5000) & Q(member__isnull=False)
+    )
+
+
+def make_unprocessed_membership_payment_query() -> QuerySet:
+    from stregsystem.models import MobilePayment
+
+    return MobilePayment.objects.filter(
+        unprocessed_mobilepayments_filter()
+        & Q(member__isnull=True)
+        & Q(comment__regex=r'^signup:[0-9a-fA-F-]{36}\+.{1,16}$')
     )
 
 
@@ -166,9 +186,9 @@ class stregsystemTestRunner(DiscoverRunner):
         super(stregsystemTestRunner, self).__init__(*args, **kwargs)
 
 
-class MobilePaytoolException(RuntimeError):
+class PaymentToolException(RuntimeError):
     """
-    Structured exception for runtime error due to race condition during submission of MobilePaytool form
+    Structured exception for runtime error due to race condition during submission of Paymenttool form
     """
 
     def __init__(self, racy_mbpayments: QuerySet):
