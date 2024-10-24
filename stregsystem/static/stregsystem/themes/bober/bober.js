@@ -1,17 +1,14 @@
-d = new Date();
 
-if(d.getMonth() == 3 && d.getDate() == 20){
-    spawn_man();
-    spawn_beaver();
-    animate_man();
-    animate_beaver();
-}
+spawn_man();
+spawn_beaver();
+animate_man();
+animate_beaver();
 
 function spawn_beaver() {
     const beaver = document.createElement('div');
     beaver.classList.add("beaver");
     const beaverpng = document.createElement("img")
-    beaverpng.src = "/static/stregsystem/beaver.gif";
+    beaverpng.src = themes_static_url + "bober/beaver.gif";
     beaverpng.classList.add("beaverpng");
     beaver.appendChild(beaverpng);
     document.body.querySelector(".beaver-container").appendChild(beaver);
@@ -22,7 +19,7 @@ function spawn_man() {
     const manden = document.createElement('div');
     manden.classList.add("manden");
     const mandpng = document.createElement("img")
-    mandpng.src = "/static/stregsystem/man.gif";
+    mandpng.src = themes_static_url + "bober/man.gif";
     mandpng.classList.add("mandenpng")
     manden.appendChild(mandpng);
     document.body.querySelector(".men-container").appendChild(manden);

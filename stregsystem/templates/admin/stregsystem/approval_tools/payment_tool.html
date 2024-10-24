@@ -1,0 +1,44 @@
+{% extends "admin/stregsystem/approval_tool_template.html" %}
+
+{% block tool_name %}Payment Tool{% endblock %}
+
+{% block tool_description %}
+<p>Displays a list of unprocessed MobilePay transactions for easy processing of payments. For each
+    row:</p>
+<ol>
+
+    <li><p>Input correct member in member column. If prefilled, member wrote their username
+        correctly.</p></li>
+    <li><p>Check <code>Approved</code> if member is correctly filled. If transaction has already been
+        processed (in case of 'tilmelding' or 'er indsat') check <code>Ignored</code>.</p></li>
+</ol>
+{% endblock %}
+
+{% block tool_actions %}
+<h1>Import MobilePay API transactions</h1>
+<p><i>Automatically import MobilePay transactions from the past week</i></p>
+<form method="post"> {% csrf_token %}
+    <input type="submit" class="submit-button" name="action" value="Import via MobilePay API"/>
+</form>
+
+{% if api %}
+    <h2>{{ api }}</h2>
+{% endif %}
+
+
+<br>
+<hr style="background-color: white; border-top: thin dashed grey; width:500px">
+<br>
+
+<h1>Import MobilePay CSV transactions</h1>
+<p><i>Existing MobilePay transactions are ignored, this function is <a
+        href="https://en.wikipedia.org/wiki/Idempotence">idempotent</a></i></p>
+<form method="post" enctype="multipart/form-data"> {% csrf_token %}
+    <input type="submit" class="submit-button" name="action" value="Import MobilePay CSV"/>
+    <input type="file" name="csv_file" id="csv_file" accept="text/csv"/>
+</form>
+{% if imports or duplicates %}
+    <h2> Imported {{ imports }} MobilePay transactions{% if duplicates %}, and ignored {{ duplicates }}
+        duplicates {% endif %} </h2>
+{% endif %}
+{% endblock %}
