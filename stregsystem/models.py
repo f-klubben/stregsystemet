@@ -163,7 +163,7 @@ class Member(models.Model):  # id automatisk...
         ('F', 'Female'),
     )
     active = models.BooleanField(default=True)
-    
+
     no_whitespace_validator = RegexValidator(
         # This regex checks for whitespace at the start and end and anywhere in between
         regex=r'^\S+$',
