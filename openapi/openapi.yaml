@@ -370,15 +370,6 @@ components:
           $ref: '#/components/schemas/member_has_low_balance'
         member_balance:
           $ref: '#/components/schemas/stregoere_balance'
-    sale_result_examle:
-      type: object
-      properties:
-        status:
-          200
-        msg:
-          "OK"
-        values:
-          $ref: '#/components/schemas/sale_values_result_example'
     sale:
       type: object
       properties:
@@ -469,7 +460,16 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/sale_result_examle'
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              msg:
+                type: string
+                example: "OK"
+              values:
+                $ref: '#/components/schemas/sale_values_result_example'
     QRCodeGenerated:
       description: QR code with link to open MobilePay with the provided information.
       content:
