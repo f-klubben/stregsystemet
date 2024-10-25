@@ -300,11 +300,11 @@ components:
       type: boolean
       example: false
     bp_minutes:
-      type: int
+      type: integer
       nullable: true
       example: 2
     bp_seconds:
-      type: int
+      type: integer
       nullable: true
       example: 30
     caffeine:
@@ -468,7 +468,7 @@ components:
       description: An object containing various statistics and info regarding the purchase.
       content:
         application/json:
-          schemas:
+          schema:
             $ref: '#/components/schemas/sale_result_examle'
     QRCodeGenerated:
       description: QR code with link to open MobilePay with the provided information.
