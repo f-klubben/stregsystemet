@@ -31,7 +31,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/member_id'
       responses:
-        '200 Success':
+        '200':
           $ref: '#/components/responses/MemberFound'
         '400 Member Not Found':
           $ref: '#/components/responses/MemberNotFound'
@@ -49,7 +49,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/member_id'
       responses:
-        '200 Success':
+        '200':
           $ref: '#/components/responses/MemberFound_Balance'
         '400 Member Not Found':
           $ref: '#/components/responses/MemberNotFound'
@@ -67,7 +67,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/member_id'
       responses:
-        '200 Success':
+        '200':
           $ref: '#/components/responses/MemberFound_Active'
         '400 Member Not Found':
           $ref: '#/components/responses/MemberNotFound'
@@ -85,7 +85,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/member_id'
       responses:
-        '200 Success':
+        '200':
           $ref: '#/components/responses/MemberFound_Sales'
         '400 Member Not Found':
           $ref: '#/components/responses/MemberNotFound'
@@ -103,7 +103,7 @@ paths:
       parameters:
        - $ref: '#/components/parameters/username'
       responses:
-        '200 Success':
+        '200':
           $ref: '#/components/responses/MemberFound_ID'
         '400 Member Not Found':
           $ref: '#/components/responses/MemberNotFound'
@@ -120,7 +120,7 @@ paths:
         - $ref: '#/components/parameters/username'
         - $ref: '#/components/parameters/amount'
       responses:
-        '200 Success':
+        '200':
           $ref: '#/components/responses/QRCodeGenerated'
         '400 Invalid Input':
           $ref: '#/components/responses/InvalidQRInput'
@@ -132,7 +132,7 @@ paths:
       description: Returns a dictionary of all named products with their product ID. A named product is a shorthand associated with a product ID.
       operationId: dump_named_products
       responses:
-        '200 Success':
+        '200':
           $ref: '#/components/responses/NamedProducts'
   /api/products/active_products:
     get:
@@ -144,7 +144,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/room_id'
       responses:
-        '200 Success':
+        '200':
           $ref: '#/components/responses/ActiveProducts'
         '400 Room Not Found':
           $ref: '#/components/responses/RoomNotFound'
@@ -160,7 +160,7 @@ paths:
       description: Dictionary of product IDs with category ID and category name as value.
       operationId: dump_category_mappings
       responses:
-        '200 Success':
+        '200':
           $ref: '#/components/responses/CategoryMappings'
   /api/sale:
     post:
@@ -170,7 +170,7 @@ paths:
       description: something.
       operationId: sale
       responses:
-        '200 Success':
+        '200':
           $ref: '#/components/responses/SaleSuccess'
         '400 Room Not Found':
           $ref: '#/components/responses/RoomNotFound'
