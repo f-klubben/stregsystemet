@@ -165,7 +165,7 @@ class Member(models.Model):  # id automatisk...
     active = models.BooleanField(default=True)
 
     no_whitespace_validator = RegexValidator(
-        # This regex checks for whitespace at the start and end and anywhere in between
+        # This regex checks for whitespace in the username
         regex=r'^\S+$',
         code='invalid_username',
     )
