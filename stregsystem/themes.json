@@ -74,5 +74,18 @@
         "end": {
             "month": 1
         }
+    },
+    {
+        "name": "activatefklub",
+        "html": "activatefklub.html",
+        "css": "activatefklub.css",
+        "js": "activatefklub.js",
+        "_comment": "only shows itself on the 2nd tuesday of the month, handled separately in js",
+        "begin": {
+            "month": 1
+        },
+        "end": {
+            "month": 12
+        }
     }
 ]
