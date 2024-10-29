@@ -163,7 +163,13 @@ class Member(models.Model):  # id automatisk...
         ('F', 'Female'),
     )
     active = models.BooleanField(default=True)
-    username = models.CharField(max_length=16)
+
+    no_whitespace_validator = RegexValidator(
+        # This regex checks for whitespace in the username
+        regex=r'^\S+$',
+        code='invalid_username',
+    )
+    username = models.CharField(max_length=16, validators=[no_whitespace_validator])
     year = models.CharField(max_length=4, default=get_current_year)  # Put the current year as default
     firstname = models.CharField(max_length=20)  # for 'firstname'
     lastname = models.CharField(max_length=30)  # for 'lastname'
