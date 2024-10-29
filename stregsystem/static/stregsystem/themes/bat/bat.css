@@ -1,0 +1,75 @@
+@property --bat-x {
+	syntax: "<number>";
+	inherits: true;
+	initial-value: 0;
+}
+@property --bat-y {
+	syntax: "<number>";
+	inherits: true;
+	initial-value: 0;
+}
+@property --bat-direction {
+	syntax: "<number>";
+	inherits: true;
+	initial-value: 0;
+}
+@property --bat-delay {
+	syntax: "<number>";
+	inherits: true;
+	initial-value: 0;
+}
+  
+#bat-container {
+	position: fixed;
+	inset: 1lvw 1lvh;
+	margin: 0;
+	transition: opacity 2s ease;
+	pointer-events: none;
+
+	&.stationary {
+		opacity: 0.7;
+
+		@media (prefers-contrast) or (prefers-reduced-transparency) {
+			display: none;
+		}
+	}
+
+	@media not screen {
+		display: none;
+	}
+
+	& .bat {
+		position: absolute;
+		width: 10%;
+		height: 5%;
+		left: 0;
+		top: 0;
+		scale: var(--bat-direction) 1;
+		translate: calc(9% * var(--bat-x)) calc(19% * var(--bat-y));
+		background: url(./sprites/0.png) no-repeat center / contain;
+		animation: 600ms steps(1, end) calc(-6ms * var(--bat-delay)) infinite bat-flap;
+		image-rendering: pixelated;
+
+		@media (prefers-reduced-motion) {
+			animation-play-state: paused !important;
+		}
+	}
+}
+
+@keyframes bat-flap {
+	0% {
+		background-image: url(sprites/0.png);
+	}
+	33.33% {
+		background-image: url(sprites/1.png);
+	}
+	50% {
+		background-image: url(sprites/2.png);
+	}
+	66.67% {
+		background-image: url(sprites/3.png);
+	}
+	83.33% {
+		background-image: url(sprites/4.png);
+	}
+}

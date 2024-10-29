@@ -58,7 +58,13 @@ Admin panel: <http://127.0.0.1:8000/admin/>
 Login: `tester:treotreo`
 
 Stregsystem: <http://127.0.0.1:8000/1/>  
-User: `tester`
+There are different members that help you test different things:
+| Member | Superpower |
+|---|---|
+| tester | Default test profile |
+| q | Has short name for maximum testing speed |
+| nodough | Has no stregdollars |
+| lowdough | Only has 15 stregdollars |
 
 Persistent Testdata
 -------
@@ -83,3 +89,7 @@ Using the debugging tool [MailHog](https://github.com/mailhog/MailHog) (Follow t
 3. `python manage.py runserver`
 4. ???
 5. Profit
+
+Themes
+-------
+[Read more about themes here.](./themes.md)

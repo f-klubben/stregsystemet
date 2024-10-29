@@ -163,7 +163,13 @@ class Member(models.Model):  # id automatisk...
         ('F', 'Female'),
     )
     active = models.BooleanField(default=True)
-    username = models.CharField(max_length=16)
+
+    no_whitespace_validator = RegexValidator(
+        # This regex checks for whitespace in the username
+        regex=r'^\S+$',
+        code='invalid_username',
+    )
+    username = models.CharField(max_length=16, validators=[no_whitespace_validator])
     year = models.CharField(max_length=4, default=get_current_year)  # Put the current year as default
     firstname = models.CharField(max_length=20)  # for 'firstname'
     lastname = models.CharField(max_length=30)  # for 'lastname'
@@ -805,3 +811,30 @@ class PendingSignup(ApprovalModel):
 
         # Return how many records were modified.
         return len(pending_signup_ids)
+
+
+class Theme(models.Model):
+    name = models.CharField("Name", max_length=50)
+    html = models.CharField("HTML filename", max_length=50, blank=True, default="")
+    css = models.CharField("CSS filename", max_length=50, blank=True, default="")
+    js = models.CharField("JS filename", max_length=50, blank=True, default="")
+    begin_month = models.PositiveSmallIntegerField("Begin month")
+    begin_day = models.PositiveSmallIntegerField("Begin day", default=1)
+    end_month = models.PositiveSmallIntegerField("End month")
+    end_day = models.PositiveSmallIntegerField("End day", default=31)
+
+    NONE = "N"
+    SHOW = "S"
+    HIDE = "H"
+    OVERRIDE_CHOICES = (
+        (NONE, "None"),
+        (SHOW, "Force show"),
+        (HIDE, "Force hide"),
+    )
+    override = models.CharField("Override", max_length=1, choices=OVERRIDE_CHOICES, default=NONE)
+
+    class Meta:
+        ordering = ["begin_month", "begin_day"]
+
+    def __str__(self):
+        return self.name

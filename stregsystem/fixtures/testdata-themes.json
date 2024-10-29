@@ -109,14 +109,14 @@
     "model": "stregsystem.category",
     "pk": 3,
     "fields": {
-      "name": "Øl"
+      "name": "\u00d8l"
     }
   },
   {
     "model": "stregsystem.category",
     "pk": 4,
     "fields": {
-      "name": "Speciel Øl"
+      "name": "Speciel \u00d8l"
     }
   },
   {
@@ -137,7 +137,7 @@
     "model": "stregsystem.category",
     "pk": 7,
     "fields": {
-      "name": "Musik for ørerne"
+      "name": "Musik for \u00f8rerne"
     }
   },
   {
@@ -158,7 +158,7 @@
     "model": "stregsystem.category",
     "pk": 10,
     "fields": {
-      "name": "Militært materiel"
+      "name": "Milit\u00e6rt materiel"
     }
   },
   {
@@ -193,7 +193,7 @@
     "model": "stregsystem.category",
     "pk": 15,
     "fields": {
-      "name": "Mælk"
+      "name": "M\u00e6lk"
     }
   },
   {
@@ -224,19 +224,27 @@
       "name": "Stregdollar",
       "price": 100,
       "active": true,
-      "rooms": [1],
-      "categories": [14]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        14
+      ]
     }
   },
   {
     "model": "stregsystem.product",
     "pk": 14,
     "fields": {
-      "name": "Øl(Grøn, Classic, <b>Gulddamer</b>) (excl. pant)",
+      "name": "\u00d8l(Gr\u00f8n, Classic, <b>Gulddamer</b>) (excl. pant)",
       "price": 750,
       "active": true,
-      "rooms": [1],
-      "categories": [3]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        3
+      ]
     }
   },
   {
@@ -246,8 +254,12 @@
       "name": "Cocio <b>(Mellem)</b>",
       "price": 1818,
       "active": true,
-      "rooms": [1],
-      "categories": [12]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        12
+      ]
     }
   },
   {
@@ -257,7 +269,9 @@
       "name": "Pant B (plastflasker under 1 liter)",
       "price": 150,
       "active": true,
-      "rooms": [1]
+      "rooms": [
+        1
+      ]
     }
   },
   {
@@ -268,8 +282,12 @@
       "price": 150,
       "active": true,
       "caffeine_content_mg": 70,
-      "rooms": [1],
-      "categories": [6]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        6
+      ]
     }
   },
   {
@@ -279,7 +297,9 @@
       "name": "Limfjordsporter (excl. pant)",
       "price": 1000,
       "active": true,
-      "rooms": [1],
+      "rooms": [
+        1
+      ],
       "categories": []
     }
   },
@@ -287,11 +307,15 @@
     "model": "stregsystem.product",
     "pk": 44,
     "fields": {
-      "name": "Søm",
+      "name": "S\u00f8m",
       "price": 300,
       "active": true,
-      "rooms": [1],
-      "categories": [13]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        13
+      ]
     }
   },
   {
@@ -301,8 +325,12 @@
       "name": "<h1>Futtetyr</h1>",
       "price": 33300,
       "active": true,
-      "rooms": [1],
-      "categories": [14]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        14
+      ]
     }
   },
   {
@@ -312,8 +340,12 @@
       "name": "Mambo No. 8",
       "price": 800,
       "active": true,
-      "rooms": [1],
-      "categories": [7]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        7
+      ]
     }
   },
   {
@@ -323,8 +355,12 @@
       "name": "<h1>FLAN billet</h1>",
       "price": 4269,
       "active": true,
-      "rooms": [1],
-      "categories": [5]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        5
+      ]
     }
   },
   {
@@ -334,29 +370,39 @@
       "name": "Life potion (excl. pant)",
       "price": 1316,
       "active": true,
-      "rooms": [1],
-      "categories": [11]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        11
+      ]
     }
   },
   {
     "model": "stregsystem.product",
     "pk": 1839,
     "fields": {
-      "name": "Kildevæld uden pant (excl. brus)\"",
+      "name": "Kildev\u00e6ld uden pant (excl. brus)\"",
       "price": 706,
       "active": true,
-      "rooms": [1],
-      "categories": [2]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        2
+      ]
     }
   },
   {
     "model": "stregsystem.product",
     "pk": 1848,
     "fields": {
-      "name": "Pant A (glasflasker og metaldåser under 1 liter)",
+      "name": "Pant A (glasflasker og metald\u00e5ser under 1 liter)",
       "price": 100,
       "active": true,
-      "rooms": [1]
+      "rooms": [
+        1
+      ]
     }
   },
   {
@@ -366,8 +412,12 @@
       "name": "Grimbergen (excl. pant)",
       "price": 1900,
       "active": true,
-      "rooms": [1],
-      "categories": [3]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        3
+      ]
     }
   },
   {
@@ -377,8 +427,12 @@
       "name": "Somersby (incl. pant)",
       "price": 1540,
       "active": true,
-      "rooms": [1],
-      "categories": [17]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        17
+      ]
     }
   },
   {
@@ -388,8 +442,12 @@
       "name": "Apache attack helicopter",
       "price": 1280,
       "active": true,
-      "rooms": [1],
-      "categories": [10]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        10
+      ]
     }
   },
   {
@@ -399,8 +457,12 @@
       "name": "Kakao (0,46 kop)",
       "price": 69,
       "active": true,
-      "rooms": [1],
-      "categories": [12]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        12
+      ]
     }
   },
   {
@@ -410,8 +472,12 @@
       "name": "Sportycola (excl. pant)",
       "price": 600,
       "active": true,
-      "rooms": [1],
-      "categories": [2]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        2
+      ]
     }
   },
   {
@@ -421,30 +487,42 @@
       "name": "Kinley (excl. pant)",
       "price": 680,
       "active": true,
-      "rooms": [1],
-      "categories": [1]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        1
+      ]
     }
   },
   {
     "model": "stregsystem.product",
     "pk": 1901,
     "fields": {
-      "name": "Bober Øl (excl. pant x2)",
+      "name": "Bober \u00d8l (excl. pant x2)",
       "price": 650,
       "active": true,
-      "rooms": [1],
-      "categories": [3]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        3
+      ]
     }
   },
   {
     "model": "stregsystem.product",
     "pk": 1903,
     "fields": {
-      "name": "<h3>Månedens Øl</h3><br>September: Bonk Beer",
+      "name": "<h3>M\u00e5nedens \u00d8l</h3><br>September: Bonk Beer",
       "price": 1460,
       "active": true,
-      "rooms": [1],
-      "categories": [4]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        4
+      ]
     }
   },
   {
@@ -454,19 +532,27 @@
       "name": "Tebrev (Partibestemt smag)",
       "price": 90,
       "active": true,
-      "rooms": [1],
-      "categories": [18]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        18
+      ]
     }
   },
   {
     "model": "stregsystem.product",
     "pk": 1905,
     "fields": {
-      "name": "Ramløse/ vand med brus (excl. pant)",
+      "name": "Raml\u00f8se/ vand med brus (excl. pant)",
       "price": 808,
       "active": true,
-      "rooms": [1],
-      "categories": [2]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        2
+      ]
     }
   },
   {
@@ -476,8 +562,12 @@
       "name": "Juice (Solita, Rynkeby)",
       "price": 1131,
       "active": true,
-      "rooms": [1],
-      "categories": [16]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        16
+      ]
     }
   },
   {
@@ -487,8 +577,12 @@
       "name": "Faxe Kondi Pro",
       "price": 1600,
       "active": true,
-      "rooms": [1],
-      "categories": [1]
+      "rooms": [
+        1
+      ],
+      "categories": [
+        1
+      ]
     }
   },
   {
@@ -535,7 +629,7 @@
     "model": "stregsystem.namedproduct",
     "pk": 143,
     "fields": {
-      "name": "øl",
+      "name": "\u00f8l",
       "product": 14
     }
   },
@@ -591,7 +685,7 @@
     "model": "stregsystem.namedproduct",
     "pk": 441,
     "fields": {
-      "name": "søm",
+      "name": "s\u00f8m",
       "product": 44
     }
   },
@@ -655,7 +749,7 @@
     "model": "stregsystem.namedproduct",
     "pk": 18391,
     "fields": {
-      "name": "kildevæld",
+      "name": "kildev\u00e6ld",
       "product": 1839
     }
   },
@@ -715,7 +809,6 @@
       "product": 1891
     }
   },
-
   {
     "model": "stregsystem.namedproduct",
     "pk": 18912,
@@ -752,7 +845,7 @@
     "model": "stregsystem.namedproduct",
     "pk": 19031,
     "fields": {
-      "name": "månedens",
+      "name": "m\u00e5nedens",
       "product": 1903
     }
   },
@@ -760,7 +853,7 @@
     "model": "stregsystem.namedproduct",
     "pk": 19032,
     "fields": {
-      "name": "møl",
+      "name": "m\u00f8l",
       "product": 1903
     }
   },
@@ -862,6 +955,94 @@
       "room": 1,
       "timestamp": "2017-03-13T13:38:10.573+00:00",
       "price": 300
+    }
+  },
+  {
+    "model": "stregsystem.theme",
+    "pk": 1,
+    "fields": {
+      "name": "easter",
+      "html": "easter.html",
+      "css": "easter.css",
+      "js": "easter.js",
+      "begin_month": 4,
+      "end_month": 4
+    }
+  },
+  {
+    "model": "stregsystem.theme",
+    "pk": 2,
+    "fields": {
+      "name": "bober",
+      "html": "bober.html",
+      "css": "men.css",
+      "js": "bober.js",
+      "begin_month": 4,
+      "begin_day": 20,
+      "end_month": 4,
+      "end_day": 20
+    }
+  },
+  {
+    "model": "stregsystem.theme",
+    "pk": 3,
+    "fields": {
+      "name": "bat",
+      "html": "bat.html",
+      "css": "bat.css",
+      "js": "bat.js",
+      "begin_month": 10,
+      "end_month": 10
+    }
+  },
+  {
+    "model": "stregsystem.theme",
+    "pk": 4,
+    "fields": {
+      "name": "adventcandle",
+      "html": "adventcandle.html",
+      "js": "adventcandle.js",
+      "begin_month": 12,
+      "end_month": 12,
+      "end_day": 24
+    }
+  },
+  {
+    "model": "stregsystem.theme",
+    "pk": 5,
+    "fields": {
+      "name": "snow",
+      "html": "snow.html",
+      "css": "snow.css",
+      "js": "snow.js",
+      "begin_month": 12,
+      "end_month": 12,
+      "end_day": 24
+    }
+  },
+  {
+    "model": "stregsystem.theme",
+    "pk": 6,
+    "fields": {
+      "name": "fireworks",
+      "html": "fireworks.html",
+      "css": "fireworks.css",
+      "js": "fireworks.js",
+      "begin_month": 12,
+      "begin_day": 25,
+      "end_month": 1
+    }
+  },
+  {
+    "model": "stregsystem.theme",
+    "pk": 7,
+    "fields": {
+      "name": "activatefklub",
+      "html": "activatefklub.html",
+      "css": "activatefklub.css",
+      "js": "activatefklub.js",
+      "begin_month": 1,
+      "end_month": 12
     }
   }
 ]

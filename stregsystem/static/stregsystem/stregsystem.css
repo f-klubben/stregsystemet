@@ -19,6 +19,29 @@ header {
   }
 }
 
+main {
+  padding: 1em;
+
+  & > :first-child {
+    margin-top: 0;
+  }
+  & > :last-child {
+    margin-bottom: 0;
+  }
+
+  &.center {
+    text-align: center;
+
+    & table {
+      text-align: initial;
+    }
+    & > table {
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+}
+
 h1 { color: red }
 
 /*div { border-color: red;
@@ -33,6 +56,13 @@ ol {
 
 ol span {
     font-weight: normal;
+}
+
+.horizontal-table {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2em;
 }
 
 table.default {
@@ -147,6 +177,7 @@ table h2, table h3 {
 .qr-code {
     position: relative;
     z-index: 2147483647;
+    image-rendering: pixelated;
 }
 
 @keyframes blink-frame {
