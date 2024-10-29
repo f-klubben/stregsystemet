@@ -1,19 +1,19 @@
-@property --x {
+@property --bat-x {
 	syntax: "<number>";
 	inherits: true;
 	initial-value: 0;
 }
-@property --y {
+@property --bat-y {
 	syntax: "<number>";
 	inherits: true;
 	initial-value: 0;
 }
-@property --direction {
+@property --bat-direction {
 	syntax: "<number>";
 	inherits: true;
 	initial-value: 0;
 }
-@property --delay {
+@property --bat-delay {
 	syntax: "<number>";
 	inherits: true;
 	initial-value: 0;
@@ -40,10 +40,10 @@
 		height: 5%;
 		left: 0;
 		top: 0;
-		scale: var(--direction) 1;
-		translate: calc(9% * var(--x)) calc(19% * var(--y));
+		scale: var(--bat-direction) 1;
+		translate: calc(9% * var(--bat-x)) calc(19% * var(--bat-y));
 		background: url(./sprites/0.png) no-repeat center / contain;
-		animation: 600ms steps(1, end) calc(-6ms * var(--delay)) infinite bat-flap;
+		animation: 600ms steps(1, end) calc(-6ms * var(--bat-delay)) infinite bat-flap;
 		image-rendering: pixelated;
 
 		@media (prefers-reduced-motion) {

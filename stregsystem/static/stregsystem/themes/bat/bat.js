@@ -108,8 +108,8 @@ function pointAndShoot() {
 	const bat = batQueue.shift();
 
 	// On first load, we need to get the bat position from the HTML
-	bat.x ??= Number(bat.element.style.getPropertyValue("--x"));
-	bat.y ??= Number(bat.element.style.getPropertyValue("--y"));
+	bat.x ??= Number(bat.element.style.getPropertyValue("--bat-x"));
+	bat.y ??= Number(bat.element.style.getPropertyValue("--bat-y"));
 
 	// Calculate new coordinates
 	const { coordinate: newX, direction } = newCoordinate(bat.x);
@@ -127,8 +127,8 @@ function pointAndShoot() {
 	const batDirection = direction * -1;
 	bat.element.animate(
 		[
-			{ "--x": bat.x, "--y": bat.y, "--direction": batDirection },
-			{ "--x": newX, "--y": newY, "--direction": batDirection },
+			{ "--bat-x": bat.x, "--bat-y": bat.y, "--bat-direction": batDirection },
+			{ "--bat-x": newX, "--bat-y": newY, "--bat-direction": batDirection },
 		],
 		{
 			delay: bat.nextFly - now,
