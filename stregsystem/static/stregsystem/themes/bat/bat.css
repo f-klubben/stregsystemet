@@ -34,6 +34,10 @@
 		}
 	}
 
+	@media not screen {
+		display: none;
+	}
+
 	& .bat {
 		position: absolute;
 		width: 10%;
