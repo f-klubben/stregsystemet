@@ -55,6 +55,12 @@ def day_of_month():
 
 
 @register.simple_tag
+def fractional_day_of_month():
+    now = datetime.now()
+    return now.day - 1 + (now.hour / 24) + (now.minute / 1440) + (now.second / 86400)
+
+
+@register.simple_tag
 def random(min, max):
     return randint(min, max)
 

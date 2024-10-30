@@ -1001,7 +1001,7 @@
     "fields": {
       "name": "adventcandle",
       "html": "adventcandle.html",
-      "js": "adventcandle.js",
+      "css": "adventcandle.css",
       "begin_month": 12,
       "end_month": 12,
       "end_day": 24
