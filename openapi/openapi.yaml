@@ -33,12 +33,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/MemberFound'
-        '400 Member Not Found':
-          $ref: '#/components/responses/MemberNotFound'
-        '400 Invalid Member ID':
-          $ref: '#/components/responses/InvalidMemberId'
-        '400 Missing Member ID':
-          $ref: '#/components/responses/MissingMemberId'
+        '400':
+          $ref: '#/components/responses/Member_BadResponse'
   /api/member/balance:
     get:
       tags:
@@ -185,6 +181,16 @@ paths:
         '400 Missing Member ID':
           $ref: '#/components/responses/MissingMemberId'
 components:
+  examples:
+    MemberNotFoundExample:
+      summary: Member does not exist
+      value: "Member not found"
+    InvalidMemberIdExample:
+      summary: Member ID is invalid
+      value: "Parameter invalid: member_id"
+    MissingMemberIdExample:
+      summary: No member ID given
+      value: "Parameter missing: member_id"
   parameters:
     member_id:
       name: member_id
@@ -215,6 +221,15 @@ components:
       schema:
         $ref: '#/components/schemas/stregoere_balance'
   schemas:
+    memberNotFoundMessage:
+      type: string
+      example: Member not found
+    invalidMemberIdMessage:
+      type: string
+      example: "Parameter invalid: member_id"
+    missingMemberIdMessage:
+      type: string
+      example: "Parameter missing: member_id"
     balance:
       type: integer
       example: 20000
@@ -483,6 +498,22 @@ components:
           schema:
             type: string
             example: Invalid input for MobilePay QR code generation
+    Member_BadResponse:
+      description: Member does not exist, invalid member ID, or missing parameter.
+      content:
+        text/html:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/memberNotFoundMessage'
+              - $ref: '#/components/schemas/invalidMemberIdMessage'
+              - $ref: '#/components/schemas/missingMemberIdMessage'
+          examples:
+            memberNotFound:
+              $ref: '#/components/examples/MemberNotFoundExample'
+            invalidMemberId:
+              $ref: '#/components/examples/InvalidMemberIdExample'
+            missingMemberId:
+              $ref: '#/components/examples/MissingMemberIdExample'
     MemberNotFound:
       description: Member does not exist.
       content:
