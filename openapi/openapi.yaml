@@ -152,18 +152,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/SaleSuccess'
-        '400 Room Not Found':
-          $ref: '#/components/responses/RoomNotFound'
-        '400 Invalid Room ID':
-          $ref: '#/components/responses/InvalidRoomId'
-        '400 Missing Room ID':
-          $ref: '#/components/responses/MissingRoomId'
-        '400 Member Not Found':
-          $ref: '#/components/responses/MemberNotFound'
-        '400 Invalid member ID':
-          $ref: '#/components/responses/InvalidMemberId'
-        '400 Missing Member ID':
-          $ref: '#/components/responses/MissingMemberId'
+        '400':
+          $ref: '#/components/responses/Member_RoomIdParameter_BadResponse'
 components:
   examples:
     MemberNotFoundExample:
@@ -526,6 +516,31 @@ components:
               - $ref: '#/components/schemas/invalidRoomIdMessage'
               - $ref: '#/components/schemas/missingRoomIdMessage'
           examples:
+            roomNotFound:
+              $ref: '#/components/examples/RoomNotFoundExample'
+            invalidRoomId:
+              $ref: '#/components/examples/InvalidRoomIdExample'
+            missingRoomId:
+              $ref: '#/components/examples/MissingRoomIdExample'
+    Member_RoomIdParameter_BadResponse:
+      description: Room or member does not exist, invalid room or member ID, or missing parameter.
+      content:
+        text/html:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/memberNotFoundMessage'
+              - $ref: '#/components/schemas/invalidMemberIdMessage'
+              - $ref: '#/components/schemas/missingMemberIdMessage'
+              - $ref: '#/components/schemas/roomNotFoundMessage'
+              - $ref: '#/components/schemas/invalidRoomIdMessage'
+              - $ref: '#/components/schemas/missingRoomIdMessage'
+          examples:
+            memberNotFound:
+              $ref: '#/components/examples/MemberNotFoundExample'
+            invalidMemberId:
+              $ref: '#/components/examples/InvalidMemberIdExample'
+            missingMemberId:
+              $ref: '#/components/examples/MissingMemberIdExample'
             roomNotFound:
               $ref: '#/components/examples/RoomNotFoundExample'
             invalidRoomId:
