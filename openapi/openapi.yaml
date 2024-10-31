@@ -89,10 +89,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/MemberFound_ID'
-        '400 Member Not Found':
-          $ref: '#/components/responses/MemberNotFound'
-        '400 Missing Username':
-          $ref: '#/components/responses/MissingMemberUsername'
+        '400':
+          $ref: '#/components/responses/MemberUsernameParameter_BadResponse'
   /api/member/payment/qr:
     get:
       tags:
@@ -174,6 +172,9 @@ components:
     MissingRoomIdExample:
       summary: No room ID given
       value: "Parameter missing: room_id"
+    MissingMemberUsernameExample:
+      summary: No username given
+      value: "Parameter missing: username"
   parameters:
     member_id:
       name: member_id
@@ -222,6 +223,9 @@ components:
     missingRoomIdMessage:
       type: string
       example: "Parameter missing: room_id"
+    missingMemberUsername:
+      type: string
+      example: "Parameter missing: username"
     balance:
       type: integer
       example: 20000
@@ -490,6 +494,19 @@ components:
           schema:
             type: string
             example: Invalid input for MobilePay QR code generation
+    MemberUsernameParameter_BadResponse:
+      description: Member does not exist, or missing parameter.
+      content:
+        text/html:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/memberNotFoundMessage'
+              - $ref: '#/components/schemas/missingMemberUsername'
+          examples:
+            memberNotFound:
+              $ref: '#/components/examples/MemberNotFoundExample'
+            missingMemberUsername:
+              $ref: '#/components/examples/MissingMemberUsernameExample'
     MemberIdParameter_BadResponse:
       description: Member does not exist, invalid member ID, or missing parameter.
       content:
@@ -547,10 +564,3 @@ components:
               $ref: '#/components/examples/InvalidRoomIdExample'
             missingRoomId:
               $ref: '#/components/examples/MissingRoomIdExample'
-    MissingMemberUsername:
-      description: No username given.
-      content:
-        text/html:
-          schema:
-            type: string
-            example: "Parameter missing: username"
