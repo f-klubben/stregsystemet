@@ -34,7 +34,7 @@ paths:
         '200':
           $ref: '#/components/responses/MemberFound'
         '400':
-          $ref: '#/components/responses/Member_BadResponse'
+          $ref: '#/components/responses/MemberIdParameter_BadResponse'
   /api/member/balance:
     get:
       tags:
@@ -48,7 +48,7 @@ paths:
         '200':
           $ref: '#/components/responses/MemberFound_Balance'
         '400':
-          $ref: '#/components/responses/Member_BadResponse'
+          $ref: '#/components/responses/MemberIdParameter_BadResponse'
   /api/member/active:
     get:
       tags:
@@ -62,7 +62,7 @@ paths:
         '200':
           $ref: '#/components/responses/MemberFound_Active'
         '400':
-          $ref: '#/components/responses/Member_BadResponse'
+          $ref: '#/components/responses/MemberIdParameter_BadResponse'
   /api/member/sales:
     get:
       tags:
@@ -76,7 +76,7 @@ paths:
         '200':
           $ref: '#/components/responses/MemberFound_Sales'
         '400':
-          $ref: '#/components/responses/Member_BadResponse'
+          $ref: '#/components/responses/MemberIdParameter_BadResponse'
   /api/member/get_id:
     get:
       tags:
@@ -486,7 +486,7 @@ components:
           schema:
             type: string
             example: Invalid input for MobilePay QR code generation
-    Member_BadResponse:
+    MemberIdParameter_BadResponse:
       description: Member does not exist, invalid member ID, or missing parameter.
       content:
         text/html:
