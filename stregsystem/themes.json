@@ -40,7 +40,7 @@
     {
         "name": "adventcandle",
         "html": "adventcandle.html",
-        "js": "adventcandle.js",
+        "css": "adventcandle.css",
         "begin": {
             "month": 12
         },
