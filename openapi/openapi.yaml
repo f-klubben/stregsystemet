@@ -130,12 +130,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/ActiveProducts'
-        '400 Room Not Found':
-          $ref: '#/components/responses/RoomNotFound'
-        '400 Invalid Room ID':
-          $ref: '#/components/responses/InvalidRoomId'
-        '400 Missing Room ID':
-          $ref: '#/components/responses/MissingRoomId'
+        '400':
+          $ref: '#/components/responses/RoomIdParameter_BadResponse'
   /api/products/category_mappings:
     get:
       tags:
@@ -179,6 +175,15 @@ components:
     MissingMemberIdExample:
       summary: No member ID given
       value: "Parameter missing: member_id"
+    RoomNotFoundExample:
+      summary: Room does not exist
+      value: "Room not found"
+    InvalidRoomIdExample:
+      summary: Room ID is invalid
+      value: "Parameter invalid: room_id"
+    MissingRoomIdExample:
+      summary: No room ID given
+      value: "Parameter missing: room_id"
   parameters:
     member_id:
       name: member_id
@@ -218,6 +223,15 @@ components:
     missingMemberIdMessage:
       type: string
       example: "Parameter missing: member_id"
+    roomNotFoundMessage:
+      type: string
+      example: Room not found
+    invalidRoomIdMessage:
+      type: string
+      example: "Parameter invalid: room_id"
+    missingRoomIdMessage:
+      type: string
+      example: "Parameter missing: room_id"
     balance:
       type: integer
       example: 20000
@@ -502,6 +516,22 @@ components:
               $ref: '#/components/examples/InvalidMemberIdExample'
             missingMemberId:
               $ref: '#/components/examples/MissingMemberIdExample'
+    RoomIdParameter_BadResponse:
+      description: Room does not exist, invalid room ID, or missing parameter.
+      content:
+        text/html:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/roomNotFoundMessage'
+              - $ref: '#/components/schemas/invalidRoomIdMessage'
+              - $ref: '#/components/schemas/missingRoomIdMessage'
+          examples:
+            roomNotFound:
+              $ref: '#/components/examples/RoomNotFoundExample'
+            invalidRoomId:
+              $ref: '#/components/examples/InvalidRoomIdExample'
+            missingRoomId:
+              $ref: '#/components/examples/MissingRoomIdExample'
     MemberNotFound:
       description: Member does not exist.
       content:
