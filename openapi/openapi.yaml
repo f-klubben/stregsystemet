@@ -547,48 +547,6 @@ components:
               $ref: '#/components/examples/InvalidRoomIdExample'
             missingRoomId:
               $ref: '#/components/examples/MissingRoomIdExample'
-    MemberNotFound:
-      description: Member does not exist.
-      content:
-        text/html:
-          schema:
-            type: string
-            example: Member not found
-    RoomNotFound:
-      description: Room does not exist.
-      content:
-        text/html:
-          schema:
-            type: string
-            example: Room not found
-    InvalidMemberId:
-      description: Member ID is invalid.
-      content:
-        text/html:
-          schema:
-            type: string
-            example: "Parameter invalid: member_id"
-    MissingMemberId:
-      description: No member ID given.
-      content:
-        text/html:
-          schema:
-            type: string
-            example: "Parameter missing: member_id"
-    InvalidRoomId:
-      description: Room ID is invalid.
-      content:
-        text/html:
-          schema:
-            type: string
-            example: "Parameter invalid: room_id"
-    MissingRoomId:
-      description: No room ID given.
-      content:
-        text/html:
-          schema:
-            type: string
-            example: "Parameter missing: room_id"
     MissingMemberUsername:
       description: No username given.
       content:
