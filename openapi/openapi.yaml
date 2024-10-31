@@ -106,8 +106,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/QRCodeGenerated'
-        '400 Invalid Input':
-          $ref: '#/components/responses/InvalidQRInput'
+        '400':
+          $ref: '#/components/responses/InvalidQRInputResponse'
   /api/products/named_products:
     get:
       tags:
@@ -483,7 +483,7 @@ components:
         image/svg+xml:
           schema:
             type: string
-    InvalidQRInput:
+    InvalidQRInputResponse:
       description: Invalid input has been provided.
       content:
         text/html:
