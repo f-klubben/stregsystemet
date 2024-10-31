@@ -47,12 +47,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/MemberFound_Balance'
-        '400 Member Not Found':
-          $ref: '#/components/responses/MemberNotFound'
-        '400 Invalid Member ID':
-          $ref: '#/components/responses/InvalidMemberId'
-        '400 Missing Member ID':
-          $ref: '#/components/responses/MissingMemberId'
+        '400':
+          $ref: '#/components/responses/Member_BadResponse'
   /api/member/active:
     get:
       tags:
@@ -65,12 +61,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/MemberFound_Active'
-        '400 Member Not Found':
-          $ref: '#/components/responses/MemberNotFound'
-        '400 Invalid member ID':
-          $ref: '#/components/responses/InvalidMemberId'
-        '400 Missing Member ID':
-          $ref: '#/components/responses/MissingMemberId'
+        '400':
+          $ref: '#/components/responses/Member_BadResponse'
   /api/member/sales:
     get:
       tags:
@@ -83,12 +75,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/MemberFound_Sales'
-        '400 Member Not Found':
-          $ref: '#/components/responses/MemberNotFound'
-        '400 Invalid member ID':
-          $ref: '#/components/responses/InvalidMemberId'
-        '400 Missing Member ID':
-          $ref: '#/components/responses/MissingMemberId'
+        '400':
+          $ref: '#/components/responses/Member_BadResponse'
   /api/member/get_id:
     get:
       tags:
