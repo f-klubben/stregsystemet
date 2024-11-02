@@ -68,7 +68,7 @@ paths:
       tags:
         - Member
       summary: Get member sales
-      description: Gets a list of a member's sales.
+      description: Gets a list of a member's purchases.
       operationId: get_member_sales
       parameters:
         - $ref: '#/components/parameters/member_id'
