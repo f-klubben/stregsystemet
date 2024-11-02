@@ -573,7 +573,7 @@ def get_payment_qr(request):
     if not form.is_valid():
         return HttpResponseBadRequest("Invalid input for MobilePay QR code generation")
 
-    username = form.cleaned_data.get('member')
+    username = form.cleaned_data.get('username')
     amount = form.cleaned_data.get('amount')
 
     return qr_code(mobilepay_launch_uri(username, amount))
