@@ -144,8 +144,8 @@ paths:
     post:
       tags:
         - Sale
-      summary: Perform a sale using a buy-string
-      description: something.
+      summary: Posts a sale using a buy-string
+      description: Performs a sale by a buy-string, room and member id, then returns info regarding the purchase.
       operationId: sale
       requestBody:
         required: true
