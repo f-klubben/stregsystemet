@@ -147,6 +147,12 @@ paths:
       summary: Perform a sale using a buy-string
       description: something.
       operationId: sale
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/sale_input'
       responses:
         '200':
           $ref: '#/components/responses/SaleSuccess'
@@ -265,6 +271,15 @@ components:
       properties:
         beer:
           $ref: '#/components/schemas/product_id'
+    sale_input:
+      type: object
+      properties:
+        member_id:
+          $ref: '#/components/schemas/member_id'
+        buystring:
+          $ref: '#/components/schemas/buystring'
+        room:
+          $ref: '#/components/schemas/room_id'
     active_product:
       type: object
       properties:
@@ -277,6 +292,9 @@ components:
       properties:
         123:
           $ref: '#/components/schemas/active_product'
+    buystring:
+      type: string
+      example: "kresten beer:2"
     category_name:
       type: string
       example: "Alcohol"
