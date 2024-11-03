@@ -13,6 +13,7 @@ externalDocs:
   url: https://github.com/f-klubben/stregsystemet/
 servers:
   - url: https://stregsystem.fklub.dk
+  - url: http://127.0.0.1:8000
 tags:
   - name: Member
     description: Related to the individual member page.
