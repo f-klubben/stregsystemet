@@ -294,7 +294,7 @@ components:
           $ref: '#/components/schemas/active_product'
     buystring:
       type: string
-      example: "kresten beer:2"
+      example: "kresten beer:3"
     category_name:
       type: string
       example: "Alcohol"
