@@ -471,19 +471,19 @@ components:
       description: Dictionary of all named_product names.
       content:
         application/json:
-          schema:
+          example:
             $ref: '#/components/schemas/named_products_example'
     ActiveProducts:
       description: Dictionary of all activated products, with their name and price (in stregører).
       content:
         application/json:
-          schema:
+          example:
             $ref: '#/components/schemas/active_products_example'
     CategoryMappings:
       description: Dictionary of all activated products, with their mapped categories (both category name and ID).
       content:
         application/json:
-          schema:
+          example:
             $ref: '#/components/schemas/category_mappings_example'
     SaleSuccess:
       description: An object containing various statistics and info regarding the purchase.
