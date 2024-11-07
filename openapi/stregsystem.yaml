@@ -30,7 +30,7 @@ paths:
       description: Gets a member's balance, username, active-status and name.
       operationId: get_member_info
       parameters:
-        - $ref: '#/components/parameters/member_id'
+        - $ref: '#/components/parameters/member_id_param'
       responses:
         '200':
           $ref: '#/components/responses/MemberFound'
@@ -44,7 +44,7 @@ paths:
       description: Gets a member's balance.
       operationId: get_member_balance
       parameters:
-        - $ref: '#/components/parameters/member_id'
+        - $ref: '#/components/parameters/member_id_param'
       responses:
         '200':
           $ref: '#/components/responses/MemberFound_Balance'
@@ -58,7 +58,7 @@ paths:
       description: Gets whether a member is active.
       operationId: get_member_active
       parameters:
-        - $ref: '#/components/parameters/member_id'
+        - $ref: '#/components/parameters/member_id_param'
       responses:
         '200':
           $ref: '#/components/responses/MemberFound_Active'
@@ -72,7 +72,7 @@ paths:
       description: Gets a list of a member's purchases.
       operationId: get_member_sales
       parameters:
-        - $ref: '#/components/parameters/member_id'
+        - $ref: '#/components/parameters/member_id_param'
       responses:
         '200':
           $ref: '#/components/responses/MemberFound_Sales'
@@ -86,7 +86,7 @@ paths:
       description: Gets a member's ID from their username.
       operationId: get_member_id
       parameters:
-       - $ref: '#/components/parameters/username'
+       - $ref: '#/components/parameters/username_param'
       responses:
         '200':
           $ref: '#/components/responses/MemberFound_ID'
@@ -100,8 +100,8 @@ paths:
       description: Returns a QR code for payment for a member.
       operationId: get_payment_qr
       parameters:
-        - $ref: '#/components/parameters/username'
-        - $ref: '#/components/parameters/amount'
+        - $ref: '#/components/parameters/username_param'
+        - $ref: '#/components/parameters/amount_param'
       responses:
         '200':
           $ref: '#/components/responses/QRCodeGenerated'
@@ -125,7 +125,7 @@ paths:
       description: Dictionary of products, key is product ID, value is product name and product price.
       operationId: dump_active_products
       parameters:
-        - $ref: '#/components/parameters/room_id'
+        - $ref: '#/components/parameters/room_id_param'
       responses:
         '200':
           $ref: '#/components/responses/ActiveProducts'
@@ -183,28 +183,28 @@ components:
       summary: No username given
       value: "Parameter missing: username"
   parameters:
-    member_id:
+    member_id_param:
       name: member_id
       in: query
       description: ID of the member to retrieve.
       required: true
       schema:
         $ref: '#/components/schemas/member_id'
-    room_id:
+    room_id_param:
       name: room_id
       in: query
       description: ID of the room to retrieve.
       required: true
       schema:
         $ref: '#/components/schemas/room_id'
-    username:
+    username_param:
       name: username
       in: query
       description: Username of the member.
       required: true
       schema:
         $ref: '#/components/schemas/username'
-    amount:
+    amount_param:
       name: amount
       in: query
       description: Amount of money in streg-oere.
