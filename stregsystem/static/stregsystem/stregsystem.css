@@ -4,6 +4,9 @@ body {
 }
 
 header {
+  position: sticky;
+  top: 0;
+  background-color: Canvas;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   padding: 3px 4vw;
