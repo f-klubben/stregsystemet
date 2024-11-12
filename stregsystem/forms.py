@@ -108,6 +108,7 @@ class SignupForm(forms.ModelForm):
             'username': {
                 'required': 'Udfyldning af `Brugernavn` er påkrævet.',
                 'max_length': 'Længden af `Brugernavn` må ikke overstige 16 tegn.',
+                'invalid_username': 'Det indtastede `Brugernavn` må ikke indholde whitespaces',
             },
             'email': {
                 'required': 'Udfyldning af `E-Mail` er påkrævet.',
