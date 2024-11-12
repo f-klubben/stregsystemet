@@ -12,8 +12,21 @@
     padding-top: .8em;
     padding-bottom: 1em;
   }
-  #productlist {
+  #product-buy-form {
     padding-bottom: 1em;
+
+    & button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font: inherit;
+      text-decoration: underline;
+      color: LinkText;
+
+      &:active{
+        color: ActiveText;
+      }
+    }
   }
 </style>
 {% endblock %}
@@ -76,58 +89,51 @@
   {% endblock %}
   </div>
 
-  <div id="productlist" class="horizontal-table">
-    {% block products %}
-      {% autoescape off %}
-      {% if product_list %}
-        <table class="default">
-          <tr>
-            <th>Produkt</th>
-            <th>Pris</th>
-          </tr>
-          {% for product in product_list|partition:"2"|first %}
-            <tr>
-              <td>
-                <form method="post" action="/{{ room.id }}/sale/{{ member.id }}/">
-                  {% csrf_token %}
-                  <a href="" onclick="this.closest('form').submit();return false;">{{product.name}}</a>
-                  <input type="hidden" value="{{ product.id }}" name="product_id">
-                  <input type="hidden" value="{{ room.id }}" name="room_id">
-                  <input type="hidden" value="{{ member.id }}" name="member_id">
-                </form>
-              </td>
-              <td class="price">{{product.price|money}} kr</td>
-            </tr>
-          {% endfor %}
-        </table>
-        {% if product_list|partition:"2"|last %}
+  {% block products %}
+    {% autoescape off %}
+    {% if product_list %}
+      <form method="post" action="/{{ room.id }}/sale/{{ member.id }}/" id="product-buy-form" name="product-buy-form">
+        {% csrf_token %}
+        <input type="hidden" value="{{ room.id }}" name="room_id">
+        <input type="hidden" value="{{ member.id }}" name="member_id">
+        <div class="horizontal-table">
           <table class="default">
             <tr>
               <th>Produkt</th>
               <th>Pris</th>
             </tr>
-            {% for product in product_list|partition:"2"|last %}
-            <tr>
-              <td>
-                <form method="post" action="/{{ room.id }}/sale/{{ member.id }}/">
-                  {% csrf_token %}
-                  <a href="" onclick="this.closest('form').submit();return false;">{{product.name}}</a>
-                  <input type="hidden" value="{{ product.id }}" name="product_id">
-                  <input type="hidden" value="{{ room.id }}" name="room_id">
-                  <input type="hidden" value="{{ member.id }}" name="member_id">
-                </form>
-              </td>
-              <td class="price">{{product.price|money}} kr</td>
-            </tr>
+            {% for product in product_list|partition:"2"|first %}
+              <tr>
+                <td>
+                  <button value="{{ product.id }}" name="product_id">{{product.name}}</button>
+                </td>
+                <td class="price">{{product.price|money}} kr</td>
+              </tr>
             {% endfor %}
           </table>
-        {% endif %}
-      {% else %}
-        <p>Ingen produkter.</p>
+          {% if product_list|partition:"2"|last %}
+            <table class="default">
+              <tr>
+                <th>Produkt</th>
+                <th>Pris</th>
+              </tr>
+              {% for product in product_list|partition:"2"|last %}
+              <tr>
+                <td>
+                  <button value="{{ product.id }}" name="product_id">{{product.name}}</button>
+                </td>
+                <td class="price">{{product.price|money}} kr</td>
+              </tr>
+              {% endfor %}
+            </table>
+          </div>
+        </form>
       {% endif %}
-      {% endautoescape %}
-    {% endblock %}
-  </div>
+    {% else %}
+      <p>Ingen produkter.</p>
+    {% endif %}
+    {% endautoescape %}
+  {% endblock %}
   <br />
   {% include "stregsystem/purchase_heatmap.html" %}
 </main>
