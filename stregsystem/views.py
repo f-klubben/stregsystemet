@@ -739,12 +739,16 @@ def api_sale(request):
         room = str(data['room']) or None
         member_id = str(data['member_id']) or None
 
-        if room is None or not room.isdigit():
-            return HttpResponseBadRequest("Parameter missing or invalid: room")
+        if room is None:
+            return HttpResponseBadRequest("Parameter missing: room")
+        if not room.isdigit():
+            return HttpResponseBadRequest("Parameter invalid: room")
         if buy_string is None:
             return HttpResponseBadRequest("Parameter missing: buystring")
-        if member_id is None or not member_id.isdigit():
-            return HttpResponseBadRequest("Parameter missing or invalid: member_id")
+        if member_id is None:
+            return HttpResponseBadRequest("Parameter missing: member_id")
+        if not member_id.isdigit():
+            return HttpResponseBadRequest("Parameter invalid: member_id")
 
         try:
             username, bought_ids = parser.parse(_pre_process(buy_string))
