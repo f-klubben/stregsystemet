@@ -740,11 +740,11 @@ def api_sale(request):
         member_id = str(data['member_id']) or None
 
         if room is None or not room.isdigit():
-            return HttpResponseBadRequest("Missing or invalid room")
+            return HttpResponseBadRequest("Parameter missing or invalid: room")
         if buy_string is None:
-            return HttpResponseBadRequest("Missing buystring")
+            return HttpResponseBadRequest("Parameter missing: buystring")
         if member_id is None or not member_id.isdigit():
-            return HttpResponseBadRequest("Missing or invalid member_id")
+            return HttpResponseBadRequest("Parameter missing or invalid: member_id")
 
         try:
             username, bought_ids = parser.parse(_pre_process(buy_string))
@@ -753,7 +753,7 @@ def api_sale(request):
 
         member = find_user_from_id(int(member_id))
         if member is None:
-            return HttpResponseBadRequest("Invalid member_id")
+            return HttpResponseBadRequest("Parameter invalid: member_id")
 
         if not member.signup_due_paid:
             return HttpResponseBadRequest("Signup due not paid")
@@ -770,7 +770,7 @@ def api_sale(request):
         try:
             room = Room.objects.get(pk=room)
         except Room.DoesNotExist:
-            return HttpResponseBadRequest("Invalid room")
+            return HttpResponseBadRequest("Parameter invalid: room")
         msg, status, ret_obj = api_quicksale(request, room, member, bought_ids)
         return JsonResponse(
             {'status': status, 'msg': msg, 'values': ret_obj}, json_dumps_params={'ensure_ascii': False}
