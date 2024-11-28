@@ -40,19 +40,23 @@
     <input type="button" onclick="location.href='/signup'" value="Tilmeld" tabindex="12"/>
   </div>
 </header>
-<hr>
-
+<div id="base-content">
 {% block content %}{% endblock %}
-
-<hr>
-
-<div id="news">
-{% block news %}
-{% if news %}
-<marquee><b>{{news.text}}</b></marquee>
-{% endif %}
-{% endblock %}
 </div>
+<footer>
+  <div id="news">
+  {% block news %}
+  {% if news %}
+  <marquee><b>{{news.text}}</b></marquee>
+  {% endif %}
+  {% endblock %}
+  </div>
+  <ul id="footer-notes">
+    <li>Skabt med ☕ og 🖤 af Fklubben</li>
+    <li><a target="_blank" href="https://fklub.dk/tos">Terms of Service</a></li>
+    <li><a target="_blank" href="https://github.com/f-klubben/stregsystemet">Se koden</a></li>
+  </ul>
+</footer>
 {% theme_content %}
 </body>
 </html>
