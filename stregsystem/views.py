@@ -1,7 +1,6 @@
 import datetime
 import io
 import json
-import urllib.parse
 from typing import List, Type
 
 import pytz
