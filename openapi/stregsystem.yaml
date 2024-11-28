@@ -28,7 +28,7 @@ paths:
         - Member
       summary: Get member info
       description: Gets a member's balance, username, active-status and name.
-      operationId: get_member_info
+      operationId: api_member_info
       parameters:
         - $ref: '#/components/parameters/member_id_param'
       responses:
@@ -42,7 +42,7 @@ paths:
         - Member
       summary: Get member balance
       description: Gets a member's balance.
-      operationId: get_member_balance
+      operationId: api_member_balance
       parameters:
         - $ref: '#/components/parameters/member_id_param'
       responses:
@@ -56,7 +56,7 @@ paths:
         - Member
       summary: Get member active-status
       description: Gets whether a member is active.
-      operationId: get_member_active
+      operationId: api_member_active
       parameters:
         - $ref: '#/components/parameters/member_id_param'
       responses:
@@ -70,7 +70,7 @@ paths:
         - Member
       summary: Get member sales
       description: Gets a list of a member's purchases.
-      operationId: get_member_sales
+      operationId: api_member_sales
       parameters:
         - $ref: '#/components/parameters/member_id_param'
       responses:
@@ -84,7 +84,7 @@ paths:
         - Member
       summary: Get member ID
       description: Gets a member's ID from their username.
-      operationId: get_member_id
+      operationId: api_member_id
       parameters:
        - $ref: '#/components/parameters/username_param'
       responses:
@@ -98,7 +98,7 @@ paths:
         - Member
       summary: Get payment QR code
       description: Returns a QR code for payment for a member.
-      operationId: get_payment_qr
+      operationId: api_payment_qr
       parameters:
         - $ref: '#/components/parameters/username_param'
         - $ref: '#/components/parameters/amount_param'
@@ -113,7 +113,7 @@ paths:
         - Products
       summary: Gets dictionary of named products
       description: Returns a dictionary of all named products with their product ID. A named product is a shorthand associated with a product ID.
-      operationId: dump_named_products
+      operationId: api_named_products
       responses:
         '200':
           $ref: '#/components/responses/NamedProducts'
@@ -123,7 +123,7 @@ paths:
         - Products
       summary: Gets dictionary of products that are active
       description: Dictionary of products, key is product ID, value is product name and product price.
-      operationId: dump_active_products
+      operationId: api_active_products
       parameters:
         - $ref: '#/components/parameters/room_id_param'
       responses:
@@ -137,7 +137,7 @@ paths:
         - Products
       summary: Gets a dictionary of products with categories
       description: Dictionary of product IDs with category ID and category name as value.
-      operationId: dump_category_mappings
+      operationId: api_category_mappings
       responses:
         '200':
           $ref: '#/components/responses/CategoryMappings'
@@ -147,7 +147,7 @@ paths:
         - Sale
       summary: Posts a sale using a buy-string
       description: Performs a sale by a buy-string, room and member id, then returns info regarding the purchase.
-      operationId: sale
+      operationId: api_sale
       requestBody:
         required: true
         content:
