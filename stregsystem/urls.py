@@ -39,8 +39,8 @@ urlpatterns = [
     re_path(r'^api/member/get_id$', views.get_member_id, name="get_member_id"),
     re_path(r'^api/member/balance$', views.get_member_balance, name="get_member_balance"),
     re_path(r'^api/member$', views.get_member_info, name="get_member_info"),
-    re_path(r'^api/products/named_products$', views.dump_named_products, name="dump_named_products"),
-    re_path(r'^api/products/active_products$', views.dump_active_items, name="dump_active_products"),
-    re_path(r'^api/products/category_mappings$', views.dump_product_category_mappings, name="product_mappings"),
+    re_path(r'^api/products/named_products$', views.get_named_products, name="get_named_products"),
+    re_path(r'^api/products/active_products$', views.get_active_items, name="get_active_products"),
+    re_path(r'^api/products/category_mappings$', views.get_product_category_mappings, name="get_product_mappings"),
     re_path(r'^api/sale$', views.api_sale, name="sale"),
 ]

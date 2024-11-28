@@ -621,7 +621,7 @@ def signup_status(request, signup_id):
     return render(request, "stregsystem/signup_status.html", locals())
 
 
-def dump_active_items(request):
+def get_active_items(request):
     room_id = request.GET.get('room_id') or None
     if room_id is None:
         return HttpResponseBadRequest("Parameter missing: room_id")
@@ -659,7 +659,7 @@ def get_member_id(request):
     return JsonResponse({'member_id': member.id})
 
 
-def dump_product_category_mappings(request):
+def get_product_category_mappings(request):
     return JsonResponse(
         {
             p.id: [{'category_id': cat.id, 'category_name': cat.name} for cat in p.categories.all()]
@@ -722,7 +722,7 @@ def find_user_from_id(user_id: int):
         return None
 
 
-def dump_named_products(request):
+def get_named_products(request):
     items = NamedProduct.objects.all()
     items_dict = {item.name: item.product.id for item in items}
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
