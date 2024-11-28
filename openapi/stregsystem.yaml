@@ -1,0 +1,585 @@
+openapi: 3.0.3
+info:
+  title: Stregsystem
+  description: |-
+    This is the API implemented in the Stregsystem Django App.
+    The API describes ways to interact with Stregsystem without using the web-interface.
+    Existing client software utilizing the API include Stregsystem-CLI (STS) and Fappen (F-Club Web App).
+    
+    Disclaimer - The implementation is not generated using this specification, therefore they can get out of sync if changes are made directly to the codebase without updating the OpenAPI specification file accordingly.
+  version: "1.1"
+externalDocs:
+  description: Find out more about Stregsystemet at GitHub.
+  url: https://github.com/f-klubben/stregsystemet/
+servers:
+  - url: https://stregsystem.fklub.dk
+  - url: http://127.0.0.1:8000
+tags:
+  - name: Member
+    description: Related to the individual member page.
+  - name: Products
+    description: Related to the products.
+  - name: Sale
+    description: Related to performing a sale.
+paths:
+  /api/member:
+    get:
+      tags:
+        - Member
+      summary: Get member info
+      description: Gets a member's balance, username, active-status and name.
+      operationId: api_member_info
+      parameters:
+        - $ref: '#/components/parameters/member_id_param'
+      responses:
+        '200':
+          $ref: '#/components/responses/MemberFound'
+        '400':
+          $ref: '#/components/responses/MemberIdParameter_BadResponse'
+  /api/member/balance:
+    get:
+      tags:
+        - Member
+      summary: Get member balance
+      description: Gets a member's balance.
+      operationId: api_member_balance
+      parameters:
+        - $ref: '#/components/parameters/member_id_param'
+      responses:
+        '200':
+          $ref: '#/components/responses/MemberFound_Balance'
+        '400':
+          $ref: '#/components/responses/MemberIdParameter_BadResponse'
+  /api/member/active:
+    get:
+      tags:
+        - Member
+      summary: Get member active-status
+      description: Gets whether a member is active.
+      operationId: api_member_active
+      parameters:
+        - $ref: '#/components/parameters/member_id_param'
+      responses:
+        '200':
+          $ref: '#/components/responses/MemberFound_Active'
+        '400':
+          $ref: '#/components/responses/MemberIdParameter_BadResponse'
+  /api/member/sales:
+    get:
+      tags:
+        - Member
+      summary: Get member sales
+      description: Gets a list of a member's purchases.
+      operationId: api_member_sales
+      parameters:
+        - $ref: '#/components/parameters/member_id_param'
+      responses:
+        '200':
+          $ref: '#/components/responses/MemberFound_Sales'
+        '400':
+          $ref: '#/components/responses/MemberIdParameter_BadResponse'
+  /api/member/get_id:
+    get:
+      tags:
+        - Member
+      summary: Get member ID
+      description: Gets a member's ID from their username.
+      operationId: api_member_id
+      parameters:
+       - $ref: '#/components/parameters/username_param'
+      responses:
+        '200':
+          $ref: '#/components/responses/MemberFound_ID'
+        '400':
+          $ref: '#/components/responses/MemberUsernameParameter_BadResponse'
+  /api/member/payment/qr:
+    get:
+      tags:
+        - Member
+      summary: Get payment QR code
+      description: Returns a QR code for payment for a member.
+      operationId: api_payment_qr
+      parameters:
+        - $ref: '#/components/parameters/username_param'
+        - $ref: '#/components/parameters/amount_param'
+      responses:
+        '200':
+          $ref: '#/components/responses/QRCodeGenerated'
+        '400':
+          $ref: '#/components/responses/InvalidQRInputResponse'
+  /api/products/named_products:
+    get:
+      tags:
+        - Products
+      summary: Gets dictionary of named products
+      description: Returns a dictionary of all named products with their product ID. A named product is a shorthand associated with a product ID.
+      operationId: api_named_products
+      responses:
+        '200':
+          $ref: '#/components/responses/NamedProducts'
+  /api/products/active_products:
+    get:
+      tags:
+        - Products
+      summary: Gets dictionary of products that are active
+      description: Dictionary of products, key is product ID, value is product name and product price.
+      operationId: api_active_products
+      parameters:
+        - $ref: '#/components/parameters/room_id_param'
+      responses:
+        '200':
+          $ref: '#/components/responses/ActiveProducts'
+        '400':
+          $ref: '#/components/responses/RoomIdParameter_BadResponse'
+  /api/products/category_mappings:
+    get:
+      tags:
+        - Products
+      summary: Gets a dictionary of products with categories
+      description: Dictionary of product IDs with category ID and category name as value.
+      operationId: api_category_mappings
+      responses:
+        '200':
+          $ref: '#/components/responses/CategoryMappings'
+  /api/sale:
+    post:
+      tags:
+        - Sale
+      summary: Posts a sale using a buy-string
+      description: Performs a sale by a buy-string, room and member id, then returns info regarding the purchase.
+      operationId: api_sale
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/sale_input'
+      responses:
+        '200':
+          $ref: '#/components/responses/SaleSuccess'
+        '400':
+          $ref: '#/components/responses/Member_RoomIdParameter_BadResponse'
+components:
+  examples:
+    MemberNotFoundExample:
+      summary: Member does not exist
+      value: "Member not found"
+    InvalidMemberIdExample:
+      summary: Member ID is invalid
+      value: "Parameter invalid: member_id"
+    MissingMemberIdExample:
+      summary: No member ID given
+      value: "Parameter missing: member_id"
+    RoomNotFoundExample:
+      summary: Room does not exist
+      value: "Room not found"
+    InvalidRoomIdExample:
+      summary: Room ID is invalid
+      value: "Parameter invalid: room_id"
+    MissingRoomIdExample:
+      summary: No room ID given
+      value: "Parameter missing: room_id"
+    MissingMemberUsernameExample:
+      summary: No username given
+      value: "Parameter missing: username"
+  parameters:
+    member_id_param:
+      name: member_id
+      in: query
+      description: ID of the member to retrieve.
+      required: true
+      schema:
+        $ref: '#/components/schemas/member_id'
+    room_id_param:
+      name: room_id
+      in: query
+      description: ID of the room to retrieve.
+      required: true
+      schema:
+        $ref: '#/components/schemas/room_id'
+    username_param:
+      name: username
+      in: query
+      description: Username of the member.
+      required: true
+      schema:
+        $ref: '#/components/schemas/username'
+    amount_param:
+      name: amount
+      in: query
+      description: Amount of money in streg-oere.
+      required: false
+      schema:
+        $ref: '#/components/schemas/stregoere_balance'
+  schemas:
+    memberNotFoundMessage:
+      type: string
+      example: Member not found
+    invalidMemberIdMessage:
+      type: string
+      example: "Parameter invalid: member_id"
+    missingMemberIdMessage:
+      type: string
+      example: "Parameter missing: member_id"
+    roomNotFoundMessage:
+      type: string
+      example: Room not found
+    invalidRoomIdMessage:
+      type: string
+      example: "Parameter invalid: room_id"
+    missingRoomIdMessage:
+      type: string
+      example: "Parameter missing: room_id"
+    missingMemberUsername:
+      type: string
+      example: "Parameter missing: username"
+    balance:
+      type: integer
+      example: 20000
+    username:
+      type: string
+      example: kresten
+    active:
+      type: boolean
+      example: true
+    name:
+      type: string
+      example: Kresten Laust
+    member_id:
+      type: integer
+      example: 321
+    room_id:
+      type: integer
+      example: 10
+    timestamp:
+      type: string
+      format: date-time
+      example: 2004-01-07T15:30:55Z
+    product_name:
+      type: string
+      example: Beer
+    product_id:
+      type: integer
+      example: 123
+    stregoere_price:
+      type: integer
+      example: 600
+    stregoere_balance:
+      type: integer
+      example: 20000
+    named_products_example:
+      type: object
+      properties:
+        beer:
+          $ref: '#/components/schemas/product_id'
+    sale_input:
+      type: object
+      properties:
+        member_id:
+          $ref: '#/components/schemas/member_id'
+        buystring:
+          $ref: '#/components/schemas/buystring'
+        room:
+          $ref: '#/components/schemas/room_id'
+    active_product:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/product_name'
+        price:
+          $ref: '#/components/schemas/stregoere_price'
+    active_products_example:
+      type: object
+      properties:
+        123:
+          $ref: '#/components/schemas/active_product'
+    buystring:
+      type: string
+      example: "kresten beer:3"
+    category_name:
+      type: string
+      example: "Alcohol"
+    category_id:
+      type: integer
+      example: 11
+    category:
+      type: object
+      properties:
+        category_id:
+          $ref: '#/components/schemas/category_id'
+        category_name:
+          $ref: '#/components/schemas/category_name'
+    category_mapping:
+      type: array
+      items:
+        $ref: '#/components/schemas/category'
+    category_mappings_example:
+      type: object
+      properties:
+        123:
+          $ref: '#/components/schemas/category_mapping'
+    created_on:
+      type: string
+      format: date
+      example: "2024-05-12T18:26:09.508Z"
+    promille:
+      type: number
+      format: float
+      example: 0.2
+    is_ballmer_peaking:
+      type: boolean
+      example: false
+    bp_minutes:
+      type: integer
+      nullable: true
+      example: 2
+    bp_seconds:
+      type: integer
+      nullable: true
+      example: 30
+    caffeine:
+      type: integer
+      example: 2
+    cups:
+      type: integer
+      example: 4
+    product_contains_caffeine:
+      type: boolean
+      example: true
+    is_coffee_master:
+      type: boolean
+      example: false
+    give_multibuy_hint:
+      type: boolean
+      example: true
+    sale_hints:
+      type: string
+      example: "<span class=\"username\">kresten</span> beer:3"
+    member_has_low_balance:
+      type: boolean
+      example: false
+    sale_values_result_example:
+      type: object
+      properties:
+        order:
+          type: object
+          properties:
+            room:
+              $ref: '#/components/schemas/room_id'
+            member:
+              $ref: '#/components/schemas/member_id'
+            created_on:
+              $ref: '#/components/schemas/created_on'
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/product_id'
+        promille:
+          $ref: '#/components/schemas/promille'
+        is_ballmer_peaking:
+          $ref: '#/components/schemas/is_ballmer_peaking'
+        bp_minutes:
+          $ref: '#/components/schemas/bp_minutes'
+        bp_seconds:
+          $ref: '#/components/schemas/bp_seconds'
+        caffeine:
+          $ref: '#/components/schemas/caffeine'
+        cups:
+          $ref: '#/components/schemas/cups'
+        product_contains_caffeine:
+          $ref: '#/components/schemas/product_contains_caffeine'
+        is_coffee_master:
+          $ref: '#/components/schemas/is_coffee_master'
+        cost:
+          $ref: '#/components/schemas/stregoere_price'
+        give_multibuy_hint:
+          $ref: '#/components/schemas/give_multibuy_hint'
+        sale_hints:
+          $ref: '#/components/schemas/sale_hints'
+        member_has_low_balance:
+          $ref: '#/components/schemas/member_has_low_balance'
+        member_balance:
+          $ref: '#/components/schemas/stregoere_balance'
+    sale:
+      type: object
+      properties:
+        timestamp:
+          $ref: '#/components/schemas/timestamp'
+        product:
+          $ref: '#/components/schemas/product_name'
+        price:
+          $ref: '#/components/schemas/stregoere_price'
+    sales:
+      type: array
+      items:
+        $ref: '#/components/schemas/sale'
+    MemberInfo:
+      type: object
+      properties:
+        balance:
+          $ref: '#/components/schemas/balance'
+        username:
+          $ref: '#/components/schemas/username'
+        active:
+          $ref: '#/components/schemas/active'
+        name:
+          $ref: '#/components/schemas/name'
+  responses:
+    MemberFound:
+      description: Member found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MemberInfo'
+    MemberFound_ID:
+      description: Member found.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              member_id:
+                $ref: '#/components/schemas/member_id'
+    MemberFound_Balance:
+      description: Member found.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              balance:
+                $ref: '#/components/schemas/balance'
+    MemberFound_Active:
+      description: Member found.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              active:
+                $ref: '#/components/schemas/active'
+    MemberFound_Sales:
+      description: Member found.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              sales:
+                $ref: '#/components/schemas/sales'
+    NamedProducts:
+      description: Dictionary of all named_product names.
+      content:
+        application/json:
+          example:
+            $ref: '#/components/schemas/named_products_example'
+    ActiveProducts:
+      description: Dictionary of all activated products, with their name and price (in stregører).
+      content:
+        application/json:
+          example:
+            $ref: '#/components/schemas/active_products_example'
+    CategoryMappings:
+      description: Dictionary of all activated products, with their mapped categories (both category name and ID).
+      content:
+        application/json:
+          example:
+            $ref: '#/components/schemas/category_mappings_example'
+    SaleSuccess:
+      description: An object containing various statistics and info regarding the purchase.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              msg:
+                type: string
+                example: "OK"
+              values:
+                $ref: '#/components/schemas/sale_values_result_example'
+    QRCodeGenerated:
+      description: QR code with link to open MobilePay with the provided information.
+      content:
+        image/svg+xml:
+          schema:
+            type: string
+    InvalidQRInputResponse:
+      description: Invalid input has been provided.
+      content:
+        text/html:
+          schema:
+            type: string
+            example: Invalid input for MobilePay QR code generation
+    MemberUsernameParameter_BadResponse:
+      description: Member does not exist, or missing parameter.
+      content:
+        text/html:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/memberNotFoundMessage'
+              - $ref: '#/components/schemas/missingMemberUsername'
+          examples:
+            memberNotFound:
+              $ref: '#/components/examples/MemberNotFoundExample'
+            missingMemberUsername:
+              $ref: '#/components/examples/MissingMemberUsernameExample'
+    MemberIdParameter_BadResponse:
+      description: Member does not exist, invalid member ID, or missing parameter.
+      content:
+        text/html:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/memberNotFoundMessage'
+              - $ref: '#/components/schemas/invalidMemberIdMessage'
+              - $ref: '#/components/schemas/missingMemberIdMessage'
+          examples:
+            memberNotFound:
+              $ref: '#/components/examples/MemberNotFoundExample'
+            invalidMemberId:
+              $ref: '#/components/examples/InvalidMemberIdExample'
+            missingMemberId:
+              $ref: '#/components/examples/MissingMemberIdExample'
+    RoomIdParameter_BadResponse:
+      description: Room does not exist, invalid room ID, or missing parameter.
+      content:
+        text/html:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/roomNotFoundMessage'
+              - $ref: '#/components/schemas/invalidRoomIdMessage'
+              - $ref: '#/components/schemas/missingRoomIdMessage'
+          examples:
+            roomNotFound:
+              $ref: '#/components/examples/RoomNotFoundExample'
+            invalidRoomId:
+              $ref: '#/components/examples/InvalidRoomIdExample'
+            missingRoomId:
+              $ref: '#/components/examples/MissingRoomIdExample'
+    Member_RoomIdParameter_BadResponse:
+      description: Room or member does not exist, invalid room or member ID, or missing parameter.
+      content:
+        text/html:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/memberNotFoundMessage'
+              - $ref: '#/components/schemas/invalidMemberIdMessage'
+              - $ref: '#/components/schemas/missingMemberIdMessage'
+              - $ref: '#/components/schemas/roomNotFoundMessage'
+              - $ref: '#/components/schemas/invalidRoomIdMessage'
+              - $ref: '#/components/schemas/missingRoomIdMessage'
+          examples:
+            memberNotFound:
+              $ref: '#/components/examples/MemberNotFoundExample'
+            invalidMemberId:
+              $ref: '#/components/examples/InvalidMemberIdExample'
+            missingMemberId:
+              $ref: '#/components/examples/MissingMemberIdExample'
+            roomNotFound:
+              $ref: '#/components/examples/RoomNotFoundExample'
+            invalidRoomId:
+              $ref: '#/components/examples/InvalidRoomIdExample'
+            missingRoomId:
+              $ref: '#/components/examples/MissingRoomIdExample'
