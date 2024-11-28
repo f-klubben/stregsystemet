@@ -1,6 +1,10 @@
 body {
-       color: black;
-       background-color: white;
+  color: black;
+  background-color: white;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 header {
@@ -10,6 +14,7 @@ header {
   column-gap: 4vw;
   text-align: center;
   place-items: center;
+  border-bottom: solid grey 1.5px;
 
   & .left {
     justify-self: start;
@@ -17,6 +22,10 @@ header {
   & .right {
     justify-self: end;
   }
+}
+
+#base-content {
+  flex: 1;
 }
 
 main {
@@ -138,6 +147,21 @@ table h2, table h3 {
     position: relative;
     z-index: 2147483647;
     image-rendering: pixelated;
+}
+
+footer {
+  text-align: center;
+  border-top: solid grey 1.5px;
+
+  #footer-notes {
+    & li {
+      display: inline;
+    
+    & ~ li::before {
+        content: '• ';
+      }
+    }
+  }
 }
 
 @keyframes blink-frame {

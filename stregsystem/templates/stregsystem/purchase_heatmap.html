@@ -152,7 +152,7 @@
     }
 
     function updateAllProductNumbers(hide=false){
-        document.querySelectorAll("input[name='product_id']")
+        document.querySelectorAll("button[name='product_id']")
             .forEach(p => changeProductCountElement(p.parentElement, 0, hide))
     }
 
@@ -184,7 +184,7 @@
         }
 
         for (const [product_id, count] of Object.entries(product_counts)){
-            const productCountElement = document.querySelector(`input[name='product_id'][value='${product_id}']`)?.parentElement;
+            const productCountElement = document.querySelector(`button[name='product_id'][value='${product_id}']`)?.parentElement;
 
             if (productCountElement === undefined){
                 console.warn(`Product doesn't exist in tabel: ${product_id}`);
