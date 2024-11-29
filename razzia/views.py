@@ -70,4 +70,5 @@ def new_razzia(request):
 @permission_required("stregreport.host_razzia")
 def razzia_members(request, razzia_id, title=None):
     razzia = get_object_or_404(Razzia, pk=razzia_id)
+    unique_members = razzia.members.all().distinct().count()
     return render(request, 'members.html', locals())
