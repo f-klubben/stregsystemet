@@ -1,7 +1,7 @@
 {% extends "admin/stregsystem/razzia/razzia.html" %}
 
-{% block title %}{{title|default:"Razzia"}}{% endblock %}
-{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Razzia</a><a href=".">&nbsp;&rsaquo;&nbsp;{{title|default:"Razzia"}}</a>&nbsp;&rsaquo;&nbsp;Members</div>{% endblock %}
+{% block title %}{{razzia.name}} - Members{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Razzia</a>&nbsp;&rsaquo;&nbsp;<a href=".">{{razzia.name}}</a>&nbsp;&rsaquo;&nbsp;Members</div>{% endblock %}
 
 {% block razzia_content %}
 	<p><a href="../{{razzia.pk}}">Back to razzia</a></p>
