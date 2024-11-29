@@ -1,6 +1,7 @@
 import datetime
 
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import permission_required, login_required
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
 
@@ -53,9 +54,17 @@ def razzia_view_single(request, razzia_id, queryname, title=None):
     return render(request, template, locals())
 
 
-@permission_required("razzia.browse_razzia")
+@login_required
 def razzia_menu(request, new_text=None, title=None):
     razzias = Razzia.objects.order_by('-pk')[:3]
+
+    if not request.user.has_perm("razzia.browse_razzia"):
+        if len(razzias) == 0:
+            # In case no razzias are available, default to no permission
+            raise PermissionDenied
+
+        return redirect('razzia_view', razzia_id=razzias[0].pk)
+
     return render(request, 'menu.html', locals())
 
 
