@@ -9,7 +9,7 @@ from stregsystem.models import Member
 
 
 # Create your views here.
-@permission_required("razzia.host_razzia")
+@permission_required("razzia.view_razzia")
 def razzia(request, razzia_id):
     if request.method == 'POST':
         return razzia_view_single(request, razzia_id, request.POST['username'])
@@ -17,7 +17,7 @@ def razzia(request, razzia_id):
         return razzia_view_single(request, razzia_id, None)
 
 
-@permission_required("razzia.host_razzia")
+@permission_required("razzia.view_razzia")
 def razzia_view_single(request, razzia_id, queryname, title=None):
     razzia = get_object_or_404(Razzia, pk=razzia_id)
 
@@ -59,7 +59,7 @@ def razzia_menu(request, new_text=None, title=None):
     return render(request, 'menu.html', locals())
 
 
-@permission_required("razzia.create_razzia")
+@permission_required("razzia.add_razzia")
 def new_razzia(request):
     razzia = Razzia(name="Foobar V2", turn_interval=datetime.timedelta(minutes=30))
     razzia.save()
@@ -67,7 +67,7 @@ def new_razzia(request):
     return redirect('razzia_view', razzia_id=razzia.pk)
 
 
-@permission_required("razzia.view_members")
+@permission_required("razzia.view_razziaentry")
 def razzia_members(request, razzia_id, title=None):
     razzia = get_object_or_404(Razzia, pk=razzia_id)
     unique_members = razzia.members.all().distinct().count()
