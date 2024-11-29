@@ -31,6 +31,16 @@ For Ubuntu with virtual envs:
 5. ???
 6. Profit
 
+For systems running the Nix package manager:
+1. Configure Nix to use nix-command and flakes
+ - `echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf`
+2. Start shell
+ - `nix develop`
+2. Or run the system
+ - `nix run . testserver stregsystem/fixtures/testdata.json`
+3. ???
+4. Profit
+
 For Mac users with virtual envs:
 1. Install python3.11 with pip
  - `brew install python@3.11`
@@ -42,7 +52,6 @@ For Mac users with virtual envs:
  - `pip install -r requirements.txt`
 5. ???
 6. Profit
-
 
 Using Testdata
 --------
