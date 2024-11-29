@@ -1,26 +1,27 @@
 import datetime
-import re
+import urllib.parse
+from abc import abstractmethod
 from collections import Counter
 from email.utils import parseaddr
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
-from django.core.validators import RegexValidator
 from django.contrib.contenttypes.models import ContentType
+from django.core.validators import RegexValidator
 from django.db import models, transaction
 from django.db.models import Count
 from django.utils import timezone
 
 from stregsystem.caffeine import Intake, CAFFEINE_TIME_INTERVAL, current_caffeine_in_body_compound_interest
 from stregsystem.deprecated import deprecated
+from stregsystem.mail import send_payment_mail, send_welcome_mail
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
     date_to_midnight,
     make_processed_mobilepayment_query,
     make_unprocessed_member_filled_mobilepayment_query,
-    MobilePaytoolException,
+    PaymentToolException,
 )
-from stregsystem.mail import send_payment_mail
 
 
 def price_display(value):
@@ -162,7 +163,13 @@ class Member(models.Model):  # id automatisk...
         ('F', 'Female'),
     )
     active = models.BooleanField(default=True)
-    username = models.CharField(max_length=16)
+
+    no_whitespace_validator = RegexValidator(
+        # This regex checks for whitespace in the username
+        regex=r'^\S+$',
+        code='invalid_username',
+    )
+    username = models.CharField(max_length=16, validators=[no_whitespace_validator])
     year = models.CharField(max_length=4, default=get_current_year)  # Put the current year as default
     firstname = models.CharField(max_length=20)  # for 'firstname'
     lastname = models.CharField(max_length=30)  # for 'lastname'
@@ -172,6 +179,7 @@ class Member(models.Model):  # id automatisk...
     balance = models.IntegerField(default=0)  # hvor mange oerer vedkommende har til gode
     undo_count = models.IntegerField(default=0)  # for 'undos' i alt
     notes = models.TextField(blank=True)
+    signup_due_paid = models.BooleanField(default=True)
 
     stregforbud_override = False
 
@@ -188,20 +196,29 @@ class Member(models.Model):  # id automatisk...
         return self.__str__()
 
     def __str__(self):
-        return (
-            active_str(self.active)
-            + " "
-            + self.username
-            + ": "
-            + self.firstname
-            + " "
-            + self.lastname
-            + " | "
-            + self.email
-            + " ("
-            + money(self.balance)
-            + ")"
-        )
+        return f"{active_str(self.active)} {self.username}: {self.firstname} {self.lastname} | {self.email} ({money(self.balance)})"
+
+    def info_string(self) -> str:
+        return f"{self.username}: {self.firstname} {self.lastname} | {self.email}"
+
+    def signup_approved(self) -> bool:
+        """
+        :return: True if there's no pending signup, or it is approved.
+        """
+        pending_signup = PendingSignup.objects.filter(member=self).first()
+
+        if pending_signup is None:
+            return True
+
+        return pending_signup.status == ApprovalModel.APPROVED
+
+    def trigger_welcome_mail(self):
+        if not self.signup_due_paid:
+            return
+        if not self.signup_approved():
+            return
+
+        send_welcome_mail(self)
 
     # XXX - virker ikke
     #    def get_absolute_url(self):
@@ -350,7 +367,6 @@ class Payment(models.Model):  # id automatisk...
         if self.id:
             return  # update -- should not be allowed
         else:
-            # TODO: Make atomic
             self.member.make_payment(self.amount)
             super(Payment, self).save(*args, **kwargs)
             self.member.save()
@@ -368,9 +384,9 @@ class Payment(models.Model):  # id automatisk...
             change_message=f"{''}" f"MobilePayment (transaction_id: {processed_mobile_payment.transaction_id})",
         )
 
+    @transaction.atomic
     def delete(self, *args, **kwargs):
         if self.id:
-            # TODO: Make atomic
             self.member.make_payment(-self.amount)
             super(Payment, self).delete(*args, **kwargs)
             self.member.save()
@@ -378,19 +394,56 @@ class Payment(models.Model):  # id automatisk...
             super(Payment, self).delete(*args, **kwargs)
 
 
-class MobilePayment(models.Model):
+class ApprovalModel(models.Model):
     class Meta:
-        permissions = (("mobilepaytool_access", "MobilePaytool access"),)
+        abstract = True
 
     UNSET = 'U'
     APPROVED = 'A'
     IGNORED = 'I'
+    REJECTED = 'R'
 
     STATUS_CHOICES = (
         (UNSET, 'Unset'),
         (APPROVED, 'Approved'),
         (IGNORED, 'Ignored'),
+        (REJECTED, 'Rejected'),
     )
+
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=UNSET)
+
+    def approve(self):
+        self.status = ApprovalModel.APPROVED
+        self.save()
+
+    def reject(self):
+        self.status = ApprovalModel.REJECTED
+        self.save()
+
+    def ignore(self):
+        self.status = ApprovalModel.IGNORED
+        self.save()
+
+    def log_approval(self, admin_user: User, msg):
+        LogEntry.objects.log_action(
+            user_id=admin_user.pk,
+            content_type_id=ContentType.objects.get_for_model(type(self)).pk,
+            object_id=self.id,
+            object_repr=str(self),
+            action_flag=CHANGE,
+            change_message=msg,
+        )
+
+    @classmethod
+    @abstractmethod
+    def process_submitted(cls, submitted_data, admin_user: User):
+        pass
+
+
+class MobilePayment(ApprovalModel):
+    class Meta:
+        permissions = (("mobilepaytool_access", "MobilePaytool access"),)
+
     member = models.ForeignKey(
         Member, on_delete=models.CASCADE, null=True, blank=True
     )  # nullable as mobile payment may not have match yet
@@ -404,7 +457,6 @@ class MobilePayment(models.Model):
         max_length=32, unique=True
     )  # trans_ids are at most 17 chars, assumed to be unique
     comment = models.CharField(max_length=128, blank=True, null=True)
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=UNSET)
 
     def __str__(self):
         return (
@@ -422,26 +474,32 @@ class MobilePayment(models.Model):
             super(MobilePayment, self).delete(*args, **kwargs)
 
     @staticmethod
-    @transaction.atomic
-    def submit_processed_mobile_payments(admin_user: User):
+    def submit_all_processed_mobile_payments(admin_user: User):
         processed_mobile_payment: MobilePayment  # annotate iterated variable (PEP 526)
         for processed_mobile_payment in make_processed_mobilepayment_query():
-            if processed_mobile_payment.status == MobilePayment.APPROVED:
-                payment = Payment(member=processed_mobile_payment.member, amount=processed_mobile_payment.amount)
-                # Save payment and foreign key to MobilePayment field
-                payment.save()
-                payment.log_from_mobile_payment(processed_mobile_payment, admin_user)
-                processed_mobile_payment.payment = payment
-                processed_mobile_payment.save()
+            processed_mobile_payment.submit_processed_mobile_payment(admin_user)
 
-            elif processed_mobile_payment.status == MobilePayment.IGNORED:
-                processed_mobile_payment.log_mobile_payment(admin_user, "Ignored")
-
-    @staticmethod
     @transaction.atomic
-    def process_submitted_mobile_payments(submitted_data, admin_user: User):
+    def submit_processed_mobile_payment(self, admin_user: User):
+        if self.status == ApprovalModel.APPROVED:
+            if not self.member.signup_due_paid:
+                signup = PendingSignup.objects.get(member=self.member)
+                signup.pay_towards_due(self)
+            else:
+                payment = Payment(member=self.member, amount=self.amount)
+                # Save payment and foreign key to MobilePayment field
+                payment.save(mbpayment=self)
+                payment.log_from_mobile_payment(self, admin_user)
+                self.payment = payment
+                self.save()
+        elif self.status == ApprovalModel.IGNORED:
+            self.log_approval(admin_user, "Ignored")
+
+    @classmethod
+    @transaction.atomic
+    def process_submitted(cls, submitted_data, admin_user: User):
         """
-        Takes a cleaned_form from a MobilePayToolFormSet and processes them.
+        Takes a cleaned_form from a PaymentToolFormSet and processes them.
         The return value is the number of rows procesed.
         If one of the MobilePayments have been altered compared to the data, a RuntimeError will be raised.
         """
@@ -449,10 +507,10 @@ class MobilePayment(models.Model):
 
         for row in submitted_data:
             # Skip rows which are set to "unset" (the default).
-            if row['status'] == MobilePayment.UNSET:
+            if row['status'] == ApprovalModel.UNSET:
                 continue
             # Skip rows which are set to "approved" without member. A Payment MUST have a Member.
-            if row['status'] == MobilePayment.APPROVED and row['member'] is None:
+            if row['status'] == ApprovalModel.APPROVED and row['member'] is None:
                 continue
             cleaned_data.append(row)
 
@@ -460,58 +518,33 @@ class MobilePayment(models.Model):
         mobile_payment_ids = [row['id'].id for row in cleaned_data]
         # Count how many id of the id's who are set to status "unset".
         database_mobile_payment_count = MobilePayment.objects.filter(
-            id__in=mobile_payment_ids, status=MobilePayment.UNSET
+            id__in=mobile_payment_ids, status=ApprovalModel.UNSET
         ).count()
         # If there's a discrepancy in the number of rows, the user must have an outdated image. Throw an error.
         if len(mobile_payment_ids) != database_mobile_payment_count:
             # get database mobilepayments matching cleaned ids and having been processed while form has been active
-            raise MobilePaytoolException(
+            raise PaymentToolException(
                 MobilePayment.objects.filter(
-                    id__in=mobile_payment_ids, status__in=(MobilePayment.APPROVED, MobilePayment.IGNORED)
+                    id__in=mobile_payment_ids, status__in=(ApprovalModel.APPROVED, ApprovalModel.IGNORED)
                 )
             )
 
         for row in cleaned_data:
             processed_mobile_payment = MobilePayment.objects.get(id=row['id'].id)
             # If approved, we need to create a payment and relate said payment to the mobilepayment.
-            if row['status'] == MobilePayment.APPROVED:
-                payment_amount = processed_mobile_payment.amount
-                member = Member.objects.get(id=row['member'].id)
-
-                payment = Payment(member=member, amount=payment_amount)
-                payment.log_from_mobile_payment(processed_mobile_payment, admin_user)
-                payment.save(mbpayment=processed_mobile_payment)
-
-                processed_mobile_payment.payment = payment
-                processed_mobile_payment.member = member
-                processed_mobile_payment.log_mobile_payment(admin_user, "Approved")
-            # If ignored, we need to log who did it.
-            elif row['status'] == MobilePayment.IGNORED:
-                processed_mobile_payment.log_mobile_payment(admin_user, "Ignored")
-
             processed_mobile_payment.status = row['status']
+            processed_mobile_payment.member = Member.objects.get(id=row['member'].id)
+            processed_mobile_payment.submit_processed_mobile_payment(admin_user)
             processed_mobile_payment.save()
 
         # Return how many records were modified.
         return len(mobile_payment_ids)
 
-    def log_mobile_payment(self, admin_user: User, msg):
-        LogEntry.objects.log_action(
-            user_id=admin_user.pk,
-            content_type_id=ContentType.objects.get_for_model(MobilePayment).pk,
-            object_id=self.id,
-            object_repr=str(self),
-            action_flag=CHANGE,
-            change_message=msg,
-        )
-
     @staticmethod
-    @transaction.atomic
     def approve_member_filled_mobile_payments():
         for payment in make_unprocessed_member_filled_mobilepayment_query():
-            if payment.status == MobilePayment.UNSET:
-                payment.status = MobilePayment.APPROVED
-                payment.save()
+            if payment.status == ApprovalModel.UNSET:
+                payment.approve()
 
 
 class Category(models.Model):
@@ -673,3 +706,135 @@ class News(models.Model):
 
     def __str__(self):
         return self.title + " -- " + str(self.pub_date)
+
+
+class PendingSignup(ApprovalModel):
+    class Meta:
+        permissions = (("signuptool_access", "Sign-up Tool access"),)
+
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, null=False)
+    due = models.IntegerField(default=200 * 100)
+
+    def generate_mobilepay_url(self):
+        comment = self.member.username
+        query = {'phone': '90601', 'comment': comment, 'amount': "{0:.2f}".format(self.due / 100.0)}
+        return 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
+
+    def __str__(self):
+        return (
+            f"{self.member.info_string() if self.member is not None else 'Not assigned'}, "
+            f"{self.due}, {self.member.notes}"
+        )
+
+    @transaction.atomic
+    def complete(self, payment: MobilePayment):
+        """
+        Triggered when due has been paid
+        """
+        # If the user payed more than their due add it to their balance
+        if self.due <= 0:
+            payment.payment = Payment.objects.create(member=self.member, amount=-self.due)
+        payment.save()
+
+        self.member.signup_due_paid = True
+        self.member.save()
+
+        # Only delete Pending Signup if approved.
+        if self.status == ApprovalModel.APPROVED:
+            self.member.trigger_welcome_mail()
+            self.delete()
+        else:
+            self.save()
+
+    @transaction.atomic
+    def pay_towards_due(self, payment: MobilePayment):
+        self.due -= payment.amount
+        payment.status = MobilePayment.APPROVED
+
+        # If their due has been payed activate the user and delete the signup object
+        if self.due <= 0:
+            self.complete(payment)
+        else:
+            payment.payment = Payment.objects.create(member=self.member, amount=0)
+            payment.save()
+            self.save()
+
+    @classmethod
+    @transaction.atomic
+    def process_submitted(cls, submitted_data, admin_user: User):
+        """
+        Takes a cleaned_form from a SignupToolFormSet and processes them.
+        The return value is the number of rows procesed.
+        If one of the MobilePayments have been altered compared to the data, a RuntimeError will be raised.
+        """
+        cleaned_data = []
+
+        for row in submitted_data:
+            # Skip rows which are set to "unset" (the default).
+            if row['status'] == ApprovalModel.UNSET:
+                continue
+
+            cleaned_data.append(row)
+
+        # Find the id's of the remaining cleaned data.
+        pending_signup_ids = [row['id'].id for row in cleaned_data]
+
+        # Count how many id of the id's who are set to status "unset".
+        database_approval_count = PendingSignup.objects.filter(
+            id__in=pending_signup_ids, status=ApprovalModel.UNSET
+        ).count()
+
+        # If there's a discrepancy in the number of rows, the user must have an outdated image. Throw an error.
+        if len(pending_signup_ids) != database_approval_count:
+            # get database mobilepayments matching cleaned ids and having been processed while form has been active
+            raise PaymentToolException(
+                PendingSignup.objects.filter(
+                    id__in=pending_signup_ids, status__in=(ApprovalModel.APPROVED, ApprovalModel.IGNORED)
+                )
+            )
+
+        for row in cleaned_data:
+            processed_signup = PendingSignup.objects.get(id=row['id'].id)
+
+            if row['status'] == ApprovalModel.APPROVED:
+                processed_signup.log_approval(admin_user, "Approved")
+            elif row['status'] == ApprovalModel.IGNORED:
+                processed_signup.log_approval(admin_user, "Ignored")
+            elif row['status'] == ApprovalModel.REJECTED:
+                processed_signup.log_approval(admin_user, "Rejected")
+
+            processed_signup.status = row['status']
+            processed_signup.save()
+
+            # Trigger welcome mail if sign-up is also paid.
+            processed_signup.member.trigger_welcome_mail()
+
+        # Return how many records were modified.
+        return len(pending_signup_ids)
+
+
+class Theme(models.Model):
+    name = models.CharField("Name", max_length=50)
+    html = models.CharField("HTML filename", max_length=50, blank=True, default="")
+    css = models.CharField("CSS filename", max_length=50, blank=True, default="")
+    js = models.CharField("JS filename", max_length=50, blank=True, default="")
+    begin_month = models.PositiveSmallIntegerField("Begin month")
+    begin_day = models.PositiveSmallIntegerField("Begin day", default=1)
+    end_month = models.PositiveSmallIntegerField("End month")
+    end_day = models.PositiveSmallIntegerField("End day", default=31)
+
+    NONE = "N"
+    SHOW = "S"
+    HIDE = "H"
+    OVERRIDE_CHOICES = (
+        (NONE, "None"),
+        (SHOW, "Force show"),
+        (HIDE, "Force hide"),
+    )
+    override = models.CharField("Override", max_length=1, choices=OVERRIDE_CHOICES, default=NONE)
+
+    class Meta:
+        ordering = ["begin_month", "begin_day"]
+
+    def __str__(self):
+        return self.name

@@ -1,0 +1,75 @@
+@property --advent-candle-start-day {
+	syntax: "<number>";
+	inherits: true;
+	initial-value: 0;
+}
+@property --advent-candle-day {
+	syntax: "<number>";
+	inherits: true;
+	initial-value: 0;
+}
+
+#advent-candle {
+	position: fixed;
+	bottom: 0;
+	right: 0;
+	max-height: 75%;
+	max-width: 400px;
+	pointer-events: none;
+	animation: advent-candle-burn-down 2073600s linear
+		calc(var(--advent-candle-start-day) * -86400s) forwards;
+
+	@media not screen {
+		display: none;
+	}
+
+	& .top,
+	#advent-candle-trunk-height > rect {
+		translate: 0 calc(9px * var(--advent-candle-day));
+	}
+
+	& .flame > path {
+		animation: advent-candle-flame-wobble linear infinite;
+
+		@media (prefers-reduced-motion) {
+			animation-play-state: paused !important;
+		}
+
+		&:nth-of-type(1) {
+			animation-duration: 1.5s;
+		}
+		&:nth-of-type(2) {
+			animation-duration: 2s;
+			animation-delay: -0.5s;
+		}
+		&:nth-of-type(3) {
+			animation-duration: 1.5s;
+			animation-delay: -1s;
+		}
+		&:nth-of-type(4) {
+			animation-duration: 1.05s;
+			animation-delay: -1.5s;
+		}
+		&:nth-of-type(5) {
+			animation-duration: 1.6s;
+			animation-delay: -2s;
+		}
+		&:nth-of-type(6) {
+			animation-duration: 1.25s;
+			animation-delay: -2.5s;
+		}
+	}
+}
+@keyframes advent-candle-flame-wobble {
+	50% {
+		transform: translate(0, -2px) rotate(0.2deg);
+	}
+}
+@keyframes advent-candle-burn-down {
+	0% {
+		--advent-candle-day: 0;
+	}
+	100% {
+		--advent-candle-day: 24;
+	}
+}
