@@ -383,6 +383,10 @@ def sale_money_rank(from_time, to_time, rank_limit=10):
     return stat_list
 
 
+def get_product_ids_from_category(category):
+    return category.product_set.values_list('id', flat=True)
+
+
 # year of the last fjuleparty
 def last_fjule_party_year():
     current_date = timezone.now()
