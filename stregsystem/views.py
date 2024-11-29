@@ -1,7 +1,6 @@
 import datetime
 import io
 import json
-import urllib.parse
 from typing import List, Type
 
 import pytz
@@ -20,6 +19,7 @@ from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, J
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django_select2 import forms as s2forms
 
 from stregreport.views import fjule_party
 
@@ -44,6 +44,7 @@ from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
     make_active_productlist_query,
     qr_code,
+    mobilepay_launch_uri,
     make_room_specific_query,
     make_unprocessed_mobilepayment_query,
     parse_csv_and_create_mobile_payments,
@@ -563,18 +564,18 @@ def signup_tool(request):
     return render(request, "admin/stregsystem/approval_tools/signup_tool.html", data)
 
 
-def qr_payment(request):
+# API views
+
+
+def get_payment_qr(request):
     form = QRPaymentForm(request.GET)
     if not form.is_valid():
         return HttpResponseBadRequest("Invalid input for MobilePay QR code generation")
 
-    query = {'phone': '90601', 'comment': form.cleaned_data.get('member')}
+    username = form.cleaned_data.get('username')
+    amount = form.cleaned_data.get('amount')
 
-    if form.cleaned_data.get("amount") is not None:
-        query['amount'] = form.cleaned_data.get("amount")
-
-    data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
-    return qr_code(data)
+    return qr_code(mobilepay_launch_uri(username, amount))
 
 
 def signup(request):
@@ -620,26 +621,24 @@ def signup_status(request, signup_id):
     return render(request, "stregsystem/signup_status.html", locals())
 
 
-# API views
-
-
-def dump_active_items(request):
+def get_active_items(request):
     room_id = request.GET.get('room_id') or None
     if room_id is None:
-        return HttpResponseBadRequest("Missing room_id")
+        return HttpResponseBadRequest("Parameter missing: room_id")
     elif not room_id.isdigit():
-        return HttpResponseBadRequest("Invalid room_id")
+        return HttpResponseBadRequest("Parameter invalid: room_id")
+    # TODO: Check whether room exists
     items = __get_productlist(room_id)
-    items_dict = {item.id: (item.name, item.price) for item in items}
+    items_dict = {item.id: {'name': item.name, 'price': item.price} for item in items}
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
 
 
-def check_user_active(request):
+def get_member_active(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
-        return HttpResponseBadRequest("Missing member_id")
+        return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
-        return HttpResponseBadRequest("Invalid member_id")
+        return HttpResponseBadRequest("Parameter invalid: member_id")
     try:
         member = Member.objects.get(pk=member_id)
     except Member.DoesNotExist:
@@ -647,27 +646,34 @@ def check_user_active(request):
     return JsonResponse({'active': member.active})
 
 
-def convert_username_to_id(request):
+def get_member_id(request):
     username = request.GET.get('username') or None
     if username is None:
-        return HttpResponseBadRequest("Missing username")
+        return HttpResponseBadRequest("Parameter missing: username")
+
     try:
         member = Member.objects.get(username=username)
     except Member.DoesNotExist:
-        return HttpResponseBadRequest("Invalid username")
+        return HttpResponseBadRequest("Member not found")
+
     return JsonResponse({'member_id': member.id})
 
 
-def dump_product_category_mappings(request):
-    return JsonResponse({p.id: [(cat.id, cat.name) for cat in p.categories.all()] for p in Product.objects.all()})
+def get_product_category_mappings(request):
+    return JsonResponse(
+        {
+            p.id: [{'category_id': cat.id, 'category_name': cat.name} for cat in p.categories.all()]
+            for p in Product.objects.all()
+        }
+    )
 
 
-def get_user_sales(request):
+def get_member_sales(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
-        return HttpResponseBadRequest("Missing member_id")
+        return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
-        return HttpResponseBadRequest("Invalid member_id")
+        return HttpResponseBadRequest("Parameter invalid: member_id")
     count = 10 if request.GET.get('count') is None else int(request.GET.get('count') or 10)
     sales = Sale.objects.filter(member=member_id).order_by('-timestamp')[:count]
     return JsonResponse(
@@ -675,12 +681,12 @@ def get_user_sales(request):
     )
 
 
-def get_user_balance(request):
+def get_member_balance(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
-        return HttpResponseBadRequest("Missing member_id")
+        return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
-        return HttpResponseBadRequest("Invalid member_id")
+        return HttpResponseBadRequest("Parameter invalid: member_id")
     try:
         member = Member.objects.get(pk=member_id)
     except Member.DoesNotExist:
@@ -688,10 +694,12 @@ def get_user_balance(request):
     return JsonResponse({'balance': member.balance})
 
 
-def get_user_info(request):
+def get_member_info(request):
     member_id = str(request.GET.get('member_id')) or None
-    if member_id is None or not member_id.isdigit():
-        return HttpResponseBadRequest("Missing or invalid member_id")
+    if member_id is None:
+        return HttpResponseBadRequest("Parameter missing: member_id")
+    elif not member_id.isdigit():
+        return HttpResponseBadRequest("Parameter invalid: member_id")
 
     member = find_user_from_id(int(member_id))
     if member is None:
@@ -714,7 +722,7 @@ def find_user_from_id(user_id: int):
         return None
 
 
-def dump_named_items(request):
+def get_named_products(request):
     items = NamedProduct.objects.all()
     items_dict = {item.name: item.product.id for item in items}
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
@@ -730,12 +738,16 @@ def api_sale(request):
         room = str(data['room']) or None
         member_id = str(data['member_id']) or None
 
-        if room is None or not room.isdigit():
-            return HttpResponseBadRequest("Missing or invalid room")
+        if room is None:
+            return HttpResponseBadRequest("Parameter missing: room")
+        if not room.isdigit():
+            return HttpResponseBadRequest("Parameter invalid: room")
         if buy_string is None:
-            return HttpResponseBadRequest("Missing buystring")
-        if member_id is None or not member_id.isdigit():
-            return HttpResponseBadRequest("Missing or invalid member_id")
+            return HttpResponseBadRequest("Parameter missing: buystring")
+        if member_id is None:
+            return HttpResponseBadRequest("Parameter missing: member_id")
+        if not member_id.isdigit():
+            return HttpResponseBadRequest("Parameter invalid: member_id")
 
         try:
             username, bought_ids = parser.parse(_pre_process(buy_string))
@@ -744,7 +756,7 @@ def api_sale(request):
 
         member = find_user_from_id(int(member_id))
         if member is None:
-            return HttpResponseBadRequest("Invalid member_id")
+            return HttpResponseBadRequest("Parameter invalid: member_id")
 
         if not member.signup_due_paid:
             return HttpResponseBadRequest("Signup due not paid")
@@ -761,7 +773,7 @@ def api_sale(request):
         try:
             room = Room.objects.get(pk=room)
         except Room.DoesNotExist:
-            return HttpResponseBadRequest("Invalid room")
+            return HttpResponseBadRequest("Parameter invalid: room")
         msg, status, ret_obj = api_quicksale(request, room, member, bought_ids)
         return JsonResponse(
             {'status': status, 'msg': msg, 'values': ret_obj}, json_dumps_params={'ensure_ascii': False}
