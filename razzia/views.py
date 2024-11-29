@@ -71,3 +71,9 @@ def new_razzia(request):
 def razzia_members(request, razzia_id, title=None):
     razzia = get_object_or_404(Razzia, pk=razzia_id)
     return render(request, 'members.html', locals())
+
+
+@permission_required("stregreport.host_razzia")
+def razzia_settings(request, razzia_id, title=None):
+    razzia = get_object_or_404(Razzia, pk=razzia_id)
+    return render(request, 'settings.html', locals())
