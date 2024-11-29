@@ -61,7 +61,7 @@ def razzia_menu(request, new_text=None, title=None):
 
 @permission_required("stregreport.host_razzia")
 def new_razzia(request):
-    razzia = Razzia(name="Foobar V2", turn_interval=datetime.timedelta(minutes=30))
+    razzia = Razzia(name="Foobar", turn_interval=datetime.timedelta(minutes=30))
     razzia.save()
 
     return redirect('razzia_settings_view', razzia_id=razzia.pk)
