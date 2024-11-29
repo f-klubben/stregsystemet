@@ -60,8 +60,8 @@ class RazziaTests(TestCase):
             # Note: Different interface, should be fixed later.
             # self.assertNotContains(response_add_1, "last checked in at", status_code=200)
             # self.assertContains(response_add_2, "last checked in at", status_code=200)
-            self.assertContains(response_members_0, "0 fember(s)", status_code=200)
-            self.assertContains(response_members_2, "2 fember(s)", status_code=200)
+            self.assertContains(response_members_0, "0 entr", status_code=200)
+            self.assertContains(response_members_2, "2 entr", status_code=200)
 
     def test_razzia_registered_member_is_in_member_list(self):
         self.client.login(username="tester", password="treotreo")
