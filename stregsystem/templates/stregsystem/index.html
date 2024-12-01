@@ -22,7 +22,7 @@
       margin-bottom: .3em;
     }
   }
-  #focusform {
+  #quickbuy-form {
     margin-top: 1.5em;
     margin-bottom: 1.5em;
   }
@@ -47,7 +47,7 @@
   </div>
 
 
-  <form autocomplete="off" action="/{{room.id}}/sale/" method="post" id="focusform" name="focusform" onsubmit="document.getElementById('buybutton').disabled = true">{% csrf_token %}
+  <form autocomplete="off" action="/{{room.id}}/sale/" method="post" id="quickbuy-form" name="quickbuy-form" onsubmit="document.getElementById('buybutton').disabled = true">{% csrf_token %}
     {% block saleform %}
     <p>
       <label for="quickbuy">Quickbuy</label>

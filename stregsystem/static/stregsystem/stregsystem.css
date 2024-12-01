@@ -1,6 +1,10 @@
 body {
-       color: black;
-       background-color: white;
+  color: black;
+  background-color: white;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 header {
@@ -10,6 +14,7 @@ header {
   column-gap: 4vw;
   text-align: center;
   place-items: center;
+  border-bottom: solid grey 1.5px;
 
   & .left {
     justify-self: start;
@@ -17,6 +22,10 @@ header {
   & .right {
     justify-self: end;
   }
+}
+
+#base-content {
+  flex: 1;
 }
 
 main {
@@ -133,51 +142,26 @@ table h2, table h3 {
   fill: none !important;
 }
 
-#advent_candle {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  max-height: 75%;
-  max-width: 400px;
-}
-
-.flame-main {
-  animation-name: flameWobble;
-  animation-duration: 1.5s;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-}
-.flame-main.one {
-  animation-duration: 2s;
-  animation-delay: .5s;
-}
-.flame-main.two {
-  animation-duration: 1.5s;
-  animation-delay: 1s;
-}
-.flame-main.three {
-  animation-duration: 1.05s;
-  animation-delay: 1.5s;
-}
-.flame-main.four {
-  animation-duration: 1.6s;
-  animation-delay: 2s;
-}
-.flame-main.five {
-  animation-duration: 1.25s;
-  animation-delay: 2.5s;
-}
-@keyframes flameWobble {
-  50% {
-      transform: scale(1,1) translate(0, -2px) rotate(.2deg);
-  }
-}
-
 /* Ensures that bats/"flakes" don't interfere with qr-code scanning */
 .qr-code {
     position: relative;
     z-index: 2147483647;
     image-rendering: pixelated;
+}
+
+footer {
+  text-align: center;
+  border-top: solid grey 1.5px;
+
+  #footer-notes {
+    & li {
+      display: inline;
+    
+    & ~ li::before {
+        content: '• ';
+      }
+    }
+  }
 }
 
 @keyframes blink-frame {
