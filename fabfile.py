@@ -4,7 +4,6 @@ from fabric.api import task, sudo, cd, prefix, settings
 @task
 def deploy():
     with cd("/data/stregsystem"):
-        sudo("systemctl stop apache2.service")
         sudo("systemctl stop stregsystem.socket")
         sudo("systemctl stop stregsystem.service")
         with settings(sudo_user='stregsystem'):
@@ -14,6 +13,6 @@ def deploy():
                 sudo("python manage.py collectstatic --noinput")
                 sudo("python manage.py migrate")
                 sudo("python manage.py reloadthemes database")
-        sudo("systemctl start apache2.service")
+        sudo("systemctl reload apache2.service")
         sudo("systemctl start stregsystem.socket")
         sudo("systemctl start stregsystem.service")
