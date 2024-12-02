@@ -15,4 +15,3 @@ def deploy():
                 sudo("python manage.py reloadthemes database")
         sudo("systemctl reload apache2.service")
         sudo("systemctl start stregsystem.socket")
-        sudo("systemctl start stregsystem.service")
