@@ -1,8 +1,8 @@
 {% extends "razzia_base.html" %}
 
-{% block title %}{{title|default:"Razzia"}}{% endblock %}
+{% block title %}{{title|default:"Razzia V2"}}{% endblock %}
 
-{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;{{title|default:"Razzia"}}</div>{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../">Hjem</a>&nbsp;&rsaquo;&nbsp;Razzia&nbsp;</div>{% endblock %}
 
 {% block razzia_content %}
 <a href="./new">
@@ -19,7 +19,7 @@
     	<a href="./{{ razzia.pk }}">
 			<div class="searcher top rounded">
 				<div class="titlebar">
-					<h1>{{ razzia.start_date | date:"D d M Y" }} - {{razzia.members.all | length}} fember(s)</h1>
+					<h1>{{ razzia.start_date | date:"D d M Y" }} - {{razzia.members.all | length}} entries</h1>
 				</div>
 			</div>
 		</a>

@@ -3,7 +3,7 @@
 {% block razzia_content %}
 <div class="searcher">
 	<div class="titlebar">
-		<h1>{{title|default:"Razzia"}}!</h1>
+		<h1>{{razzia.name}} - Razzia</h1>
 	</div>
 	<form action="./" method="post" class="content">{% csrf_token %}
 		<div class="grouped">

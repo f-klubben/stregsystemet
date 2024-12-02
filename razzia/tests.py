@@ -60,8 +60,8 @@ class RazziaTests(TestCase):
             # Note: Different interface, should be fixed later.
             # self.assertNotContains(response_add_1, "last checked in at", status_code=200)
             # self.assertContains(response_add_2, "last checked in at", status_code=200)
-            self.assertContains(response_members_0, "0 fember(s)", status_code=200)
-            self.assertContains(response_members_2, "2 fember(s)", status_code=200)
+            self.assertContains(response_members_0, "0 entr", status_code=200)
+            self.assertContains(response_members_2, "2 entr", status_code=200)
 
     def test_razzia_registered_member_is_in_member_list(self):
         self.client.login(username="tester", password="treotreo")
@@ -75,3 +75,49 @@ class RazziaTests(TestCase):
         self.assertEqual(response_add.status_code, 200)
         self.assertTemplateUsed(response_members, "members.html")
         self.assertContains(response_members, "jokke", status_code=200)
+
+    def test_razzia_unique_members_unique(self):
+        self.client.login(username="tester", password="treotreo")
+        response = self.client.get(reverse("razzia_new"), follow=True)
+        razzia_url, _ = response.redirect_chain[-1]
+
+        response_add = self.client.post(razzia_url, {"username": "jokke"}, follow=True)
+        self.assertEqual(response_add.status_code, 200)
+
+        response_members = self.client.get(razzia_url + "members", follow=True)
+
+        self.assertTemplateUsed(response_members, "members.html")
+        self.assertContains(response_members, "jokke", status_code=200)
+
+        response_add_2 = self.client.post(razzia_url, {"username": "jan"}, follow=True)
+        self.assertEqual(response_add_2.status_code, 200)
+
+        response_members_2 = self.client.get(razzia_url + "members", follow=True)
+        self.assertTemplateUsed(response_members, "members.html")
+        self.assertContains(response_members, "jan", status_code=200)
+
+        self.assertContains(response_members_2, "2 entr", status_code=200)
+        self.assertContains(response_members_2, "2 fember(s)", status_code=200)
+
+    def test_razzia_unique_members_same(self):
+        with freeze_time() as frozen_datetime:
+            self.client.login(username="tester", password="treotreo")
+            response = self.client.get(reverse("razzia_new"), follow=True)
+            razzia_url, _ = response.redirect_chain[-1]
+
+            response_members_0 = self.client.get(razzia_url + "members", follow=True)
+
+            response_add_1 = self.client.post(razzia_url, {"username": "jokke"}, follow=True)
+            frozen_datetime.tick(delta=datetime.timedelta(hours=1, minutes=1))
+            response_add_2 = self.client.post(razzia_url, {"username": "jokke"}, follow=True)
+
+            response_members_2 = self.client.get(razzia_url + "members", follow=True)
+
+            self.assertEqual(response_add_1.status_code, 200)
+            self.assertEqual(response_add_2.status_code, 200)
+            self.assertTemplateUsed(response_add_1, "razzia.html")
+            self.assertTemplateUsed(response_add_2, "razzia.html")
+            self.assertContains(response_members_0, "0 entr", status_code=200)
+            self.assertContains(response_members_0, "0 fember(s)", status_code=200)
+            self.assertContains(response_members_2, "2 entr", status_code=200)
+            self.assertContains(response_members_2, "1 fember(s)", status_code=200)
