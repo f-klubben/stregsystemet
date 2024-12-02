@@ -10,6 +10,7 @@ def deploy():
             sudo("git pull --ff-only")
             with prefix("source /data/stregsystem/venv/bin/activate"):
                 sudo("pip install -rrequirements.txt")
+                sudo("pip install -rrequirements-prod.txt")
                 sudo("python manage.py collectstatic --noinput")
                 sudo("python manage.py migrate")
                 sudo("python manage.py reloadthemes database")
