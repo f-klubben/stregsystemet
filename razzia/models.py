@@ -6,7 +6,7 @@ from datetime import timedelta
 
 class Razzia(models.Model):
     class Meta:
-        permissions = (("host_razzia", "Can host a foobar, fnugfald or bread razzia"),)
+        permissions = (("browse_razzia", "Can browse razzias"),)
 
     name = models.CharField(max_length=20)
     turns_per_member = models.IntegerField(default=0)
