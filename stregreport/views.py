@@ -303,9 +303,6 @@ def sales_product(request, ids, from_time, to_time, error=None):
 # both at 10 o'clock
 @permission_required("stregsystem.access_sales_reports")
 def ranks_for_year(request, year):
-    if year <= 1900 or year > 9999:
-        return render(request, 'admin/stregsystem/report/error_ranksnotfound.html', locals())
-
     FORMAT = '%d/%m/%Y kl. %H:%M'
     last_year = year - 1
     next_year = year + 1
