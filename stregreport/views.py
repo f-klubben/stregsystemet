@@ -371,7 +371,6 @@ def next_fjule_party_year():
     return current_date.year + 1
 
 
-
 def fjule_party(year) -> datetime.datetime:
     """
     date of fjuleparty (first friday of december) for the given year at 10 o'clock
