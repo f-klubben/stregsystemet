@@ -314,9 +314,14 @@ def ranks_for_year(request, year):
 
     kr_stat_list = sale_money_rank(from_time, to_time)
 
-    stat_lists = []
-    for cat in Category.objects.all():
-        stat_lists.append((cat.name, sale_product_rank(get_product_ids_from_category(cat), from_time, to_time)))
+    stat_list = [(
+        cat.name,
+        sale_product_rank(
+            get_product_ids_from_category(cat),
+            from_time,
+            to_time
+        ),
+    ) for cat in Category.objects.all()]
 
     from_time_string = from_time.strftime(FORMAT)
     to_time_string = to_time.strftime(FORMAT)
