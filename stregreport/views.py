@@ -371,9 +371,13 @@ def next_fjule_party_year():
     return current_date.year + 1
 
 
-# date of fjuleparty (first friday of december) for the given year at
-# 10 o'clock
-def fjule_party(year):
+
+def fjule_party(year) -> datetime.datetime:
+    """
+    date of fjuleparty (first friday of december) for the given year at 10 o'clock
+    :param year: The year of the fjuleparty
+    :return: The date of the party
+    """
     first_december = timezone.datetime(year, 12, 1, 22, tzinfo=pytz.timezone("Europe/Copenhagen"))
     days_to_add = (11 - first_december.weekday()) % 7
     return first_december + datetime.timedelta(days=days_to_add)
