@@ -304,8 +304,6 @@ def sales_product(request, ids, from_time, to_time, error=None):
 @permission_required("stregsystem.access_sales_reports")
 def ranks_for_year(request, year):
     FORMAT = '%d/%m/%Y kl. %H:%M'
-    last_year = year - 1
-    next_year = year + 1
     from_time = fjule_party(year - 1)
     to_time = fjule_party(year)
 
@@ -324,6 +322,9 @@ def ranks_for_year(request, year):
     current_date = timezone.now()
     show_next_year = year < current_date.year
     is_ongoing = current_date > from_time and current_date <= to_time
+    last_year = year - 1
+    next_year = year + 1
+
     return render(request, 'admin/stregsystem/report/ranks.html', locals())
 
 
