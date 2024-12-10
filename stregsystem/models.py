@@ -564,6 +564,7 @@ class Category(models.Model):
 class Room(models.Model):
     name = models.CharField(max_length=64)
     description = models.CharField(max_length=64)
+    kiosk_mode = models.BooleanField(default=True)
 
     @deprecated
     def __unicode__(self):

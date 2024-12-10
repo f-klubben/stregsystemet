@@ -6,6 +6,7 @@ The CSS visually hides the text, and also makes the whole thing look nice.
 If JS or CSS is disabled/broken, the other solution can still remove the information,
 which means this setup is much more likely to work even in weird browsers.
 {% endcomment %}
+{% if room.kiosk_mode %}
 <style>
 	.username,
 	.remainingbalance {
@@ -42,3 +43,4 @@ which means this setup is much more likely to work even in weird browsers.
 		}
 	}, 5000);
 </script>
+{% endif %}
