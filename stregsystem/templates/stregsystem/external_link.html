@@ -1,0 +1,17 @@
+{% load static %}
+
+{% if room.kiosk_mode %}
+<button class="external-link kiosk-mode" popovertarget="external-link-popover-{{ id }}">
+	{{ text }}
+</button>
+<div popover id="external-link-popover-{{ id }}" class="external-link-popover kiosk-mode">
+	<p>{{ text }}</p>
+	<button autofocus popovertarget="external-link-popover-{{ id }}">{% include "./cross.html" with title="Luk" %}</button>
+	<img alt="" src="{% static "/stregsystem/external_link_qrs/" %}{{ id }}.svg"/>
+	<p>{{ href }}</p>
+</div>
+{% else %}
+<a class="external-link link-mode" target="_blank" href="{{ href }}">
+	{{ text }}
+</a>
+{% endif %}
