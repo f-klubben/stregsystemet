@@ -346,6 +346,7 @@ class Payment(models.Model):  # id automatisk...
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     amount = models.IntegerField()  # penge, oere...
+    notes = models.TextField(blank=True)
 
     @deprecated
     def amount_display(self):
@@ -564,6 +565,7 @@ class Category(models.Model):
 class Room(models.Model):
     name = models.CharField(max_length=64)
     description = models.CharField(max_length=64)
+    notes = models.TextField(blank=True)
 
     @deprecated
     def __unicode__(self):
