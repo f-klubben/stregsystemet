@@ -211,9 +211,9 @@ function runAnimations(now) {
 	updateRocket(now);
 	updateExplosions(now);
 
-	requestAnimationFrame(runAnimations);
+	window.requestAnimationFrame(runAnimations);
 }
-requestAnimationFrame(runAnimations);
+window.requestAnimationFrame(runAnimations);
 
 function spawnExplosion(position) {
 	const canvas =
