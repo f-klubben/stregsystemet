@@ -14,5 +14,4 @@ def deploy():
                 sudo("python manage.py collectstatic --noinput")
                 sudo("python manage.py migrate")
                 sudo("python manage.py reloadthemes database")
-        sudo("systemctl reload apache2.service")
         sudo("systemctl start stregsystem.socket")
