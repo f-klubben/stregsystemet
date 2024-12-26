@@ -21,6 +21,8 @@ tags:
     description: Related to the products.
   - name: Sale
     description: Related to performing a sale.
+  - name: Signup
+    description: Related to registration of new members.
 paths:
   /api/member:
     get:
@@ -159,6 +161,24 @@ paths:
           $ref: '#/components/responses/SaleSuccess'
         '400':
           $ref: '#/components/responses/Member_RoomIdParameter_BadResponse'
+  /api/signup:
+    post:
+      tags:
+        - Signup
+      summary: Posts a signup
+      description: Performs a signup using member info.
+      operationId: api_signup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/signup_input'
+      responses:
+        '200':
+          $ref: '#/components/responses/SignupSuccess'
+        '400':
+          $ref: '#/components/responses/Signup_BadResponse'
 components:
   examples:
     MemberNotFoundExample:
@@ -182,6 +202,15 @@ components:
     MissingMemberUsernameExample:
       summary: No username given
       value: "Parameter missing: username"
+    UsernameTakenExample:
+      summary: Member with that username already exist
+      value: "Username taken"
+    MissingSignupParameterExample:
+      summary: No 'education', 'username', 'email', 'firstname', 'lastname' or 'gender' given
+      value: "Parameter missing: <parameter>"
+    InvalidSignupParameterExample:
+      summary: "'education', 'username', 'email', 'firstname', 'lastname' or 'gender' invalid"
+      value: "Parameter invalid: <parameter>"
   parameters:
     member_id_param:
       name: member_id
@@ -233,6 +262,15 @@ components:
     missingMemberUsername:
       type: string
       example: "Parameter missing: username"
+    usernameTakenMessage:
+      type: string
+      example: "Username taken"
+    missingGenericParameterMessage:
+      type: string
+      example: "Parameter missing: <parameter>"
+    invalidGenericParameterMessage:
+      type: string
+      example: "Parameter invalid: <parameter>"
     balance:
       type: integer
       example: 20000
@@ -251,6 +289,27 @@ components:
     room_id:
       type: integer
       example: 10
+    email:
+      type: string
+      format: email
+      example: kresten@example.org
+    firstname:
+      type: string
+      example: Kresten
+    lastname:
+      type: string
+      example: Laust
+    education:
+      type: string
+      description: Acknowledged shortening, e.g. sw/ixd/dad/dat
+      example: sw
+    gender:
+      type: string
+      enum:
+        - Unknown
+        - Male
+        - Female
+      example: Male
     timestamp:
       type: string
       format: date-time
@@ -281,6 +340,21 @@ components:
           $ref: '#/components/schemas/buystring'
         room:
           $ref: '#/components/schemas/room_id'
+    signup_input:
+      type: object
+      properties:
+        education:
+          $ref: '#/components/schemas/education'
+        username:
+          $ref: '#/components/schemas/username'
+        email:
+          $ref: '#/components/schemas/email'
+        firstname:
+          $ref: '#/components/schemas/firstname'
+        lastname:
+          $ref: '#/components/schemas/lastname'
+        gender:
+          $ref: '#/components/schemas/gender'
     active_product:
       type: object
       properties:
@@ -500,6 +574,21 @@ components:
                 example: "OK"
               values:
                 $ref: '#/components/schemas/sale_values_result_example'
+    SignupSuccess:
+      description: An object containing various statistics and info regarding the purchase.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              msg:
+                type: string
+                example: "OK"
+              values:
+                $ref: '#/components/schemas/sale_values_result_example'
     QRCodeGenerated:
       description: QR code with link to open MobilePay with the provided information.
       content:
@@ -583,3 +672,19 @@ components:
               $ref: '#/components/examples/InvalidRoomIdExample'
             missingRoomId:
               $ref: '#/components/examples/MissingRoomIdExample'
+    Signup_BadResponse:
+      description: Username is taken, missing parameter, or invalid parameter.
+      content:
+        text/html:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/usernameTakenMessage'
+              - $ref: '#/components/schemas/missingGenericParameterMessage'
+              - $ref: '#/components/schemas/invalidGenericParameterMessage'
+          examples:
+            usernameTaken:
+              $ref: '#/components/examples/UsernameTakenExample'
+            missingSignupParameter:
+              $ref: '#/components/examples/MissingSignupParameterExample'
+            invalidSignupParameter:
+              $ref: '#/components/examples/InvalidSignupParameterExample'
