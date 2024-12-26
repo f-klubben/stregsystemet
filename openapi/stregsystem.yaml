@@ -325,6 +325,9 @@ components:
       example: 600
     stregoere_balance:
       type: integer
+      example: 15000
+    stregoere_due:
+      type: integer
       example: 20000
     named_products_example:
       type: object
@@ -432,6 +435,11 @@ components:
     member_has_low_balance:
       type: boolean
       example: false
+    signup_values_result_example:
+      type: object
+      properties:
+        due:
+          $ref: '#/components/schemas/stregoere_due'
     sale_values_result_example:
       type: object
       properties:
@@ -575,7 +583,7 @@ components:
               values:
                 $ref: '#/components/schemas/sale_values_result_example'
     SignupSuccess:
-      description: An object containing various statistics and info regarding the purchase.
+      description: An object containing info regarding the signup.
       content:
         application/json:
           schema:
@@ -588,7 +596,7 @@ components:
                 type: string
                 example: "OK"
               values:
-                $ref: '#/components/schemas/sale_values_result_example'
+                $ref: '#/components/schemas/signup_values_result_example'
     QRCodeGenerated:
       description: QR code with link to open MobilePay with the provided information.
       content:
