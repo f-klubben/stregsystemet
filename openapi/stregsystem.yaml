@@ -205,11 +205,11 @@ components:
     UsernameTakenExample:
       summary: Member with that username already exist
       value: "Username taken"
-    MissingSignupParameterExample:
-      summary: No 'education', 'username', 'email', 'firstname', 'lastname' or 'gender' given
+    MissingGenericParameterExample:
+      summary: A parameter is not provided
       value: "Parameter missing: <parameter>"
-    InvalidSignupParameterExample:
-      summary: "'education', 'username', 'email', 'firstname', 'lastname' or 'gender' invalid"
+    InvalidGenericParameterExample:
+      summary: A provided parameter value is invalid
       value: "Parameter invalid: <parameter>"
   parameters:
     member_id_param:
@@ -684,7 +684,7 @@ components:
           examples:
             usernameTaken:
               $ref: '#/components/examples/UsernameTakenExample'
-            missingSignupParameter:
-              $ref: '#/components/examples/MissingSignupParameterExample'
-            invalidSignupParameter:
-              $ref: '#/components/examples/InvalidSignupParameterExample'
+            missingParameter:
+              $ref: '#/components/examples/MissingGenericParameterExample'
+            invalidParameter:
+              $ref: '#/components/examples/InvalidGenericParameterExample'
