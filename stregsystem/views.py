@@ -593,7 +593,7 @@ def signup(request):
             lastname=form.cleaned_data.get('lastname'),
             email=form.cleaned_data.get('email'),
             notes=form.cleaned_data.get('notes'),
-            gender='U',
+            gender=form.cleaned_data.get('gender'),
             signup_due_paid=False,
         )
         signup_request = PendingSignup(member=member, due=200 * 100)
