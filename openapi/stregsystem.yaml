@@ -205,11 +205,8 @@ components:
     UsernameTakenExample:
       summary: Member with that username already exist
       value: "Username taken"
-    MissingGenericParameterExample:
-      summary: A parameter is not provided
-      value: "Parameter missing: <parameter>"
-    InvalidGenericParameterExample:
-      summary: A provided parameter value is invalid
+    MissingOrInvalidParameterExample:
+      summary: A parameter is invalid or missing
       value: "Parameter invalid: <parameter>"
   parameters:
     member_id_param:
@@ -265,10 +262,7 @@ components:
     usernameTakenMessage:
       type: string
       example: "Username taken"
-    missingGenericParameterMessage:
-      type: string
-      example: "Parameter missing: <parameter>"
-    invalidGenericParameterMessage:
+    invalidParameterMessage:
       type: string
       example: "Parameter invalid: <parameter>"
     balance:
@@ -687,12 +681,9 @@ components:
           schema:
             oneOf:
               - $ref: '#/components/schemas/usernameTakenMessage'
-              - $ref: '#/components/schemas/missingGenericParameterMessage'
-              - $ref: '#/components/schemas/invalidGenericParameterMessage'
+              - $ref: '#/components/schemas/invalidParameterMessage'
           examples:
             usernameTaken:
               $ref: '#/components/examples/UsernameTakenExample'
-            missingParameter:
-              $ref: '#/components/examples/MissingGenericParameterExample'
             invalidParameter:
-              $ref: '#/components/examples/InvalidGenericParameterExample'
+              $ref: '#/components/examples/MissingOrInvalidParameterExample'
