@@ -13,6 +13,7 @@ from collections import Counter
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.core import management
+from django.core.exceptions import ValidationError
 from django.db.models import Q, Count, Sum
 from django.forms import modelformset_factory
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
@@ -578,6 +579,24 @@ def get_payment_qr(request):
     return qr_code(mobilepay_launch_uri(username, amount))
 
 
+def perform_signup(validated_form: SignupForm) -> PendingSignup:
+    if not validated_form.is_valid():
+        raise ValidationError("The provided form contains errors: %s" % validated_form.errors)
+
+    member = Member.objects.create(
+        username=validated_form.cleaned_data.get('username'),
+        firstname=validated_form.cleaned_data.get('firstname'),
+        lastname=validated_form.cleaned_data.get('lastname'),
+        email=validated_form.cleaned_data.get('email'),
+        notes=validated_form.cleaned_data.get('notes'),
+        gender=validated_form.cleaned_data.get('gender'),
+        signup_due_paid=False,
+    )
+    signup_request = PendingSignup(member=member, due=200 * 100)
+    signup_request.save()
+
+    return signup_request
+
 def signup(request):
     is_post = request.method == "POST"
     form = SignupForm(request.POST) if is_post else SignupForm()
@@ -587,19 +606,8 @@ def signup(request):
             form.add_error("username", "Brugernavn allerede i brug")
             return render(request, "stregsystem/signup.html", locals())
 
-        member = Member.objects.create(
-            username=form.cleaned_data.get('username'),
-            firstname=form.cleaned_data.get('firstname'),
-            lastname=form.cleaned_data.get('lastname'),
-            email=form.cleaned_data.get('email'),
-            notes=form.cleaned_data.get('notes'),
-            gender='U',
-            signup_due_paid=False,
-        )
-        signup_request = PendingSignup(member=member, due=200 * 100)
-        signup_request.save()
-
-        return redirect('signup_status', signup_id=signup_request.id)
+        pending_signup = perform_signup(form)
+        return redirect('signup_status', signup_id=pending_signup.id)
 
     return render(request, "stregsystem/signup.html", locals())
 
@@ -838,6 +846,35 @@ def api_quicksale(request, room, member: Member, bought_ids):
         },
     )
 
+def post_signup(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest()
+    else:
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return HttpResponseBadRequest("Invalid JSON payload.")
+
+        signupForm = SignupForm(data)
+
+        if not signupForm.is_valid():
+            return HttpResponseBadRequest(f"Parameter invalid: {', '.join(signupForm.errors.keys())}")
+
+        pending_signup = perform_signup(signupForm)
+
+        msg, status, ret_obj = (
+            "OK",
+            200,
+            {
+                'due': pending_signup.due,
+                'status': pending_signup.status,
+                'signup_id': pending_signup.id,
+            },
+        )
+
+        return JsonResponse(
+            {'status': status, 'msg': msg, 'values': ret_obj}, json_dumps_params={'ensure_ascii': False}
+        )
 
 def __append_bought_ids_to_product_list(products, bought_ids, time_now, room):
     try:
