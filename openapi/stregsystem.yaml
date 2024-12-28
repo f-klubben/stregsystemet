@@ -323,6 +323,9 @@ components:
     stregoere_due:
       type: integer
       example: 20000
+    signup_id:
+      type: integer
+      example: 5
     named_products_example:
       type: object
       properties:
@@ -434,6 +437,8 @@ components:
       properties:
         due:
           $ref: '#/components/schemas/stregoere_due'
+        signup_id:
+          $ref: '#/components/schemas/signup_id'
     sale_values_result_example:
       type: object
       properties:

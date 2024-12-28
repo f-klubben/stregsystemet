@@ -867,7 +867,6 @@ def post_signup(request):
             200,
             {
                 'due': pending_signup.due,
-                'status': pending_signup.status,
                 'signup_id': pending_signup.id,
             },
         )
