@@ -306,10 +306,10 @@ components:
     gender:
       type: string
       enum:
-        - Unknown
-        - Male
-        - Female
-      example: Male
+        - U
+        - M
+        - F
+      example: M
     timestamp:
       type: string
       format: date-time
