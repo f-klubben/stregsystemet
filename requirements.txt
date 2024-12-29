@@ -7,3 +7,5 @@ Django-Select2==8.1.2
 django-debug-toolbar==4.3.0
 requests==2.32.0
 qrcode==7.4.2
+mypy==1.1.1
+django-stubs==1.16.0
