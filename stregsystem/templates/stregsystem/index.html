@@ -1,5 +1,5 @@
 {% extends "stregsystem/base.html" %}
-
+{% load static %}
 {% load stregsystem_extras %}
 {% load listutil %}
 
@@ -110,5 +110,30 @@
   </script>
 </main>
 
+<div class="recent-purchases">
+    <h3>Recent Purchases</h3>
+    <ul id="recent-purchases-list">
+        <!-- Will be populated by JavaScript -->
+    </ul>
+</div>
+
 {% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/quickbuy.js' %}"></script>
+    <script>
+        console.log('Template loaded');
+        // Test if our script loaded
+        setTimeout(function() {
+            if (window.testQuickBuy) {
+                console.log('QuickBuy script loaded successfully');
+                testQuickBuy();
+            } else {
+                console.log('QuickBuy script failed to load');
+            }
+        }, 1000);
+    </script>
+{% endblock %}
+</body>
+</html>
 

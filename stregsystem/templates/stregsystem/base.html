@@ -19,6 +19,7 @@
     globalThis.themes_static_url = "{% get_themes_static_prefix %}";
 </script>
 {% theme_scripts %}
+{% block extra_css %}{% endblock %}
 </head>
 <body>
 {% comment %}
@@ -58,5 +59,6 @@
   </ul>
 </footer>
 {% theme_content %}
+{% block extra_js %}{% endblock %}
 </body>
 </html>

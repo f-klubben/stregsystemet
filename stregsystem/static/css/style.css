@@ -1,0 +1,21 @@
+.recent-purchases {
+    margin: 20px auto;
+    max-width: 800px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.recent-purchase-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.purchase-time {
+    color: #666;
+    font-size: 0.9em;
+} 
