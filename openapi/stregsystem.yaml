@@ -302,28 +302,28 @@ components:
     buystring:
       type: string
       example: "kresten beer:3"
-    category_name:
+    product_category_name:
       type: string
       example: "Alcohol"
-    category_id:
+    product_category_id:
       type: integer
       example: 11
-    category:
+    product_category:
       type: object
       properties:
         category_id:
-          $ref: '#/components/schemas/category_id'
+          $ref: '#/components/schemas/product_category_id'
         category_name:
-          $ref: '#/components/schemas/category_name'
-    category_mapping:
+          $ref: '#/components/schemas/product_category_name'
+    product_category_mapping:
       type: array
       items:
-        $ref: '#/components/schemas/category'
-    category_mappings_example:
+        $ref: '#/components/schemas/product_category'
+    product_category_mappings_example:
       type: object
       properties:
         123:
-          $ref: '#/components/schemas/category_mapping'
+          $ref: '#/components/schemas/product_category_mapping'
     created_on:
       type: string
       format: date
@@ -490,7 +490,7 @@ components:
       content:
         application/json:
           example:
-            $ref: '#/components/schemas/category_mappings_example'
+            $ref: '#/components/schemas/product_category_mappings_example'
     SaleSuccess:
       description: An object containing various statistics and info regarding the purchase.
       content:
