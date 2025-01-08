@@ -273,11 +273,6 @@ components:
     stregoere_balance:
       type: integer
       example: 20000
-    named_products_example:
-      type: object
-      properties:
-        beer:
-          $ref: '#/components/schemas/product_id'
     sale_input:
       type: object
       properties:
@@ -294,11 +289,6 @@ components:
           $ref: '#/components/schemas/product_name'
         price:
           $ref: '#/components/schemas/stregoere_price'
-    active_products_example:
-      type: object
-      properties:
-        123:
-          $ref: '#/components/schemas/active_product'
     buystring:
       type: string
       example: "kresten beer:3"
@@ -319,11 +309,6 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/product_category'
-    product_category_mappings_example:
-      type: object
-      properties:
-        123:
-          $ref: '#/components/schemas/product_category_mapping'
     created_on:
       type: string
       format: date
@@ -478,19 +463,25 @@ components:
       content:
         application/json:
           example:
-            $ref: '#/components/schemas/named_products_example'
+            beer: 123
     ActiveProducts:
       description: Dictionary of all activated products, with their name and price (in stregører).
       content:
         application/json:
           example:
-            $ref: '#/components/schemas/active_products_example'
+            123:
+              name: Beer
+              price: 600
     CategoryMappings:
       description: Dictionary of all activated products, with their mapped categories (both category name and ID).
       content:
         application/json:
           example:
-            $ref: '#/components/schemas/product_category_mappings_example'
+            123:
+              - category_id:
+                  11
+                category_name:
+                  "Alcohol"
     SaleSuccess:
       description: An object containing various statistics and info regarding the purchase.
       content:
