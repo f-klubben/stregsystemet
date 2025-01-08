@@ -236,7 +236,7 @@ components:
     missingRoomIdMessage:
       type: string
       example: "Parameter missing: room_id"
-    missingMemberUsername:
+    missingMemberUsernameMessage:
       type: string
       example: "Parameter missing: username"
     balance:
@@ -526,7 +526,7 @@ components:
           schema:
             oneOf:
               - $ref: '#/components/schemas/memberNotFoundMessage'
-              - $ref: '#/components/schemas/missingMemberUsername'
+              - $ref: '#/components/schemas/missingMemberUsernameMessage'
           examples:
             memberNotFound:
               $ref: '#/components/examples/MemberNotFoundExample'
