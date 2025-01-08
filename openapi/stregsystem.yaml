@@ -190,6 +190,7 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/member_id'
+      example: 321
     room_id_param:
       name: room_id
       in: query
@@ -197,6 +198,7 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/room_id'
+      example: 10
     username_param:
       name: username
       in: query
@@ -204,6 +206,7 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/username'
+      example: kresten
     amount_param:
       name: amount
       in: query
@@ -211,6 +214,9 @@ components:
       required: false
       schema:
         $ref: '#/components/schemas/stregoere_balance'
+      examples:
+        normalBalance:
+          value: 20000
   schemas:
     memberNotFoundMessage:
       type: string
