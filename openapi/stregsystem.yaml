@@ -506,14 +506,14 @@ components:
     InvalidQRInputResponse:
       description: Invalid input has been provided.
       content:
-        text/html:
+        text/html; charset=utf-8:
           schema:
             type: string
             example: Invalid input for MobilePay QR code generation
     MemberUsernameParameter_BadResponse:
       description: Member does not exist, or missing parameter.
       content:
-        text/html:
+        text/html; charset=utf-8:
           schema:
             oneOf:
               - $ref: '#/components/schemas/memberNotFoundMessage'
@@ -526,7 +526,7 @@ components:
     MemberIdParameter_BadResponse:
       description: Member does not exist, invalid member ID, or missing parameter.
       content:
-        text/html:
+        text/html; charset=utf-8:
           schema:
             oneOf:
               - $ref: '#/components/schemas/memberNotFoundMessage'
@@ -542,7 +542,7 @@ components:
     RoomIdParameter_BadResponse:
       description: Room does not exist, invalid room ID, or missing parameter.
       content:
-        text/html:
+        text/html; charset=utf-8:
           schema:
             oneOf:
               - $ref: '#/components/schemas/roomNotFoundMessage'
@@ -558,7 +558,7 @@ components:
     Member_RoomIdParameter_BadResponse:
       description: Room or member does not exist, invalid room or member ID, or missing parameter.
       content:
-        text/html:
+        text/html; charset=utf-8:
           schema:
             oneOf:
               - $ref: '#/components/schemas/memberNotFoundMessage'
