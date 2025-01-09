@@ -31,5 +31,5 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: 18
-    - run: npm install dredd
+    - run: npm i -g dredd
     - run: dredd
