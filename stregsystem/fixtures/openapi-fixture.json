@@ -1,0 +1,80 @@
+[
+  {
+    "model": "stregsystem.member",
+    "pk": 321,
+    "fields": {
+      "active": true,
+      "username": "kresten",
+      "year": "2025",
+      "firstname": "Kresten",
+      "lastname": "Laust",
+      "gender": "M",
+      "email": "",
+      "want_spam": true,
+      "balance": 20000,
+      "undo_count": 0,
+      "notes": "",
+      "signup_due_paid": true
+    }
+  },
+  {
+    "model": "stregsystem.category",
+    "pk": 11,
+    "fields": {
+      "name": "Alcohol"
+    }
+  },
+  {
+    "model": "stregsystem.room",
+    "pk": 10,
+    "fields": {
+      "name": "Jægerstuen",
+      "description": "Rummet i Jægerstuen",
+      "notes": ""
+    }
+  },
+  {
+    "model": "stregsystem.product",
+    "pk": 123,
+    "fields": {
+      "name": "Beer",
+      "price": 600,
+      "active": true,
+      "start_date": null,
+      "quantity": 0,
+      "deactivate_date": null,
+      "alcohol_content_ml": 0.2,
+      "caffeine_content_mg": 0,
+      "categories": [
+        11
+      ],
+      "rooms": []
+    }
+  },
+  {
+    "model": "stregsystem.namedproduct",
+    "pk": 1,
+    "fields": {
+      "name": "beer",
+      "product": 123
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$390000$Q10Z7hLXnYeBvVtJTZNL79$7rDj2xcFEtmAGof2vVHgAEl6/wRlfUMBkp7P60F9Vz0=",
+      "last_login": "2025-01-09T17:57:31.949Z",
+      "is_superuser": true,
+      "username": "tester",
+      "first_name": "",
+      "last_name": "",
+      "email": "",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2025-01-09T17:56:49.184Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  }
+]
