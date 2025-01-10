@@ -1,4 +1,5 @@
 import dredd_hooks as hooks
+import json
 
 not_found_parameter_values = {
   'room_id': [1],
@@ -30,6 +31,7 @@ def update_get_parameters(url_string: str, update_parameters: dict) -> str:
 
   return str(urlunparse(parsed_url))
 
+
 # https://dredd.org/en/latest/data-structures.html#transaction-object
 @hooks.before_each
 def replace_4xx_parameter_values(transaction):
@@ -42,3 +44,12 @@ def replace_4xx_parameter_values(transaction):
     print(f"Update endpoint path, from '{transaction['fullPath']}' to '{new_path}'")
     transaction['fullPath'] = new_path
     transaction['request']['uri'] = new_path
+
+
+@hooks.before_each
+def replace_body_in_post_requests(transaction):
+  if transaction['expected']['statusCode'][0] == '4' and transaction['id'].startswith("POST"):
+    body = json.loads(transaction['request']['body'])
+    body['member_id'] = 1
+
+    transaction['request']['body'] = json.dumps(body)
