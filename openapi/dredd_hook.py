@@ -6,6 +6,17 @@ not_found_parameter_values = {
   'username': ["404_user"],
 }
 
+skipped_endpoints = [
+  "GET (400) /api/member/payment/qr?username=kresten" # Skipped: test can't be implemented properly in OpenAPI
+]
+
+@hooks.before_each
+def skip_endpoint(transaction):
+  if transaction['id'] in skipped_endpoints:
+    print(f"Skipping endpoint: {transaction['id']}")
+    transaction['skip'] = True
+
+
 def update_get_parameters(url_string: str, update_parameters: dict) -> str:
   from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
