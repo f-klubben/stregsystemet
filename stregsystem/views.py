@@ -773,9 +773,10 @@ def api_sale(request):
         except parser.ParseError as e:
             return HttpResponseBadRequest("Parse error: {}".format(e))
 
-        member = find_user_from_id(int(member_id))
-        if member is None:
-            return HttpResponseBadRequest("Parameter invalid: member_id")
+        try:
+            member = Member.objects.get(pk=member_id)
+        except Member.DoesNotExist:
+            return HttpResponseBadRequest("Member not found")
 
         if not member.signup_due_paid:
             return HttpResponseBadRequest("Signup due not paid")
