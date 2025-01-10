@@ -39,5 +39,6 @@ def replace_4xx_parameter_values(transaction):
   """
   if transaction['expected']['statusCode'][0] == '4':
     new_path = update_get_parameters(transaction['fullPath'], not_found_parameter_values)
+    print(f"Update endpoint path, from '{transaction['fullPath']}' to '{new_path}'")
     transaction['fullPath'] = new_path
     transaction['request']['uri'] = new_path
