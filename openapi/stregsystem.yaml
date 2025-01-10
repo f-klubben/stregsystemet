@@ -270,9 +270,17 @@ components:
     stregoere_price:
       type: integer
       example: 600
+    stregoere_price_three_beers:
+      type: integer
+      example: 1800
     stregoere_balance:
       type: integer
       example: 20000
+    stregkroner_balance:
+      description: Stregbalance in kroner, only used in API-Sale
+      type: number
+      format: float
+      example: 182.00
     sale_input:
       type: object
       properties:
@@ -321,13 +329,15 @@ components:
       type: boolean
       example: false
     bp_minutes:
+      description: Ballmer Peak minutes
       type: integer
       nullable: true
-      example: 2
+      example: null
     bp_seconds:
+      description: Ballmer Peak seconds
       type: integer
       nullable: true
-      example: 30
+      example: null
     caffeine:
       type: integer
       example: 2
@@ -345,7 +355,7 @@ components:
       example: true
     sale_hints:
       type: string
-      example: "<span class=\"username\">kresten</span> beer:3"
+      example: "<span class=\"username\">kresten</span> 123:3"
     member_has_low_balance:
       type: boolean
       example: false
@@ -365,6 +375,10 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/product_id'
+              example:
+                - 123
+                - 123
+                - 123
         promille:
           $ref: '#/components/schemas/promille'
         is_ballmer_peaking:
@@ -382,7 +396,7 @@ components:
         is_coffee_master:
           $ref: '#/components/schemas/is_coffee_master'
         cost:
-          $ref: '#/components/schemas/stregoere_price'
+          $ref: '#/components/schemas/stregoere_price_three_beers'
         give_multibuy_hint:
           $ref: '#/components/schemas/give_multibuy_hint'
         sale_hints:
@@ -390,7 +404,7 @@ components:
         member_has_low_balance:
           $ref: '#/components/schemas/member_has_low_balance'
         member_balance:
-          $ref: '#/components/schemas/stregoere_balance'
+          $ref: '#/components/schemas/stregkroner_balance'
     sale:
       type: object
       properties:
