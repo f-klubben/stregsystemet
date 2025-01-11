@@ -736,6 +736,36 @@ def get_named_products(request):
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
 
 
+def post_signup(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest()
+    else:
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return HttpResponseBadRequest("Invalid JSON payload.")
+
+        signup_form = SignupForm(data)
+
+        if not signup_form.is_valid():
+            return HttpResponseBadRequest(f"Parameter invalid: {', '.join(signup_form.errors.keys())}")
+
+        pending_signup = perform_signup(signup_form)
+
+        msg, status, ret_obj = (
+            "OK",
+            200,
+            {
+                'due': pending_signup.due,
+                'signup_id': pending_signup.id,
+            },
+        )
+
+        return JsonResponse(
+            {'status': status, 'msg': msg, 'values': ret_obj}, json_dumps_params={'ensure_ascii': False}
+        )
+
+
 @csrf_exempt
 def api_sale(request):
     if request.method != "POST":
@@ -846,34 +876,6 @@ def api_quicksale(request, room, member: Member, bought_ids):
         },
     )
 
-def post_signup(request):
-    if request.method != "POST":
-        return HttpResponseBadRequest()
-    else:
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return HttpResponseBadRequest("Invalid JSON payload.")
-
-        signup_form = SignupForm(data)
-
-        if not signup_form.is_valid():
-            return HttpResponseBadRequest(f"Parameter invalid: {', '.join(signup_form.errors.keys())}")
-
-        pending_signup = perform_signup(signup_form)
-
-        msg, status, ret_obj = (
-            "OK",
-            200,
-            {
-                'due': pending_signup.due,
-                'signup_id': pending_signup.id,
-            },
-        )
-
-        return JsonResponse(
-            {'status': status, 'msg': msg, 'values': ret_obj}, json_dumps_params={'ensure_ascii': False}
-        )
 
 def __append_bought_ids_to_product_list(products, bought_ids, time_now, room):
     try:
