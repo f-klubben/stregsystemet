@@ -14,19 +14,6 @@
   }
   #product-buy-form {
     padding-bottom: 1em;
-
-    & button {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font: inherit;
-      text-decoration: underline;
-      color: LinkText;
-
-      &:active{
-        color: ActiveText;
-      }
-    }
   }
 </style>
 {% endblock %}
@@ -105,7 +92,7 @@
             {% for product in product_list|partition:"2"|first %}
               <tr>
                 <td>
-                  <button value="{{ product.id }}" name="product_id">{{product.name}}</button>
+                  <button value="{{ product.id }}" name="product_id" class="linkalike">{{product.name}}</button>
                 </td>
                 <td class="price">{{product.price|money}} kr</td>
               </tr>
@@ -120,7 +107,7 @@
               {% for product in product_list|partition:"2"|last %}
               <tr>
                 <td>
-                  <button value="{{ product.id }}" name="product_id">{{product.name}}</button>
+                  <button value="{{ product.id }}" name="product_id" class="linkalike">{{product.name}}</button>
                 </td>
                 <td class="price">{{product.price|money}} kr</td>
               </tr>

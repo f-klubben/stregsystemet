@@ -1014,7 +1014,6 @@
       "name": "snow",
       "html": "snow.html",
       "css": "snow.css",
-      "js": "snow.js",
       "begin_month": 12,
       "end_month": 12,
       "end_day": 24
