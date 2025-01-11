@@ -129,13 +129,13 @@ class Order(object):
         self.member.fulfill(transaction)
 
         # Collect all the sales of the order
-        Sales = []
+        sales = []
         for item in self.items:
             for i in range(item.count):
                 s = Sale(member=self.member, product=item.product, room=self.room, price=item.product.price)
-                Sales.append(s)
+                sales.append(s)
         # Save all the sales
-        Sale.objects.bulk_create(Sales)
+        Sale.objects.bulk_create(sales)
 
         # We changed the user balance, so save that
         self.member.save()

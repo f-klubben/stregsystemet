@@ -716,20 +716,20 @@ def __append_bought_ids_to_product_list(products, bought_ids, time_now, room):
         # Get the amount of unique items bought
         unique_product_dict = {}
         for unique_id in bought_ids:
-            if str(unique_id) not in unique_product_dict:
-                unique_product_dict[str(unique_id)] = 1
+            if unique_id not in unique_product_dict:
+                unique_product_dict[unique_id] = 1
             else:
-                unique_product_dict[str(unique_id)] += 1
+                unique_product_dict[unique_id] += 1
 
         # Add the given amount of different products
-        for i in unique_product_dict:
+        for key, value in unique_product_dict.items():
             product = Product.objects.get(
-                Q(pk=i),
+                Q(pk=key),
                 Q(active=True),
                 Q(deactivate_date__gte=time_now) | Q(deactivate_date__isnull=True),
                 Q(rooms__id=room.id) | Q(rooms=None),
             )
-            products.extend([product for x in range(unique_product_dict[str(i)])])
+            products.extend([product for _ in range(value)])
     except Product.DoesNotExist:
         return "Invalid product id", 400, i
     return "OK", 200, None
