@@ -1,6 +1,7 @@
 import datetime
 
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import permission_required, login_required
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
 
@@ -9,7 +10,7 @@ from stregsystem.models import Member
 
 
 # Create your views here.
-@permission_required("stregreport.host_razzia")
+@permission_required("razzia.view_razzia")
 def razzia(request, razzia_id):
     if request.method == 'POST':
         return razzia_view_single(request, razzia_id, request.POST['username'])
@@ -17,7 +18,7 @@ def razzia(request, razzia_id):
         return razzia_view_single(request, razzia_id, None)
 
 
-@permission_required("stregreport.host_razzia")
+@permission_required("razzia.view_razzia")
 def razzia_view_single(request, razzia_id, queryname, title=None):
     razzia = get_object_or_404(Razzia, pk=razzia_id)
 
@@ -53,13 +54,21 @@ def razzia_view_single(request, razzia_id, queryname, title=None):
     return render(request, template, locals())
 
 
-@permission_required("stregreport.host_razzia")
+@login_required
 def razzia_menu(request, new_text=None, title=None):
     razzias = Razzia.objects.order_by('-pk')[:3]
+
+    if not request.user.has_perm("razzia.browse_razzia"):
+        if len(razzias) == 0:
+            # In case no razzias are available, default to no permission
+            raise PermissionDenied
+
+        return redirect('razzia_view', razzia_id=razzias[0].pk)
+
     return render(request, 'menu.html', locals())
 
 
-@permission_required("stregreport.host_razzia")
+@permission_required("razzia.add_razzia")
 def new_razzia(request):
     razzia = Razzia(name="Foobar V2", turn_interval=datetime.timedelta(minutes=30))
     razzia.save()
@@ -67,7 +76,7 @@ def new_razzia(request):
     return redirect('razzia_view', razzia_id=razzia.pk)
 
 
-@permission_required("stregreport.host_razzia")
+@permission_required("razzia.view_razziaentry")
 def razzia_members(request, razzia_id, title=None):
     razzia = get_object_or_404(Razzia, pk=razzia_id)
     unique_members = razzia.members.all().distinct().count()
