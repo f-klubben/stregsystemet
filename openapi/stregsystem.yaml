@@ -179,6 +179,20 @@ paths:
           $ref: '#/components/responses/SignupSuccess'
         '400':
           $ref: '#/components/responses/Signup_BadResponse'
+  /api/signup/status:
+    get:
+      tags:
+        - Signup
+      summary: Gets status regarding a signup
+      description: Retrieves the status for a specific signup by signup id.
+      operationId: api_signup_status
+      parameters:
+        - $ref: '#/components/parameters/signup_id_param'
+      responses:
+        '200':
+          $ref: '#/components/responses/SignupStatus'
+        '400':
+          $ref: '#/components/responses/SignupStatusParameter_BadResponse'
 components:
   examples:
     MemberNotFoundExample:
@@ -190,6 +204,15 @@ components:
     MissingMemberIdExample:
       summary: No member ID given
       value: "Parameter missing: member_id"
+    InvalidSignupIdExample:
+      summary: Signup ID is invalid
+      value: "Parameter invalid: signup_id"
+    MissingSignupIdExample:
+      summary: No signup ID given
+      value: "Parameter missing: signup_id"
+    SignupNotFoundExample:
+      summary: Signup request does not exist
+      value: "Signup not found"
     RoomNotFoundExample:
       summary: Room does not exist
       value: "Room not found"
@@ -209,6 +232,13 @@ components:
       summary: A parameter is invalid or missing
       value: "Parameter invalid: <parameter>"
   parameters:
+    signup_id_param:
+      name: signup_id
+      in: query
+      description: Signup ID of the signup to retrieve.
+      required: true
+      schema:
+        $ref: '#/components/schemas/signup_id'
     member_id_param:
       name: member_id
       in: query
@@ -247,6 +277,15 @@ components:
     missingMemberIdMessage:
       type: string
       example: "Parameter missing: member_id"
+    invalidSignupIdMessage:
+      type: string
+      example: "Parameter invalid: signup_id"
+    missingSignupIdMessage:
+      type: string
+      example: "Parameter missing: signup_id"
+    signupNotFoundMessage:
+      type: string
+      example: Signup not found
     roomNotFoundMessage:
       type: string
       example: Room not found
@@ -304,6 +343,14 @@ components:
         - M
         - F
       example: M
+    approval_status:
+      type: string
+      description: U = Unreviewed, A = Approved, I = Ignored, R = Rejected.
+      enum:
+        - U
+        - A
+        - I
+        - R
     timestamp:
       type: string
       format: date-time
@@ -548,6 +595,19 @@ components:
             properties:
               sales:
                 $ref: '#/components/schemas/sales'
+    SignupStatus:
+      description: Signup information found.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                $ref: '#/components/schemas/username'
+              due:
+                $ref: '#/components/schemas/stregoere_due'
+              status:
+                $ref: '#/components/schemas/approval_status'
     NamedProducts:
       description: Dictionary of all named_product names.
       content:
@@ -609,6 +669,21 @@ components:
           schema:
             type: string
             example: Invalid input for MobilePay QR code generation
+    SignupStatusParameter_BadResponse:
+      description: Signup does not exist, or missing parameter.
+      content:
+        text/html:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/signupNotFoundMessage'
+              - $ref: '#/components/schemas/missingSignupIdMessage'
+          examples:
+            signupNotFound:
+              $ref: '#/components/examples/SignupNotFoundExample'
+            invalidSignupId:
+              $ref: '#/components/examples/InvalidSignupIdExample'
+            missingSignupId:
+              $ref: '#/components/examples/MissingSignupIdExample'
     MemberUsernameParameter_BadResponse:
       description: Member does not exist, or missing parameter.
       content:
