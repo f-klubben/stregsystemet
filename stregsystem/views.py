@@ -855,12 +855,12 @@ def post_signup(request):
         except json.JSONDecodeError:
             return HttpResponseBadRequest("Invalid JSON payload.")
 
-        signupForm = SignupForm(data)
+        signup_form = SignupForm(data)
 
-        if not signupForm.is_valid():
-            return HttpResponseBadRequest(f"Parameter invalid: {', '.join(signupForm.errors.keys())}")
+        if not signup_form.is_valid():
+            return HttpResponseBadRequest(f"Parameter invalid: {', '.join(signup_form.errors.keys())}")
 
-        pending_signup = perform_signup(signupForm)
+        pending_signup = perform_signup(signup_form)
 
         msg, status, ret_obj = (
             "OK",
