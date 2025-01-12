@@ -78,7 +78,14 @@ def __get_productlist(room_id):
 
 
 def __get_active_notes_for_product(product):
-    return ProductNote.objects.filter(products=product).filter(active=True).filter((Q(start_date__isnull=True) | Q(start_date__lte=timezone.now())) & (Q(end_date__isnull=True) | Q(end_date__gte=timezone.now())))
+    return (
+        ProductNote.objects.filter(products=product)
+        .filter(active=True)
+        .filter(
+            (Q(start_date__isnull=True) | Q(start_date__lte=timezone.now()))
+            & (Q(end_date__isnull=True) | Q(end_date__gte=timezone.now()))
+        )
+    )
 
 
 def roomindex(request):
@@ -92,7 +99,9 @@ def roomindex(request):
 def index(request, room_id):
     room = get_object_or_404(Room, pk=int(room_id))
     ProductNotePair = namedtuple('ProductNotePair', 'product note')
-    product_note_pair_list = [ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room_id)]
+    product_note_pair_list = [
+        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room_id)
+    ]
     news = __get_news()
     return render(request, 'stregsystem/index.html', locals())
 
