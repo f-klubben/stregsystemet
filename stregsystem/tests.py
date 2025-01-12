@@ -273,7 +273,8 @@ class SaleViewTests(TestCase):
         # Assert that the index screen at least contains one of the products in
         # the database. Technically this doesn't check everything exhaustively,
         # but it's better than nothing -Jesper 18/09-2017
-        self.assertContains(response, "<td>Limfjordsporter</td>", html=True)
+        self.assertContains(response, "Limfjordsporter")
+        self.assertNotContains(response, "NonExistentProduct")
 
     def test_quickbuy_no_known_member(self):
         response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "notinthere"})
@@ -1142,19 +1143,19 @@ class ProductRoomFilterTests(TestCase):
     def test_general_room_dont_get_special_items(self):
         numberOfSpecialItems = 2
         response = self.client.get(reverse('menu_index', args=(1,)))
-        products = response.context['product_list']
+        product_pairs = response.context['product_note_pair_list']
         specialProduct = Product.objects.get(pk=3)
 
-        self.assertFalse(specialProduct in products)
-        self.assertEqual(len(products), len(Product.objects.all()) - numberOfSpecialItems)
+        any(self.assertFalse(specialProduct == pair.product) for pair in product_pairs)
+        self.assertEqual(len(product_pairs), len(Product.objects.all()) - numberOfSpecialItems)
 
     def test_special_room_get_special_items(self):
         response = self.client.get(reverse('menu_index', args=(2,)))
-        products = response.context['product_list']
+        product_pairs = response.context['product_note_pair_list']
         specialProduct = Product.objects.get(pk=3)
 
-        self.assertTrue(specialProduct in products)
-        self.assertEqual(len(products), len(Product.objects.all()))
+        self.assertTrue(any(specialProduct == pair.product) for pair in product_pairs)
+        self.assertEqual(len(product_pairs), len(Product.objects.all()))
 
 
 class CategoryAdminTests(TestCase):
