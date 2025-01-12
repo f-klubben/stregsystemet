@@ -17,6 +17,7 @@ from stregsystem.models import (
     NamedProduct,
     PendingSignup,
     Theme,
+    ProductNote,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
@@ -362,6 +363,16 @@ class ThemeAdmin(admin.ModelAdmin):
     actions = [force_unset, force_show, force_hide]
 
 
+class ProductNoteAdmin(admin.ModelAdmin):
+    search_fields = ('active', 'text')
+    list_display = (
+        'active',
+        'text',
+    )
+
+    actions = [toggle_active_selected_products]
+
+
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(Member, MemberAdmin)
@@ -374,3 +385,4 @@ admin.site.register(Room)
 admin.site.register(MobilePayment, MobilePaymentAdmin)
 admin.site.register(PendingSignup)
 admin.site.register(Theme, ThemeAdmin)
+admin.site.register(ProductNote, ProductNoteAdmin)

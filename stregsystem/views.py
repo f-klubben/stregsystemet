@@ -8,7 +8,10 @@ import qrcode
 import qrcode.image.svg
 from django import forms
 from django.conf import settings
-from collections import Counter
+from collections import (
+    Counter,
+    namedtuple,
+)
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
@@ -39,6 +42,7 @@ from stregsystem.models import (
     Category,
     NamedProduct,
     ApprovalModel,
+    ProductNote,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -73,6 +77,10 @@ def __get_productlist(room_id):
     return make_active_productlist_query(Product.objects).filter(make_room_specific_query(room_id))
 
 
+def __get_active_notes_for_product(product):
+    return ProductNote.objects.filter(products=product).filter(active=True).filter((Q(start_date__isnull=True) | Q(start_date__lte=timezone.now())) & (Q(end_date__isnull=True) | Q(end_date__gte=timezone.now())))
+
+
 def roomindex(request):
     return HttpResponsePermanentRedirect('/1/')
 
@@ -83,7 +91,8 @@ def roomindex(request):
 
 def index(request, room_id):
     room = get_object_or_404(Room, pk=int(room_id))
-    product_list = __get_productlist(room_id)
+    ProductNotePair = namedtuple('ProductNotePair', 'product note')
+    product_note_pair_list = [ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room_id)]
     news = __get_news()
     return render(request, 'stregsystem/index.html', locals())
 

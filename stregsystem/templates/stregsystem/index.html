@@ -26,6 +26,13 @@
     margin-top: 1.5em;
     margin-bottom: 1.5em;
   }
+  .note-box {
+    display: inline;
+    padding: 2px 4px 2px 4px;
+    border-radius: 8px;
+    color: black;
+    background-color: red;
+  }
 </style>
 {% endblock %}
 
@@ -61,7 +68,7 @@
 
   <div class="horizontal-table">
     {% block products %}
-      {% if product_list %}
+      {% if product_note_pair_list %}
         {% autoescape off %}
         <table class="default">
           <tr>
@@ -69,28 +76,38 @@
             <th>Produkt</th>
             <th>Pris</th>
           </tr>
-          {% for product in product_list|partition:"2"|first %}
+          {% for pair in product_note_pair_list|partition:"2"|first %}
             <tr>
               <td>
-                {{product.id|product_id_and_alias_string}}
+                {{pair.product.id|product_id_and_alias_string}}
               </td>
-              <td>{{product.name}}</td>
-              <td class="price">{{product.price|money}} kr</td>
+              <td>
+                {% for note in pair.note %}
+                  <div class="note-box" style="background-color: {{note.color}}">{{note.text}}</div>
+                {% endfor %}
+                <span style="display: inline-block">{{pair.product.name}}</span>    
+              </td>
+              <td class="price">{{pair.product.price|money}} kr</td>
             </tr>
           {% endfor %}
         </table>
-        {% if product_list|partition:"2"|last %}
+        {% if product_note_pair_list|partition:"2"|last %}
           <table class="default">
             <tr>
               <th>ID</th>
               <th>Produkt</th>
               <th>Pris</th>
             </tr>
-            {% for product in product_list|partition:"2"|last %}
+            {% for pair in product_note_pair_list|partition:"2"|last %}
               <tr>
-                <td>{{product.id|product_id_and_alias_string}}</td>
-                <td>{{product.name}}</td>
-                <td class="price">{{product.price|money}} kr</td>
+                <td>{{pair.product.id|product_id_and_alias_string}}</td>
+                <td>
+                  {% for note in pair.note %}
+                    <div class="note-box" style="background-color: {{note.color}}">{{note.text}}</div>
+                  {% endfor %}
+                  <span style="display: inline-block">{{pair.product.name}}</span>   
+                </td>
+                <td class="price">{{pair.product.price|money}} kr</td>
               </tr>
             {% endfor %}
           </table>

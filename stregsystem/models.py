@@ -628,6 +628,23 @@ class Product(models.Model):  # id automatisk...
         return self.active and not expired and not out_of_stock
 
 
+# Model for notes about a product, which should be visible in a certain range of time.
+# Such as a note stating that the product is new for the first couple of weeks.
+class ProductNote(models.Model):
+    products = models.ManyToManyField(Product)
+    rooms = models.ManyToManyField(Room, blank=True)
+    text = models.TextField()
+    active = models.BooleanField(default=True)
+    color = models.CharField(max_length=20, help_text="Write a valid html color (default: red)", blank="red") # If anyone wants to use LightGoldenRodYellow, they can
+    start_date = models.DateField()
+    end_date = models.DateField()
+    # Just to make a description of why the note is needed
+    comment = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.text + " (" + " | ".join(str(x.name) for x in self.products.all()) + ")"
+
+
 class NamedProduct(models.Model):
     name = models.CharField(max_length=50, unique=True, validators=[RegexValidator(regex=r'^[^\d:\-_][\w\-]+$')])
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='named_id')
