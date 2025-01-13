@@ -737,6 +737,24 @@ def get_named_products(request):
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
 
 
+def get_signup_status(request):
+    username = request.GET.get('username') or None
+    if username is None:
+        return HttpResponseBadRequest("Parameter missing: username")
+
+    try:
+        member = Member.objects.get(username=username)
+    except Member.DoesNotExist:
+        return HttpResponseBadRequest("Member not found")
+
+    try:
+        pending_signup = PendingSignup.objects.get(member=member)
+        return JsonResponse({'due': pending_signup.due, 'status': pending_signup.status})
+    except PendingSignup.DoesNotExist:
+        # Member exists but no signup object does, assume it was approved.
+        return JsonResponse({'due': 0, 'status': ApprovalModel.APPROVED})
+
+
 def post_signup(request):
     if request.method != "POST":
         return HttpResponseBadRequest()
