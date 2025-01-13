@@ -858,7 +858,7 @@ def __append_bought_ids_to_product_list(products, bought_ids, time_now, room):
             )
             products.extend([product for _ in range(value)])
     except Product.DoesNotExist:
-        return "Invalid product id", 400, i
+        return "Invalid product id", 400, unique_id
     return "OK", 200, None
 
 
