@@ -32,4 +32,4 @@ jobs:
       with:
         node-version: 18
     - run: npm i -g dredd
-    - run: dredd
+    - run: dredd --config openapi/dredd.yml
