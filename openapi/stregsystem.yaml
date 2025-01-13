@@ -184,15 +184,15 @@ paths:
       tags:
         - Signup
       summary: Gets status regarding a signup
-      description: Retrieves the status for a specific signup by signup id.
+      description: Retrieves the signup status for a specific member by username.
       operationId: api_signup_status
       parameters:
-        - $ref: '#/components/parameters/signup_id_param'
+        - $ref: '#/components/parameters/username_param'
       responses:
         '200':
           $ref: '#/components/responses/SignupStatus'
         '400':
-          $ref: '#/components/responses/SignupStatusParameter_BadResponse'
+          $ref: '#/components/responses/MemberUsernameParameter_BadResponse'
 components:
   examples:
     MemberNotFoundExample:
@@ -484,8 +484,8 @@ components:
       properties:
         due:
           $ref: '#/components/schemas/stregoere_due'
-        signup_id:
-          $ref: '#/components/schemas/signup_id'
+        username:
+          $ref: '#/components/schemas/username'
     sale_values_result_example:
       type: object
       properties:
@@ -602,8 +602,6 @@ components:
           schema:
             type: object
             properties:
-              username:
-                $ref: '#/components/schemas/username'
               due:
                 $ref: '#/components/schemas/stregoere_due'
               status:
@@ -669,21 +667,6 @@ components:
           schema:
             type: string
             example: Invalid input for MobilePay QR code generation
-    SignupStatusParameter_BadResponse:
-      description: Signup does not exist, or missing parameter.
-      content:
-        text/html:
-          schema:
-            oneOf:
-              - $ref: '#/components/schemas/signupNotFoundMessage'
-              - $ref: '#/components/schemas/missingSignupIdMessage'
-          examples:
-            signupNotFound:
-              $ref: '#/components/examples/SignupNotFoundExample'
-            invalidSignupId:
-              $ref: '#/components/examples/InvalidSignupIdExample'
-            missingSignupId:
-              $ref: '#/components/examples/MissingSignupIdExample'
     MemberUsernameParameter_BadResponse:
       description: Member does not exist, or missing parameter.
       content:
