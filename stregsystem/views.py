@@ -597,6 +597,7 @@ def perform_signup(validated_form: SignupForm) -> PendingSignup:
 
     return signup_request
 
+
 def signup(request):
     is_post = request.method == "POST"
     form = SignupForm(request.POST) if is_post else SignupForm()
