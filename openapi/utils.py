@@ -11,7 +11,7 @@ def update_query_parameter_values(url_string: str, new_parameter_values: dict) -
     Updates query parameters with new parameter values from new_parameter_values.
     :param url_string: The URL path of which to modify query parameters.
     :param new_parameter_values: The dictionary with new query parameter values.
-    :return:
+    :return: The URL with updated query parameter.
     """
     from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
