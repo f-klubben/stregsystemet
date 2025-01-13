@@ -1,0 +1,141 @@
+{% load themes %}
+{% load stregsystem_extras %}
+<svg
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	id="advent-candle"
+	width="400"
+	height="600"
+	viewBox="0 0 200 300"
+>
+	<style>
+		#advent-candle {
+		     --advent-candle-start-day: {% fractional_day_of_month %};
+		}
+	</style>
+	<defs>
+		<clipPath id="advent-candle-leaf-right-clip">
+			<rect
+				width="53.09"
+				height="18.56"
+				x="42.21"
+				y="145.72"
+				transform="rotate(10.25)"
+			/>
+		</clipPath>
+		<clipPath id="advent-candle-trunk-height">
+			<rect width="200" height="235" y="65" />
+		</clipPath>
+		<path
+			id="advent-candle-leaf-edge"
+			d="M15.66 169.78s12.9-2.48 15.55-13.3c0 0 10.34 18.38 22.23 2.3 0 0-.62 15.46 5.3 18.78 0 0-6.93 1.85-11.97 14.5 0 0-4.86-14.77-20.02-6.64 0 0 3.98-7.69-11.1-15.64z"
+		/>
+		<g id="advent-candle-leaf">
+			<use xlink:href="#advent-candle-leaf-edge" fill="#388e3c" />
+			<use
+				xlink:href="#advent-candle-leaf-edge"
+				fill="#1b5e20"
+				clip-path="url(#advent-candle-leaf-right-clip)"
+			/>
+		</g>
+	</defs>
+	<use xlink:href="#advent-candle-leaf" transform="rotate(68.72 -9.2 253.63)" />
+	<use
+		xlink:href="#advent-candle-leaf"
+		transform="rotate(122.56 57.2 248.37)"
+	/>
+	<g class="trunk" clip-path="url(#advent-candle-trunk-height)">
+		<rect
+			width="30"
+			height="235"
+			x="90.18"
+			y="65"
+			fill="#f2f2f2"
+		/>
+		<g
+			fill="red"
+			font-family="East Syriac Ctesiphon"
+			font-size="8.61"
+		>
+			<text x="100.68" y="288.17">24</text>
+			<text x="100.67" y="279.11">23</text>
+			<text x="100.67" y="270.17">22</text>
+			<text x="101.13" y="261.17">21</text>
+			<text x="100.68" y="252.1">20</text>
+			<text x="100.22" y="243.11">19</text>
+			<text x="100.23" y="234.1">18</text>
+			<text x="100.22" y="225.14">17</text>
+			<text x="100.21" y="216.11">16</text>
+			<text x="100.22" y="207.08">15</text>
+			<text x="100.23" y="198.15">14</text>
+			<text x="100.22" y="189.11">13</text>
+			<text x="100.21" y="180.17">12</text>
+			<text x="100.68" y="171.15">11</text>
+			<text x="100.22" y="162.1">10</text>
+			<text x="102.93" y="153.11">9</text>
+			<text x="102.94" y="144.1">8</text>
+			<text x="102.93" y="135.1">7</text>
+			<text x="102.92" y="126.11">6</text>
+			<text x="102.97" y="117.04">5</text>
+			<text x="102.93" y="108.11">4</text>
+			<text x="102.97" y="99.11">3</text>
+			<text x="102.92" y="90.17">2</text>
+			<text x="102.93" y="81.15">1</text>
+		</g>
+	</g>
+	<g class="top">
+		<rect width="5.38" height="10.76" x="102.49" y="53.76" fill="#d38d5f" />
+		<g class="flame">
+			<!--Flames by Deepak K Vijayan on https://codepen.io/2xsamurai/pen/EKpYMg -->
+			<path
+				fill="#f36e21"
+				d="M103.61 57.6s-2.76-.8-4.16-2.23c-1.4-1.42-2.51-4.56-2.51-4.56s-.07-1.8-1.13-5c0 0 .91 1.34 1.39 2.69 0 0-1.44-5.72.46-8.25 1.9-2.54.16-9.68-.6-10.19 0 0 3.54 1.53 5.38 12.9 1.85 11.37 4.57 12.29 1.66 14.64"
+			/>
+			<path
+				fill="#f6891f"
+				d="M99.58 40.29c1.12-4.18 3.28-3.93-3.14-16.51 0 0 8.68 2.77 14.26 17.12 5.59 14.35-5.38 16.56-5.32 16.7.05.15-5.27-.07-4.03-5.02 1.24-4.96-2.89-8.11-1.77-12.3z"
+			/>
+			<path
+				fill="#ffd04a"
+				d="M105 28.6s3.13 6.75.98 10.86c-2.15 4.12-5.73 11.37-.12 17.63 0 0 11.08-9.03-.87-28.48z"
+			/>
+			<path
+				fill="#fdba16"
+				d="M109.95 34.73s-6.3 12.75-3.27 21.72c0 0 8.88-4.36 5.46-12.42-3.43-8.06-2.2-5.95-2.2-9.3z"
+			/>
+			<path
+				fill="#f36e21"
+				d="M110.82 35.86s2.42 8.34-.28 12.71c-2.7 4.37-4.01 7.88-4.01 7.88s12.77-4.67 4.3-20.6z"
+			/>
+			<path
+				fill="#fdba16"
+				d="M99.68 35.38s-4.25 18.34 2.85 21.07c7.1 2.73-.96-13.85-2.85-21.07z"
+			/>
+		</g>
+		<path
+			fill="#e6e6e6"
+			d="M88.16 59.11c5.25 1.3 11.39 2.73 16.93 2.6 8.75-.2 16.1-2.6 16.1-2.6 3.17-.4 3.5 11.44 1.8 15.38-1.74 3.27-10.33 1.93-13.05.52-3.27-1.7-6.02-3.2-9.27-3.1-8.15.29-13.03 4.35-13.9 1.67 0 0-1.56-15.67 1.39-14.47z"
+		/>
+	</g>
+	<use
+		xlink:href="#advent-candle-leaf"
+		transform="rotate(142.43 66.15 245.47)"
+	/>
+	<g class="ornament" transform="rotate(-18.89 75.03 278.9)">
+		<circle cx="75.18" cy="279.59" r="20.75" fill="#ff2a2a" />
+		<rect
+			width="12.94"
+			height="6.19"
+			x="67.99"
+			y="255.65"
+			fill="black"
+			ry="1.81"
+		/>
+		<circle cx="81.93" cy="274.34" r="9.2" fill="#ff4848" />
+	</g>
+	<path
+		class="base"
+		fill="#a05a2c"
+		d="M59.12 292.59a4.93 8 0 0 0 4.88 8h82v-.04a4.93 8 0 0 0 .44.04 4.93 8 0 0 0 4.94-8H59.12z"
+	/>
+</svg>

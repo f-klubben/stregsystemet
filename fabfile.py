@@ -11,4 +11,5 @@ def deploy():
                 sudo("pip install -rrequirements.txt")
                 sudo("python manage.py collectstatic --noinput")
                 sudo("python manage.py migrate")
+                sudo("python manage.py reloadthemes database")
         sudo("systemctl start apache2.service")

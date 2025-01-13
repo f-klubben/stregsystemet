@@ -1,0 +1,5 @@
+{% load themes %}
+
+{% for path in paths %}
+    <link rel="stylesheet" href="{% themes_static path %}">
+{% endfor %}

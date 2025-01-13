@@ -1,7 +1,7 @@
-from django.urls import include, re_path
+from django.shortcuts import redirect
+from django.urls import re_path
 
 from . import views
-from django.shortcuts import redirect
 
 """stregsystem URL Configuration
 
@@ -21,7 +21,10 @@ Including another URLconf
 urlpatterns = [
     re_path(r'^$', views.roomindex, name="index"),
     re_path(r'^admin/batch/$', views.batch_payment, name="batch"),
-    re_path(r'^admin/mobilepaytool/$', views.mobilepaytool, name="mobilepaytool"),
+    re_path(r'^admin/payment_tool/$', views.payment_tool, name="payment_tool"),
+    re_path(r'^admin/signup_tool/$', views.signup_tool, name="signup_tool"),
+    re_path(r'^signup/$', views.signup, name="signup"),
+    re_path(r'^signup/(?P<signup_id>\d+)$', views.signup_status, name="signup_status"),
     re_path(r'^(?P<room_id>\d+)/$', views.index, name="menu_index"),
     re_path(r'^(?P<room_id>\d+)/sale/$', views.sale, name="quickbuy"),
     re_path(r'^(?P<room_id>\d+)/sale/(?P<member_id>\d+)/$', views.menu_sale, name="menu"),
@@ -30,14 +33,14 @@ urlpatterns = [
     re_path(r'^(?P<room_id>\d+)/user/(?P<member_id>\d+)/pay$', views.menu_userpay, name="userpay"),
     re_path(r'^(?P<room_id>\d+)/user/(?P<member_id>\d+)/rank$', views.menu_userrank, name="userrank"),
     re_path(r'^(?P<room_id>\d+)/send_csv_mail/(?P<member_id>\d+)/$', views.send_userdata, name="send_userdata"),
-    re_path(r'^api/member/payment/qr$', views.qr_payment, name="payment_qr"),
-    re_path(r'^api/member/active$', views.check_user_active, name="active_member"),
-    re_path(r'^api/member/sales$', views.get_user_sales, name="get_user_sales"),
-    re_path(r'^api/member/get_id$', views.convert_username_to_id, name="get_id"),
-    re_path(r'^api/member/balance$', views.get_user_balance, name="get_user_balance"),
-    re_path(r'^api/member$', views.get_user_info, name="get_user_transactions"),
-    re_path(r'^api/products/named_products$', views.dump_named_items, name="named_products"),
-    re_path(r'^api/products/active_products$', views.dump_active_items, name="active_products"),
-    re_path(r'^api/products/category_mappings$', views.dump_product_category_mappings, name="product_mappings"),
-    re_path(r'^api/sale$', views.api_sale, name="sale"),
+    re_path(r'^api/member/payment/qr$', views.get_payment_qr, name="api_payment_qr"),
+    re_path(r'^api/member/active$', views.get_member_active, name="api_member_active"),
+    re_path(r'^api/member/sales$', views.get_member_sales, name="api_member_sales"),
+    re_path(r'^api/member/get_id$', views.get_member_id, name="api_member_id"),
+    re_path(r'^api/member/balance$', views.get_member_balance, name="api_member_balance"),
+    re_path(r'^api/member$', views.get_member_info, name="api_member_info"),
+    re_path(r'^api/products/named_products$', views.get_named_products, name="api_named_products"),
+    re_path(r'^api/products/active_products$', views.get_active_items, name="api_active_products"),
+    re_path(r'^api/products/category_mappings$', views.get_product_category_mappings, name="api_product_mappings"),
+    re_path(r'^api/sale$', views.api_sale, name="api_sale"),
 ]

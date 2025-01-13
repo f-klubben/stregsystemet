@@ -1,28 +1,27 @@
 import datetime
-import random
-from typing import List
+import io
+import json
+from typing import List, Type
 
 import pytz
-from pytz import UTC
+import qrcode
+import qrcode.image.svg
+from django import forms
+from django.conf import settings
 from collections import Counter
 
-from stregreport.views import fjule_party
-
-from django.core import management
-from django.forms import modelformset_factory, formset_factory
-
 from django.contrib.admin.views.decorators import staff_member_required
-from stregsystem.templatetags.stregsystem_extras import money
 from django.contrib.auth.decorators import permission_required
-from django.conf import settings
+from django.core import management
 from django.db.models import Q, Count, Sum
-from django import forms
+from django.forms import modelformset_factory
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django_select2 import forms as s2forms
-import urllib.parse
+
+from stregreport.views import fjule_party
 
 from stregsystem import parser
 from stregsystem.models import (
@@ -36,24 +35,27 @@ from stregsystem.models import (
     Sale,
     StregForbudError,
     MobilePayment,
+    PendingSignup,
     Category,
     NamedProduct,
+    ApprovalModel,
 )
+from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
     make_active_productlist_query,
     qr_code,
+    mobilepay_launch_uri,
     make_room_specific_query,
     make_unprocessed_mobilepayment_query,
     parse_csv_and_create_mobile_payments,
-    MobilePaytoolException,
+    PaymentToolException,
+    make_unprocessed_signups_query,
 )
 
 from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
-from .forms import MobilePayToolForm, QRPaymentForm, PurchaseForm, RankingDateForm
-
-import json
-
+from .forms import PaymentToolForm, QRPaymentForm, PurchaseForm, SignupForm, RankingDateForm, SignupToolForm
+from .management.commands.autopayment import submit_filled_mobilepayments
 from .purchase_heatmap import (
     prepare_heatmap_template_context,
 )
@@ -126,6 +128,12 @@ def sale(request, room_id):
         member = Member.objects.get(username=username, active=True)
     except Member.DoesNotExist:
         return render(request, 'stregsystem/error_usernotfound.html', locals())
+
+    if not member.signup_due_paid:
+        return render(request, 'stregsystem/error_signupdue.html', locals())
+
+    if not member.signup_approved():
+        return render(request, 'stregsystem/error_signup_not_approved.html', locals())
 
     if len(bought_ids):
         return quicksale(request, room, member, bought_ids)
@@ -230,6 +238,13 @@ def menu_userinfo(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
+
+    if not member.signup_due_paid:
+        return render(request, 'stregsystem/error_signupdue.html', locals())
+
+    if not member.signup_approved():
+        return render(request, 'stregsystem/error_signup_not_approved.html', locals())
+
     stats = Sale.objects.filter(member_id=member_id).aggregate(
         total_amount=Sum('price'), total_purchases=Count('timestamp')
     )
@@ -252,6 +267,12 @@ def send_userdata(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     member = Member.objects.get(pk=member_id, active=True)
 
+    if not member.signup_due_paid:
+        return render(request, 'stregsystem/error_signupdue.html', locals())
+
+    if not member.signup_approved():
+        return render(request, 'stregsystem/error_signup_not_approved.html', locals())
+
     mail_sent = send_userdata_mail(member)
     sent_time = data_sent[member.id]
     current_time = timezone.now()
@@ -264,6 +285,12 @@ def send_userdata(request, room_id, member_id):
 def menu_userpay(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     member = Member.objects.get(pk=member_id, active=True)
+
+    if not member.signup_due_paid:
+        return render(request, 'stregsystem/error_signupdue.html', locals())
+
+    if not member.signup_approved():
+        return render(request, 'stregsystem/error_signup_not_approved.html', locals())
 
     amounts = {100, 200}
 
@@ -287,6 +314,12 @@ def menu_userrank(request, room_id, member_id):
     to_date = datetime.datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
     room = Room.objects.get(pk=room_id)
     member = Member.objects.get(pk=member_id, active=True)
+
+    if not member.signup_due_paid:
+        return render(request, 'stregsystem/error_signupdue.html', locals())
+
+    if not member.signup_approved():
+        return render(request, 'stregsystem/error_signup_not_approved.html', locals())
 
     def ranking(category_ids, from_d, to_d):
         qs = (
@@ -317,6 +350,15 @@ def menu_userrank(request, room_id, member_id):
         else:
             return "{:.2f}".format(qs.count() / ((to_d - from_d).days * 162.14 / 365))  # university workdays in 2021
 
+    def sale_count_for_product(category_ids, from_d, to_d):
+        qs = Sale.objects.filter(
+            member=member,
+            product__in=category_ids,
+            timestamp__gt=from_d,
+            timestamp__lte=to_d,
+        )
+        return qs.count()
+
     # let user know when they first purchased a product
     member_first_purchase = "Ikke endnu, køb en limfjordsporter!"
     first_purchase = Sale.objects.filter(member=member_id).order_by('-timestamp')
@@ -339,6 +381,7 @@ def menu_userrank(request, room_id, member_id):
         key: (
             ranking(category_ids, from_date, to_date),
             category_per_uni_day(category_ids, from_date, to_date),
+            sale_count_for_product(category_ids, from_date, to_date),
         )
         for key, category_ids in {
             k: v
@@ -354,6 +397,12 @@ def menu_sale(request, room_id, member_id, product_id=None):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
+
+    if not member.signup_due_paid:
+        return render(request, 'stregsystem/error_signupdue.html', locals())
+
+    if not member.signup_approved():
+        return render(request, 'stregsystem/error_signup_not_approved.html', locals())
 
     product = None
     if request.method == 'POST':
@@ -433,18 +482,55 @@ def batch_payment(request):
     )
 
 
+def approval_tool_context(request, approval_formset_factory, approval_queryset, approval_model: Type[ApprovalModel]):
+    data = dict()
+
+    if request.method == "GET":
+        data['formset'] = approval_formset_factory(queryset=approval_queryset)
+    elif request.method == "POST" and request.POST['action'] == "Submit pre-matched entries":
+        count = submit_filled_mobilepayments(request.user)
+
+        data['submitted_count'] = count
+        data['formset'] = approval_formset_factory(queryset=approval_queryset)
+    elif request.method == "POST" and request.POST['action'] == "Submit":
+        form = approval_formset_factory(request.POST)
+
+        if form.is_valid():
+            try:
+                # Do custom validation on form to avoid race conditions with autopayment
+                count = approval_model.process_submitted(form.cleaned_data, request.user)
+                data['submitted_count'] = count
+            except PaymentToolException as e:
+                data['error_count'] = e.inconsistent_mbpayments_count
+                data['error_transaction_ids'] = e.inconsistent_transaction_ids
+
+            # refresh form after submission
+            data['formset'] = approval_formset_factory(queryset=approval_queryset)
+        else:
+            # update form with errors
+            data['formset'] = form
+    elif request.method == "POST" and request.POST['action'] == "Import via MobilePay API":
+        before_count = MobilePayment.objects.count()
+        management.call_command('importmobilepaypayments')
+        count = MobilePayment.objects.count() - before_count
+
+        data['api'] = f"Successfully imported {count} MobilePay transactions"
+        data['formset'] = approval_formset_factory(queryset=approval_queryset)
+    else:
+        data['formset'] = approval_formset_factory(queryset=approval_queryset)
+
+    return data
+
+
 @staff_member_required()
 @permission_required("stregsystem.mobilepaytool_access")
-def mobilepaytool(request):
-    paytool_form_set = modelformset_factory(
-        MobilePayment,
-        form=MobilePayToolForm,
-        extra=0,
-        fields=('timestamp', 'amount', 'member', 'customer_name', 'comment', 'status'),
-    )
-    data = dict()
-    if request.method == "GET":
-        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
+def payment_tool(request):
+    paytool_form_set = modelformset_factory(MobilePayment, form=PaymentToolForm, extra=0)
+
+    data = approval_tool_context(request, paytool_form_set, make_unprocessed_mobilepayment_query(), MobilePayment)
+
+    if bool(data):
+        pass
     elif request.method == "POST" and 'csv_file' in request.FILES and request.POST['action'] == "Import MobilePay CSV":
         # Prepare uploaded CSV to be read
         csv_file = request.FILES['csv_file']
@@ -457,80 +543,101 @@ def mobilepaytool(request):
         # refresh form after submission
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
-    elif request.method == "POST" and request.POST['action'] == "Import via MobilePay API":
-        before_count = MobilePayment.objects.count()
-        management.call_command('importmobilepaypayments')
-        count = MobilePayment.objects.count() - before_count
-
-        data['api'] = f"Successfully imported {count} MobilePay transactions"
-        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
-
-    elif request.method == "POST" and request.POST['action'] == "Submit matched payments":
-        before_count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count()
-        MobilePayment.approve_member_filled_mobile_payments()
-        MobilePayment.submit_processed_mobile_payments(request.user)
-        count = MobilePayment.objects.filter(status=MobilePayment.APPROVED).count() - before_count
-
-        data['submitted_count'] = count
-        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
-
-    elif request.method == "POST" and request.POST['action'] == "Submit payments":
-        form = paytool_form_set(request.POST)
-
-        if form.is_valid():
-            try:
-                # Do custom validation on form to avoid race conditions with autopayment
-                count = MobilePayment.process_submitted_mobile_payments(form.cleaned_data, request.user)
-                data['submitted_count'] = count
-            except MobilePaytoolException as e:
-                data['error_count'] = e.inconsistent_mbpayments_count
-                data['error_transaction_ids'] = e.inconsistent_transaction_ids
-
-            # refresh form after submission
-            data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
-        else:
-            # update form with errors
-            data['formset'] = form
-    else:
-        data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
-
-    return render(request, "admin/stregsystem/mobilepaytool.html", data)
+    return render(request, "admin/stregsystem/approval_tools/payment_tool.html", data)
 
 
-def qr_payment(request):
-    form = QRPaymentForm(request.GET)
-    if not form.is_valid():
-        return HttpResponseBadRequest("Invalid input for MobilePay QR code generation")
+@staff_member_required()
+@permission_required("stregsystem.signuptool_access")
+def signup_tool(request):
+    signuptool_form_set = modelformset_factory(PendingSignup, form=SignupToolForm, extra=0)
 
-    query = {'phone': '90601', 'comment': form.cleaned_data.get('member')}
+    data = approval_tool_context(request, signuptool_form_set, make_unprocessed_signups_query(), PendingSignup)
 
-    if form.cleaned_data.get("amount") is not None:
-        query['amount'] = form.cleaned_data.get("amount")
+    if bool(data):
+        pass
+    elif request.method == "POST" and request.POST['action'] == "Process transactions for sign-ups":
+        # TODO: Make changes here
+        # management.call_command('autosignup')
+        data['formset'] = signuptool_form_set(queryset=make_unprocessed_signups_query())
 
-    data = 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
-    return qr_code(data)
+    return render(request, "admin/stregsystem/approval_tools/signup_tool.html", data)
 
 
 # API views
 
 
-def dump_active_items(request):
+def get_payment_qr(request):
+    form = QRPaymentForm(request.GET)
+    if not form.is_valid():
+        return HttpResponseBadRequest("Invalid input for MobilePay QR code generation")
+
+    username = form.cleaned_data.get('username')
+    amount = form.cleaned_data.get('amount')
+
+    return qr_code(mobilepay_launch_uri(username, amount))
+
+
+def signup(request):
+    is_post = request.method == "POST"
+    form = SignupForm(request.POST) if is_post else SignupForm()
+
+    if is_post and form.is_valid():
+        if Member.objects.filter(username=form.cleaned_data.get('username')).all().count() > 0:
+            form.add_error("username", "Brugernavn allerede i brug")
+            return render(request, "stregsystem/signup.html", locals())
+
+        member = Member.objects.create(
+            username=form.cleaned_data.get('username'),
+            firstname=form.cleaned_data.get('firstname'),
+            lastname=form.cleaned_data.get('lastname'),
+            email=form.cleaned_data.get('email'),
+            notes=form.cleaned_data.get('notes'),
+            gender=form.cleaned_data.get('gender'),
+            signup_due_paid=False,
+        )
+        signup_request = PendingSignup(member=member, due=200 * 100)
+        signup_request.save()
+
+        return redirect('signup_status', signup_id=signup_request.id)
+
+    return render(request, "stregsystem/signup.html", locals())
+
+
+def signup_status(request, signup_id):
+    try:
+        pending_signup = PendingSignup.objects.get(pk=signup_id)
+    except PendingSignup.DoesNotExist:
+        return redirect('signup')
+
+    mobilepay_url = pending_signup.generate_mobilepay_url()
+
+    qr = io.BytesIO()
+    qrcode.make(mobilepay_url, image_factory=qrcode.image.svg.SvgPathFillImage).save(qr)
+
+    mobilepay_qr_svg = qr.getvalue().decode('utf-8').splitlines()[1]
+    qr.close()
+
+    return render(request, "stregsystem/signup_status.html", locals())
+
+
+def get_active_items(request):
     room_id = request.GET.get('room_id') or None
     if room_id is None:
-        return HttpResponseBadRequest("Missing room_id")
+        return HttpResponseBadRequest("Parameter missing: room_id")
     elif not room_id.isdigit():
-        return HttpResponseBadRequest("Invalid room_id")
+        return HttpResponseBadRequest("Parameter invalid: room_id")
+    # TODO: Check whether room exists
     items = __get_productlist(room_id)
-    items_dict = {item.id: (item.name, item.price) for item in items}
+    items_dict = {item.id: {'name': item.name, 'price': item.price} for item in items}
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
 
 
-def check_user_active(request):
+def get_member_active(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
-        return HttpResponseBadRequest("Missing member_id")
+        return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
-        return HttpResponseBadRequest("Invalid member_id")
+        return HttpResponseBadRequest("Parameter invalid: member_id")
     try:
         member = Member.objects.get(pk=member_id)
     except Member.DoesNotExist:
@@ -538,27 +645,34 @@ def check_user_active(request):
     return JsonResponse({'active': member.active})
 
 
-def convert_username_to_id(request):
+def get_member_id(request):
     username = request.GET.get('username') or None
     if username is None:
-        return HttpResponseBadRequest("Missing username")
+        return HttpResponseBadRequest("Parameter missing: username")
+
     try:
         member = Member.objects.get(username=username)
     except Member.DoesNotExist:
-        return HttpResponseBadRequest("Invalid username")
+        return HttpResponseBadRequest("Member not found")
+
     return JsonResponse({'member_id': member.id})
 
 
-def dump_product_category_mappings(request):
-    return JsonResponse({p.id: [(cat.id, cat.name) for cat in p.categories.all()] for p in Product.objects.all()})
+def get_product_category_mappings(request):
+    return JsonResponse(
+        {
+            p.id: [{'category_id': cat.id, 'category_name': cat.name} for cat in p.categories.all()]
+            for p in Product.objects.all()
+        }
+    )
 
 
-def get_user_sales(request):
+def get_member_sales(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
-        return HttpResponseBadRequest("Missing member_id")
+        return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
-        return HttpResponseBadRequest("Invalid member_id")
+        return HttpResponseBadRequest("Parameter invalid: member_id")
     count = 10 if request.GET.get('count') is None else int(request.GET.get('count') or 10)
     sales = Sale.objects.filter(member=member_id).order_by('-timestamp')[:count]
     return JsonResponse(
@@ -566,12 +680,12 @@ def get_user_sales(request):
     )
 
 
-def get_user_balance(request):
+def get_member_balance(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
-        return HttpResponseBadRequest("Missing member_id")
+        return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
-        return HttpResponseBadRequest("Invalid member_id")
+        return HttpResponseBadRequest("Parameter invalid: member_id")
     try:
         member = Member.objects.get(pk=member_id)
     except Member.DoesNotExist:
@@ -579,10 +693,12 @@ def get_user_balance(request):
     return JsonResponse({'balance': member.balance})
 
 
-def get_user_info(request):
+def get_member_info(request):
     member_id = str(request.GET.get('member_id')) or None
-    if member_id is None or not member_id.isdigit():
-        return HttpResponseBadRequest("Missing or invalid member_id")
+    if member_id is None:
+        return HttpResponseBadRequest("Parameter missing: member_id")
+    elif not member_id.isdigit():
+        return HttpResponseBadRequest("Parameter invalid: member_id")
 
     member = find_user_from_id(int(member_id))
     if member is None:
@@ -593,6 +709,7 @@ def get_user_info(request):
             'username': member.username,
             'active': member.active,
             'name': f'{member.firstname} {member.lastname}',
+            'signup_due_paid': member.signup_due_paid,
         }
     )
 
@@ -604,7 +721,7 @@ def find_user_from_id(user_id: int):
         return None
 
 
-def dump_named_items(request):
+def get_named_products(request):
     items = NamedProduct.objects.all()
     items_dict = {item.name: item.product.id for item in items}
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
@@ -620,12 +737,16 @@ def api_sale(request):
         room = str(data['room']) or None
         member_id = str(data['member_id']) or None
 
-        if room is None or not room.isdigit():
-            return HttpResponseBadRequest("Missing or invalid room")
+        if room is None:
+            return HttpResponseBadRequest("Parameter missing: room")
+        if not room.isdigit():
+            return HttpResponseBadRequest("Parameter invalid: room")
         if buy_string is None:
-            return HttpResponseBadRequest("Missing buystring")
-        if member_id is None or not member_id.isdigit():
-            return HttpResponseBadRequest("Missing or invalid member_id")
+            return HttpResponseBadRequest("Parameter missing: buystring")
+        if member_id is None:
+            return HttpResponseBadRequest("Parameter missing: member_id")
+        if not member_id.isdigit():
+            return HttpResponseBadRequest("Parameter invalid: member_id")
 
         try:
             username, bought_ids = parser.parse(_pre_process(buy_string))
@@ -634,7 +755,13 @@ def api_sale(request):
 
         member = find_user_from_id(int(member_id))
         if member is None:
-            return HttpResponseBadRequest("Invalid member_id")
+            return HttpResponseBadRequest("Parameter invalid: member_id")
+
+        if not member.signup_due_paid:
+            return HttpResponseBadRequest("Signup due not paid")
+
+        if not member.signup_approved():
+            return HttpResponseBadRequest("Signup not manually approved")
 
         if username != member.username:
             return HttpResponseBadRequest("Username does not match member_id")
@@ -645,7 +772,7 @@ def api_sale(request):
         try:
             room = Room.objects.get(pk=room)
         except Room.DoesNotExist:
-            return HttpResponseBadRequest("Invalid room")
+            return HttpResponseBadRequest("Parameter invalid: room")
         msg, status, ret_obj = api_quicksale(request, room, member, bought_ids)
         return JsonResponse(
             {'status': status, 'msg': msg, 'values': ret_obj}, json_dumps_params={'ensure_ascii': False}

@@ -1,0 +1,12 @@
+{% load themes %}
+
+<div id="fireworks-container">
+    <canvas class="stars"></canvas>
+	<div class="explosions">
+		<template id="fireworks-explosion">
+			<canvas class="explosion"></canvas>
+		</template>
+	</div>
+    <canvas class="rockets"></canvas>
+	<img id="fireworks-rocket" hidden src="{% themes_static 'fireworks/rocket.svg' %}">
+</div>

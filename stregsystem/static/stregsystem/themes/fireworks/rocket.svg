@@ -1,0 +1,66 @@
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:cc="http://creativecommons.org/ns#"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	version="1.1"
+	viewBox="0 0 93.7 353"
+	width="93.7"
+	height="353"
+>
+	<rect class="body" fill="#fff" x="24.9" y="64.3" width="49" height="159.1" />
+	<rect
+		class="stem"
+		fill="#ccd100"
+		stroke="#000"
+		x="74.1"
+		y="82.5"
+		width="2.9"
+		height="270"
+	/>
+	<path
+		class="stripes"
+		fill="#d90000"
+		d="M48 3.7 3.6 70.9l20.6.3v11c3.5 3.5 22 20.4 48 18.2V81.1a44.3 44.3 0 0 1-37.7-9.8l55.6.7L48 3.7zM24.1 94.6v21.3a93.8 93.8 0 0 0 48.3 18.6v-15.7c-6.3.5-25.2-.3-48.3-24.2zm0 33-.3 19.5c4.5 3.5 23.4 17.3 48.6 20.7v-16.4c-5.7 0-25.8-1.5-48.5-23.8zm-.2 32.3v24.6-2.1s23 17.7 48.7 19v-17.1c-2-.4-30.6-6.6-48.7-24.4zm-.1 35.2-.1 24.4c8.1 11.5 33.8 15.5 49 3.5l-.1-5.5c-4.7-.3-33.6-2.4-48.8-22.4z"
+	/>
+	<path
+		class="top-reflection"
+		fill="#ff1818"
+		d="m50.9 9.1 8.7 61.8 29.6.3-39-67 .7 4.9z"
+	/>
+	<path
+		class="outline"
+		color="#000"
+		d="m48 0-1.7 2.6L2 69.9l-2 3h3.6l19.6.3-.2 72.4-.2 51.1v17.4l-.1 7.1v.7l.3.6c4.6 6.4 13.6 10.4 23.4 11.4 9.7 1 20.4-1.1 28.5-7.6l.7-.6v-1l-.4-150.8 14.8.2h3.7l-2-3-42-68.4L48 .1zm0 7.4 38.4 62.5-15.1-.3-36.8 1h-2l1.5 1.2.6.6A45 45 0 0 0 71.3 82v17.7a62.7 62.7 0 0 1-43.8-15.6V69.6L7.3 69 47.9 7.4zM36.8 72.1l34.5.4v8a43.7 43.7 0 0 1-34.5-8.4zm-9.4 14c7.3 6 23.2 16.5 44 15.1v16.9c-6.5.3-23.3-1.1-44-21.3V86zm0 12.6c20.6 19.6 37.3 21.2 44 20.8v14.2a91.7 91.7 0 0 1-44.2-16.5l.1-18.5zm-.2 20.3c8.1 5.5 25 15.2 44.2 16.2l.1 15.4c-6.2-.1-24-2.3-44.4-21.1V119zm-.1 12.4C47.6 149.9 65.3 152 71.5 152v14.8a105.8 105.8 0 0 1-44.6-18.4v-2.8l.2-14.2zm-.1 18.9c7.5 5.2 23.8 15 44.5 18v15c-5-1.1-28.1-7-44.6-21.6v-11.4zm0 13.2c17.4 15 41 20.6 44.6 21.3v15.7a96 96 0 0 1-44.8-17l.1-20zm-.2 21.9A94.8 94.8 0 0 0 71.6 202v14.6c-6-.3-30-3-44.8-19v-12.3zm0 14c15.4 16 39.2 18.4 44.8 18.7v4.6a37 37 0 0 1-26 6.6c-2.8-.3-5.5-.8-8-1.6h-.1l-.3-.1a24 24 0 0 1-10.5-7.2v-6.3l.1-14.5z"
+	/>
+	<metadata>
+		<rdf:RDF>
+			<cc:Work>
+				<cc:license
+					rdf:resource="http://creativecommons.org/licenses/publicdomain/"
+				/>
+				<dc:publisher>
+					<cc:Agent rdf:about="http://openclipart.org/">
+						<dc:title>Openclipart</dc:title>
+					</cc:Agent>
+				</dc:publisher>
+				<dc:source>
+					https://openclipart.org/detail/102433/rocket-fireworks-by-loproc
+				</dc:source>
+				<dc:creator>
+					<cc:Agent>
+						<dc:title>loproc</dc:title>
+					</cc:Agent>
+				</dc:creator>
+			</cc:Work>
+			<cc:License rdf:about="http://creativecommons.org/licenses/publicdomain/">
+				<cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction" />
+				<cc:permits rdf:resource="http://creativecommons.org/ns#Distribution" />
+				<cc:permits
+					rdf:resource="http://creativecommons.org/ns#DerivativeWorks"
+				/>
+			</cc:License>
+		</rdf:RDF>
+	</metadata>
+</svg>

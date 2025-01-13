@@ -1,0 +1,14 @@
+:root {
+	color-scheme: dark;
+	background-color: black;
+}
+
+#fireworks-container {
+	z-index: -100;
+
+	& canvas,
+	& div {
+		position: absolute;
+		inset: 0;
+	}
+}
