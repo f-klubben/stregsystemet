@@ -78,13 +78,11 @@ def __get_productlist(room_id):
 
 
 def __get_active_notes_for_product(product):
-    return (
-        ProductNote.objects.filter(products=product)
-        .filter(active=True)
-        .filter(
-            (Q(start_date__isnull=True) | Q(start_date__lte=timezone.now()))
-            & (Q(end_date__isnull=True) | Q(end_date__gte=timezone.now()))
-        )
+    return ProductNote.objects.filter(
+        (Q(products=product))
+        & (Q(active=True))
+        & (Q(start_date__isnull=True) | Q(start_date__lte=timezone.now()))
+        & (Q(end_date__isnull=True) | Q(end_date__gte=timezone.now()))
     )
 
 
