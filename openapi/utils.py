@@ -1,9 +1,14 @@
-def update_replace_dict(original_dict: dict, replacement: dict) -> None:
+from typing import Any
+
+
+def update_dictionary_values(original: dict[Any, Any], replacement: dict[Any, Any]) -> None:
     """
-    Same as dict.update(...) but doesn't add new values.
-    Modifies existing dict.
+    Same as dict.update(...) but doesn't add new keys.
+    Mutates 'original'
+    :param original: The dictionary to mutate.
+    :param replacement: The dictionary with values to update the original with.
     """
-    original_dict.update({k: v for k, v in replacement.items() if k in original_dict})
+    original.update({k: v for k, v in replacement.items() if k in original})
 
 
 def update_query_parameter_values(url_string: str, new_parameter_values: dict) -> str:
@@ -19,7 +24,7 @@ def update_query_parameter_values(url_string: str, new_parameter_values: dict) -
 
     qs_dict = parse_qs(parsed_url.query, keep_blank_values=True)
     qs_dict_flattened = {key: value[0] for key, value in qs_dict.items()}
-    update_replace_dict(qs_dict_flattened, new_parameter_values)
+    update_dictionary_values(qs_dict_flattened, new_parameter_values)
     updated_qs = urlencode(qs_dict_flattened, doseq=False)
 
     parsed_url = parsed_url._replace(query=updated_qs)

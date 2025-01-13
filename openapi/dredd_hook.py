@@ -1,6 +1,6 @@
 import dredd_hooks as hooks
 import json
-from utils import update_query_parameter_values, update_replace_dict
+from utils import update_query_parameter_values, update_dictionary_values
 
 not_found_parameter_values = {
     'room_id': 1,
@@ -37,6 +37,6 @@ def replace_4xx_parameter_values(transaction):
 def replace_body_in_post_requests(transaction):
     if transaction['expected']['statusCode'][0] == '4' and transaction['id'].startswith("POST"):
         body = json.loads(transaction['request']['body'])
-        update_replace_dict(body, not_found_parameter_values)
+        update_dictionary_values(body, not_found_parameter_values)
 
         transaction['request']['body'] = json.dumps(body)
