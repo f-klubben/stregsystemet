@@ -1,6 +1,6 @@
 import dredd_hooks as hooks
 import json
-from utils import update_get_parameters, update_replace_dict
+from utils import update_query_parameter_values, update_replace_dict
 
 not_found_parameter_values = {
     'room_id': 1,
@@ -27,7 +27,7 @@ def replace_4xx_parameter_values(transaction):
     To properly test the return value of not-found parameters, replace all parameters.
     """
     if transaction['expected']['statusCode'][0] == '4':
-        new_path = update_get_parameters(transaction['fullPath'], not_found_parameter_values)
+        new_path = update_query_parameter_values(transaction['fullPath'], not_found_parameter_values)
         print(f"Update endpoint path, from '{transaction['fullPath']}' to '{new_path}'")
         transaction['fullPath'] = new_path
         transaction['request']['uri'] = new_path
