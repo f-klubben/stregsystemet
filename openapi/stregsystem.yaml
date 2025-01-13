@@ -204,15 +204,6 @@ components:
     MissingMemberIdExample:
       summary: No member ID given
       value: "Parameter missing: member_id"
-    InvalidSignupIdExample:
-      summary: Signup ID is invalid
-      value: "Parameter invalid: signup_id"
-    MissingSignupIdExample:
-      summary: No signup ID given
-      value: "Parameter missing: signup_id"
-    SignupNotFoundExample:
-      summary: Signup request does not exist
-      value: "Signup not found"
     RoomNotFoundExample:
       summary: Room does not exist
       value: "Room not found"
@@ -277,15 +268,6 @@ components:
     missingMemberIdMessage:
       type: string
       example: "Parameter missing: member_id"
-    invalidSignupIdMessage:
-      type: string
-      example: "Parameter invalid: signup_id"
-    missingSignupIdMessage:
-      type: string
-      example: "Parameter missing: signup_id"
-    signupNotFoundMessage:
-      type: string
-      example: Signup not found
     roomNotFoundMessage:
       type: string
       example: Room not found
