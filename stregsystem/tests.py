@@ -42,6 +42,7 @@ from stregsystem.models import (
     PendingSignup,
     NamedProduct,
     ApprovalModel,
+    ProductNote,
 )
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
@@ -758,6 +759,99 @@ class ProductTests(TestCase):
         product.sale_set.create(price=100, member=self.jeff)
 
         self.assertFalse(product.is_active())
+
+
+class ProductNoteTest(TestCase):
+    fixtures = ["initial_data"]
+
+    def test_appearing(self):
+        # Make working product note
+        test_product = Product.objects.all().first()
+        self.test_product_note = ProductNote(
+            text="TEST-NOTE",
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+        # Make secondary product note, for same product
+        self.secondary_test_product_note = ProductNote(
+            text="SECONDARY-TEST-NOTE",
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+        )
+        self.secondary_test_product_note.save()
+        self.secondary_test_product_note.products.add(test_product)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+
+        # Test that the note is in the menu
+        self.assertContains(response, "TEST-NOTE")
+        self.assertContains(response, "SECONDARY-TEST-NOTE")
+
+    def test_chosen_color(self):
+        # Make working product note
+        test_product = Product.objects.all().first()
+        test_product.active = False
+        
+        self.test_product_note = ProductNote(
+            text="COLORED-NOTE",
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+            color="Yellow"
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+
+        self.assertContains(response, "<div class=\"note-box\" style=\"background-color: Yellow\">COLORED-NOTE</div>", html=True)
+
+    def test_incorrect_dates(self):
+        # Make expired product note
+        test_product = Product.objects.all().first()
+        self.test_product_note = ProductNote(
+            text="EXPIRED-NOTE",
+            start_date=datetime.date.today() - datetime.timedelta(days = 1),
+            end_date=datetime.date.today() - datetime.timedelta(days = 1),
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+        # Make product note that is not yet active
+        self.test_product_note = ProductNote(
+            text="FUTURE-NOTE",
+            start_date=datetime.date.today() + datetime.timedelta(days = 1),
+            end_date=datetime.date.today() + datetime.timedelta(days = 1),
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+        
+        # Test that the note is in the menu
+        self.assertNotContains(response, "EXPIRED-NOTE")
+        self.assertNotContains(response, "FUTURE-NOTE")
+        
+    def test_inactive(self):
+        # Make inactive product note
+        test_product = Product.objects.all().first()
+        self.test_product_note = ProductNote(
+            text="INACTIVE-NOTE",
+            active=False,
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+
+        # Test that the inactive note doesn't show up
+        self.assertNotContains(response, "INACTIVE-NOTE")
 
 
 class SaleTests(TestCase):
