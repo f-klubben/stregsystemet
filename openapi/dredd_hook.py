@@ -1,6 +1,6 @@
 import dredd_hooks as hooks
 import json
-from utils import *
+from utils import update_get_parameters, update_replace_dict
 
 not_found_parameter_values = {
     'room_id': 1,
