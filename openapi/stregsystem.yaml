@@ -7,7 +7,7 @@ info:
     Existing client software utilizing the API include Stregsystem-CLI (STS) and Fappen (F-Club Web App).
     
     Disclaimer - The implementation is not generated using this specification, therefore they can get out of sync if changes are made directly to the codebase without updating the OpenAPI specification file accordingly.
-  version: "1.1"
+  version: "1.1.1"
 externalDocs:
   description: Find out more about Stregsystemet at GitHub.
   url: https://github.com/f-klubben/stregsystemet/
