@@ -143,16 +143,16 @@ def sale(request, room_id):
 
 def _multibuy_hint(now, member):
     # Get a timestamp to fetch sales for the member for the last 60 sec
-    earliest_recent_purchase = now - datetime.timedelta(seconds=60)
+    earliest_recent_sale = now - datetime.timedelta(seconds=60)
     # get the sales with this timestamp
-    recent_purchases = Sale.objects.filter(member=member, timestamp__gt=earliest_recent_purchase)
-    number_of_recent_distinct_purchases = recent_purchases.values('timestamp').distinct().count()
-    recent_unique_purchases = recent_purchases.values('product').distinct().annotate(total=Count('product'))
+    recent_sales = Sale.objects.filter(member=member, timestamp__gt=earliest_recent_sale)
+    number_of_recent_distinct_sales = recent_sales.values('timestamp').distinct().count()
+    recent_unique_sales = recent_sales.values('product').distinct().annotate(total=Count('product'))
 
     # add hint for multibuy
-    if number_of_recent_distinct_purchases > 1:
+    if number_of_recent_distinct_sales > 1:
         sale_dict = {}
-        for unique_sale in recent_unique_purchases:
+        for unique_sale in recent_unique_sales:
             sale_dict[str(unique_sale['product'])] = unique_sale['total']
 
         sale_hints = ["<span class=\"username\">{}</span>".format(member.username)]
