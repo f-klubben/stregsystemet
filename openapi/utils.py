@@ -1,4 +1,5 @@
 from typing import Any
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 
 def update_dictionary_values(original: dict[Any, Any], replacement: dict[Any, Any]) -> None:
@@ -11,15 +12,13 @@ def update_dictionary_values(original: dict[Any, Any], replacement: dict[Any, An
     original.update({k: v for k, v in replacement.items() if k in original})
 
 
-def update_query_parameter_values(url_string: str, new_parameter_values: dict) -> str:
+def update_query_parameter_values(url_string: str, new_parameter_values: dict[str, Any]) -> str:
     """
     Updates query parameters with new parameter values from new_parameter_values.
     :param url_string: The URL path of which to modify query parameters.
     :param new_parameter_values: The dictionary with new query parameter values.
     :return: The URL with updated query parameter.
     """
-    from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
-
     parsed_url = urlparse(url_string)
 
     qs_dict = parse_qs(parsed_url.query, keep_blank_values=True)
