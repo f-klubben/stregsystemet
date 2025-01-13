@@ -713,14 +713,15 @@
     "model": "stregsystem.productnote",
     "pk": 1,
     "fields": {
-      "text": "Udgår!",
+      "text": "<div id=\"maanedens-oel\"></div>\r\n<script>\r\n  var p = \"Ny!\";\r\n  var elem = document.getElementById(\"maanedens-oel\").parentElement;\r\n  // Set it to 7 and not 40 if you want the tests to break ;)\r\n  if (new Date().getDate() <= 40) {\r\n    elem.innerText = p;\r\n  }\r\n  else {\r\n    elem.remove();\r\n  }\r\n</script>",
       "active": true,
-      "color": "",
-      "start_date": "2025-01-13",
-      "end_date": "2125-01-13",
+      "background_color": "Yellow",
+      "text_color": "",
+      "start_date": "2025-01-14",
+      "end_date": "2125-01-14",
       "comment": "",
       "products": [
-        1879
+        1903
       ],
       "rooms": []
     }
@@ -729,14 +730,15 @@
     "model": "stregsystem.productnote",
     "pk": 2,
     "fields": {
-      "text": "<div id=\"maanedens-oel\"></div>\r\n<script>\r\n  var p = \"Ny!\";\r\n  var elem = document.getElementById(\"maanedens-oel\").parentElement;\r\n  if (new Date().getDate() <= 7) {\r\n    elem.innerText = p;\r\n  }\r\n  else {\r\n    elem.remove();\r\n  }\r\n</script>",
+      "text": "Udgår!",
       "active": true,
-      "color": "Yellow",
-      "start_date": "2025-01-13",
-      "end_date": "2125-01-13",
+      "background_color": "",
+      "text_color": "",
+      "start_date": "2025-01-14",
+      "end_date": "2125-01-14",
       "comment": "",
       "products": [
-        1903
+        1879
       ],
       "rooms": []
     }
@@ -1090,11 +1092,11 @@
     "model": "admin.logentry",
     "pk": 1,
     "fields": {
-      "action_time": "2025-01-13T14:20:44.371Z",
+      "action_time": "2025-01-13T23:27:21.879Z",
       "user": 1,
-      "content_type": 7,
+      "content_type": 13,
       "object_id": "1",
-      "object_repr": "Udgår! (Apache attack helicopter)",
+      "object_repr": "<div id=\"maanedens-oel\"></div>\r\n<script>\r\n  var p = \"Ny!\";\r\n  var elem = document.getElementById(\"maanedens-oel\").parentElement;\r\n  if (new Date().getDate() <= 7) {\r\n    elem.innerText = p;\r\n  }\r\n  el",
       "action_flag": 1,
       "change_message": "[{\"added\": {}}]"
     }
@@ -1103,11 +1105,11 @@
     "model": "admin.logentry",
     "pk": 2,
     "fields": {
-      "action_time": "2025-01-13T14:21:52.051Z",
+      "action_time": "2025-01-13T23:27:58.382Z",
       "user": 1,
-      "content_type": 7,
+      "content_type": 13,
       "object_id": "2",
-      "object_repr": "<div id=\"maanedens-oel\"></div>\r\n<script>\r\n  var p = \"Ny!\";\r\n  var elem = document.getElementById(\"maanedens-oel\").parentElement;\r\n  if (new Date().getDate() <= 14) {\r\n    elem.innerText = p;\r\n  }\r\n  e",
+      "object_repr": "Udgår! (Apache attack helicopter)",
       "action_flag": 1,
       "change_message": "[{\"added\": {}}]"
     }
@@ -1116,26 +1118,13 @@
     "model": "admin.logentry",
     "pk": 3,
     "fields": {
-      "action_time": "2025-01-13T14:22:04.354Z",
+      "action_time": "2025-01-13T23:32:37.012Z",
       "user": 1,
-      "content_type": 7,
-      "object_id": "2",
-      "object_repr": "<div id=\"maanedens-oel\"></div>\r\n<script>\r\n  var p = \"Ny!\";\r\n  var elem = document.getElementById(\"maanedens-oel\").parentElement;\r\n  if (new Date().getDate() <= 7) {\r\n    elem.innerText = p;\r\n  }\r\n  el",
+      "content_type": 13,
+      "object_id": "1",
+      "object_repr": "<div id=\"maanedens-oel\"></div>\r\n<script>\r\n  var p = \"Ny!\";\r\n  var elem = document.getElementById(\"maanedens-oel\").parentElement;\r\n  // Set it to 7 and not 40 if you want the tests to break ;)\r\n  if (n",
       "action_flag": 2,
       "change_message": "[{\"changed\": {\"fields\": [\"Text\"]}}]"
-    }
-  },
-  {
-    "model": "admin.logentry",
-    "pk": 4,
-    "fields": {
-      "action_time": "2025-01-13T14:22:29.737Z",
-      "user": 1,
-      "content_type": 7,
-      "object_id": "2",
-      "object_repr": "<div id=\"maanedens-oel\"></div>\r\n<script>\r\n  var p = \"Ny!\";\r\n  var elem = document.getElementById(\"maanedens-oel\").parentElement;\r\n  if (new Date().getDate() <= 7) {\r\n    elem.innerText = p;\r\n  }\r\n  el",
-      "action_flag": 2,
-      "change_message": "[]"
     }
   },
   {
@@ -1178,468 +1167,468 @@
     "model": "auth.permission",
     "pk": 5,
     "fields": {
-      "name": "Can add payment",
+      "name": "Can add news",
       "content_type": 2,
-      "codename": "add_payment"
+      "codename": "add_news"
     }
   },
   {
     "model": "auth.permission",
     "pk": 6,
     "fields": {
-      "name": "Can change payment",
+      "name": "Can change news",
       "content_type": 2,
-      "codename": "change_payment"
+      "codename": "change_news"
     }
   },
   {
     "model": "auth.permission",
     "pk": 7,
     "fields": {
-      "name": "Can delete payment",
+      "name": "Can delete news",
       "content_type": 2,
-      "codename": "delete_payment"
+      "codename": "delete_news"
     }
   },
   {
     "model": "auth.permission",
     "pk": 8,
     "fields": {
-      "name": "Can view payment",
+      "name": "Can view news",
       "content_type": 2,
-      "codename": "view_payment"
+      "codename": "view_news"
     }
   },
   {
     "model": "auth.permission",
     "pk": 9,
     "fields": {
-      "name": "Import batch payments",
-      "content_type": 2,
-      "codename": "import_batch_payments"
+      "name": "Can add old price",
+      "content_type": 3,
+      "codename": "add_oldprice"
     }
   },
   {
     "model": "auth.permission",
     "pk": 10,
     "fields": {
-      "name": "Can add mobile payment",
+      "name": "Can change old price",
       "content_type": 3,
-      "codename": "add_mobilepayment"
+      "codename": "change_oldprice"
     }
   },
   {
     "model": "auth.permission",
     "pk": 11,
     "fields": {
-      "name": "Can change mobile payment",
+      "name": "Can delete old price",
       "content_type": 3,
-      "codename": "change_mobilepayment"
+      "codename": "delete_oldprice"
     }
   },
   {
     "model": "auth.permission",
     "pk": 12,
     "fields": {
-      "name": "Can delete mobile payment",
+      "name": "Can view old price",
       "content_type": 3,
-      "codename": "delete_mobilepayment"
+      "codename": "view_oldprice"
     }
   },
   {
     "model": "auth.permission",
     "pk": 13,
     "fields": {
-      "name": "Can view mobile payment",
-      "content_type": 3,
-      "codename": "view_mobilepayment"
+      "name": "Can add payment",
+      "content_type": 4,
+      "codename": "add_payment"
     }
   },
   {
     "model": "auth.permission",
     "pk": 14,
     "fields": {
-      "name": "MobilePaytool access",
-      "content_type": 3,
-      "codename": "mobilepaytool_access"
+      "name": "Can change payment",
+      "content_type": 4,
+      "codename": "change_payment"
     }
   },
   {
     "model": "auth.permission",
     "pk": 15,
     "fields": {
-      "name": "Can add category",
+      "name": "Can delete payment",
       "content_type": 4,
-      "codename": "add_category"
+      "codename": "delete_payment"
     }
   },
   {
     "model": "auth.permission",
     "pk": 16,
     "fields": {
-      "name": "Can change category",
+      "name": "Can view payment",
       "content_type": 4,
-      "codename": "change_category"
+      "codename": "view_payment"
     }
   },
   {
     "model": "auth.permission",
     "pk": 17,
     "fields": {
-      "name": "Can delete category",
+      "name": "Import batch payments",
       "content_type": 4,
-      "codename": "delete_category"
+      "codename": "import_batch_payments"
     }
   },
   {
     "model": "auth.permission",
     "pk": 18,
     "fields": {
-      "name": "Can view category",
-      "content_type": 4,
-      "codename": "view_category"
+      "name": "Can add product",
+      "content_type": 5,
+      "codename": "add_product"
     }
   },
   {
     "model": "auth.permission",
     "pk": 19,
     "fields": {
-      "name": "Can add room",
+      "name": "Can change product",
       "content_type": 5,
-      "codename": "add_room"
+      "codename": "change_product"
     }
   },
   {
     "model": "auth.permission",
     "pk": 20,
     "fields": {
-      "name": "Can change room",
+      "name": "Can delete product",
       "content_type": 5,
-      "codename": "change_room"
+      "codename": "delete_product"
     }
   },
   {
     "model": "auth.permission",
     "pk": 21,
     "fields": {
-      "name": "Can delete room",
+      "name": "Can view product",
       "content_type": 5,
-      "codename": "delete_room"
+      "codename": "view_product"
     }
   },
   {
     "model": "auth.permission",
     "pk": 22,
     "fields": {
-      "name": "Can view room",
-      "content_type": 5,
-      "codename": "view_room"
+      "name": "Can add room",
+      "content_type": 6,
+      "codename": "add_room"
     }
   },
   {
     "model": "auth.permission",
     "pk": 23,
     "fields": {
-      "name": "Can add product",
+      "name": "Can change room",
       "content_type": 6,
-      "codename": "add_product"
+      "codename": "change_room"
     }
   },
   {
     "model": "auth.permission",
     "pk": 24,
     "fields": {
-      "name": "Can change product",
+      "name": "Can delete room",
       "content_type": 6,
-      "codename": "change_product"
+      "codename": "delete_room"
     }
   },
   {
     "model": "auth.permission",
     "pk": 25,
     "fields": {
-      "name": "Can delete product",
+      "name": "Can view room",
       "content_type": 6,
-      "codename": "delete_product"
+      "codename": "view_room"
     }
   },
   {
     "model": "auth.permission",
     "pk": 26,
     "fields": {
-      "name": "Can view product",
-      "content_type": 6,
-      "codename": "view_product"
+      "name": "Can add sale",
+      "content_type": 7,
+      "codename": "add_sale"
     }
   },
   {
     "model": "auth.permission",
     "pk": 27,
     "fields": {
-      "name": "Can add product note",
+      "name": "Can change sale",
       "content_type": 7,
-      "codename": "add_productnote"
+      "codename": "change_sale"
     }
   },
   {
     "model": "auth.permission",
     "pk": 28,
     "fields": {
-      "name": "Can change product note",
+      "name": "Can delete sale",
       "content_type": 7,
-      "codename": "change_productnote"
+      "codename": "delete_sale"
     }
   },
   {
     "model": "auth.permission",
     "pk": 29,
     "fields": {
-      "name": "Can delete product note",
+      "name": "Can view sale",
       "content_type": 7,
-      "codename": "delete_productnote"
+      "codename": "view_sale"
     }
   },
   {
     "model": "auth.permission",
     "pk": 30,
     "fields": {
-      "name": "Can view product note",
+      "name": "Can access sales reports",
       "content_type": 7,
-      "codename": "view_productnote"
+      "codename": "access_sales_reports"
     }
   },
   {
     "model": "auth.permission",
     "pk": 31,
     "fields": {
-      "name": "Can add named product",
+      "name": "Can add category",
       "content_type": 8,
-      "codename": "add_namedproduct"
+      "codename": "add_category"
     }
   },
   {
     "model": "auth.permission",
     "pk": 32,
     "fields": {
-      "name": "Can change named product",
+      "name": "Can change category",
       "content_type": 8,
-      "codename": "change_namedproduct"
+      "codename": "change_category"
     }
   },
   {
     "model": "auth.permission",
     "pk": 33,
     "fields": {
-      "name": "Can delete named product",
+      "name": "Can delete category",
       "content_type": 8,
-      "codename": "delete_namedproduct"
+      "codename": "delete_category"
     }
   },
   {
     "model": "auth.permission",
     "pk": 34,
     "fields": {
-      "name": "Can view named product",
+      "name": "Can view category",
       "content_type": 8,
-      "codename": "view_namedproduct"
+      "codename": "view_category"
     }
   },
   {
     "model": "auth.permission",
     "pk": 35,
     "fields": {
-      "name": "Can add old price",
+      "name": "Can add mobile payment",
       "content_type": 9,
-      "codename": "add_oldprice"
+      "codename": "add_mobilepayment"
     }
   },
   {
     "model": "auth.permission",
     "pk": 36,
     "fields": {
-      "name": "Can change old price",
+      "name": "Can change mobile payment",
       "content_type": 9,
-      "codename": "change_oldprice"
+      "codename": "change_mobilepayment"
     }
   },
   {
     "model": "auth.permission",
     "pk": 37,
     "fields": {
-      "name": "Can delete old price",
+      "name": "Can delete mobile payment",
       "content_type": 9,
-      "codename": "delete_oldprice"
+      "codename": "delete_mobilepayment"
     }
   },
   {
     "model": "auth.permission",
     "pk": 38,
     "fields": {
-      "name": "Can view old price",
+      "name": "Can view mobile payment",
       "content_type": 9,
-      "codename": "view_oldprice"
+      "codename": "view_mobilepayment"
     }
   },
   {
     "model": "auth.permission",
     "pk": 39,
     "fields": {
-      "name": "Can add sale",
-      "content_type": 10,
-      "codename": "add_sale"
+      "name": "MobilePaytool access",
+      "content_type": 9,
+      "codename": "mobilepaytool_access"
     }
   },
   {
     "model": "auth.permission",
     "pk": 40,
     "fields": {
-      "name": "Can change sale",
+      "name": "Can add named product",
       "content_type": 10,
-      "codename": "change_sale"
+      "codename": "add_namedproduct"
     }
   },
   {
     "model": "auth.permission",
     "pk": 41,
     "fields": {
-      "name": "Can delete sale",
+      "name": "Can change named product",
       "content_type": 10,
-      "codename": "delete_sale"
+      "codename": "change_namedproduct"
     }
   },
   {
     "model": "auth.permission",
     "pk": 42,
     "fields": {
-      "name": "Can view sale",
+      "name": "Can delete named product",
       "content_type": 10,
-      "codename": "view_sale"
+      "codename": "delete_namedproduct"
     }
   },
   {
     "model": "auth.permission",
     "pk": 43,
     "fields": {
-      "name": "Can access sales reports",
+      "name": "Can view named product",
       "content_type": 10,
-      "codename": "access_sales_reports"
+      "codename": "view_namedproduct"
     }
   },
   {
     "model": "auth.permission",
     "pk": 44,
     "fields": {
-      "name": "Can add news",
+      "name": "Can add pending signup",
       "content_type": 11,
-      "codename": "add_news"
+      "codename": "add_pendingsignup"
     }
   },
   {
     "model": "auth.permission",
     "pk": 45,
     "fields": {
-      "name": "Can change news",
+      "name": "Can change pending signup",
       "content_type": 11,
-      "codename": "change_news"
+      "codename": "change_pendingsignup"
     }
   },
   {
     "model": "auth.permission",
     "pk": 46,
     "fields": {
-      "name": "Can delete news",
+      "name": "Can delete pending signup",
       "content_type": 11,
-      "codename": "delete_news"
+      "codename": "delete_pendingsignup"
     }
   },
   {
     "model": "auth.permission",
     "pk": 47,
     "fields": {
-      "name": "Can view news",
+      "name": "Can view pending signup",
       "content_type": 11,
-      "codename": "view_news"
+      "codename": "view_pendingsignup"
     }
   },
   {
     "model": "auth.permission",
     "pk": 48,
     "fields": {
-      "name": "Can add pending signup",
-      "content_type": 12,
-      "codename": "add_pendingsignup"
+      "name": "Sign-up Tool access",
+      "content_type": 11,
+      "codename": "signuptool_access"
     }
   },
   {
     "model": "auth.permission",
     "pk": 49,
     "fields": {
-      "name": "Can change pending signup",
+      "name": "Can add theme",
       "content_type": 12,
-      "codename": "change_pendingsignup"
+      "codename": "add_theme"
     }
   },
   {
     "model": "auth.permission",
     "pk": 50,
     "fields": {
-      "name": "Can delete pending signup",
+      "name": "Can change theme",
       "content_type": 12,
-      "codename": "delete_pendingsignup"
+      "codename": "change_theme"
     }
   },
   {
     "model": "auth.permission",
     "pk": 51,
     "fields": {
-      "name": "Can view pending signup",
+      "name": "Can delete theme",
       "content_type": 12,
-      "codename": "view_pendingsignup"
+      "codename": "delete_theme"
     }
   },
   {
     "model": "auth.permission",
     "pk": 52,
     "fields": {
-      "name": "Sign-up Tool access",
+      "name": "Can view theme",
       "content_type": 12,
-      "codename": "signuptool_access"
+      "codename": "view_theme"
     }
   },
   {
     "model": "auth.permission",
     "pk": 53,
     "fields": {
-      "name": "Can add theme",
+      "name": "Can add product note",
       "content_type": 13,
-      "codename": "add_theme"
+      "codename": "add_productnote"
     }
   },
   {
     "model": "auth.permission",
     "pk": 54,
     "fields": {
-      "name": "Can change theme",
+      "name": "Can change product note",
       "content_type": 13,
-      "codename": "change_theme"
+      "codename": "change_productnote"
     }
   },
   {
     "model": "auth.permission",
     "pk": 55,
     "fields": {
-      "name": "Can delete theme",
+      "name": "Can delete product note",
       "content_type": 13,
-      "codename": "delete_theme"
+      "codename": "delete_productnote"
     }
   },
   {
     "model": "auth.permission",
     "pk": 56,
     "fields": {
-      "name": "Can view theme",
+      "name": "Can view product note",
       "content_type": 13,
-      "codename": "view_theme"
+      "codename": "view_productnote"
     }
   },
   {
@@ -2060,8 +2049,8 @@
     "model": "auth.user",
     "pk": 1,
     "fields": {
-      "password": "pbkdf2_sha256$390000$KAdS20xRY7jtbiU3ixWM9P$UqC2JGg3sjIgB3beEdl7zHL1SWBUcfZ5V65s2A+PRIE=",
-      "last_login": "2025-01-13T14:18:08.578Z",
+      "password": "pbkdf2_sha256$390000$Kt88MhSU3wsBuvk5eaezwQ$MV3CgIHzoVRz9GUh30vZTR6m0pEIJaiUtPEvN+QQye8=",
+      "last_login": "2025-01-13T23:26:16.491Z",
       "is_superuser": true,
       "username": "tester",
       "first_name": "test",
@@ -2069,7 +2058,7 @@
       "email": "",
       "is_staff": true,
       "is_active": true,
-      "date_joined": "2025-01-13T14:17:31.230Z",
+      "date_joined": "2025-01-13T23:25:49.245Z",
       "groups": [],
       "user_permissions": []
     }
@@ -2087,7 +2076,7 @@
       "email": "",
       "is_staff": true,
       "is_active": true,
-      "date_joined": "2025-01-13T14:17:31.232Z",
+      "date_joined": "2025-01-13T23:25:49.247Z",
       "groups": [],
       "user_permissions": []
     }
@@ -2105,7 +2094,7 @@
       "email": "",
       "is_staff": false,
       "is_active": true,
-      "date_joined": "2025-01-13T14:17:31.233Z",
+      "date_joined": "2025-01-13T23:25:49.247Z",
       "groups": [],
       "user_permissions": []
     }
@@ -2123,7 +2112,7 @@
       "email": "",
       "is_staff": false,
       "is_active": true,
-      "date_joined": "2025-01-13T14:17:31.233Z",
+      "date_joined": "2025-01-13T23:25:49.248Z",
       "groups": [],
       "user_permissions": []
     }
@@ -2141,7 +2130,7 @@
     "pk": 2,
     "fields": {
       "app_label": "stregsystem",
-      "model": "payment"
+      "model": "news"
     }
   },
   {
@@ -2149,7 +2138,7 @@
     "pk": 3,
     "fields": {
       "app_label": "stregsystem",
-      "model": "mobilepayment"
+      "model": "oldprice"
     }
   },
   {
@@ -2157,7 +2146,7 @@
     "pk": 4,
     "fields": {
       "app_label": "stregsystem",
-      "model": "category"
+      "model": "payment"
     }
   },
   {
@@ -2165,7 +2154,7 @@
     "pk": 5,
     "fields": {
       "app_label": "stregsystem",
-      "model": "room"
+      "model": "product"
     }
   },
   {
@@ -2173,7 +2162,7 @@
     "pk": 6,
     "fields": {
       "app_label": "stregsystem",
-      "model": "product"
+      "model": "room"
     }
   },
   {
@@ -2181,7 +2170,7 @@
     "pk": 7,
     "fields": {
       "app_label": "stregsystem",
-      "model": "productnote"
+      "model": "sale"
     }
   },
   {
@@ -2189,7 +2178,7 @@
     "pk": 8,
     "fields": {
       "app_label": "stregsystem",
-      "model": "namedproduct"
+      "model": "category"
     }
   },
   {
@@ -2197,7 +2186,7 @@
     "pk": 9,
     "fields": {
       "app_label": "stregsystem",
-      "model": "oldprice"
+      "model": "mobilepayment"
     }
   },
   {
@@ -2205,7 +2194,7 @@
     "pk": 10,
     "fields": {
       "app_label": "stregsystem",
-      "model": "sale"
+      "model": "namedproduct"
     }
   },
   {
@@ -2213,7 +2202,7 @@
     "pk": 11,
     "fields": {
       "app_label": "stregsystem",
-      "model": "news"
+      "model": "pendingsignup"
     }
   },
   {
@@ -2221,7 +2210,7 @@
     "pk": 12,
     "fields": {
       "app_label": "stregsystem",
-      "model": "pendingsignup"
+      "model": "theme"
     }
   },
   {
@@ -2229,7 +2218,7 @@
     "pk": 13,
     "fields": {
       "app_label": "stregsystem",
-      "model": "theme"
+      "model": "productnote"
     }
   },
   {

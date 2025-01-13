@@ -639,9 +639,12 @@ class ProductNote(models.Model):
     rooms = models.ManyToManyField(Room, blank=True)
     text = models.TextField()
     active = models.BooleanField(default=True)
-    color = models.CharField(
+    background_color = models.CharField(
         max_length=20, help_text="Write a valid html color (default: red)", blank="red"
     )  # If anyone wants to use LightGoldenRodYellow, they can
+    text_color = models.CharField(
+        max_length=20, help_text="Write a valid html color (default: black)", blank="black"
+    )
     start_date = models.DateField()
     end_date = models.DateField()
     comment = models.TextField(blank=True)

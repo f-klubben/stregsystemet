@@ -83,7 +83,7 @@
               </td>
               <td>
                 {% for note in pair.note %}
-                  <div class="note-box" style="background-color: {{note.color}}">{{note.text}}</div>
+                  <div class="note-box" style="background-color: {{note.background_color}}; color: {{note.text_color}}">{{note.text}}</div>
                 {% endfor %}
                 <span style="display: inline-block">{{pair.product.name}}</span>    
               </td>
@@ -103,7 +103,7 @@
                 <td>{{pair.product.id|product_id_and_alias_string}}</td>
                 <td>
                   {% for note in pair.note %}
-                    <div class="note-box" style="background-color: {{note.color}}">{{note.text}}</div>
+                    <div class="note-box" style="background-color: {{note.background_color}}; color: {{note.text_color}}">{{note.text}}</div>
                   {% endfor %}
                   <span style="display: inline-block">{{pair.product.name}}</span>   
                 </td>

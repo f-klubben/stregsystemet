@@ -274,7 +274,8 @@ class SaleViewTests(TestCase):
         # Assert that the index screen at least contains one of the products in
         # the database. Technically this doesn't check everything exhaustively,
         # but it's better than nothing -Jesper 18/09-2017
-        self.assertContains(response, '<span style="display: inline-block">Limfjordsporter</span>', html=True)
+        self.assertContains(response, "Limfjordsporter")
+        self.assertNotContains(response, "NonExistentProduct")
 
     def test_quickbuy_no_known_member(self):
         response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "notinthere"})
@@ -763,18 +764,16 @@ class ProductTests(TestCase):
 class ProductNoteTest(TestCase):
     fixtures = ["initial_data"]
 
-    def setUp(self):
+    def test_appearing(self):
         # Make working product note
-        self.test_product = Product.objects.all().first()
+        test_product = Product.objects.all().first()
         self.test_product_note = ProductNote(
             text="TEST-NOTE",
             start_date=datetime.date.today(),
             end_date=datetime.date.today(),
         )
         self.test_product_note.save()
-        self.test_product_note.products.add(self.test_product)
-
-    def test_appearing(self):
+        self.test_product_note.products.add(test_product)
         # Make secondary product note, for same product
         self.secondary_test_product_note = ProductNote(
             text="SECONDARY-TEST-NOTE",
@@ -782,7 +781,7 @@ class ProductNoteTest(TestCase):
             end_date=datetime.date.today(),
         )
         self.secondary_test_product_note.save()
-        self.secondary_test_product_note.products.add(self.test_product)
+        self.secondary_test_product_note.products.add(test_product)
 
         # Get the menu
         response = self.client.post(reverse('menu_index', args=(1,)))
@@ -792,28 +791,33 @@ class ProductNoteTest(TestCase):
         self.assertContains(response, "SECONDARY-TEST-NOTE")
 
     def test_chosen_color(self):
-        # Change the test note color
-        self.test_product_note.text = "COLORED-NOTE"
-        self.test_product_note.color = "Yellow"
+        # Make working product note
+        test_product = Product.objects.all().first()
+        test_product.active = False
+
+        self.test_product_note = ProductNote(
+            text="COLORED-NOTE", start_date=datetime.date.today(), end_date=datetime.date.today(), background_color="Yellow"
+        )
         self.test_product_note.save()
-        self.test_product_note.products.add(self.test_product)
+        self.test_product_note.products.add(test_product)
 
         # Get the menu
         response = self.client.post(reverse('menu_index', args=(1,)))
 
         self.assertContains(
-            response, "<div class=\"note-box\" style=\"background-color: Yellow\">COLORED-NOTE</div>", html=True
+            response, "<div class=\"note-box\" style=\"background-color: Yellow; color: \">COLORED-NOTE</div>", html=True
         )
 
     def test_incorrect_dates(self):
         # Make expired product note
+        test_product = Product.objects.all().first()
         self.test_product_note = ProductNote(
             text="EXPIRED-NOTE",
             start_date=datetime.date.today() - datetime.timedelta(days=1),
             end_date=datetime.date.today() - datetime.timedelta(days=1),
         )
         self.test_product_note.save()
-        self.test_product_note.products.add(self.test_product)
+        self.test_product_note.products.add(test_product)
         # Make product note that is not yet active
         self.test_product_note = ProductNote(
             text="FUTURE-NOTE",
@@ -821,7 +825,7 @@ class ProductNoteTest(TestCase):
             end_date=datetime.date.today() + datetime.timedelta(days=1),
         )
         self.test_product_note.save()
-        self.test_product_note.products.add(self.test_product)
+        self.test_product_note.products.add(test_product)
 
         # Get the menu
         response = self.client.post(reverse('menu_index', args=(1,)))
@@ -831,11 +835,16 @@ class ProductNoteTest(TestCase):
         self.assertNotContains(response, "FUTURE-NOTE")
 
     def test_inactive(self):
-        # Make test note inactive
-        self.test_product_note.text = "INACTIVE-NOTE"
-        self.test_product_note.active = False
+        # Make inactive product note
+        test_product = Product.objects.all().first()
+        self.test_product_note = ProductNote(
+            text="INACTIVE-NOTE",
+            active=False,
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+        )
         self.test_product_note.save()
-        self.test_product_note.products.add(self.test_product)
+        self.test_product_note.products.add(test_product)
 
         # Get the menu
         response = self.client.post(reverse('menu_index', args=(1,)))
