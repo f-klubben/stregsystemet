@@ -82,6 +82,10 @@ with lib.types; {
             type = str;
             default = "/var/run/stregsystemet";
         };
+        superUsers = lib.mkOption {
+            type = listOf str;
+            default = ["treo"];
+        };
 
     };
 
@@ -148,7 +152,9 @@ with lib.types; {
                         #!${pkgs.bash}/bin/bash
                         mkdir ${cfg.workingDirectory}
                         cp -r ${workingDirectory}/* ${cfg.workingDirectory}
+                        cd ${cfg.workingDirectory}
                         ${stregsystemet}/bin/stregsystemet migrate
+                        ${builtins.concatStringsSep "\n" (map (user: "${stregsystemet}/bin/stregsystemet createsuperuser --noinput --username ${user}") cfg.superUsers)}
                     ''}/bin/setup.sh";
                 };
                 wantedBy = ["default.target"];
