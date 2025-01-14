@@ -86,19 +86,5 @@
         "end": {
             "month": 12
         }
-    },
-    {
-        "name": "newyear",
-        "html": "themes/newyear.html",
-        "css": "themes/newyear.css",
-        "js": "themes/newyear.js",
-        "begin": {
-            "month": 12,
-            "day": 31
-        },
-        "end": {
-            "month": 1,
-            "day": 1
-        }
     }
 ]
