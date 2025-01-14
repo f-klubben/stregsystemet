@@ -796,7 +796,10 @@ class ProductNoteTest(TestCase):
         test_product.active = False
 
         self.test_product_note = ProductNote(
-            text="COLORED-NOTE", start_date=datetime.date.today(), end_date=datetime.date.today(), background_color="Yellow"
+            text="COLORED-NOTE",
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+            background_color="Yellow",
         )
         self.test_product_note.save()
         self.test_product_note.products.add(test_product)
@@ -805,7 +808,9 @@ class ProductNoteTest(TestCase):
         response = self.client.post(reverse('menu_index', args=(1,)))
 
         self.assertContains(
-            response, "<div class=\"note-box\" style=\"background-color: Yellow; color: \">COLORED-NOTE</div>", html=True
+            response,
+            "<div class=\"note-box\" style=\"background-color: Yellow; color: \">COLORED-NOTE</div>",
+            html=True,
         )
 
     def test_incorrect_dates(self):
