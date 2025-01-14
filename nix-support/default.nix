@@ -1,4 +1,4 @@
-{pkgs, ...}: let
+{pkgs ? import <nixpkgs> {}, ...}: let
     env = pkgs.python311.withPackages (import ./dependencies.nix { inherit pkgs; });
 in pkgs.stdenv.mkDerivation {
     pname = "stregsystemet";
