@@ -29,6 +29,9 @@
                         stregsystemet = {
                             enable = true;
                             port = 80;
+                            testData = {
+                                enable = true;
+                            };
                         };
                     }
                 ];

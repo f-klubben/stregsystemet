@@ -86,6 +86,16 @@ with lib.types; {
             type = listOf str;
             default = ["treo"];
         };
+        testData = {
+            enable = lib.mkOption {
+                type = bool;
+                default = false;
+            };
+            fixture = lib.mkOption {
+                type = path;
+                default = ../stregsystem/fixtures/testdata.json;
+            };
+        };
 
     };
 
@@ -132,7 +142,12 @@ with lib.types; {
                     ''} $out/local.cfg
                 '';
             };
-        in lib.mkIf config.stregsystemet.enable {
+            testDataInit = if cfg.testData.enable then ''
+                ${stregsystemet}/bin/stregsystemet loaddata ${cfg.testData.fixture}
+            '' else ''
+                ${builtins.concatStringsSep "\n" (map (user: "${stregsystemet}/bin/stregsystemet createsuperuser --noinput --username ${user}") cfg.superUsers)}
+            '';
+        in lib.mkIf cfg.enable {
             stregsystemet = {
                 enable = true;
                 serviceConfig = {
@@ -154,7 +169,7 @@ with lib.types; {
                         cp -r ${workingDirectory}/* ${cfg.workingDirectory}
                         cd ${cfg.workingDirectory}
                         ${stregsystemet}/bin/stregsystemet migrate
-                        ${builtins.concatStringsSep "\n" (map (user: "${stregsystemet}/bin/stregsystemet createsuperuser --noinput --username ${user}") cfg.superUsers)}
+                        ${testDataInit}
                     ''}/bin/setup.sh";
                 };
                 wantedBy = ["default.target"];
