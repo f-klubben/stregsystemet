@@ -66,7 +66,7 @@ If you need the path to some of your extra files, you can use the following help
 You can use the `themes_static` template tag to get the path to the static themes folder. Use it like this:
 
 ```html
-<img src="{% themes_static 'mytheme/image.svg' %}">
+<img src="{{ '/path/to/rocket.svg' | relative_url }}" alt="Rocket">
 ```
 
 There is also `themes_template` for the template themes folder.
