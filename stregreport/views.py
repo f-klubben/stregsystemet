@@ -309,13 +309,9 @@ def ranks_for_year(request, year):
 
     kr_stat_list = sale_money_rank(from_time, to_time)
 
-    stat_list = [
-        (
-            cat.name,
-            sale_product_rank(get_product_ids_from_category(cat), from_time, to_time),
-        )
-        for cat in Category.objects.all()
-    ]
+    stat_lists = []
+    for cat in Category.objects.all():
+        stat_lists.append((cat.name, sale_product_rank(get_product_ids_from_category(cat), from_time, to_time)))
 
     from_time_string = from_time.strftime(FORMAT)
     to_time_string = to_time.strftime(FORMAT)
@@ -372,12 +368,9 @@ def next_fjule_party_year():
     return current_date.year + 1
 
 
-def fjule_party(year) -> datetime.datetime:
-    """
-    date of fjuleparty (first friday of december) for the given year at 10 o'clock
-    :param year: The year of the fjuleparty
-    :return: The date of the party
-    """
+# date of fjuleparty (first friday of december) for the given year at
+# 10 o'clock
+def fjule_party(year):
     first_december = timezone.datetime(year, 12, 1, 22, tzinfo=pytz.timezone("Europe/Copenhagen"))
     days_to_add = (11 - first_december.weekday()) % 7
     return first_december + datetime.timedelta(days=days_to_add)
