@@ -812,7 +812,7 @@ def post_signup(request):
             200,
             {
                 'due': pending_signup.due,
-                'signup_id': pending_signup.id,
+                'username': pending_signup.member.username,
             },
         )
 
