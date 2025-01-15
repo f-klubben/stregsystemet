@@ -34,7 +34,7 @@ urlpatterns = [
     re_path(r'^admin/stregsystem/razzia/wizard_guide/$', views.razzia_wizard),
     re_path(r'^admin/stregsystem/razzia/wizard/$', views.razzia_view, name="razzia_view"),
     re_path(r'^admin/stregsystem/report/sales/$', views.sales, name="salesreporting"),
-    re_path(r'^admin/stregsystem/report/ranks/$', views.ranks),
+    re_path(r'^admin/stregsystem/report/ranks/$', views.ranks, name="report_categoryranks"),
     re_path(r'^admin/stregsystem/report/daily/$', views.daily),
     re_path(r'^admin/stregsystem/report/ranks/(?P<year>\d+)$', views.ranks),
     re_path(r'^admin/stregsystem/report/$', views.reports),
