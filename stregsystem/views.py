@@ -790,6 +790,7 @@ def get_signup_status(request):
         return JsonResponse({'due': 0, 'status': ApprovalModel.APPROVED})
 
 
+@csrf_exempt
 def post_signup(request):
     if request.method != "POST":
         return HttpResponseBadRequest()
