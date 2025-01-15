@@ -42,6 +42,7 @@ from stregsystem.models import (
     PendingSignup,
     NamedProduct,
     ApprovalModel,
+    ProductNote,
 )
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
@@ -273,7 +274,8 @@ class SaleViewTests(TestCase):
         # Assert that the index screen at least contains one of the products in
         # the database. Technically this doesn't check everything exhaustively,
         # but it's better than nothing -Jesper 18/09-2017
-        self.assertContains(response, "<td>Limfjordsporter</td>", html=True)
+        self.assertContains(response, "Limfjordsporter")
+        self.assertNotContains(response, "NonExistentProduct")
 
     def test_quickbuy_no_known_member(self):
         response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "notinthere"})
@@ -759,6 +761,103 @@ class ProductTests(TestCase):
         self.assertFalse(product.is_active())
 
 
+class ProductNoteTest(TestCase):
+    fixtures = ["initial_data"]
+
+    def test_appearing(self):
+        # Make working product note
+        test_product = Product.objects.all().first()
+        self.test_product_note = ProductNote(
+            text="TEST-NOTE",
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+        # Make secondary product note, for same product
+        self.secondary_test_product_note = ProductNote(
+            text="SECONDARY-TEST-NOTE",
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+        )
+        self.secondary_test_product_note.save()
+        self.secondary_test_product_note.products.add(test_product)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+
+        # Test that the note is in the menu
+        self.assertContains(response, "TEST-NOTE")
+        self.assertContains(response, "SECONDARY-TEST-NOTE")
+
+    def test_chosen_color(self):
+        # Make working product note
+        test_product = Product.objects.all().first()
+        test_product.active = False
+
+        self.test_product_note = ProductNote(
+            text="COLORED-NOTE",
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+            background_color="Yellow",
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+
+        self.assertContains(
+            response,
+            "<div class=\"note-box\" style=\"background-color: Yellow; color: \">COLORED-NOTE</div>",
+            html=True,
+        )
+
+    def test_incorrect_dates(self):
+        # Make expired product note
+        test_product = Product.objects.all().first()
+        self.test_product_note = ProductNote(
+            text="EXPIRED-NOTE",
+            start_date=datetime.date.today() - datetime.timedelta(days=1),
+            end_date=datetime.date.today() - datetime.timedelta(days=1),
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+        # Make product note that is not yet active
+        self.test_product_note = ProductNote(
+            text="FUTURE-NOTE",
+            start_date=datetime.date.today() + datetime.timedelta(days=1),
+            end_date=datetime.date.today() + datetime.timedelta(days=1),
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+
+        # Test that the note is in the menu
+        self.assertNotContains(response, "EXPIRED-NOTE")
+        self.assertNotContains(response, "FUTURE-NOTE")
+
+    def test_inactive(self):
+        # Make inactive product note
+        test_product = Product.objects.all().first()
+        self.test_product_note = ProductNote(
+            text="INACTIVE-NOTE",
+            active=False,
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+
+        # Test that the inactive note doesn't show up
+        self.assertNotContains(response, "INACTIVE-NOTE")
+
+
 class SaleTests(TestCase):
     def setUp(self):
         self.member = Member.objects.create(username="jon", balance=100)
@@ -1142,19 +1241,19 @@ class ProductRoomFilterTests(TestCase):
     def test_general_room_dont_get_special_items(self):
         numberOfSpecialItems = 2
         response = self.client.get(reverse('menu_index', args=(1,)))
-        products = response.context['product_list']
+        product_pairs = response.context['product_note_pair_list']
         specialProduct = Product.objects.get(pk=3)
 
-        self.assertFalse(specialProduct in products)
-        self.assertEqual(len(products), len(Product.objects.all()) - numberOfSpecialItems)
+        any(self.assertFalse(specialProduct == pair.product) for pair in product_pairs)
+        self.assertEqual(len(product_pairs), len(Product.objects.all()) - numberOfSpecialItems)
 
     def test_special_room_get_special_items(self):
         response = self.client.get(reverse('menu_index', args=(2,)))
-        products = response.context['product_list']
+        product_pairs = response.context['product_note_pair_list']
         specialProduct = Product.objects.get(pk=3)
 
-        self.assertTrue(specialProduct in products)
-        self.assertEqual(len(products), len(Product.objects.all()))
+        self.assertTrue(any(specialProduct == pair.product) for pair in product_pairs)
+        self.assertEqual(len(product_pairs), len(Product.objects.all()))
 
 
 class CategoryAdminTests(TestCase):
