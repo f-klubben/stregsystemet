@@ -21,5 +21,8 @@
 | stregsystemet.database.password                 | str        | ""                                    |
 | stregsystemet.workingDirectory                  | str        | "/var/run/stregsystemet"              |
 | stregsystemet.superUsers                        | str        | ["treo"]                              |
+| stregsystemet.extraSql                          | listOf str | []                                    |
 | stregsystemet.testData.enable                   | bool       | false                                 |
 | stregsystemet.testData.fixture                  | path       | ../stregsystem/fixtures/testdata.json |
+
+note: stregsystemet.extraSql only supports sqlite or mysql

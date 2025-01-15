@@ -86,6 +86,10 @@ with lib.types; {
             type = listOf str;
             default = ["treo"];
         };
+        extraSql = lib.mkOption {
+            type = listOf str;
+            default = [];
+        };
         testData = {
             enable = lib.mkOption {
                 type = bool;
@@ -147,6 +151,12 @@ with lib.types; {
             '' else ''
                 ${builtins.concatStringsSep "\n" (map (user: "${stregsystemet}/bin/stregsystemet createsuperuser --noinput --username ${user}") cfg.superUsers)}
             '';
+            doSQL = sql: if cfg.database.engine == "sqlite" then
+                ''${pkgs.sqlite}/bin/sqlite ${cfg.workingDirectory}/${cfg.database.name} "${sql}"''
+            else if cfg.databse.engine == "mysql" then
+                ''${pkgs.mysql}/bin/mysql --user ${cfg.database.user} -p ${cfg.database.password} -e "${sql}"''
+            else
+                ''echo "${cfg.database.engine} is unsupported for option stregsystemet.extraSql"'';
         in lib.mkIf cfg.enable {
             stregsystemet = {
                 enable = true;
@@ -170,6 +180,7 @@ with lib.types; {
                         cd ${cfg.workingDirectory}
                         ${stregsystemet}/bin/stregsystemet migrate
                         ${testDataInit}
+                        ${builtins.concatStringsSep "\n" (map doSQL cfg.extraSql)}
                     ''}/bin/setup.sh";
                 };
                 wantedBy = ["default.target"];
