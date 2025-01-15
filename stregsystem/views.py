@@ -599,6 +599,9 @@ def perform_signup(validated_form: SignupForm) -> PendingSignup:
     if not validated_form.is_valid():
         raise ValidationError("The provided form contains errors: %s" % validated_form.errors)
 
+    if Member.objects.filter(username=validated_form.cleaned_data.get('username')).all().count() > 0:
+        raise ValidationError("Username already taken")
+
     member = Member.objects.create(
         username=validated_form.cleaned_data.get('username'),
         firstname=validated_form.cleaned_data.get('firstname'),
@@ -624,6 +627,7 @@ def signup(request):
             return render(request, "stregsystem/signup.html", locals())
 
         pending_signup = perform_signup(form)
+
         return redirect('signup_status', signup_id=pending_signup.id)
 
     return render(request, "stregsystem/signup.html", locals())
@@ -805,7 +809,10 @@ def post_signup(request):
         if not signup_form.is_valid():
             return HttpResponseBadRequest(f"Parameter invalid: {', '.join(signup_form.errors.keys())}")
 
-        pending_signup = perform_signup(signup_form)
+        try:
+            pending_signup = perform_signup(signup_form)
+        except ValidationError as err:
+            return HttpResponseBadRequest(err.message)
 
         msg, status, ret_obj = (
             "OK",
