@@ -639,10 +639,17 @@ def signup_status(request, signup_id):
 
 def get_active_items(request):
     room_id = request.GET.get('room_id') or None
+
     if room_id is None:
         return HttpResponseBadRequest("Parameter missing: room_id")
     elif not room_id.isdigit():
         return HttpResponseBadRequest("Parameter invalid: room_id")
+
+    try:
+        room = Room.objects.get(pk=room_id)
+    except Room.DoesNotExist:
+        return HttpResponseBadRequest("Room not found")
+
     # TODO: Check whether room exists
     items = __get_productlist(room_id)
     items_dict = {item.id: {'name': item.name, 'price': item.price} for item in items}
@@ -655,10 +662,12 @@ def get_member_active(request):
         return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
         return HttpResponseBadRequest("Parameter invalid: member_id")
+
     try:
         member = Member.objects.get(pk=member_id)
     except Member.DoesNotExist:
         return HttpResponseBadRequest("Member not found")
+
     return JsonResponse({'active': member.active})
 
 
@@ -690,8 +699,14 @@ def get_member_sales(request):
         return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
         return HttpResponseBadRequest("Parameter invalid: member_id")
+
+    try:
+        member = Member.objects.get(pk=member_id)
+    except Member.DoesNotExist:
+        return HttpResponseBadRequest("Member not found")
+
     count = 10 if request.GET.get('count') is None else int(request.GET.get('count') or 10)
-    sales = Sale.objects.filter(member=member_id).order_by('-timestamp')[:count]
+    sales = Sale.objects.filter(member=member).order_by('-timestamp')[:count]
     return JsonResponse(
         {'sales': [{'timestamp': s.timestamp, 'product': s.product.name, 'price': s.product.price} for s in sales]}
     )
@@ -703,10 +718,12 @@ def get_member_balance(request):
         return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
         return HttpResponseBadRequest("Parameter invalid: member_id")
+
     try:
         member = Member.objects.get(pk=member_id)
     except Member.DoesNotExist:
         return HttpResponseBadRequest("Member not found")
+
     return JsonResponse({'balance': member.balance})
 
 
@@ -717,9 +734,11 @@ def get_member_info(request):
     elif not member_id.isdigit():
         return HttpResponseBadRequest("Parameter invalid: member_id")
 
-    member = find_user_from_id(int(member_id))
-    if member is None:
+    try:
+        member = Member.objects.get(pk=member_id)
+    except Member.DoesNotExist:
         return HttpResponseBadRequest("Member not found")
+
     return JsonResponse(
         {
             'balance': member.balance,
@@ -770,9 +789,10 @@ def api_sale(request):
         except parser.ParseError as e:
             return HttpResponseBadRequest("Parse error: {}".format(e))
 
-        member = find_user_from_id(int(member_id))
-        if member is None:
-            return HttpResponseBadRequest("Parameter invalid: member_id")
+        try:
+            member = Member.objects.get(pk=member_id)
+        except Member.DoesNotExist:
+            return HttpResponseBadRequest("Member not found")
 
         if not member.signup_due_paid:
             return HttpResponseBadRequest("Signup due not paid")
