@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
             model_name="product",
             name="name_style",
             field=models.TextField(
-                default="",
+                blank=True,
                 help_text="If product is very cool, usually something like: font-size: 2em; font-weight: bold; color: red; margin: 1em 0;",
                 max_length=64,
             ),

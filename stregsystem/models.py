@@ -577,7 +577,7 @@ class Room(models.Model):
 
 class Product(models.Model):  # id automatisk...
     name = models.CharField(max_length=64)
-    name_style = models.TextField(max_length=64, default="", help_text="If product is very cool, usually something like: font-size: 2em; font-weight: bold; color: red; margin: 1em 0;")
+    name_style = models.TextField(max_length=64, blank=True, help_text="If product is very cool, usually something like: font-size: 2em; font-weight: bold; color: red; margin: 1em 0;")
     description = models.CharField(max_length=64, blank=True)
     price = models.IntegerField()  # penge, oere...
     active = models.BooleanField()
