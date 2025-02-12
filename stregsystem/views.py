@@ -804,6 +804,12 @@ def post_signup(request):
         except json.JSONDecodeError:
             return HttpResponseBadRequest("Invalid JSON payload.")
 
+        # Convert 'education' to proper field 'notes'
+        try:
+            data['notes'] = data.pop('education')
+        except KeyError:
+            return HttpResponseBadRequest('Parameter invalid: education')
+
         signup_form = SignupForm(data)
 
         if not signup_form.is_valid():
