@@ -145,7 +145,7 @@ def sale(request, room_id):
         return render(request, 'stregsystem/error_invalidquickbuy.html', values)
     # Fetch member from DB
     try:
-        member = Member.objects.get(username=username, active=True)
+        member = Member.objects.get(username__iexact=username, active=True)
     except Member.DoesNotExist:
         return render(request, 'stregsystem/error_usernotfound.html', locals())
 
