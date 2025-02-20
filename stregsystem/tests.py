@@ -140,6 +140,17 @@ class SaleViewTests(TestCase):
 
         fulfill.assert_called_once_with(PayTransaction(900))
 
+    def test_quickbuy_member_case_is_insensitive(self):
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/menu.html")
+
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "JOKKE"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/menu.html")
+
     def test_make_sale_quickbuy_wrong_product_for_named_product(self):
         item = Product.objects.get(id=1)
         NamedProduct.objects.create(name='test1', product=item)
