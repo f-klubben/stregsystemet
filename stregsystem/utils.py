@@ -179,6 +179,7 @@ def mobilepay_launch_uri(comment: str, amount: float) -> str:
 
     return 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
 
+
 def insert_gdpr_span(text: str) -> str:
     from stregsystem.models import Member
 
@@ -190,10 +191,8 @@ def insert_gdpr_span(text: str) -> str:
             parts[i] = '<span class="username">' + part + '</span>'
         except Member.DoesNotExist:
             continue
-    
+
     return " ".join(parts)
-
-
 
 
 class stregsystemTestRunner(DiscoverRunner):
