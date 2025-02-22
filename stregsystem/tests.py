@@ -2293,17 +2293,21 @@ class MiscUtilTests(TestCase):
     fixtures = ['initial_data']
 
     def test_gdpr_is_inserted(self):
-        assumed_user = 'jokke'
-        assumed_non_user = 'nonuser'
+        assumed_user = "jokke"
+        assumed_non_user = "nonuser"
     
         simple_quickbuy = assumed_user
         simple_gdpr_quickbuy = insert_gdpr_span(simple_quickbuy)
-        expected_simple_gdpr_quickbuy = '<span class=\"username\">' + assumed_user + '</span>'
+        expected_simple_gdpr_quickbuy = (
+            '<span class="username">' + assumed_user + '</span>'
+        )
 
         self.assertEqual(simple_gdpr_quickbuy, expected_simple_gdpr_quickbuy)
 
-        advanced_quickbuy = assumed_user + ' ' + assumed_non_user
+        advanced_quickbuy = assumed_user + " " + assumed_non_user
         advanced_gdpr_quickbuy = insert_gdpr_span(advanced_quickbuy)
-        expected_advanced_gdpr_quickbuy = '<span class=\"username\">' + assumed_user + '</span> ' + assumed_non_user
+        expected_advanced_gdpr_quickbuy = (
+            '<span class="username">' + assumed_user + '</span> ' + assumed_non_user
+        )
 
         self.assertEqual(advanced_gdpr_quickbuy, expected_advanced_gdpr_quickbuy)
