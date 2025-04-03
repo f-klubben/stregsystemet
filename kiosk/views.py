@@ -33,6 +33,7 @@ def find_random_media(request):
         "id": item.id,
         "url": item.media.url,
         "is_image": item.is_image,
+        "duration": item.duration,
     }
     return HttpResponse(json.dumps(response_data), content_type="application/json")
 
@@ -75,5 +76,6 @@ def find_next_media_real(request, item_id):
         "id": next_item.id,
         "url": next_item.media.url,
         "is_image": next_item.is_image,
+        "duration": next_item.duration,
     }
     return HttpResponse(json.dumps(response_data), content_type="application/json")

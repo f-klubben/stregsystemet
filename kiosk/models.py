@@ -18,6 +18,7 @@ class KioskItem(models.Model):
     ordering = models.IntegerField(null=False, default=random_ordering, blank=False)
     start_datetime = models.DateTimeField(null=True, blank=True)
     end_datetime = models.DateTimeField(null=True, blank=True)
+    duration = models.IntegerField(null=False, default=10000, blank=False, verbose_name="Duration (ms)")
 
     @property
     def is_image(self):

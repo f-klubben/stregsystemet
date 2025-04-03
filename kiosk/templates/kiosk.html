@@ -19,6 +19,7 @@
     var queue = [].slice.call(document.querySelectorAll(".dummy"));
     var front = queue.shift();
     var this_id = -1;
+    var currentDuration = 10000;
 
     function swap(tag) {
         //Flip in the DOM
@@ -31,7 +32,7 @@
     }
 
     function updateKiosk() {
-        var t = front
+        var t = front;
         t.addEventListener("transitionend", function loadnext(tag) {
             t.removeEventListener("transitionend", loadnext);
             var xmlHttp = new XMLHttpRequest();
@@ -40,6 +41,7 @@
                     obj = JSON.parse(xmlHttp.responseText);
                     this_id = obj.id;
                     t.style.backgroundImage = '';
+
                     if (!obj.is_image) {
                         t.style.backgroundImage = '';
                         t.innerHTML = //
@@ -51,13 +53,16 @@
                         t.innerHTML = '';
                         t.style.backgroundImage = 'url("' + obj.url +'")';
                     }
+
+                    // Use the duration from the server response
+                    currentDuration = obj.duration || 10000;  // Default to 10 seconds if not provided
                 } else if (xmlHttp.readyState == 4) {
                     // Response received, but no image was sent from server
                     t.style.backgroundImage = 'url("{% static "kiosk/kioskbg.png" %}")';
                     this_id = -1;
                 }
-
             }
+
             //Start by asking random for the first image
             if(this_id === -1) {
                 xmlHttp.open("GET", "/kiosk/random", true);
@@ -65,12 +70,18 @@
                 xmlHttp.open("GET", "/kiosk/next_real/" + this_id + "/", true);
             }
             xmlHttp.send(null);
+
         });
+
         swap();
+
+        // Set a timeout to update the kiosk again after the dynamic duration
+        setTimeout(updateKiosk, currentDuration);
     }
 
-    setInterval("updateKiosk()", 10000);
+    // Initial call to start the cycle
     updateKiosk();
+
     </script>
 </body>
 
