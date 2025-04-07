@@ -111,7 +111,7 @@ class Order(object):
         return order
 
     # @HACK In reality calculating the total for old products is way harder and
-    # more complicated than this. While it's not in the database this is
+    # more complicated than this. While it's not in the database this is 
     # acceptable
     def total(self):
         return sum((x.price() for x in self.items))
@@ -863,3 +863,20 @@ class Theme(models.Model):
 
     def __str__(self):
         return self.name
+
+class Achievement(models.Model):
+    title = models.CharField(max_length=50)
+    description = models.CharField(max_length=100)
+    icon_png = models.CharField(max_length=255)
+
+class AchievementTask(models.Model):
+    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    goal_count = models.IntegerField(default=1)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+class AchievementMember(models.Model):
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    achievement_task = models.ForeignKey(AchievementTask, on_delete=models.CASCADE)
+    progress_count = models.IntegerField(default=0)
+    completed_at = models.DateTimeField(null=True, blank=True)

@@ -43,6 +43,9 @@ from stregsystem.models import (
     NamedProduct,
     ApprovalModel,
     ProductNote,
+    Achievement,
+    AchievementMember,
+    AchievementTask,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -245,11 +248,13 @@ def usermenu(request, room, member, bought, from_sale=False):
 
     heatmap_context = prepare_heatmap_template_context(member, 12, datetime.date.today())
 
+    achievement_tasks = AchievementMember.objects.filter(member=member).values("AchievementTask")
+
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())
     else:
         return render(request, 'stregsystem/menu.html', {**locals(), **heatmap_context})
-
+    
 
 def menu_userinfo(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)

@@ -18,6 +18,9 @@ from stregsystem.models import (
     PendingSignup,
     Theme,
     ProductNote,
+    Achievement,
+    AchievementMember,
+    AchievementTask
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
@@ -386,3 +389,6 @@ admin.site.register(MobilePayment, MobilePaymentAdmin)
 admin.site.register(PendingSignup)
 admin.site.register(Theme, ThemeAdmin)
 admin.site.register(ProductNote, ProductNoteAdmin)
+admin.site.register(Achievement)
+admin.site.register(AchievementTask)
+admin.site.register(AchievementMember)
