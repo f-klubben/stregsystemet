@@ -1,0 +1,134 @@
+[
+    {
+      "model": "stregsystem.achievement",
+      "pk": 1,
+      "fields": {
+        "title": "First Purchase",
+        "description": "Make your first purchase!",
+        "icon_png": "achievement_beer.png"
+      }
+    },
+    {
+      "model": "stregsystem.achievement",
+      "pk": 2,
+      "fields": {
+        "title": "Beginning Acoholic!",
+        "description": "Buy your first beer.",
+        "icon_png": "achievement_beer.png"
+      }
+    },
+    {
+      "model": "stregsystem.achievement",
+      "pk": 3,
+      "fields": {
+        "title": "Party Starter",
+        "description": "Buy five drinks.",
+        "icon_png": "achievement_beer.png"
+      }
+    },
+    {
+      "model": "stregsystem.achievement",
+      "pk": 4,
+      "fields": {
+        "title": "Beer Enthusiast",
+        "description": "Buy 10 beers.",
+        "icon_png": "achievement_beer.png"
+      }
+    },
+    {
+      "model": "stregsystem.achievement",
+      "pk": 5,
+      "fields": {
+        "title": "Big Spender",
+        "description": "Spend over 500 kr.",
+        "icon_png": "achievement_beer.png"
+      }
+    },
+    {
+      "model": "stregsystem.achievement",
+      "pk": 6,
+      "fields": {
+        "title": "Drugged up!",
+        "description": "Buy a beer and a coffee within 60 seconds",
+        "icon_png": "achievement_beer.png"
+      }
+    },
+    {
+    "model": "stregsystem.achievementtask",
+    "pk": 1,
+    "fields": {
+        "achievement": 1,
+        "product": null,
+        "category": null,
+        "goal_count": 1,
+        "task_type": "any"
+        }
+    },
+    {
+      "model": "stregsystem.achievementtask",
+      "pk": 2,
+      "fields": {
+          "achievement": 2,
+          "product": 14,
+          "category": null,
+          "goal_count": 1,
+          "task_type": "default"
+          }
+    },
+    {
+    "model": "stregsystem.achievementtask",
+    "pk": 3,
+    "fields": {
+        "achievement": 3,
+        "product": null,
+        "category": 3,
+        "goal_count": 5,
+        "task_type": "default"
+        }
+    },
+    {
+    "model": "stregsystem.achievementtask",
+    "pk": 4,
+    "fields": {
+        "achievement": 4,
+        "product": 14,
+        "category": null,
+        "goal_count": 10,
+        "task_type": "default"
+        }
+    },
+    {
+    "model": "stregsystem.achievementtask",
+    "pk": 5,
+    "fields": {
+        "achievement": 5,
+        "product": null,
+        "category": null,
+        "goal_count": 500,
+        "task_type": "balance"
+        }
+    },
+    {
+      "model": "stregsystem.achievementtask",
+      "pk": 6,
+      "fields": {
+          "achievement": 6,
+          "product": null,
+          "category": 6,
+          "goal_count": 1,
+          "task_type": "default"
+          }
+      },
+      {
+        "model": "stregsystem.achievementtask",
+        "pk": 7,
+        "fields": {
+            "achievement": 6,
+            "product": null,
+            "category": 3,
+            "goal_count": 1,
+            "task_type": "default"
+            }
+        }
+  ]
+  

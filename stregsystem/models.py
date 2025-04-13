@@ -869,14 +869,35 @@ class Achievement(models.Model):
     description = models.CharField(max_length=100)
     icon_png = models.CharField(max_length=255)
 
-class AchievementTask(models.Model):
-    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    goal_count = models.IntegerField(default=1)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"{self.title}: {self.description}"
 
-class AchievementMember(models.Model):
+class AchievementTask(models.Model):
+    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE) # An achievement can have many 'tasks'
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
+    goal_count = models.IntegerField(default=1)
+    task_type = models.CharField(max_length=50, default="default") # ['default', 'any', 'balance']
+
+    def __str__(self):
+        if (self.product is not None):
+            type = f"product={self.product.name}"
+        elif (self.category is not None):
+            type = f"category={self.category.name}"
+        else:
+            type = f"type={self.task_type}"
+
+        return f"{self.achievement}: [{type}] Goal: {self.goal_count})"
+
+class AchievementMember(models.Model): # A members progress on a task 
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     achievement_task = models.ForeignKey(AchievementTask, on_delete=models.CASCADE)
-    progress_count = models.IntegerField(default=0)
+    progress_count = models.FloatField(default=0) # Needs to be float to account for balance progress
     completed_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+
+        completed_str = "✘" if self.completed_at == None else "✓"
+
+        return f"""{self.member.username}({self.achievement_task.achievement.title}): 
+                   {self.progress_count}/{self.achievement_task.goal_count} {completed_str}"""

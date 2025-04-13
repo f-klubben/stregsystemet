@@ -59,6 +59,7 @@ from stregsystem.utils import (
     make_unprocessed_signups_query,
 )
 
+from .achievements import get_acquired_achievements
 from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
 from .forms import PaymentToolForm, QRPaymentForm, PurchaseForm, SignupForm, RankingDateForm, SignupToolForm
@@ -228,7 +229,7 @@ def quicksale(request, room, member: Member, bought_ids):
     return render(request, 'stregsystem/index_sale.html', locals())
 
 
-def usermenu(request, room, member, bought, from_sale=False):
+def usermenu(request, room, member, bought, acquired_achievements = [], from_sale=False):
     negative_balance = member.balance < 0
     product_list = __get_productlist(room.id)
     news = __get_news()
@@ -247,8 +248,6 @@ def usermenu(request, room, member, bought, from_sale=False):
     give_multibuy_hint = give_multibuy_hint and from_sale
 
     heatmap_context = prepare_heatmap_template_context(member, 12, datetime.date.today())
-
-    achievement_tasks = AchievementMember.objects.filter(member=member).values("AchievementTask")
 
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())
@@ -419,6 +418,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
+    acquired_achievements = []
 
     if not member.signup_due_paid:
         return render(request, 'stregsystem/error_signupdue.html', locals())
@@ -445,6 +445,8 @@ def menu_sale(request, room_id, member_id, product_id=None):
             order = Order.from_products(member=member, room=room, products=(product,))
 
             order.execute()
+            
+            acquired_achievements = get_acquired_achievements(member, product)
 
         except Product.DoesNotExist:
             pass
@@ -456,7 +458,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
 
     # Refresh member, to get new amount
     member = Member.objects.get(pk=member_id, active=True)
-    return usermenu(request, room, member, product, from_sale=True)
+    return usermenu(request, room, member, product, acquired_achievements, from_sale=True)
 
 
 @staff_member_required()

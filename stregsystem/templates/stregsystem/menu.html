@@ -125,9 +125,7 @@
     {% include "stregsystem/purchase_heatmap.html" %}
   </main>
   {% block achievement %}
-    {% if bought %}
-      {% include "stregsystem/achievements.html" %}
-    {% endif %}
+    {% include "stregsystem/achievements.html" %}
   {% endblock %}
 {% endblock %}
 

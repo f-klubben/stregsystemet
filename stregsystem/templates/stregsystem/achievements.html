@@ -7,10 +7,9 @@
         right: 0;
         width: 250px;
         height: 75px;
-        animation: pop-up-down 4s ease-in-out forwards;
         padding: 10px;
         box-sizing: border-box;
-        display: flex;
+        display: none;
         align-items: center;
         background: url("{% static 'stregsystem/achievement_icons/achievementBG.png' %}") no-repeat center/cover;
     }
@@ -44,23 +43,54 @@
     @keyframes pop-up-down {
         0% {
             transform: translateY(100vh);
+            opacity: 0;
         }
-        25% {
+        30% {
             transform: translateY(0);
+            opacity: 1;
         }
-        75% {
+        70% {
             transform: translateY(0);
+            opacity: 1;
         }
         100% {
             transform: translateY(100vh);
+            opacity: 0;
         }
     }
+
+    .animate-popup {
+        animation: pop-up-down 3s ease-in-out forwards;
+    }
+
 </style>
 
-<div class="achievement-container">
-    <img class="achievement-logo" src="{% static 'stregsystem/achievement_icons/achievement_beer.png' %}" alt="Achievement Logo">
-    <div class="text-wrapper">
-        <div class="title-text">Alcoholic!</div>
-        <div class="description-text">Buy your first beer</div>
+{% for achievement in acquired_achievements %}
+    <div class="achievement-container">
+        <img class="achievement-logo" src="{% static 'stregsystem/achievement_icons/' %}{{ achievement.achievement_task.achievement.icon_png }}" alt="Achievement Logo">
+        <div class="text-wrapper">
+            <div class="title-text">{{ achievement.achievement_task.achievement.title }}</div>
+            <div class="description-text">{{ achievement.achievement_task.achievement.description }}</div>
+        </div>
     </div>
-</div>
+{% endfor %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const achievements = document.querySelectorAll('.achievement-container');
+        const delayBetween = 3000; // Total time per popup
+
+        achievements.forEach((element, index) => {
+            setTimeout(() => {
+                element.style.display = 'flex';
+                element.classList.add('animate-popup');
+
+                // Hide again and remove animation
+                setTimeout(() => {
+                    element.style.display = 'none';
+                    element.classList.remove('animate-popup');
+                }, delayBetween - 200); // Hide before next shows
+            }, index * delayBetween);
+        });
+    });
+</script>
