@@ -59,7 +59,11 @@ from stregsystem.utils import (
     make_unprocessed_signups_query,
 )
 
-from .achievements import get_acquired_achievements
+from .achievements import (
+    get_new_achievements,
+    get_acquired_achievements,
+    get_missing_achievements
+)
 from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
 from .forms import PaymentToolForm, QRPaymentForm, PurchaseForm, SignupForm, RankingDateForm, SignupToolForm
@@ -225,6 +229,7 @@ def quicksale(request, room, member: Member, bought_ids):
     ) = __set_local_values(member, room, products, order, now)
 
     products = Counter([str(product.name) for product in products]).most_common()
+    acquired_achievements = get_acquired_achievements(member)
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
@@ -278,6 +283,9 @@ def menu_userinfo(request, room_id, member_id):
 
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()
+    acquired_achievements = get_acquired_achievements(member)
+    missing_achievements = get_missing_achievements(member)
+    achievement_progress_str = f"{len(acquired_achievements)}/{len(acquired_achievements)+len(missing_achievements)}"
 
     return render(request, 'stregsystem/menu_userinfo.html', locals())
 
@@ -446,7 +454,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
 
             order.execute()
             
-            acquired_achievements = get_acquired_achievements(member, product)
+            acquired_achievements = get_new_achievements(member, product)
 
         except Product.DoesNotExist:
             pass
