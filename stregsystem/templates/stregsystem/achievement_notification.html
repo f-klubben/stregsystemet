@@ -1,11 +1,11 @@
 {% load static %}
 
-{% for achievement in acquired_achievements %}
+{% for achievement in new_achievements %}
     <div class="achievement-container">
-        <img class="achievement-logo" src="{% static 'stregsystem/achievement/' %}{{ achievement.achievement_task.achievement.icon_png }}" alt="Achievement Logo">
+        <img class="achievement-logo" src="{% static 'stregsystem/achievement/' %}{{ achievement.icon_png }}" alt="Achievement Logo">
         <div class="text-wrapper">
-            <div class="title-text">{{ achievement.achievement_task.achievement.title }}</div>
-            <div class="description-text">{{ achievement.achievement_task.achievement.description }}</div>
+            <div class="title-text">{{ achievement.title }}</div>
+            <div class="description-text">{{ achievement.description }}</div>
         </div>
     </div>
 {% endfor %}
@@ -41,6 +41,7 @@
         box-sizing: border-box;
         display: none;
         align-items: center;
+        text-align: left;
         background: url("{% static 'stregsystem/achievement/achievementBG.png' %}") no-repeat center/cover;
     }
 

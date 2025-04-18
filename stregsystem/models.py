@@ -11,6 +11,7 @@ from django.core.validators import RegexValidator
 from django.db import models, transaction
 from django.db.models import Count
 from django.utils import timezone
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from stregsystem.caffeine import Intake, CAFFEINE_TIME_INTERVAL, current_caffeine_in_body_compound_interest
 from stregsystem.deprecated import deprecated
@@ -868,6 +869,22 @@ class Achievement(models.Model):
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=100)
     icon_png = models.CharField(max_length=255)
+    active_duration = models.DurationField(null=True, blank=True)
+    time_start = models.TimeField(null=True, blank=True)
+    time_end = models.TimeField(null=True, blank=True)
+    date_start = models.DateField(null=True, blank=True)
+    date_end = models.DateField(null=True, blank=True)
+    WEEK_DAYS = [
+        ("monday", "Monday"),
+        ("tuesday", "Tuesday"),
+        ("wednesday", "Wednesday"),
+        ("thursday", "Thursday"),
+        ("friday", "Friday"),
+        ("saturday", "Saturday"),
+        ("sunday", "Sunday")
+    ]
+    weekday = models.CharField(max_length=50, choices=WEEK_DAYS, null=True, blank=True)
+    day_of_month = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(31)])
 
     def __str__(self):
         return f"{self.title}: {self.description}"
@@ -877,7 +894,15 @@ class AchievementTask(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
     goal_count = models.IntegerField(default=1)
-    task_type = models.CharField(max_length=50, default="default") # ['default', 'any', 'balance']
+    TASK_TYPES = [
+        ("default", "Default"),
+        ("any", "Any"),
+        ("balance", "Balance"),
+    ]
+    task_type = models.CharField(max_length=50, choices=TASK_TYPES, default="default")
+
+    class Meta:
+        unique_together = ("achievement", "product", "category", "task_type")
 
     def __str__(self):
         if (self.product is not None):

@@ -421,7 +421,8 @@ class AchievementMemberAdmin(admin.ModelAdmin):
     get_product_or_category.short_description = "Product/Category"
 
     def get_progress(self, obj):
-        return f"{obj.progress_count}/{obj.achievement_task.goal_count}"
+        completed_str = "✘" if obj.completed_at == None else "✓"
+        return f"{obj.progress_count}/{obj.achievement_task.goal_count} {completed_str}"
     
     get_progress.short_description = "Progress"
 

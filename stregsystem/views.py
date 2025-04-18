@@ -228,13 +228,23 @@ def quicksale(request, room, member: Member, bought_ids):
         member_balance,
     ) = __set_local_values(member, room, products, order, now)
 
+    new_achievements:List[AchievementMember] = []
+    for (p, count) in Counter(products).most_common():
+        new_achievements.extend(get_new_achievements(member, p, count))
+
     products = Counter([str(product.name) for product in products]).most_common()
-    acquired_achievements = get_acquired_achievements(member)
+
+    # THIS WAS NOT IN THE ORIGINAL STREGSYSTEM AND I ADDED IT BECAUSE OTHERWISE IT WOULD
+    # NOT SHOW THE PRODUCTS AFTER USING QUICKBUY
+    ProductNotePair = namedtuple('ProductNotePair', 'product note')
+    product_note_pair_list = [
+        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room.id)
+    ]
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
 
-def usermenu(request, room, member, bought, acquired_achievements = [], from_sale=False):
+def usermenu(request, room, member, bought, new_achievements = [], from_sale=False):
     negative_balance = member.balance < 0
     product_list = __get_productlist(room.id)
     news = __get_news()
@@ -426,7 +436,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
-    acquired_achievements = []
+    new_achievements = []
 
     if not member.signup_due_paid:
         return render(request, 'stregsystem/error_signupdue.html', locals())
@@ -454,7 +464,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
 
             order.execute()
             
-            acquired_achievements = get_new_achievements(member, product)
+            new_achievements = get_new_achievements(member, product)
 
         except Product.DoesNotExist:
             pass
@@ -466,7 +476,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
 
     # Refresh member, to get new amount
     member = Member.objects.get(pk=member_id, active=True)
-    return usermenu(request, room, member, product, acquired_achievements, from_sale=True)
+    return usermenu(request, room, member, product, new_achievements, from_sale=True)
 
 
 @staff_member_required()

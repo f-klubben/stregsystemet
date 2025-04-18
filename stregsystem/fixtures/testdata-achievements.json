@@ -1,0 +1,219 @@
+[
+  {
+    "model": "stregsystem.achievement",
+    "pk": 1,
+    "fields": {
+      "title": "First Purchase",
+      "description": "Make your first purchase!",
+      "icon_png": "achievement_beer.png"
+    }
+  },
+  {
+    "model": "stregsystem.achievement",
+    "pk": 2,
+    "fields": {
+      "title": "Beginning Acoholic!",
+      "description": "Buy your first beer.",
+      "icon_png": "achievement_beer.png"
+    }
+  },
+  {
+    "model": "stregsystem.achievement",
+    "pk": 3,
+    "fields": {
+      "title": "Party Starter",
+      "description": "Buy five drinks.",
+      "icon_png": "achievement_beer.png"
+    }
+  },
+  {
+    "model": "stregsystem.achievement",
+    "pk": 4,
+    "fields": {
+      "title": "Beer Enthusiast",
+      "description": "Buy 10 beers.",
+      "icon_png": "achievement_beer.png"
+    }
+  },
+  {
+    "model": "stregsystem.achievement",
+    "pk": 5,
+    "fields": {
+      "title": "Big Spender",
+      "description": "Spend over 500 kr.",
+      "icon_png": "achievement_beer.png"
+    }
+  },
+  {
+    "model": "stregsystem.achievement",
+    "pk": 6,
+    "fields": {
+      "title": "Drugged up!",
+      "description": "Buy a beer and a coffee within a minute",
+      "icon_png": "achievement_beer.png",
+      "active_duration": "00:01:00"
+    }
+  },
+  {
+    "model": "stregsystem.achievement",
+    "pk": 7,
+    "fields": {
+      "title": "Heavy Drinker",
+      "description": "Buy 20 beers.",
+      "icon_png": "achievement_beer.png"
+    }
+  },
+  {
+    "model": "stregsystem.achievement",
+    "pk": 8,
+    "fields": {
+      "title": "Night Owl",
+      "description": "Make purchases after midnight.",
+      "icon_png": "achievement_beer.png",
+      "time_start": "00:00:00",
+      "time_end": "04:00:00"
+    }
+  },
+  {
+    "model": "stregsystem.achievement",
+    "pk": 9,
+    "fields": {
+      "title": "What a random day huh?",
+      "description": "Make a purchase the 19th of April.",
+      "icon_png": "achievement_beer.png",
+      "time_start": "00:00:00",
+      "time_end": "04:00:00"
+    }
+  },
+  {
+    "model": "stregsystem.achievement",
+    "pk": 10,
+    "fields": {
+      "title": "It is Wednesday my coder!",
+      "description": "Make a purchase on a Wednesday.",
+      "icon_png": "achievement_beer.png",
+      "weekday": "wednesday"
+    }
+  },
+  {
+    "model": "stregsystem.achievementtask",
+    "pk": 1,
+    "fields": {
+      "achievement": 1,
+      "product": null,
+      "category": null,
+      "goal_count": 1,
+      "task_type": "any"
+    }
+  },
+  {
+    "model": "stregsystem.achievementtask",
+    "pk": 2,
+    "fields": {
+      "achievement": 2,
+      "product": 14,
+      "category": null,
+      "goal_count": 1,
+      "task_type": "default"
+    }
+  },
+  {
+    "model": "stregsystem.achievementtask",
+    "pk": 3,
+    "fields": {
+      "achievement": 3,
+      "product": null,
+      "category": 3,
+      "goal_count": 5,
+      "task_type": "default"
+    }
+  },
+  {
+    "model": "stregsystem.achievementtask",
+    "pk": 4,
+    "fields": {
+      "achievement": 4,
+      "product": 14,
+      "category": null,
+      "goal_count": 10,
+      "task_type": "default"
+    }
+  },
+  {
+    "model": "stregsystem.achievementtask",
+    "pk": 5,
+    "fields": {
+      "achievement": 5,
+      "product": null,
+      "category": null,
+      "goal_count": 500,
+      "task_type": "balance"
+    }
+  },
+  {
+    "model": "stregsystem.achievementtask",
+    "pk": 6,
+    "fields": {
+      "achievement": 6,
+      "product": null,
+      "category": 6,
+      "goal_count": 1,
+      "task_type": "default"
+    }
+  },
+  {
+    "model": "stregsystem.achievementtask",
+    "pk": 7,
+    "fields": {
+      "achievement": 6,
+      "product": null,
+      "category": 3,
+      "goal_count": 1,
+      "task_type": "default"
+    }
+  },
+  {
+    "model": "stregsystem.achievementtask",
+    "pk": 8,
+    "fields": {
+      "achievement": 7,
+      "product": 14,
+      "category": null,
+      "goal_count": 20,
+      "task_type": "default"
+    }
+  },
+  {
+    "model": "stregsystem.achievementtask",
+    "pk": 9,
+    "fields": {
+      "achievement": 8,
+      "product": null,
+      "category": null,
+      "goal_count": 1,
+      "task_type": "any"
+    }
+  },
+  {
+    "model": "stregsystem.achievementtask",
+    "pk": 10,
+    "fields": {
+      "achievement": 9,
+      "product": null,
+      "category": null,
+      "goal_count": 1,
+      "task_type": "any"
+    }
+  },
+  {
+    "model": "stregsystem.achievementtask",
+    "pk": 11,
+    "fields": {
+      "achievement": 10,
+      "product": null,
+      "category": null,
+      "goal_count": 1,
+      "task_type": "any"
+    }
+  }
+]

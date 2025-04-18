@@ -102,10 +102,10 @@
          <div class="achievement-card">
             <img 
                class="achievement-logo" 
-               src="{% static 'stregsystem/achievement/' %}{{ achievement.achievement_task.achievement.icon_png }}" 
+               src="{% static 'stregsystem/achievement/' %}{{ achievement.icon_png }}" 
                alt="Achievement Logo">
-            <div class="achievement-title">{{ achievement.achievement_task.achievement.title }}</div>
-            <div class="achievement-description">{{ achievement.achievement_task.achievement.description }}</div>
+            <div class="achievement-title">{{ achievement.title }}</div>
+            <div class="achievement-description">{{ achievement.description }}</div>
          </div>
       {% endfor %}
       {% for achievement in missing_achievements %}
@@ -114,7 +114,7 @@
             class="achievement-logo" 
             src="{% static 'stregsystem/achievement/achievement_missing.png' %}" 
             alt="Achievement Logo">
-         <div class="achievement-title">{{ achievement.achievement_task.achievement.title }}</div>
+         <div class="achievement-title">{{ achievement.title }}</div>
       </div>
    {% endfor %}
    </div>
