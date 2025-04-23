@@ -8,7 +8,10 @@ import qrcode
 import qrcode.image.svg
 from django import forms
 from django.conf import settings
-from collections import Counter
+from collections import (
+    Counter,
+    namedtuple,
+)
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
@@ -39,6 +42,7 @@ from stregsystem.models import (
     Category,
     NamedProduct,
     ApprovalModel,
+    ProductNote,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -73,6 +77,15 @@ def __get_productlist(room_id):
     return make_active_productlist_query(Product.objects).filter(make_room_specific_query(room_id))
 
 
+def __get_active_notes_for_product(product):
+    return ProductNote.objects.filter(
+        (Q(products=product))
+        & (Q(active=True))
+        & (Q(start_date__isnull=True) | Q(start_date__lte=timezone.now()))
+        & (Q(end_date__isnull=True) | Q(end_date__gte=timezone.now()))
+    )
+
+
 def roomindex(request):
     return HttpResponsePermanentRedirect('/1/')
 
@@ -83,7 +96,10 @@ def roomindex(request):
 
 def index(request, room_id):
     room = get_object_or_404(Room, pk=int(room_id))
-    product_list = __get_productlist(room_id)
+    ProductNotePair = namedtuple('ProductNotePair', 'product note')
+    product_note_pair_list = [
+        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room_id)
+    ]
     news = __get_news()
     return render(request, 'stregsystem/index.html', locals())
 
@@ -106,6 +122,10 @@ def sale(request, room_id):
     room = get_object_or_404(Room, pk=room_id)
     news = __get_news()
     product_list = __get_productlist(room_id)
+    ProductNotePair = namedtuple('ProductNotePair', 'product note')
+    product_note_pair_list = [
+        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room_id)
+    ]
 
     buy_string = request.POST['quickbuy'].strip()
     # Handle empty line
@@ -125,7 +145,7 @@ def sale(request, room_id):
         return render(request, 'stregsystem/error_invalidquickbuy.html', values)
     # Fetch member from DB
     try:
-        member = Member.objects.get(username=username, active=True)
+        member = Member.objects.get(username__iexact=username, active=True)
     except Member.DoesNotExist:
         return render(request, 'stregsystem/error_usernotfound.html', locals())
 
@@ -172,6 +192,10 @@ def _multibuy_hint(now, member):
 def quicksale(request, room, member: Member, bought_ids):
     news = __get_news()
     product_list = __get_productlist(room.id)
+    ProductNotePair = namedtuple('ProductNotePair', 'product note')
+    product_note_pair_list = [
+        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room.id)
+    ]
     now = timezone.now()
 
     # Retrieve products and construct transaction
@@ -212,6 +236,10 @@ def quicksale(request, room, member: Member, bought_ids):
 def usermenu(request, room, member, bought, from_sale=False):
     negative_balance = member.balance < 0
     product_list = __get_productlist(room.id)
+    ProductNotePair = namedtuple('ProductNotePair', 'product note')
+    product_note_pair_list = [
+        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room.id)
+    ]
     news = __get_news()
     promille = member.calculate_alcohol_promille()
     (
@@ -623,10 +651,17 @@ def signup_status(request, signup_id):
 
 def get_active_items(request):
     room_id = request.GET.get('room_id') or None
+
     if room_id is None:
         return HttpResponseBadRequest("Parameter missing: room_id")
     elif not room_id.isdigit():
         return HttpResponseBadRequest("Parameter invalid: room_id")
+
+    try:
+        room = Room.objects.get(pk=room_id)
+    except Room.DoesNotExist:
+        return HttpResponseBadRequest("Room not found")
+
     # TODO: Check whether room exists
     items = __get_productlist(room_id)
     items_dict = {item.id: {'name': item.name, 'price': item.price} for item in items}
@@ -639,10 +674,12 @@ def get_member_active(request):
         return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
         return HttpResponseBadRequest("Parameter invalid: member_id")
+
     try:
         member = Member.objects.get(pk=member_id)
     except Member.DoesNotExist:
         return HttpResponseBadRequest("Member not found")
+
     return JsonResponse({'active': member.active})
 
 
@@ -674,8 +711,14 @@ def get_member_sales(request):
         return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
         return HttpResponseBadRequest("Parameter invalid: member_id")
+
+    try:
+        member = Member.objects.get(pk=member_id)
+    except Member.DoesNotExist:
+        return HttpResponseBadRequest("Member not found")
+
     count = 10 if request.GET.get('count') is None else int(request.GET.get('count') or 10)
-    sales = Sale.objects.filter(member=member_id).order_by('-timestamp')[:count]
+    sales = Sale.objects.filter(member=member).order_by('-timestamp')[:count]
     return JsonResponse(
         {'sales': [{'timestamp': s.timestamp, 'product': s.product.name, 'price': s.product.price} for s in sales]}
     )
@@ -687,10 +730,12 @@ def get_member_balance(request):
         return HttpResponseBadRequest("Parameter missing: member_id")
     elif not member_id.isdigit():
         return HttpResponseBadRequest("Parameter invalid: member_id")
+
     try:
         member = Member.objects.get(pk=member_id)
     except Member.DoesNotExist:
         return HttpResponseBadRequest("Member not found")
+
     return JsonResponse({'balance': member.balance})
 
 
@@ -701,9 +746,11 @@ def get_member_info(request):
     elif not member_id.isdigit():
         return HttpResponseBadRequest("Parameter invalid: member_id")
 
-    member = find_user_from_id(int(member_id))
-    if member is None:
+    try:
+        member = Member.objects.get(pk=member_id)
+    except Member.DoesNotExist:
         return HttpResponseBadRequest("Member not found")
+
     return JsonResponse(
         {
             'balance': member.balance,
@@ -754,9 +801,10 @@ def api_sale(request):
         except parser.ParseError as e:
             return HttpResponseBadRequest("Parse error: {}".format(e))
 
-        member = find_user_from_id(int(member_id))
-        if member is None:
-            return HttpResponseBadRequest("Parameter invalid: member_id")
+        try:
+            member = Member.objects.get(pk=member_id)
+        except Member.DoesNotExist:
+            return HttpResponseBadRequest("Member not found")
 
         if not member.signup_due_paid:
             return HttpResponseBadRequest("Signup due not paid")

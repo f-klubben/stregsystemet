@@ -190,6 +190,7 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/member_id'
+      example: 321
     room_id_param:
       name: room_id
       in: query
@@ -197,6 +198,7 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/room_id'
+      example: 10
     username_param:
       name: username
       in: query
@@ -204,6 +206,7 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/username'
+      example: kresten
     amount_param:
       name: amount
       in: query
@@ -211,6 +214,9 @@ components:
       required: false
       schema:
         $ref: '#/components/schemas/stregoere_balance'
+      examples:
+        normalBalance:
+          value: 20000
   schemas:
     memberNotFoundMessage:
       type: string
@@ -230,7 +236,7 @@ components:
     missingRoomIdMessage:
       type: string
       example: "Parameter missing: room_id"
-    missingMemberUsername:
+    missingMemberUsernameMessage:
       type: string
       example: "Parameter missing: username"
     balance:
@@ -264,14 +270,17 @@ components:
     stregoere_price:
       type: integer
       example: 600
+    stregoere_price_three_beers:
+      type: integer
+      example: 1800
     stregoere_balance:
       type: integer
       example: 20000
-    named_products_example:
-      type: object
-      properties:
-        beer:
-          $ref: '#/components/schemas/product_id'
+    stregkroner_balance:
+      description: Stregbalance in kroner, only used in API-Sale
+      type: number
+      format: float
+      example: 182.00
     sale_input:
       type: object
       properties:
@@ -288,36 +297,26 @@ components:
           $ref: '#/components/schemas/product_name'
         price:
           $ref: '#/components/schemas/stregoere_price'
-    active_products_example:
-      type: object
-      properties:
-        123:
-          $ref: '#/components/schemas/active_product'
     buystring:
       type: string
       example: "kresten beer:3"
-    category_name:
+    product_category_name:
       type: string
       example: "Alcohol"
-    category_id:
+    product_category_id:
       type: integer
       example: 11
-    category:
+    product_category:
       type: object
       properties:
         category_id:
-          $ref: '#/components/schemas/category_id'
+          $ref: '#/components/schemas/product_category_id'
         category_name:
-          $ref: '#/components/schemas/category_name'
-    category_mapping:
+          $ref: '#/components/schemas/product_category_name'
+    product_category_mapping:
       type: array
       items:
-        $ref: '#/components/schemas/category'
-    category_mappings_example:
-      type: object
-      properties:
-        123:
-          $ref: '#/components/schemas/category_mapping'
+        $ref: '#/components/schemas/product_category'
     created_on:
       type: string
       format: date
@@ -330,13 +329,15 @@ components:
       type: boolean
       example: false
     bp_minutes:
+      description: Ballmer Peak minutes
       type: integer
       nullable: true
-      example: 2
+      example: null
     bp_seconds:
+      description: Ballmer Peak seconds
       type: integer
       nullable: true
-      example: 30
+      example: null
     caffeine:
       type: integer
       example: 2
@@ -354,7 +355,7 @@ components:
       example: true
     sale_hints:
       type: string
-      example: "<span class=\"username\">kresten</span> beer:3"
+      example: "<span class=\"username\">kresten</span> 123:3"
     member_has_low_balance:
       type: boolean
       example: false
@@ -374,6 +375,10 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/product_id'
+              example:
+                - 123
+                - 123
+                - 123
         promille:
           $ref: '#/components/schemas/promille'
         is_ballmer_peaking:
@@ -391,7 +396,7 @@ components:
         is_coffee_master:
           $ref: '#/components/schemas/is_coffee_master'
         cost:
-          $ref: '#/components/schemas/stregoere_price'
+          $ref: '#/components/schemas/stregoere_price_three_beers'
         give_multibuy_hint:
           $ref: '#/components/schemas/give_multibuy_hint'
         sale_hints:
@@ -399,7 +404,7 @@ components:
         member_has_low_balance:
           $ref: '#/components/schemas/member_has_low_balance'
         member_balance:
-          $ref: '#/components/schemas/stregoere_balance'
+          $ref: '#/components/schemas/stregkroner_balance'
     sale:
       type: object
       properties:
@@ -472,19 +477,25 @@ components:
       content:
         application/json:
           example:
-            $ref: '#/components/schemas/named_products_example'
+            beer: 123
     ActiveProducts:
       description: Dictionary of all activated products, with their name and price (in stregører).
       content:
         application/json:
           example:
-            $ref: '#/components/schemas/active_products_example'
+            123:
+              name: Beer
+              price: 600
     CategoryMappings:
       description: Dictionary of all activated products, with their mapped categories (both category name and ID).
       content:
         application/json:
           example:
-            $ref: '#/components/schemas/category_mappings_example'
+            123:
+              - category_id:
+                  11
+                category_name:
+                  "Alcohol"
     SaleSuccess:
       description: An object containing various statistics and info regarding the purchase.
       content:
@@ -509,18 +520,18 @@ components:
     InvalidQRInputResponse:
       description: Invalid input has been provided.
       content:
-        text/html:
+        text/html; charset=utf-8:
           schema:
             type: string
             example: Invalid input for MobilePay QR code generation
     MemberUsernameParameter_BadResponse:
       description: Member does not exist, or missing parameter.
       content:
-        text/html:
+        text/html; charset=utf-8:
           schema:
             oneOf:
               - $ref: '#/components/schemas/memberNotFoundMessage'
-              - $ref: '#/components/schemas/missingMemberUsername'
+              - $ref: '#/components/schemas/missingMemberUsernameMessage'
           examples:
             memberNotFound:
               $ref: '#/components/examples/MemberNotFoundExample'
@@ -529,7 +540,7 @@ components:
     MemberIdParameter_BadResponse:
       description: Member does not exist, invalid member ID, or missing parameter.
       content:
-        text/html:
+        text/html; charset=utf-8:
           schema:
             oneOf:
               - $ref: '#/components/schemas/memberNotFoundMessage'
@@ -545,7 +556,7 @@ components:
     RoomIdParameter_BadResponse:
       description: Room does not exist, invalid room ID, or missing parameter.
       content:
-        text/html:
+        text/html; charset=utf-8:
           schema:
             oneOf:
               - $ref: '#/components/schemas/roomNotFoundMessage'
@@ -561,7 +572,7 @@ components:
     Member_RoomIdParameter_BadResponse:
       description: Room or member does not exist, invalid room or member ID, or missing parameter.
       content:
-        text/html:
+        text/html; charset=utf-8:
           schema:
             oneOf:
               - $ref: '#/components/schemas/memberNotFoundMessage'
