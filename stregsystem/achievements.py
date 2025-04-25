@@ -32,7 +32,16 @@ def get_new_achievements(member:Member, product:Product, amount = 1):
 
     __update_progress(product, amount, achievement_members_in_progress)
 
-    completed_achievements = __find_completed_achievements(achievement_members_in_progress, now)
+    # Filter tasks based on whether the achievement is active (returning a queryset)
+    active_achievement_members = achievement_members_in_progress.filter(
+        achievement_task__achievement__in=[
+            am.achievement_task.achievement for am in achievement_members_in_progress
+            if __is_achievement_active(am.achievement_task.achievement, now)
+        ]
+    )
+
+    completed_achievements = __find_completed_achievements(active_achievement_members, now)
+
     return __convert_achievement_member_to_dict(completed_achievements)
 
 
