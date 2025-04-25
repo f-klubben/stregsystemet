@@ -869,25 +869,39 @@ class Achievement(models.Model):
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=100)
     icon_png = models.CharField(max_length=255)
-    active_duration = models.DurationField(null=True, blank=True)
-    time_start = models.TimeField(null=True, blank=True)
-    time_end = models.TimeField(null=True, blank=True)
-    date_start = models.DateField(null=True, blank=True)
-    date_end = models.DateField(null=True, blank=True)
-    WEEK_DAYS = [
-        ("monday", "Monday"),
-        ("tuesday", "Tuesday"),
-        ("wednesday", "Wednesday"),
-        ("thursday", "Thursday"),
-        ("friday", "Friday"),
-        ("saturday", "Saturday"),
-        ("sunday", "Sunday")
-    ]
-    weekday = models.CharField(max_length=50, choices=WEEK_DAYS, null=True, blank=True)
-    day_of_month = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(31)])
+
+    max_duration = models.DurationField(null=True, blank=True)
+    globally_active_from = models.DateTimeField(null=True, blank=True)
+    globally_active_until = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.title}: {self.description}"
+    
+class AchievementConstraint(models.Model):
+    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
+
+    month_start = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(12)])
+    month_end = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(12)])
+
+    day_start = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(31)])
+    day_end = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(31)])
+    
+    time_start = models.TimeField(null=True, blank=True)
+    time_end = models.TimeField(null=True, blank=True)
+
+    WEEK_DAYS = [
+        ("mon", "Monday"),
+        ("tue", "Tuesday"),
+        ("wed", "Wednesday"),
+        ("thu", "Thursday"),
+        ("fri", "Friday"),
+        ("sat", "Saturday"),
+        ("sun", "Sunday"),
+    ]
+    weekday = models.CharField(max_length=3, choices=WEEK_DAYS, null=True, blank=True)
+    
+    def __str__(self):
+        return f"Constraint for {self.achievement.title}"
 
 class AchievementTask(models.Model):
     achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE) # An achievement can have many 'tasks'
@@ -918,6 +932,7 @@ class AchievementMember(models.Model): # A members progress on a task
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     achievement_task = models.ForeignKey(AchievementTask, on_delete=models.CASCADE)
     progress_count = models.FloatField(default=0) # Needs to be float to account for balance progress
+    last_progress_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):

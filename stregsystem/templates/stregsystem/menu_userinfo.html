@@ -97,9 +97,10 @@
    <a href="/{{room.id}}/send_csv_mail/{{member.id}}/">Anmod om bruger data</a>
 
    <p><b>Achievements ({{ achievement_progress_str }}):</b></p>
+   <h3><b>You are Top: {{ achievement_top_percentage }}</b></h3>
    <div class="achievement-grid">
       {% for achievement in acquired_achievements %}
-         <div class="achievement-card">
+         <div class="achievement-card">   
             <img 
                class="achievement-logo" 
                src="{% static 'stregsystem/achievement/' %}{{ achievement.icon_png }}" 

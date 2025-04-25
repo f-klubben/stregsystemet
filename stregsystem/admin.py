@@ -20,7 +20,8 @@ from stregsystem.models import (
     ProductNote,
     Achievement,
     AchievementMember,
-    AchievementTask
+    AchievementTask,
+    AchievementConstraint
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
@@ -429,6 +430,7 @@ class AchievementMemberAdmin(admin.ModelAdmin):
     def reset_progress_of_selected_achievement_members(modeladmin, request, queryset):
         for obj in queryset:
             obj.progress_count = 0
+            obj.last_progress_at = None
             obj.completed_at = None
             obj.save()
 
@@ -452,3 +454,4 @@ admin.site.register(ProductNote, ProductNoteAdmin)
 admin.site.register(Achievement, AchievementAdmin)
 admin.site.register(AchievementTask, AchievementTaskAdmin)
 admin.site.register(AchievementMember, AchievementMemberAdmin)
+admin.site.register(AchievementConstraint)

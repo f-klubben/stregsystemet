@@ -62,7 +62,8 @@ from stregsystem.utils import (
 from .achievements import (
     get_new_achievements,
     get_acquired_achievements,
-    get_missing_achievements
+    get_missing_achievements,
+    get_user_leaderboard_position
 )
 from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
@@ -296,6 +297,7 @@ def menu_userinfo(request, room_id, member_id):
     acquired_achievements = get_acquired_achievements(member)
     missing_achievements = get_missing_achievements(member)
     achievement_progress_str = f"{len(acquired_achievements)}/{len(acquired_achievements)+len(missing_achievements)}"
+    achievement_top_percentage = f"{get_user_leaderboard_position(member) * 100}%"
 
     return render(request, 'stregsystem/menu_userinfo.html', locals())
 
@@ -463,7 +465,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
             order = Order.from_products(member=member, room=room, products=(product,))
 
             order.execute()
-            
+
             new_achievements = get_new_achievements(member, product)
 
         except Product.DoesNotExist:
