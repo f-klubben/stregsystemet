@@ -8,6 +8,7 @@ import pytz
 from stregsystem.models import (
     Product,
     Category,
+    Sale,
     Member,
     Achievement,
     AchievementMember,
@@ -20,9 +21,9 @@ def get_new_achievements(member:Member, product:Product, amount = 1):
     categories = product.categories.values_list('id', flat=True)
     now = datetime.datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
 
-    tasks = __filter_achievement_tasks(product, categories)
+    tasks = _filter_achievement_tasks(product, categories)
 
-    __add_missing_achievement_members(member, tasks)
+    _add_missing_achievement_members(member, tasks)
 
     achievement_members_in_progress = AchievementMember.objects.filter(
         member_id=member,
@@ -30,19 +31,19 @@ def get_new_achievements(member:Member, product:Product, amount = 1):
         # completed_at__isnull=True
     )
 
-    __update_progress(product, amount, achievement_members_in_progress)
+    _update_progress(product, amount, achievement_members_in_progress)
 
     # Filter tasks based on whether the achievement is active (returning a queryset)
     active_achievement_members = achievement_members_in_progress.filter(
         achievement_task__achievement__in=[
             am.achievement_task.achievement for am in achievement_members_in_progress
-            if __is_achievement_active(am.achievement_task.achievement, now)
+            if _is_achievement_active(am.achievement_task.achievement, now)
         ]
     )
 
-    completed_achievements = __find_completed_achievements(active_achievement_members, now)
+    completed_achievements = _find_completed_achievements(active_achievement_members, now)
 
-    return __convert_achievement_member_to_dict(completed_achievements)
+    return _convert_achievement_member_to_dict(completed_achievements)
 
 
 def get_acquired_achievements(member:Member):
@@ -51,7 +52,7 @@ def get_acquired_achievements(member:Member):
         member=member, completed_at__isnull=False
     ).select_related("achievement_task__achievement")
 
-    return __convert_achievement_member_to_dict(achievement_members)
+    return _convert_achievement_member_to_dict(achievement_members)
 
 
 def get_missing_achievements(member:Member):
@@ -60,7 +61,7 @@ def get_missing_achievements(member:Member):
         member=member, completed_at__isnull=True
     ).select_related("achievement_task__achievement")
     
-    return __convert_achievement_member_to_dict(achievement_members)
+    return _convert_achievement_member_to_dict(achievement_members)
 
 
 def get_user_leaderboard_position(member: Member):
@@ -94,7 +95,7 @@ def get_user_leaderboard_position(member: Member):
     return position / total_members
 
 
-def __convert_achievement_member_to_dict(achievement_members):
+def _convert_achievement_member_to_dict(achievement_members):
     achievement_dicts = []
     
     for am in achievement_members:
@@ -109,7 +110,7 @@ def __convert_achievement_member_to_dict(achievement_members):
     return achievement_dicts
 
 
-def __find_completed_achievements(achievement_members_in_progress, now):
+def _find_completed_achievements(achievement_members_in_progress, now):
     
     # Collect all achievement IDs
     achievement_ids = (
@@ -144,7 +145,7 @@ def __find_completed_achievements(achievement_members_in_progress, now):
     return acquired
 
 
-def __update_progress(product, amount, achievement_members_in_progress):
+def _update_progress(product, amount, achievement_members_in_progress):
     to_update = []
 
     for am in achievement_members_in_progress:
@@ -161,7 +162,7 @@ def __update_progress(product, amount, achievement_members_in_progress):
         AchievementMember.objects.bulk_update(to_update, ["progress_count"])
 
 
-def __add_missing_achievement_members(member, tasks):
+def _add_missing_achievement_members(member, tasks):
     existing = AchievementMember.objects.filter(
         member=member,
         achievement_task__in=tasks
@@ -182,7 +183,7 @@ def __add_missing_achievement_members(member, tasks):
         AchievementMember.objects.bulk_create(new_members)
 
 
-def __filter_achievement_tasks(product, categories):
+def _filter_achievement_tasks(product, categories):
 
     final_filter = Q()
 
@@ -197,7 +198,7 @@ def __filter_achievement_tasks(product, categories):
 
     return AchievementTask.objects.filter(final_filter)
 
-def __is_achievement_active(achievement: Achievement, now: datetime) -> bool:
+def _is_achievement_active(achievement: Achievement, now: datetime) -> bool:
     if achievement.globally_active_from and now < achievement.globally_active_from:
         return False
     if achievement.globally_active_until and now > achievement.globally_active_until:

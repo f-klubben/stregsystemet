@@ -903,6 +903,7 @@ class AchievementConstraint(models.Model):
     def __str__(self):
         return f"Constraint for {self.achievement.title}"
 
+
 class AchievementTask(models.Model):
     achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE) # An achievement can have many 'tasks'
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
