@@ -929,11 +929,11 @@ class AchievementTask(models.Model):
 
         return f"{self.achievement}: [{type}] Goal: {self.goal_count})"
 
+
 class AchievementMember(models.Model): # A members progress on a task 
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     achievement_task = models.ForeignKey(AchievementTask, on_delete=models.CASCADE)
-    progress_count = models.FloatField(default=0) # Needs to be float to account for balance progress
-    last_progress_at = models.DateTimeField(null=True, blank=True)
+    begin_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
@@ -941,4 +941,4 @@ class AchievementMember(models.Model): # A members progress on a task
         completed_str = "✘" if self.completed_at == None else "✓"
 
         return f"""{self.member.username}({self.achievement_task.achievement.title}): 
-                   {self.progress_count}/{self.achievement_task.goal_count} {completed_str}"""
+                   {self.achievement_task.goal_count} {completed_str} {str(self.begin_at)}"""

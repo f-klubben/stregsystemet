@@ -3,6 +3,8 @@ from django import forms
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
+import datetime
+import pytz
 
 from stregsystem.models import (
     Category,
@@ -391,7 +393,7 @@ class AchievementMemberAdmin(admin.ModelAdmin):
 
     valid_lookups = 'member'
     search_fields = ['member__username', 'achievement_task__product__name', 'achievement_task__category__name']
-    list_display = ['get_username', 'achievement_task', 'get_product_or_category', 'get_task_type', 'get_progress']
+    list_display = ['get_username', 'achievement_task', 'get_product_or_category', 'get_task_type', 'get_progress', 'get_begin_at']
 
     def get_username(self, obj):
         return obj.member.username
@@ -423,14 +425,18 @@ class AchievementMemberAdmin(admin.ModelAdmin):
 
     def get_progress(self, obj):
         completed_str = "✘" if obj.completed_at == None else "✓"
-        return f"{obj.progress_count}/{obj.achievement_task.goal_count} {completed_str}"
+        return f"Goal: {obj.achievement_task.goal_count} {completed_str}"
     
     get_progress.short_description = "Progress"
 
+    def get_begin_at(self, obj):
+        return obj.begin_at.strftime("%m/%d/%Y, %H:%M:%S")
+    
+    get_begin_at.short_description = "Begin_at"
+
     def reset_progress_of_selected_achievement_members(modeladmin, request, queryset):
         for obj in queryset:
-            obj.progress_count = 0
-            obj.last_progress_at = None
+            obj.begin_at = datetime.datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
             obj.completed_at = None
             obj.save()
 
