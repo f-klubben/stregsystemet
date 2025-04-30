@@ -44,7 +44,7 @@ from stregsystem.models import (
     ApprovalModel,
     ProductNote,
     Achievement,
-    AchievementMember,
+    AchievementComplete,
     AchievementTask,
 )
 from stregsystem.templatetags.stregsystem_extras import money
@@ -229,9 +229,9 @@ def quicksale(request, room, member: Member, bought_ids):
         member_balance,
     ) = __set_local_values(member, room, products, order, now)
 
-    new_achievements:List[AchievementMember] = []
+    new_achievements:List[Achievement] = []
     for (p, count) in Counter(products).most_common():
-        new_achievements.extend(get_new_achievements(member, p, count))
+        new_achievements.extend(get_new_achievements(member, p))
 
     products = Counter([str(product.name) for product in products]).most_common()
 

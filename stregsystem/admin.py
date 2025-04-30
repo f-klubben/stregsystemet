@@ -21,7 +21,7 @@ from stregsystem.models import (
     Theme,
     ProductNote,
     Achievement,
-    AchievementMember,
+    AchievementComplete,
     AchievementTask,
     AchievementConstraint
 )
@@ -381,7 +381,7 @@ class ProductNoteAdmin(admin.ModelAdmin):
 class AchievementAdmin(admin.ModelAdmin):
 
     search_fields = ['title', 'description']
-    list_display = ['title', 'description', 'icon_png']
+    list_display = ['title', 'description', 'icon_png', 'begin_at']
 
 class AchievementTaskAdmin(admin.ModelAdmin):
 
@@ -389,59 +389,14 @@ class AchievementTaskAdmin(admin.ModelAdmin):
     search_fields = ['achievement__title', 'achievement__description', 'product__name', 'category__name']
     list_display = ['achievement', 'product', 'category', 'goal_count', 'task_type']
 
-class AchievementMemberAdmin(admin.ModelAdmin):
+class AchievementCompleteAdmin(admin.ModelAdmin):
 
     valid_lookups = 'member'
-    search_fields = ['member__username', 'achievement_task__product__name', 'achievement_task__category__name']
-    list_display = ['get_username', 'achievement_task', 'get_product_or_category', 'get_task_type', 'get_progress', 'get_begin_at']
+    search_fields = ['member__username', 'achievement__title', 'achievement__description', 'completed_at']
+    list_display = ['get_username']
 
     def get_username(self, obj):
         return obj.member.username
-    
-    get_username.short_description = "Username"
-    get_username.admin_order_field = "member__username"
-    
-    def get_task_type(self, obj):
-        return obj.achievement_task.task_type
-    
-    get_task_type.short_description = "Task Type"
-    get_task_type.admin_order_field = "achievement_task__task_type"
-
-    def shorten_string(self, s, max_length=20):
-        if len(s) > max_length:
-            return s[:max_length] + '...'
-        return s
-
-    def get_product_or_category(self, obj):
-        task = obj.achievement_task
-        if task.product != None and task.category != None:
-            return f"Product: {self.shorten_string(task.product.name)}/Category: {task.category}"
-        elif task.product != None:
-            return f"Product: {self.shorten_string(task.product.name)}"
-        elif task.category != None:
-            return f"Category: {task.category}"
-        
-    get_product_or_category.short_description = "Product/Category"
-
-    def get_progress(self, obj):
-        completed_str = "✘" if obj.completed_at == None else "✓"
-        return f"Goal: {obj.achievement_task.goal_count} {completed_str}"
-    
-    get_progress.short_description = "Progress"
-
-    def get_begin_at(self, obj):
-        return obj.begin_at.strftime("%m/%d/%Y, %H:%M:%S")
-    
-    get_begin_at.short_description = "Begin_at"
-
-    def reset_progress_of_selected_achievement_members(modeladmin, request, queryset):
-        for obj in queryset:
-            obj.begin_at = datetime.datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
-            obj.completed_at = None
-            obj.save()
-
-    actions = [reset_progress_of_selected_achievement_members]
-
 
 
 admin.site.register(LogEntry, LogEntryAdmin)
@@ -459,5 +414,5 @@ admin.site.register(Theme, ThemeAdmin)
 admin.site.register(ProductNote, ProductNoteAdmin)
 admin.site.register(Achievement, AchievementAdmin)
 admin.site.register(AchievementTask, AchievementTaskAdmin)
-admin.site.register(AchievementMember, AchievementMemberAdmin)
+admin.site.register(AchievementComplete, AchievementCompleteAdmin)
 admin.site.register(AchievementConstraint)

@@ -11,47 +11,49 @@ from stregsystem.models import (
     Sale,
     Member,
     Achievement,
-    AchievementMember,
+    AchievementComplete,
     AchievementTask,
 )
 
 def get_new_achievements(member:Member, product:Product, amount=1): 
     """Gets newly acquired achievements after having bought something"""
 
-    _add_missing_achievement_members(member)
-
     categories = product.categories.values_list('id', flat=True)
     now = datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
 
-    tasks = _filter_achievement_tasks(product, categories, now)
+    # Step 1: Get IDs of completed achievements for a member
+    completed_achievements = AchievementComplete.objects.filter(member=member)
 
-    achievement_members_in_progress = AchievementMember.objects.filter(
-        member_id=member,
-        achievement_task__in=tasks,
-        # completed_at__isnull=True
-    ).select_related("achievement_task", "achievement_task__product", "achievement_task__category")
+    # Step 2: Filter out all achievements that are completed
+    completed_achievement_ids = completed_achievements.values_list('achievement_id', flat=True)
+    in_progress_achievements = Achievement.objects.exclude(id__in=completed_achievement_ids)
 
-    completed_achievements = _find_completed_achievements(achievement_members_in_progress, member, now)
+    # Step 3: Query for all related achievement tasks out of the in progress achievements
+    related_achievement_tasks = _filter_achievement_tasks(product, categories, in_progress_achievements, now)
 
-    return _convert_achievement_member_to_dict(completed_achievements)
+    # Step 4: Check if any of the achievement tasks can be considered "completed". If so, add an entry in AchievementComplete
+    completed_achievements = _find_completed_achievements(related_achievement_tasks, member)
+
+    # Step 5: Convert into a dictionary for easy variable retrieval
+    return completed_achievements
 
 
 def get_acquired_achievements(member:Member):
     """Gets all acquired achievements for a member"""
-    achievement_members = AchievementMember.objects.filter(
-        member=member, completed_at__isnull=False
-    ).select_related("achievement_task__achievement")
+    achievement_completed = AchievementComplete.objects.filter(
+        member=member
+    ).select_related("achievement")
 
-    return _convert_achievement_member_to_dict(achievement_members)
+    return achievement_completed.achievement
 
 
 def get_missing_achievements(member:Member):
     """Gets all missing achievements for a member"""
-    achievement_members = AchievementMember.objects.filter(
-        member=member, completed_at__isnull=True
-    ).select_related("achievement_task__achievement")
+    completed_achievements = AchievementComplete.objects.filter(member=member)
+    completed_achievement_ids = completed_achievements.values_list('achievement_id', flat=True)
+    missing_achievements = Achievement.objects.exclude(id__in=completed_achievement_ids)
     
-    return _convert_achievement_member_to_dict(achievement_members)
+    return missing_achievements
 
 
 def get_user_leaderboard_position(member: Member):
@@ -62,7 +64,7 @@ def get_user_leaderboard_position(member: Member):
     """
     # Count completed achievements per user
     leaderboard = (
-        AchievementMember.objects
+        AchievementComplete.objects
         .filter(completed_at__isnull=False)
         .values('member')
         .annotate(total=Count('id'))
@@ -85,91 +87,60 @@ def get_user_leaderboard_position(member: Member):
     return position / total_members
 
 
-def _convert_achievement_member_to_dict(achievement_members):
-    achievement_dicts = []
-    
-    for am in achievement_members:
-        dict = {"title": am.achievement_task.achievement.title,
-                "description": am.achievement_task.achievement.description,
-                "icon_png": am.achievement_task.achievement.icon_png,
-                "goal_count": am.achievement_task.goal_count}
-        achievement_dicts.append(dict)
-
-    achievement_dicts = list({a["title"]: a for a in achievement_dicts}.values())
-    return achievement_dicts
-
-
-def _find_completed_achievements(achievement_members, member, now):
+def _find_completed_achievements(related_achievement_tasks, member):
             
-    task_to_sales = _filter_sales(achievement_members, member)
+    task_to_sales = _filter_sales(related_achievement_tasks, member)
 
     achievement_groups = defaultdict(list)
-    for am in achievement_members:
-        achievement_groups[am.achievement_task.achievement_id].append(am)
+    for at in related_achievement_tasks:
+        achievement_groups[at.achievement_id].append(at)
 
-    acquired = []
+    completed_achievements = []
+    new_completions = []
     for group in achievement_groups.values():
-        sales = task_to_sales[am.achievement_task]
+        if all(task_to_sales[at.id].count() >= at.goal_count for at in group):
+            achievement = group[0].achievement  # All `at`s in group share the same achievement
+            completed_achievements.append(achievement)
+            for at in group:
+                new_completions.append(
+                    AchievementComplete(member=member, achievement=achievement)
+                )
 
-        sales_count = sales.count()
-        if all(sales_count >= am.achievement_task.goal_count for am in group):
-            for am in group:
-                if am.completed_at is None:
-                    am.completed_at = now
-                    acquired.append(am)
+    if new_completions:
+        AchievementComplete.objects.bulk_create(new_completions)
 
-    if acquired:
-        AchievementMember.objects.bulk_update(acquired, ['completed_at'])
+    return completed_achievements
 
-    return acquired
-
-
-def _add_missing_achievement_members(member):
+def _filter_sales(achievement_tasks: list[AchievementTask], member: Member) -> dict:
+    begin_ats = [at.achievement.begin_at for at in achievement_tasks if at.achievement.begin_at]
     
-    missing_tasks = AchievementTask.objects.filter(
-        achievementmember__isnull=True
-    )
+    sales_qs = Sale.objects.filter(member=member).select_related('product').prefetch_related('product__categories')
 
-    new_members = []
-    for task in missing_tasks:
-        achievementmember = AchievementMember()
-        achievementmember.member = member
-        achievementmember.achievement_task = task
-        new_members.append(achievementmember)
-
-    if new_members:
-        AchievementMember.objects.bulk_create(new_members)
-
-
-def _filter_sales(achievement_members: list[AchievementMember], member:Member) -> dict:
-
-    # Prefetch sales for all members in a single query
-    sales_qs = Sale.objects.filter(
-        timestamp__gte=min(am.begin_at for am in achievement_members) - timedelta(seconds=1),
-        member=member
-    ).select_related('product').prefetch_related('product__categories')
+    if begin_ats:
+        min_begin_at = min(begin_ats) - timedelta(seconds=1)
+        sales_qs = sales_qs.filter(timestamp__gte=min_begin_at)
 
     task_to_sales = {}
-    for am in achievement_members:
-        task = am.achievement_task
-        relevant_sales = sales_qs.filter(
-            timestamp__gte=am.begin_at - timedelta(seconds=1)
-        )
+    for at in achievement_tasks:
+        relevant_sales = sales_qs
 
-        if task.product:
-            relevant_sales = relevant_sales.filter(product=task.product)
+        if at.achievement.begin_at:
+            relevant_sales = relevant_sales.filter(timestamp__gte=at.achievement.begin_at - timedelta(seconds=1))
 
-        if task.category:
-            relevant_sales = relevant_sales.filter(product__categories=task.category)
+        if at.product:
+            relevant_sales = relevant_sales.filter(product=at.product)
 
-        task_to_sales[task] = relevant_sales
+        if at.category:
+            relevant_sales = relevant_sales.filter(product__categories=at.category)
+
+        task_to_sales[at.id] = relevant_sales.values_list('id', flat=True)
 
     return task_to_sales
 
 
-def _filter_achievement_tasks(product, categories, now):
+def _filter_achievement_tasks(product, categories, in_progress_achievements, now):
 
-    achievements_with_constraints = Achievement.objects.prefetch_related('achievementconstraint_set')
+    achievements_with_constraints = in_progress_achievements.prefetch_related('achievementconstraint_set')
 
     # Step 1: Get all active achievements
     active_achievements = [
@@ -200,7 +171,8 @@ def _filter_achievement_tasks(product, categories, now):
     )
 
     # Step 5: Return all tasks for those achievements
-    return AchievementTask.objects.filter(achievement_id__in=matching_achievement_ids)
+    return AchievementTask.objects.filter(achievement_id__in=matching_achievement_ids
+                                          ).select_related('achievement', 'product', 'category')
 
 
 def _is_achievement_active(achievement: Achievement, now: datetime) -> bool:

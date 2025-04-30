@@ -869,6 +869,7 @@ class Achievement(models.Model):
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=100)
     icon_png = models.CharField(max_length=255)
+    begin_at = models.DateTimeField(null=True, blank=True)
 
     max_duration = models.DurationField(null=True, blank=True)
     globally_active_from = models.DateTimeField(null=True, blank=True)
@@ -930,15 +931,10 @@ class AchievementTask(models.Model):
         return f"{self.achievement}: [{type}] Goal: {self.goal_count})"
 
 
-class AchievementMember(models.Model): # A members progress on a task 
+class AchievementComplete(models.Model): # A members progress on a task 
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
-    achievement_task = models.ForeignKey(AchievementTask, on_delete=models.CASCADE)
-    begin_at = models.DateTimeField(auto_now_add=True)
-    completed_at = models.DateTimeField(null=True, blank=True)
+    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
+    completed_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-
-        completed_str = "✘" if self.completed_at == None else "✓"
-
-        return f"""{self.member.username}({self.achievement_task.achievement.title}): 
-                   {self.achievement_task.goal_count} {completed_str} {str(self.begin_at)}"""
+        return f"{self.member.username} ({self.achievement.title})"
