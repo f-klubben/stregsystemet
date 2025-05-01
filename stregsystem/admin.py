@@ -3,7 +3,8 @@ from django import forms
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
-import datetime
+from django.core.exceptions import ValidationError
+from datetime import datetime
 import pytz
 
 from stregsystem.models import (
@@ -383,6 +384,42 @@ class AchievementAdmin(admin.ModelAdmin):
     search_fields = ['title', 'description']
     list_display = ['title', 'description', 'icon_png', 'begin_at']
 
+    @admin.action(description="Set begin_at to now")
+    def set_begin_at_to_now(self, request, queryset):
+        tz = pytz.timezone("Europe/Copenhagen")
+        errors = []
+        for obj in queryset:
+            obj.begin_at = datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
+            try:
+                obj.full_clean()
+                obj.save()
+            except ValidationError as e:
+                errors.append((obj.title, e))
+
+        if errors:
+            for title, err in errors:
+                messages.error(request, f"Could not update '{title}': {err}")
+        else:
+            self.message_user(request, "Successfully set 'begin_at' to now for selected achievements.")
+
+    @admin.action(description="Set begin_at to null")
+    def set_begin_at_to_null(self, request, queryset):
+        errors = []
+        for obj in queryset:
+            obj.begin_at = None
+            try:
+                obj.full_clean()
+                obj.save()
+            except ValidationError as e:
+                errors.append((obj.title, e))
+
+        if errors:
+            for title, err in errors:
+                messages.error(request, f"Could not clear 'begin_at' for '{title}': {err}")
+        else:
+            self.message_user(request, "Successfully cleared 'begin_at' for selected achievements.")
+    actions = [set_begin_at_to_now, set_begin_at_to_null]
+
 class AchievementTaskAdmin(admin.ModelAdmin):
 
     valid_lookups = 'member'
@@ -391,12 +428,22 @@ class AchievementTaskAdmin(admin.ModelAdmin):
 
 class AchievementCompleteAdmin(admin.ModelAdmin):
 
-    valid_lookups = 'member'
+    valid_lookups = ['member', 'achievement']
     search_fields = ['member__username', 'achievement__title', 'achievement__description', 'completed_at']
-    list_display = ['get_username']
+    list_display = ['get_username', 'get_achievement_title', 'get_achievement_description', 'completed_at']
 
     def get_username(self, obj):
         return obj.member.username
+    
+    def get_achievement_title(self, obj):
+        return obj.achievement.title
+    
+    get_achievement_title.short_description = 'Achievement Title'
+
+    def get_achievement_description(self, obj):
+        return obj.achievement.description
+    
+    get_achievement_description.short_description = 'Achievement Description'
 
 
 admin.site.register(LogEntry, LogEntryAdmin)

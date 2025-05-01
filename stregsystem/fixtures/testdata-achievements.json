@@ -97,7 +97,7 @@
       "product": null,
       "category": null,
       "goal_count": 500,
-      "task_type": "balance"
+      "task_type": "used_funds"
     }
   },
   {
@@ -107,7 +107,7 @@
       "title": "Drugged up!",
       "description": "Buy a beer and a coffee within a minute",
       "icon_png": "achievement_beer.png",
-      "max_duration": "00:01:00"
+      "duration": "00:01:00"
     }
   },
   {

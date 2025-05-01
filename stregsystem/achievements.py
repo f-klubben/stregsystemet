@@ -32,7 +32,7 @@ def get_new_achievements(member:Member, product:Product, amount=1):
     related_achievement_tasks = _filter_achievement_tasks(product, categories, in_progress_achievements, now)
 
     # Step 4: Check if any of the achievement tasks can be considered "completed". If so, add an entry in AchievementComplete
-    completed_achievements = _find_completed_achievements(related_achievement_tasks, member)
+    completed_achievements = _find_completed_achievements(related_achievement_tasks, member, now)
 
     # Step 5: Convert into a dictionary for easy variable retrieval
     return completed_achievements
@@ -40,11 +40,11 @@ def get_new_achievements(member:Member, product:Product, amount=1):
 
 def get_acquired_achievements(member:Member):
     """Gets all acquired achievements for a member"""
-    achievement_completed = AchievementComplete.objects.filter(
-        member=member
-    ).select_related("achievement")
+    completed_achievements = Achievement.objects.filter(
+        achievementcomplete__member=member
+    ).distinct()
 
-    return achievement_completed.achievement
+    return completed_achievements
 
 
 def get_missing_achievements(member:Member):
@@ -87,9 +87,9 @@ def get_user_leaderboard_position(member: Member):
     return position / total_members
 
 
-def _find_completed_achievements(related_achievement_tasks, member):
+def _find_completed_achievements(related_achievement_tasks, member: Member, now: datetime):
             
-    task_to_sales = _filter_sales(related_achievement_tasks, member)
+    task_to_sales = _filter_sales(related_achievement_tasks, member, now)
 
     achievement_groups = defaultdict(list)
     for at in related_achievement_tasks:
@@ -98,34 +98,56 @@ def _find_completed_achievements(related_achievement_tasks, member):
     completed_achievements = []
     new_completions = []
     for group in achievement_groups.values():
-        if all(task_to_sales[at.id].count() >= at.goal_count for at in group):
+        is_completed = True
+
+        for at in group:
+
+            task_type = at.task_type
+            sales = task_to_sales[at.id]
+            used_funds = sales.aggregate(total=Sum('price'))['total']
+            remaining_funds = member.balance
+
+
+            if (task_type == "default" or task_type == "any"
+                    and sales.count() < at.goal_count):
+                is_completed = False
+            elif task_type == "used_funds" and used_funds < at.goal_count:
+                is_completed = False
+            elif task_type == "remaining_funds" and remaining_funds < at.goal_count:
+                is_completed = False
+            elif task_type == "stregforbud": # How do i implement this?!?
+                is_completed = False
+
+        if is_completed:
             achievement = group[0].achievement  # All `at`s in group share the same achievement
             completed_achievements.append(achievement)
-            for at in group:
-                new_completions.append(
-                    AchievementComplete(member=member, achievement=achievement)
-                )
+            new_completions.append(
+                AchievementComplete(member=member, achievement=achievement)
+            )
 
     if new_completions:
         AchievementComplete.objects.bulk_create(new_completions)
 
     return completed_achievements
 
-def _filter_sales(achievement_tasks: list[AchievementTask], member: Member) -> dict:
-    begin_ats = [at.achievement.begin_at for at in achievement_tasks if at.achievement.begin_at]
-    
+def _filter_sales(achievement_tasks: list[AchievementTask], member: Member, now: datetime) -> dict:
     sales_qs = Sale.objects.filter(member=member).select_related('product').prefetch_related('product__categories')
-
-    if begin_ats:
-        min_begin_at = min(begin_ats) - timedelta(seconds=1)
-        sales_qs = sales_qs.filter(timestamp__gte=min_begin_at)
-
     task_to_sales = {}
+
     for at in achievement_tasks:
+        achievement = at.achievement
         relevant_sales = sales_qs
 
-        if at.achievement.begin_at:
-            relevant_sales = relevant_sales.filter(timestamp__gte=at.achievement.begin_at - timedelta(seconds=1))
+        # Determine the effective start time
+        if achievement.duration:
+            begin_time = now - achievement.duration
+        elif achievement.begin_at:
+            begin_time = achievement.begin_at
+        else:
+            begin_time = None
+
+        if begin_time:
+            relevant_sales = relevant_sales.filter(timestamp__gte=begin_time)
 
         if at.product:
             relevant_sales = relevant_sales.filter(product=at.product)
@@ -138,7 +160,7 @@ def _filter_sales(achievement_tasks: list[AchievementTask], member: Member) -> d
     return task_to_sales
 
 
-def _filter_achievement_tasks(product, categories, in_progress_achievements, now):
+def _filter_achievement_tasks(product, categories, in_progress_achievements, now: datetime):
 
     achievements_with_constraints = in_progress_achievements.prefetch_related('achievementconstraint_set')
 
@@ -163,7 +185,8 @@ def _filter_achievement_tasks(product, categories, in_progress_achievements, now
     for category in categories:
         category_or_product |= Q(category_id=category)
 
-    matching_filter = Q(task_type="any") | Q(task_type="balance") | (Q(task_type="default") & category_or_product)
+    matching_filter = (Q(task_type="any") | Q(task_type="used_funds") | Q(task_type="remaining_funds") | 
+                       Q(task_type="stregforbud") | (Q(task_type="default") & category_or_product))
 
     # Step 4: Find achievement IDs with at least one matching task
     matching_achievement_ids = set(
@@ -176,11 +199,6 @@ def _filter_achievement_tasks(product, categories, in_progress_achievements, now
 
 
 def _is_achievement_active(achievement: Achievement, now: datetime) -> bool:
-    if achievement.globally_active_from and now < achievement.globally_active_from:
-        return False
-    if achievement.globally_active_until and now > achievement.globally_active_until:
-        return False
-    
     constraints = achievement.achievementconstraint_set.all()
     if not constraints:
         return True  # No constraints at all

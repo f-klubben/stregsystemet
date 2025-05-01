@@ -12,6 +12,7 @@ from django.db import models, transaction
 from django.db.models import Count
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
 
 from stregsystem.caffeine import Intake, CAFFEINE_TIME_INTERVAL, current_caffeine_in_body_compound_interest
 from stregsystem.deprecated import deprecated
@@ -869,11 +870,14 @@ class Achievement(models.Model):
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=100)
     icon_png = models.CharField(max_length=255)
-    begin_at = models.DateTimeField(null=True, blank=True)
 
-    max_duration = models.DurationField(null=True, blank=True)
-    globally_active_from = models.DateTimeField(null=True, blank=True)
-    globally_active_until = models.DateTimeField(null=True, blank=True)
+    begin_at = models.DateTimeField(null=True, blank=True)
+    duration = models.DurationField(null=True, blank=True)
+
+    def clean(self):
+        super().clean()
+        if self.begin_at and self.duration:
+            raise ValidationError("Only one of 'begin_at' or 'duration' can be set, or neither.")
 
     def __str__(self):
         return f"{self.title}: {self.description}"
@@ -913,12 +917,19 @@ class AchievementTask(models.Model):
     TASK_TYPES = [
         ("default", "Default"),
         ("any", "Any"),
-        ("balance", "Balance"),
+        ("used_funds", "Used Funds"),
+        ("remaining_funds", "Remaining Funds"),
+        ("stregforbud", "Stregforbud")
     ]
     task_type = models.CharField(max_length=50, choices=TASK_TYPES, default="default")
 
     class Meta:
         unique_together = ("achievement", "product", "category", "task_type")
+
+    def clean(self):
+        super().clean()
+        if self.product and self.category:
+            raise ValidationError("Only one of 'product' or 'category' can be set, or neither.")
 
     def __str__(self):
         if (self.product is not None):
@@ -935,6 +946,9 @@ class AchievementComplete(models.Model): # A members progress on a task
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
     completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("member", "achievement")
 
     def __str__(self):
         return f"{self.member.username} ({self.achievement.title})"
