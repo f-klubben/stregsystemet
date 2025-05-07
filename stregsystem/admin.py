@@ -424,7 +424,11 @@ class AchievementTaskAdmin(admin.ModelAdmin):
 
     valid_lookups = 'member'
     search_fields = ['achievement__title', 'achievement__description', 'product__name', 'category__name']
-    list_display = ['achievement', 'product', 'category', 'goal_count', 'task_type']
+    list_display = ['achievement', 'get_product', 'category', 'goal_count', 'task_type', 'alcohol_content', 'caffeine_content']
+
+    def get_product(self, obj):
+        p = obj.product.__str__()
+        return p[:20] + "..." if p and len(p) > 20 else p or ""
 
 class AchievementCompleteAdmin(admin.ModelAdmin):
 
@@ -445,6 +449,11 @@ class AchievementCompleteAdmin(admin.ModelAdmin):
     
     get_achievement_description.short_description = 'Achievement Description'
 
+class AchievementConstraintAdmin(admin.ModelAdmin):
+
+    valid_lookups = ['achievement']
+    search_fields = ['achievement__title', 'achievement__description']
+    list_display = ['achievement', 'month_start', 'month_end', 'day_start', 'day_end', 'time_start', 'time_end', 'weekday']
 
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)
@@ -462,4 +471,4 @@ admin.site.register(ProductNote, ProductNoteAdmin)
 admin.site.register(Achievement, AchievementAdmin)
 admin.site.register(AchievementTask, AchievementTaskAdmin)
 admin.site.register(AchievementComplete, AchievementCompleteAdmin)
-admin.site.register(AchievementConstraint)
+admin.site.register(AchievementConstraint, AchievementConstraintAdmin)
