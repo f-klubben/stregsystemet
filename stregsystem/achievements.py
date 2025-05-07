@@ -119,14 +119,14 @@ def _find_completed_achievements(
 
             # Evaluate whether the specific task is completed based on type
             if task_type == "default" or task_type == "any":
-                
+
                 if at.alcohol_content and alcohol_promille < (at.goal_count / 100):
                     is_completed = False
 
                 elif at.caffeine_content and caffeine < (at.goal_count / 100):
                     is_completed = False
 
-                elif sales.count() < at.goal_count:
+                elif (not at.alcohol_content and not at.caffeine_content) and sales.count() < at.goal_count:
                     is_completed = False
 
             elif task_type == "used_funds" and used_funds < at.goal_count:
