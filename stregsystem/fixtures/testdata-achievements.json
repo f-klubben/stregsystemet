@@ -96,7 +96,7 @@
       "achievement": 5,
       "product": null,
       "category": null,
-      "goal_count": 500,
+      "goal_count": 50000,
       "task_type": "used_funds"
     }
   },
@@ -238,6 +238,27 @@
     "fields": {
       "achievement": 10,
       "weekday": "wednesday"
+    }
+  },
+  {
+    "model": "stregsystem.achievement",
+    "pk": 11,
+    "fields": {
+      "title": "Drunk MF'er",
+      "description": "You are now drunk.",
+      "icon_png": "achievement_beer.png"
+    }
+  },
+  {
+    "model": "stregsystem.achievementtask",
+    "pk": 12,
+    "fields": {
+      "achievement": 11,
+      "product": null,
+      "category": null,
+      "goal_count": 30,
+      "alcohol_content": true,
+      "task_type": "default"
     }
   }
 ]

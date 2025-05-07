@@ -112,12 +112,23 @@ def _find_completed_achievements(
             task_type = at.task_type
             sales = task_to_sales[at.id]
             used_funds = sales.aggregate(total=Sum('price'))['total'] # Sum of prices
+
             remaining_funds = member.balance
+            alcohol_promille = member.calculate_alcohol_promille()
+            caffeine = member.calculate_caffeine_in_body()
 
             # Evaluate whether the specific task is completed based on type
-            if ((task_type == "default" or task_type == "any") and
-                (sales.count() < at.goal_count)):
-                is_completed = False
+            if task_type == "default" or task_type == "any":
+                
+                if at.alcohol_content and alcohol_promille < at.goal_count:
+                    is_completed = False
+
+                elif at.caffeine_content and caffeine < at.goal_count:
+                    is_completed = False
+
+                elif sales.count() < at.goal_count:
+                    is_completed = False
+
             elif task_type == "used_funds" and used_funds < at.goal_count:
                 is_completed = False
             elif task_type == "remaining_funds" and remaining_funds < at.goal_count:
@@ -204,12 +215,23 @@ def _filter_achievement_tasks(
     for category in categories:
         category_or_product |= Q(category_id=category)
 
+
+    # Step 3.1: Add alcohol/caffeine matching if product has it
+    alcohol_or_caffeine_filter = Q()
+    if product:
+
+        if product.alcohol_content_ml and product.alcohol_content_ml > 0:
+            alcohol_or_caffeine_filter |= Q(alcohol_content=True)
+
+        if product.caffeine_content_mg and product.caffeine_content_mg > 0:
+            alcohol_or_caffeine_filter |= Q(caffeine_content=True)
+
     # Step 4: Combine with supported task types
     matching_filter = (
         Q(task_type="any") |
         Q(task_type="used_funds") |
         Q(task_type="remaining_funds") |
-        (Q(task_type="default") & category_or_product)
+        (Q(task_type="default") & (category_or_product | alcohol_or_caffeine_filter))
     )
 
     # Step 5: Only include achievements with at least one matching task

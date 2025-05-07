@@ -911,11 +911,13 @@ class AchievementConstraint(models.Model):
 
 class AchievementTask(models.Model):
     achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE) # An achievement can have many 'tasks'
+
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
-    alcohol_content = models.IntegerField(null=True, blank=True)
-    caffeine_content = models.IntegerField(null=True, blank=True)
-    goal_count = models.IntegerField(default=1)
+    alcohol_content = models.BooleanField(default=False)
+    caffeine_content = models.BooleanField(default=False)
+
+    goal_count = models.IntegerField(default=1) # (For used- & remaining_funds: 500 = 5.00 kr.)
     TASK_TYPES = [
         ("default", "Default"),
         ("any", "Any"),
@@ -926,8 +928,18 @@ class AchievementTask(models.Model):
 
     def clean(self):
         super().clean()
-        if self.product and self.category:
-            raise ValidationError("Only one of 'product' or 'category' can be set, or neither.")
+
+        # Collect all fields into a list of booleans indicating whether they are set
+        fields_set = [
+            bool(self.product),
+            bool(self.category),
+            self.alcohol_content is not None and self.alcohol_content,
+            self.caffeine_content is not None and self.caffeine_content,
+        ]
+
+        # Count how many are set
+        if sum(fields_set) > 1:
+            raise ValidationError("Only one of 'product', 'category', 'alcohol_content', or 'caffeine_content' can be set, or none.")
 
     def __str__(self):
         if (self.product is not None):
