@@ -198,7 +198,7 @@ class NamedProductAdmin(admin.ModelAdmin):
 
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'items_in_category')
+    list_display = ('id', 'name', 'items_in_category')
 
     def items_in_category(self, obj):
         return obj.product_set.count()

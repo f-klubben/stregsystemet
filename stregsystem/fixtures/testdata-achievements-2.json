@@ -1,0 +1,130 @@
+[
+    {
+      "model": "stregsystem.achievement",
+      "pk": 1,
+      "fields": {
+        "title": "Quite the bartender",
+        "description": "Pomster = Limfjordsporter + Monster",
+        "icon_png": "achievement_beer.png",
+        "begin_at": null,
+        "duration": "00:01:00"
+      }
+    },
+    {
+      "model": "stregsystem.achievementtask",
+      "pk": 1,
+      "fields": {
+        "achievement": 1,
+        "product": 42,
+        "category": null,
+        "goal_count": 1,
+        "task_type": "default"
+      }
+    },
+    {
+      "model": "stregsystem.achievementtask",
+      "pk": 2,
+      "fields": {
+        "achievement": 1,
+        "product": 1919,
+        "category": null,
+        "goal_count": 1,
+        "task_type": "default"
+      }
+    },
+    {
+      "model": "stregsystem.achievement",
+      "pk": 3,
+      "fields": {
+        "title": "Keeper of secrets",
+        "description": "Buy a fytteturs billet",
+        "icon_png": "achievement_beer.png",
+        "begin_at": null,
+        "duration": null
+      }
+    },
+    {
+      "model": "stregsystem.achievementtask",
+      "pk": 4,
+      "fields": {
+        "achievement": 3,
+        "product": 	51,
+        "category": null,
+        "goal_count": 1,
+        "task_type": "default"
+      }
+    },
+    {
+      "model": "stregsystem.achievement",
+      "pk": 4,
+      "fields": {
+        "title": "Ægte Datalog",
+        "description": "Buy a Limfjordsporter",
+        "icon_png": "achievement_beer.png",
+        "begin_at": null,
+        "duration": null
+      }
+    },
+    {
+      "model": "stregsystem.achievementtask",
+      "pk": 5,
+      "fields": {
+        "achievement": 4,
+        "product": 42,
+        "category": null,
+        "goal_count": 1,
+        "task_type": "default"
+      }
+    },
+    {
+      "model": "stregsystem.achievement",
+      "pk": 5,
+      "fields": {
+        "title": "Exam Week Warrior",
+        "description": "Buy 3 energy drinks or coffees during exam month",
+        "icon_png": "achievement_beer.png",
+        "begin_at": null,
+        "duration": null
+      }
+    },
+    {
+      "model": "stregsystem.achievementtask",
+      "pk": 6,
+      "fields": {
+        "achievement": 5,
+        "product": null,
+        "category": 11,
+        "goal_count": 3,
+        "task_type": "default"
+      }
+    },
+    {
+      "model": "stregsystem.achievementconstraint",
+      "pk": 1,
+      "fields": {
+        "achievement": 5,
+        "month_start": 6,
+        "month_end": 6,
+        "day_start": null,
+        "day_end": null,
+        "time_start": null,
+        "time_end": null,
+        "weekday": null
+      }
+    },
+    {
+        "model": "stregsystem.achievementconstraint",
+        "pk": 2,
+        "fields": {
+          "achievement": 5,
+          "month_start": 1,
+          "month_end": 1,
+          "day_start": null,
+          "day_end": null,
+          "time_start": null,
+          "time_end": null,
+          "weekday": null
+        }
+      }
+  ]
+  

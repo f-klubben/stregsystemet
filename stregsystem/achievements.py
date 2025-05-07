@@ -1,7 +1,8 @@
-from django.db.models import Q, Count, Sum
+from django.db.models import Q, Count, Sum, QuerySet
 from django.db import models
 from collections import defaultdict
 
+from typing import List, Dict
 from datetime import datetime, timedelta
 import pytz
 
@@ -15,30 +16,30 @@ from stregsystem.models import (
     AchievementTask,
 )
 
-def get_new_achievements(member:Member, product:Product, amount=1): 
+def get_new_achievements(member: Member, product: Product, amount: int = 1) -> List[Achievement]:
     """Gets newly acquired achievements after having bought something"""
 
-    categories = product.categories.values_list('id', flat=True)
+    categories = list(product.categories.values_list('id', flat=True))
     now = datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
 
-    # Step 1: Get IDs of completed achievements for a member
+    # Step 1: Get IDs of achievements already completed by the member
     completed_achievements = AchievementComplete.objects.filter(member=member)
 
-    # Step 2: Filter out all achievements that are completed
+    # Step 2: Filter out achievements already completed
     completed_achievement_ids = completed_achievements.values_list('achievement_id', flat=True)
     in_progress_achievements = Achievement.objects.exclude(id__in=completed_achievement_ids)
 
-    # Step 3: Query for all related achievement tasks out of the in progress achievements
-    related_achievement_tasks = _filter_achievement_tasks(product, categories, in_progress_achievements, now)
+    # Step 3: Find tasks from the remaining achievements that are relevant to the purchase
+    related_achievement_tasks: List[AchievementTask] = _filter_achievement_tasks(product, categories, in_progress_achievements, now)
 
-    # Step 4: Check if any of the achievement tasks can be considered "completed". If so, add an entry in AchievementComplete
-    completed_achievements = _find_completed_achievements(related_achievement_tasks, member, now)
+    # Step 4: Determine which of the related tasks now meet their criteria
+    completed_achievements: List[Achievement] = _find_completed_achievements(related_achievement_tasks, member, now)
 
     # Step 5: Convert into a dictionary for easy variable retrieval
     return completed_achievements
 
 
-def get_acquired_achievements(member:Member):
+def get_acquired_achievements(member: Member) -> QuerySet[Achievement]:
     """Gets all acquired achievements for a member"""
     completed_achievements = Achievement.objects.filter(
         achievementcomplete__member=member
@@ -47,7 +48,7 @@ def get_acquired_achievements(member:Member):
     return completed_achievements
 
 
-def get_missing_achievements(member:Member):
+def get_missing_achievements(member: Member) -> QuerySet[Achievement]:
     """Gets all missing achievements for a member"""
     completed_achievements = AchievementComplete.objects.filter(member=member)
     completed_achievement_ids = completed_achievements.values_list('achievement_id', flat=True)
@@ -56,89 +57,98 @@ def get_missing_achievements(member:Member):
     return missing_achievements
 
 
-def get_user_leaderboard_position(member: Member):
+def get_user_leaderboard_position(member: Member) -> float:
     """
     Returns the top percentage that the member is in 
     based on number of completed achievements among all users.
     Example: 0.1 means top 10%.
     """
-    # Count completed achievements per user
+    # Count number of achievements completed per member
     leaderboard = (
         AchievementComplete.objects
         .filter(completed_at__isnull=False)
         .values('member')
-        .annotate(total=Count('id'))
-        .order_by('-total')
+        .annotate(total=Count('id')) # Count of achievements per user
+        .order_by('-total') # Rank by total descending
     )
 
     total_members = leaderboard.count()
     if total_members == 0:
-        return 1.0  # Everyone's equal, user is at 100%
+        return 1.0  # No data, treat user as lowest rank
 
-    # Find member's rank
+    # Find the current user's index (rank)
     for index, entry in enumerate(leaderboard):
         if entry['member'] == member.id:
-            position = index + 1  # 1-based rank
+            position = index + 1  # Convert to 1-based rank
             break
     else:
-        return 1.0  # Member has no achievements, so last place
+        return 1.0  # User has no achievements
 
-    # Calculate top percentage
-    return position / total_members
+    return position / total_members # Normalize to percentage
 
 
-def _find_completed_achievements(related_achievement_tasks, member: Member, now: datetime):
-            
-    task_to_sales = _filter_sales(related_achievement_tasks, member, now)
+def _find_completed_achievements(
+    related_achievement_tasks: List[AchievementTask],
+    member: Member,
+    now: datetime
+) -> List[Achievement]:
+    
+    # Filter member's sales to match relevant achievement tasks
+    task_to_sales: Dict[int, QuerySet[Sale]] = _filter_sales(related_achievement_tasks, member, now)
 
-    achievement_groups = defaultdict(list)
+    # Group tasks by achievement for evaluation
+    achievement_groups: Dict[int, List[AchievementTask]] = defaultdict(list)
     for at in related_achievement_tasks:
         achievement_groups[at.achievement_id].append(at)
 
-    completed_achievements = []
-    new_completions = []
+    completed_achievements: List[Achievement] = []
+    new_completions: List[AchievementComplete] = []
+
     for group in achievement_groups.values():
-        is_completed = True
+        is_completed: bool = True
 
         for at in group:
 
             task_type = at.task_type
             sales = task_to_sales[at.id]
-            used_funds = sales.aggregate(total=Sum('price'))['total']
+            used_funds = sales.aggregate(total=Sum('price'))['total'] # Sum of prices
             remaining_funds = member.balance
 
-
-            if (task_type == "default" or task_type == "any"
-                    and sales.count() < at.goal_count):
+            # Evaluate whether the specific task is completed based on type
+            if ((task_type == "default" or task_type == "any") and
+                (sales.count() < at.goal_count)):
                 is_completed = False
             elif task_type == "used_funds" and used_funds < at.goal_count:
                 is_completed = False
             elif task_type == "remaining_funds" and remaining_funds < at.goal_count:
                 is_completed = False
-            elif task_type == "stregforbud": # How do i implement this?!?
-                is_completed = False
 
         if is_completed:
-            achievement = group[0].achievement  # All `at`s in group share the same achievement
+            achievement = group[0].achievement
             completed_achievements.append(achievement)
-            new_completions.append(
-                AchievementComplete(member=member, achievement=achievement)
-            )
+            new_completions.append(AchievementComplete(member=member, achievement=achievement))
 
     if new_completions:
         AchievementComplete.objects.bulk_create(new_completions)
 
     return completed_achievements
 
-def _filter_sales(achievement_tasks: list[AchievementTask], member: Member, now: datetime) -> dict:
+
+def _filter_sales(
+    achievement_tasks: List[AchievementTask],
+    member: Member,
+    now: datetime
+) -> Dict[int, QuerySet[int]]:
+    
+    # Prefetch product and categories to reduce DB hits later
     sales_qs = Sale.objects.filter(member=member).select_related('product').prefetch_related('product__categories')
-    task_to_sales = {}
+    task_to_sales: Dict[int, QuerySet[int]] = {}
 
     for at in achievement_tasks:
         achievement = at.achievement
         relevant_sales = sales_qs
 
-        # Determine the effective start time
+        # Determine the valid time window for the sales
         if achievement.duration:
             begin_time = now - achievement.duration
         elif achievement.begin_at:
@@ -149,22 +159,31 @@ def _filter_sales(achievement_tasks: list[AchievementTask], member: Member, now:
         if begin_time:
             relevant_sales = relevant_sales.filter(timestamp__gte=begin_time)
 
+        # Filter for specific product if defined
         if at.product:
             relevant_sales = relevant_sales.filter(product=at.product)
 
+        # Filter for category match
         if at.category:
             relevant_sales = relevant_sales.filter(product__categories=at.category)
 
+        # Use only sale IDs to reduce payload
         task_to_sales[at.id] = relevant_sales.values_list('id', flat=True)
 
     return task_to_sales
 
 
-def _filter_achievement_tasks(product, categories, in_progress_achievements, now: datetime):
+def _filter_achievement_tasks(
+    product: Product,
+    categories: List[int],
+    in_progress_achievements: QuerySet[Achievement],
+    now: datetime
+) -> List[AchievementTask]:
 
+    # Load constraint relations in advance to avoid N+1 queries
     achievements_with_constraints = in_progress_achievements.prefetch_related('achievementconstraint_set')
 
-    # Step 1: Get all active achievements
+    # Step 1: Filter achievements that are currently "active"
     active_achievements = [
         a for a in achievements_with_constraints
         if _is_achievement_active(a, now)
@@ -172,12 +191,12 @@ def _filter_achievement_tasks(product, categories, in_progress_achievements, now
     active_ids = [a.id for a in active_achievements]
 
     if not active_ids:
-        return AchievementTask.objects.none()
-
-    # Step 2: Get only tasks for active achievements
+        return AchievementTask.objects.none() # Return empty queryset early
+    
+    # Step 2: Get all tasks from the active achievements
     tasks = AchievementTask.objects.filter(achievement_id__in=active_ids)
 
-    # Step 3: Build your filter
+    # Step 3: Build filter matching product or category depending on task type
     category_or_product = Q()
     if product:
         category_or_product |= Q(product_id=product)
@@ -185,25 +204,34 @@ def _filter_achievement_tasks(product, categories, in_progress_achievements, now
     for category in categories:
         category_or_product |= Q(category_id=category)
 
-    matching_filter = (Q(task_type="any") | Q(task_type="used_funds") | Q(task_type="remaining_funds") | 
-                       Q(task_type="stregforbud") | (Q(task_type="default") & category_or_product))
+    # Step 4: Combine with supported task types
+    matching_filter = (
+        Q(task_type="any") |
+        Q(task_type="used_funds") |
+        Q(task_type="remaining_funds") |
+        (Q(task_type="default") & category_or_product)
+    )
 
-    # Step 4: Find achievement IDs with at least one matching task
+    # Step 5: Only include achievements with at least one matching task
     matching_achievement_ids = set(
         tasks.filter(matching_filter).values_list("achievement_id", flat=True)
     )
 
-    # Step 5: Return all tasks for those achievements
-    return AchievementTask.objects.filter(achievement_id__in=matching_achievement_ids
-                                          ).select_related('achievement', 'product', 'category')
+    # Step 6: Return all tasks from matching achievements
+    return list(
+        AchievementTask.objects.filter(
+            achievement_id__in=matching_achievement_ids
+        ).select_related('achievement', 'product', 'category')
+    )
 
 
 def _is_achievement_active(achievement: Achievement, now: datetime) -> bool:
     constraints = achievement.achievementconstraint_set.all()
     if not constraints:
-        return True  # No constraints at all
+        return True  # No constraint means always active
     
     for c in constraints.all():
+        # All checks must *fail* to continue; pass means active
         if c.month_start and now.month < c.month_start:
             continue
         if c.month_end and now.month > c.month_end:
@@ -218,6 +246,6 @@ def _is_achievement_active(achievement: Achievement, now: datetime) -> bool:
             continue
         if c.weekday and now.strftime("%a").lower()[:3] != c.weekday:
             continue
-        return True  # passes one valid constraint block
+        return True  # At least one constraint matches
 
-    return False
+    return False # All constraints failed

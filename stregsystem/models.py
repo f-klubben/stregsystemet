@@ -913,18 +913,16 @@ class AchievementTask(models.Model):
     achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE) # An achievement can have many 'tasks'
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
+    alcohol_content = models.IntegerField(null=True, blank=True)
+    caffeine_content = models.IntegerField(null=True, blank=True)
     goal_count = models.IntegerField(default=1)
     TASK_TYPES = [
         ("default", "Default"),
         ("any", "Any"),
         ("used_funds", "Used Funds"),
         ("remaining_funds", "Remaining Funds"),
-        ("stregforbud", "Stregforbud")
     ]
     task_type = models.CharField(max_length=50, choices=TASK_TYPES, default="default")
-
-    class Meta:
-        unique_together = ("achievement", "product", "category", "task_type")
 
     def clean(self):
         super().clean()
