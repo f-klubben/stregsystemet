@@ -297,7 +297,7 @@ def menu_userinfo(request, room_id, member_id):
     acquired_achievements = get_acquired_achievements(member)
     missing_achievements = get_missing_achievements(member)
     achievement_progress_str = f"{len(acquired_achievements)}/{len(acquired_achievements)+len(missing_achievements)}"
-    achievement_top_percentage = f"{get_user_leaderboard_position(member) * 100}%"
+    achievement_top_percentage = f"{round(get_user_leaderboard_position(member) * 100, 2)}%"
 
     return render(request, 'stregsystem/menu_userinfo.html', locals())
 
