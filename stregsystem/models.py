@@ -917,7 +917,9 @@ class AchievementTask(models.Model):
     alcohol_content = models.BooleanField(default=False)
     caffeine_content = models.BooleanField(default=False)
 
-    goal_count = models.IntegerField(default=1) # (For used- & remaining_funds: 500 = 5.00 kr.)
+    # (For used- & remaining_funds: 500 = 5.00 kr.)
+    # (For alcohol = True or caffeine = True: 300 = 3.00 ml or 3.00 mg)
+    goal_count = models.IntegerField(default=1)
     TASK_TYPES = [
         ("default", "Default"),
         ("any", "Any"),
