@@ -113,7 +113,7 @@ class Order(object):
         return order
 
     # @HACK In reality calculating the total for old products is way harder and
-    # more complicated than this. While it's not in the database this is 
+    # more complicated than this. While it's not in the database this is
     # acceptable
     def total(self):
         return sum((x.price() for x in self.items))
@@ -866,6 +866,7 @@ class Theme(models.Model):
     def __str__(self):
         return self.name
 
+
 class Achievement(models.Model):
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=100)
@@ -881,7 +882,8 @@ class Achievement(models.Model):
 
     def __str__(self):
         return f"{self.title}: {self.description}"
-    
+
+
 class AchievementConstraint(models.Model):
     achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
 
@@ -890,7 +892,7 @@ class AchievementConstraint(models.Model):
 
     day_start = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(31)])
     day_end = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(31)])
-    
+
     time_start = models.TimeField(null=True, blank=True)
     time_end = models.TimeField(null=True, blank=True)
 
@@ -904,7 +906,7 @@ class AchievementConstraint(models.Model):
         ("sun", "Sunday"),
     ]
     weekday = models.CharField(max_length=3, choices=WEEK_DAYS, null=True, blank=True)
-    
+
     def clean(self):
         errors = {}
 
@@ -927,7 +929,7 @@ class AchievementConstraint(models.Model):
 
 
 class AchievementTask(models.Model):
-    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE) # An achievement can have many 'tasks'
+    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)  # An achievement can have many 'tasks'
 
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
@@ -958,12 +960,14 @@ class AchievementTask(models.Model):
 
         # Count how many are set
         if sum(fields_set) > 1:
-            raise ValidationError("Only one of 'product', 'category', 'alcohol_content', or 'caffeine_content' can be set, or none.")
+            raise ValidationError(
+                "Only one of 'product', 'category', 'alcohol_content', or 'caffeine_content' can be set, or none."
+            )
 
     def __str__(self):
-        if (self.product is not None):
+        if self.product is not None:
             type = f"product={self.product.name}"
-        elif (self.category is not None):
+        elif self.category is not None:
             type = f"category={self.category.name}"
         else:
             type = f"type={self.task_type}"
@@ -971,7 +975,7 @@ class AchievementTask(models.Model):
         return f"{self.achievement}: [{type}] Goal: {self.goal_count})"
 
 
-class AchievementComplete(models.Model): # A members progress on a task 
+class AchievementComplete(models.Model):  # A members progress on a task
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
     completed_at = models.DateTimeField(auto_now_add=True)

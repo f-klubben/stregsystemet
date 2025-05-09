@@ -63,7 +63,7 @@ from .achievements import (
     get_new_achievements,
     get_acquired_achievements,
     get_missing_achievements,
-    get_user_leaderboard_position
+    get_user_leaderboard_position,
 )
 from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
@@ -229,8 +229,8 @@ def quicksale(request, room, member: Member, bought_ids):
         member_balance,
     ) = __set_local_values(member, room, products, order, now)
 
-    new_achievements:List[Achievement] = []
-    for (p, count) in Counter(products).most_common():
+    new_achievements: List[Achievement] = []
+    for p, count in Counter(products).most_common():
         new_achievements.extend(get_new_achievements(member, p))
 
     products = Counter([str(product.name) for product in products]).most_common()
@@ -245,7 +245,7 @@ def quicksale(request, room, member: Member, bought_ids):
     return render(request, 'stregsystem/index_sale.html', locals())
 
 
-def usermenu(request, room, member, bought, new_achievements = [], from_sale=False):
+def usermenu(request, room, member, bought, new_achievements=[], from_sale=False):
     negative_balance = member.balance < 0
     product_list = __get_productlist(room.id)
     news = __get_news()
@@ -269,7 +269,7 @@ def usermenu(request, room, member, bought, new_achievements = [], from_sale=Fal
         return render(request, 'stregsystem/error_stregforbud.html', locals())
     else:
         return render(request, 'stregsystem/menu.html', {**locals(), **heatmap_context})
-    
+
 
 def menu_userinfo(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)

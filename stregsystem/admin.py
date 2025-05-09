@@ -24,7 +24,7 @@ from stregsystem.models import (
     Achievement,
     AchievementComplete,
     AchievementTask,
-    AchievementConstraint
+    AchievementConstraint,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
@@ -379,6 +379,7 @@ class ProductNoteAdmin(admin.ModelAdmin):
 
     actions = [toggle_active_selected_products]
 
+
 class AchievementAdmin(admin.ModelAdmin):
 
     search_fields = ['title', 'description']
@@ -418,17 +419,28 @@ class AchievementAdmin(admin.ModelAdmin):
                 messages.error(request, f"Could not clear 'begin_at' for '{title}': {err}")
         else:
             self.message_user(request, "Successfully cleared 'begin_at' for selected achievements.")
+
     actions = [set_begin_at_to_now, set_begin_at_to_null]
+
 
 class AchievementTaskAdmin(admin.ModelAdmin):
 
     valid_lookups = 'member'
     search_fields = ['achievement__title', 'achievement__description', 'product__name', 'category__name']
-    list_display = ['achievement', 'get_product', 'category', 'goal_count', 'task_type', 'alcohol_content', 'caffeine_content']
+    list_display = [
+        'achievement',
+        'get_product',
+        'category',
+        'goal_count',
+        'task_type',
+        'alcohol_content',
+        'caffeine_content',
+    ]
 
     def get_product(self, obj):
         p = obj.product.__str__()
         return p[:20] + "..." if p and len(p) > 20 else p or ""
+
 
 class AchievementCompleteAdmin(admin.ModelAdmin):
 
@@ -438,22 +450,33 @@ class AchievementCompleteAdmin(admin.ModelAdmin):
 
     def get_username(self, obj):
         return obj.member.username
-    
+
     def get_achievement_title(self, obj):
         return obj.achievement.title
-    
+
     get_achievement_title.short_description = 'Achievement Title'
 
     def get_achievement_description(self, obj):
         return obj.achievement.description
-    
+
     get_achievement_description.short_description = 'Achievement Description'
+
 
 class AchievementConstraintAdmin(admin.ModelAdmin):
 
     valid_lookups = ['achievement']
     search_fields = ['achievement__title', 'achievement__description']
-    list_display = ['achievement', 'month_start', 'month_end', 'day_start', 'day_end', 'time_start', 'time_end', 'weekday']
+    list_display = [
+        'achievement',
+        'month_start',
+        'month_end',
+        'day_start',
+        'day_end',
+        'time_start',
+        'time_end',
+        'weekday',
+    ]
+
 
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)
