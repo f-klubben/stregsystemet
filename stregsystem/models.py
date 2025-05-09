@@ -905,6 +905,23 @@ class AchievementConstraint(models.Model):
     ]
     weekday = models.CharField(max_length=3, choices=WEEK_DAYS, null=True, blank=True)
     
+    def clean(self):
+        errors = {}
+
+        # Helper to validate pairs
+        def validate_pair(start, end, field_name):
+            if getattr(self, start) is not None and getattr(self, end) is None:
+                errors[end] = f"{field_name}_end must be set if {field_name}_start is set."
+            elif getattr(self, end) is not None and getattr(self, start) is None:
+                errors[start] = f"{field_name}_start must be set if {field_name}_end is set."
+
+        validate_pair('month_start', 'month_end', 'month')
+        validate_pair('day_start', 'day_end', 'day')
+        validate_pair('time_start', 'time_end', 'time')
+
+        if errors:
+            raise ValidationError(errors)
+
     def __str__(self):
         return f"Constraint for {self.achievement.title}"
 
