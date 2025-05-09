@@ -7,17 +7,19 @@ import kiosk.validators
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kiosk', '0005_migrate_image_to_media_20201112_1713'),
+        ("kiosk", "0005_migrate_image_to_media_20201112_1713"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='kioskitem',
-            name='image',
+            model_name="kioskitem",
+            name="image",
         ),
         migrations.AlterField(
-            model_name='kioskitem',
-            name='media',
-            field=models.FileField(upload_to='kiosk', validators=[kiosk.validators.validate_file_extension]),
+            model_name="kioskitem",
+            name="media",
+            field=models.FileField(
+                upload_to="kiosk", validators=[kiosk.validators.validate_file_extension]
+            ),
         ),
     ]

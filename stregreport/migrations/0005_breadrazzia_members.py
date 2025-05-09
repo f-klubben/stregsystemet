@@ -6,14 +6,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stregsystem', '0009_auto_20191028_2057'),
-        ('stregreport', '0004_remove_breadrazzia_members'),
+        ("stregsystem", "0009_auto_20191028_2057"),
+        ("stregreport", "0004_remove_breadrazzia_members"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='breadrazzia',
-            name='members',
-            field=models.ManyToManyField(through='stregreport.RazziaEntry', to='stregsystem.Member'),
+            model_name="breadrazzia",
+            name="members",
+            field=models.ManyToManyField(
+                through="stregreport.RazziaEntry", to="stregsystem.Member"
+            ),
         ),
     ]

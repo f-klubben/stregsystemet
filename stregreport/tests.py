@@ -22,7 +22,7 @@ class ParseIdStringTests(TestCase):
             views.parse_id_string(wrong_id_string)
 
     def test_parse_id_string_unicode(self):
-        id_string_unicode = u"11 13"
+        id_string_unicode = "11 13"
         res = views.parse_id_string(id_string_unicode)
 
         self.assertSequenceEqual([11, 13], res)
@@ -41,7 +41,7 @@ class CategoryRankReportTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed("admin/stregsystem/report/ranks.html")
 
-        self.assertEqual(len(response.context['stat_lists']), 0)
+        self.assertEqual(len(response.context["stat_lists"]), 0)
 
     def test_single_category_shown(self):
         self.client.login(username="tester", password="treotreo")
@@ -53,7 +53,7 @@ class CategoryRankReportTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed("admin/stregsystem/report/ranks.html")
 
-        stat_lists = response.context['stat_lists']
+        stat_lists = response.context["stat_lists"]
 
         self.assertEqual(stat_lists[0][0], catA.name)
 
@@ -77,7 +77,7 @@ class SalesReportTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed("admin/stregsystem/report/sales.html")
-        self.assertSequenceEqual(response.context["sales"], [('', 'TOTAL', 0, '0.00')])
+        self.assertSequenceEqual(response.context["sales"], [("", "TOTAL", 0, "0.00")])
 
     def test_sales_report_invalid_products(self):
         self.client.login(username="tester", password="treotreo")
@@ -110,26 +110,34 @@ class RazziaTests(TestCase):
     fixtures = ["initial_data"]
 
     def test_bread_razzia_can_create_new(self):
-        previous_number_razzias = BreadRazzia.objects.filter(razzia_type=BreadRazzia.BREAD).count()
+        previous_number_razzias = BreadRazzia.objects.filter(
+            razzia_type=BreadRazzia.BREAD
+        ).count()
 
         self.client.login(username="tester", password="treotreo")
         response = self.client.get(reverse("razzia_new_BR"), follow=True)
         last_url, status_code = response.redirect_chain[-1]
 
-        current_number_razzias = BreadRazzia.objects.filter(razzia_type=BreadRazzia.BREAD).count()
+        current_number_razzias = BreadRazzia.objects.filter(
+            razzia_type=BreadRazzia.BREAD
+        ).count()
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "admin/stregsystem/razzia/bread.html")
         self.assertEqual(current_number_razzias, previous_number_razzias + 1)
 
     def test_foobar_razzia_can_create_new(self):
-        previous_number_razzias = BreadRazzia.objects.filter(razzia_type=BreadRazzia.FOOBAR).count()
+        previous_number_razzias = BreadRazzia.objects.filter(
+            razzia_type=BreadRazzia.FOOBAR
+        ).count()
 
         self.client.login(username="tester", password="treotreo")
         response = self.client.get(reverse("razzia_new_FB"), follow=True)
         last_url, status_code = response.redirect_chain[-1]
 
-        current_number_razzias = BreadRazzia.objects.filter(razzia_type=BreadRazzia.FOOBAR).count()
+        current_number_razzias = BreadRazzia.objects.filter(
+            razzia_type=BreadRazzia.FOOBAR
+        ).count()
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "admin/stregsystem/razzia/foobar.html")
@@ -140,9 +148,13 @@ class RazziaTests(TestCase):
         response = self.client.get(reverse("razzia_new_BR"), follow=True)
         razzia_url, _ = response.redirect_chain[-1]
 
-        response_add_1 = self.client.post(razzia_url, {"username": "jokke"}, follow=True)
+        response_add_1 = self.client.post(
+            razzia_url, {"username": "jokke"}, follow=True
+        )
 
-        response_add_2 = self.client.post(razzia_url, {"username": "jokke"}, follow=True)
+        response_add_2 = self.client.post(
+            razzia_url, {"username": "jokke"}, follow=True
+        )
 
         self.assertEqual(response_add_1.status_code, 200)
         self.assertEqual(response_add_2.status_code, 200)
@@ -158,17 +170,27 @@ class RazziaTests(TestCase):
 
             response_members_0 = self.client.get(razzia_url + "members", follow=True)
 
-            response_add_1 = self.client.post(razzia_url, {"username": "jokke"}, follow=True)
+            response_add_1 = self.client.post(
+                razzia_url, {"username": "jokke"}, follow=True
+            )
             frozen_datetime.tick(delta=datetime.timedelta(hours=1, minutes=1))
-            response_add_2 = self.client.post(razzia_url, {"username": "jokke"}, follow=True)
+            response_add_2 = self.client.post(
+                razzia_url, {"username": "jokke"}, follow=True
+            )
 
             response_members_2 = self.client.get(razzia_url + "members", follow=True)
 
             self.assertEqual(response_add_1.status_code, 200)
             self.assertEqual(response_add_2.status_code, 200)
-            self.assertTemplateUsed(response_add_1, "admin/stregsystem/razzia/foobar.html")
-            self.assertTemplateUsed(response_add_2, "admin/stregsystem/razzia/foobar.html")
-            self.assertNotContains(response_add_1, "last checked in at", status_code=200)
+            self.assertTemplateUsed(
+                response_add_1, "admin/stregsystem/razzia/foobar.html"
+            )
+            self.assertTemplateUsed(
+                response_add_2, "admin/stregsystem/razzia/foobar.html"
+            )
+            self.assertNotContains(
+                response_add_1, "last checked in at", status_code=200
+            )
             self.assertContains(response_add_2, "last checked in at", status_code=200)
             self.assertContains(response_members_0, "0 fember(s)", status_code=200)
             self.assertContains(response_members_2, "2 fember(s)", status_code=200)
@@ -183,5 +205,7 @@ class RazziaTests(TestCase):
         response_members = self.client.get(razzia_url + "members", follow=True)
 
         self.assertEqual(response_add.status_code, 200)
-        self.assertTemplateUsed(response_members, "admin/stregsystem/razzia/members.html")
+        self.assertTemplateUsed(
+            response_members, "admin/stregsystem/razzia/members.html"
+        )
         self.assertContains(response_members, "jokke", status_code=200)

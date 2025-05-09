@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kiosk', '0006_remove_image_20201112_1715'),
+        ("kiosk", "0006_remove_image_20201112_1715"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='kioskitem',
-            name='end_datetime',
+            model_name="kioskitem",
+            name="end_datetime",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='kioskitem',
-            name='start_datetime',
+            model_name="kioskitem",
+            name="start_datetime",
             field=models.DateTimeField(blank=True, null=True),
         ),
     ]

@@ -6,17 +6,29 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stregreport', '0007_auto_20200305_0917'),
+        ("stregreport", "0007_auto_20200305_0917"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='breadrazzia',
-            options={'permissions': (('host_razzia', 'Can host a foobar, fnugfald or bread razzia'),)},
+            name="breadrazzia",
+            options={
+                "permissions": (
+                    ("host_razzia", "Can host a foobar, fnugfald or bread razzia"),
+                )
+            },
         ),
         migrations.AlterField(
-            model_name='breadrazzia',
-            name='razzia_type',
-            field=models.CharField(choices=[('BR', 'Brødrazzia'), ('FB', 'Foobar razzia'), ('FF', 'Fnugfald razzia')], default='BR', max_length=2),
+            model_name="breadrazzia",
+            name="razzia_type",
+            field=models.CharField(
+                choices=[
+                    ("BR", "Brødrazzia"),
+                    ("FB", "Foobar razzia"),
+                    ("FF", "Fnugfald razzia"),
+                ],
+                default="BR",
+                max_length=2,
+            ),
         ),
     ]

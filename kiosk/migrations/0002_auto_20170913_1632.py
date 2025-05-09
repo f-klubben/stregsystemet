@@ -9,19 +9,21 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kiosk', '0001_initial'),
+        ("kiosk", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='kioskitem',
-            name='notes',
+            model_name="kioskitem",
+            name="notes",
             field=models.CharField(blank=True, max_length=2000, null=True),
         ),
         migrations.AddField(
-            model_name='kioskitem',
-            name='uploaded_date',
-            field=models.DateField(auto_now_add=True, default=django.utils.timezone.now),
+            model_name="kioskitem",
+            name="uploaded_date",
+            field=models.DateField(
+                auto_now_add=True, default=django.utils.timezone.now
+            ),
             preserve_default=False,
         ),
     ]

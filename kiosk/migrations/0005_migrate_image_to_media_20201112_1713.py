@@ -4,14 +4,14 @@ from django.db import migrations
 
 
 def migrate_all_data(apps, schema_editor):
-    KioskItem = apps.get_model('kiosk', 'KioskItem')
+    KioskItem = apps.get_model("kiosk", "KioskItem")
     for x in KioskItem.objects.all():
         x.media = x.image
         x.save()
 
 
 def reverse_migrate_all_data(apps, schema_editor):
-    KioskItem = apps.get_model('kiosk', 'KioskItem')
+    KioskItem = apps.get_model("kiosk", "KioskItem")
     for x in KioskItem.objects.all():
         x.image = x.media
         x.save()
@@ -19,9 +19,7 @@ def reverse_migrate_all_data(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('kiosk', '0004_kioskitem_media'),
+        ("kiosk", "0004_kioskitem_media"),
     ]
 
-    operations = [
-        migrations.RunPython(migrate_all_data, reverse_migrate_all_data)
-    ]
+    operations = [migrations.RunPython(migrate_all_data, reverse_migrate_all_data)]

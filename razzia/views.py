@@ -12,8 +12,8 @@ from stregsystem.models import Member
 # Create your views here.
 @permission_required("razzia.view_razzia")
 def razzia(request, razzia_id):
-    if request.method == 'POST':
-        return razzia_view_single(request, razzia_id, request.POST['username'])
+    if request.method == "POST":
+        return razzia_view_single(request, razzia_id, request.POST["username"])
     else:
         return razzia_view_single(request, razzia_id, None)
 
@@ -22,7 +22,7 @@ def razzia(request, razzia_id):
 def razzia_view_single(request, razzia_id, queryname, title=None):
     razzia = get_object_or_404(Razzia, pk=razzia_id)
 
-    template = 'razzia.html'
+    template = "razzia.html"
 
     if queryname is None:
         return render(request, template, locals())
@@ -33,7 +33,9 @@ def razzia_view_single(request, razzia_id, queryname, title=None):
 
     member = result[0]
 
-    entries = list(razzia.razziaentry_set.filter(member__pk=member.pk).order_by('-time'))
+    entries = list(
+        razzia.razziaentry_set.filter(member__pk=member.pk).order_by("-time")
+    )
     turns_already = len(entries)
 
     timed_out = False
@@ -45,8 +47,14 @@ def razzia_view_single(request, razzia_id, queryname, title=None):
     # Back too soon?
     if timed_out:
         drunkard = True
-        remaining_time_secs = int(((entries[0].time + razzia.turn_interval) - timezone.now()).total_seconds() % 60)
-        remaining_time_mins = int(((entries[0].time + razzia.turn_interval) - timezone.now()).total_seconds() // 60)
+        remaining_time_secs = int(
+            ((entries[0].time + razzia.turn_interval) - timezone.now()).total_seconds()
+            % 60
+        )
+        remaining_time_mins = int(
+            ((entries[0].time + razzia.turn_interval) - timezone.now()).total_seconds()
+            // 60
+        )
         return render(request, template, locals())
 
     RazziaEntry(member=member, razzia=razzia).save()
@@ -56,16 +64,16 @@ def razzia_view_single(request, razzia_id, queryname, title=None):
 
 @login_required
 def razzia_menu(request, new_text=None, title=None):
-    razzias = Razzia.objects.order_by('-pk')[:3]
+    razzias = Razzia.objects.order_by("-pk")[:3]
 
     if not request.user.has_perm("razzia.browse_razzia"):
         if len(razzias) == 0:
             # In case no razzias are available, default to no permission
             raise PermissionDenied
 
-        return redirect('razzia_view', razzia_id=razzias[0].pk)
+        return redirect("razzia_view", razzia_id=razzias[0].pk)
 
-    return render(request, 'menu.html', locals())
+    return render(request, "menu.html", locals())
 
 
 @permission_required("razzia.add_razzia")
@@ -73,11 +81,11 @@ def new_razzia(request):
     razzia = Razzia(name="Foobar V2", turn_interval=datetime.timedelta(minutes=30))
     razzia.save()
 
-    return redirect('razzia_view', razzia_id=razzia.pk)
+    return redirect("razzia_view", razzia_id=razzia.pk)
 
 
 @permission_required("razzia.view_razziaentry")
 def razzia_members(request, razzia_id, title=None):
     razzia = get_object_or_404(Razzia, pk=razzia_id)
     unique_members = razzia.members.all().distinct().count()
-    return render(request, 'members.html', locals())
+    return render(request, "members.html", locals())

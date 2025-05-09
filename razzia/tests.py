@@ -28,9 +28,13 @@ class RazziaTests(TestCase):
         response = self.client.get(reverse("razzia_new"), follow=True)
         razzia_url, _ = response.redirect_chain[-1]
 
-        response_add_1 = self.client.post(razzia_url, {"username": "jokke"}, follow=True)
+        response_add_1 = self.client.post(
+            razzia_url, {"username": "jokke"}, follow=True
+        )
 
-        response_add_2 = self.client.post(razzia_url, {"username": "jokke"}, follow=True)
+        response_add_2 = self.client.post(
+            razzia_url, {"username": "jokke"}, follow=True
+        )
 
         self.assertEqual(response_add_1.status_code, 200)
         self.assertEqual(response_add_2.status_code, 200)
@@ -47,9 +51,13 @@ class RazziaTests(TestCase):
 
             response_members_0 = self.client.get(razzia_url + "members", follow=True)
 
-            response_add_1 = self.client.post(razzia_url, {"username": "jokke"}, follow=True)
+            response_add_1 = self.client.post(
+                razzia_url, {"username": "jokke"}, follow=True
+            )
             frozen_datetime.tick(delta=datetime.timedelta(hours=1, minutes=1))
-            response_add_2 = self.client.post(razzia_url, {"username": "jokke"}, follow=True)
+            response_add_2 = self.client.post(
+                razzia_url, {"username": "jokke"}, follow=True
+            )
 
             response_members_2 = self.client.get(razzia_url + "members", follow=True)
 
@@ -107,9 +115,13 @@ class RazziaTests(TestCase):
 
             response_members_0 = self.client.get(razzia_url + "members", follow=True)
 
-            response_add_1 = self.client.post(razzia_url, {"username": "jokke"}, follow=True)
+            response_add_1 = self.client.post(
+                razzia_url, {"username": "jokke"}, follow=True
+            )
             frozen_datetime.tick(delta=datetime.timedelta(hours=1, minutes=1))
-            response_add_2 = self.client.post(razzia_url, {"username": "jokke"}, follow=True)
+            response_add_2 = self.client.post(
+                razzia_url, {"username": "jokke"}, follow=True
+            )
 
             response_members_2 = self.client.get(razzia_url + "members", follow=True)
 

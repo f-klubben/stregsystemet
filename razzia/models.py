@@ -15,7 +15,7 @@ class Razzia(models.Model):
     # purchase_start_date = models.DateTimeField(null=True, blank=True)
     # purchase_end_date = models.DateTimeField(null=True, blank=True)
 
-    members = models.ManyToManyField(Member, through='RazziaEntry')
+    members = models.ManyToManyField(Member, through="RazziaEntry")
     start_date = models.DateTimeField(auto_now_add=True)
 
 

@@ -7,13 +7,17 @@ import kiosk.validators
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kiosk', '0003_kioskitem_ordering'),
+        ("kiosk", "0003_kioskitem_ordering"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='kioskitem',
-            name='media',
-            field=models.FileField(default='static/kiosk/kioskbg.png', upload_to='kiosk', validators=[kiosk.validators.validate_file_extension]),
+            model_name="kioskitem",
+            name="media",
+            field=models.FileField(
+                default="static/kiosk/kioskbg.png",
+                upload_to="kiosk",
+                validators=[kiosk.validators.validate_file_extension],
+            ),
         ),
     ]

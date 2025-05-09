@@ -6,13 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stregreport', '0005_breadrazzia_members'),
+        ("stregreport", "0005_breadrazzia_members"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='breadrazzia',
-            name='razzia_type',
-            field=models.CharField(choices=[('BR', 'Brødrazzia'), ('FB', 'Foobar razzia')], default='BR', max_length=2),
+            model_name="breadrazzia",
+            name="razzia_type",
+            field=models.CharField(
+                choices=[("BR", "Brødrazzia"), ("FB", "Foobar razzia")],
+                default="BR",
+                max_length=2,
+            ),
         ),
     ]

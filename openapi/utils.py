@@ -2,7 +2,9 @@ from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 
-def update_dictionary_values(original: dict[Any, Any], replacement: dict[Any, Any]) -> None:
+def update_dictionary_values(
+    original: dict[Any, Any], replacement: dict[Any, Any]
+) -> None:
     """
     Same as dict.update(...) but doesn't add new keys.
     Mutates 'original'
@@ -12,7 +14,9 @@ def update_dictionary_values(original: dict[Any, Any], replacement: dict[Any, An
     original.update({k: v for k, v in replacement.items() if k in original})
 
 
-def update_query_parameter_values(url_string: str, new_parameter_values: dict[str, Any]) -> str:
+def update_query_parameter_values(
+    url_string: str, new_parameter_values: dict[str, Any]
+) -> str:
     """
     Updates query parameters with new parameter values from new_parameter_values.
     :param url_string: The URL path of which to modify query parameters.

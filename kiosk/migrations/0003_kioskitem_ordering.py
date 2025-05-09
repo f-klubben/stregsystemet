@@ -9,13 +9,13 @@ import kiosk.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kiosk', '0002_auto_20170913_1632'),
+        ("kiosk", "0002_auto_20170913_1632"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='kioskitem',
-            name='ordering',
+            model_name="kioskitem",
+            name="ordering",
             field=models.IntegerField(default=kiosk.models.random_ordering),
         ),
     ]

@@ -6,12 +6,14 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stregreport', '0006_breadrazzia_razzia_type'),
+        ("stregreport", "0006_breadrazzia_razzia_type"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='breadrazzia',
-            options={'permissions': (('host_razzia', 'Can host a foobar or bread razzia'),)},
+            name="breadrazzia",
+            options={
+                "permissions": (("host_razzia", "Can host a foobar or bread razzia"),)
+            },
         ),
     ]

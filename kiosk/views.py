@@ -10,7 +10,7 @@ from .models import KioskItem
 
 
 def kiosk(request):
-    return render(request, 'kiosk.html', locals())
+    return render(request, "kiosk.html", locals())
 
 
 def find_random_media(request):
@@ -23,7 +23,7 @@ def find_random_media(request):
             (Q(start_datetime__isnull=True) | Q(start_datetime__lte=timezone.now()))
             & (Q(end_datetime__isnull=True) | Q(end_datetime__gte=timezone.now()))
         )
-        .order_by('?')
+        .order_by("?")
         .first()
     )
     if item is None:
@@ -59,8 +59,11 @@ def find_next_media_real(request, item_id):
                 (Q(start_datetime__isnull=True) | Q(start_datetime__lte=timezone.now()))
                 & (Q(end_datetime__isnull=True) | Q(end_datetime__gte=timezone.now()))
             )
-            .order_by('ordering', 'id')
-            .filter(Q(ordering__gt=item.ordering) | (Q(ordering=item.ordering) & Q(id__gt=item.id)))[0]
+            .order_by("ordering", "id")
+            .filter(
+                Q(ordering__gt=item.ordering)
+                | (Q(ordering=item.ordering) & Q(id__gt=item.id))
+            )[0]
         )
     except IndexError:
         next_item = (
@@ -69,7 +72,7 @@ def find_next_media_real(request, item_id):
                 (Q(start_datetime__isnull=True) | Q(start_datetime__lte=timezone.now()))
                 & (Q(end_datetime__isnull=True) | Q(end_datetime__gte=timezone.now()))
             )
-            .order_by('ordering', 'id')[0]
+            .order_by("ordering", "id")[0]
         )
     response_data = {
         "id": next_item.id,
