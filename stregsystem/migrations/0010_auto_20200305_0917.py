@@ -6,16 +6,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stregsystem', '0009_auto_20191028_2057'),
+        ("stregsystem", "0009_auto_20191028_2057"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='payment',
-            options={'permissions': (('import_batch_payments', 'Import batch payments'),)},
+            name="payment",
+            options={
+                "permissions": (("import_batch_payments", "Import batch payments"),)
+            },
         ),
         migrations.AlterModelOptions(
-            name='sale',
-            options={'permissions': (('access_sales_reports', 'Can access sales reports'),)},
+            name="sale",
+            options={
+                "permissions": (("access_sales_reports", "Can access sales reports"),)
+            },
         ),
     ]

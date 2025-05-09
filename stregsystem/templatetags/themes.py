@@ -44,7 +44,9 @@ class PrefixNode(template.Node):
 
 @register.tag
 def get_themes_static_prefix(parser, token):
-    return PrefixNode.handle_token(THEMES_STATIC_URL, "themes static prefix", parser, token)
+    return PrefixNode.handle_token(
+        THEMES_STATIC_URL, "themes static prefix", parser, token
+    )
 
 
 class ThemesNode(template.Node):
@@ -74,7 +76,9 @@ class ThemesNode(template.Node):
         bits = token.split_contents()
 
         if len(bits) < 2:
-            raise template.TemplateSyntaxError("'%s' must be given a path to a file" % bits[0])
+            raise template.TemplateSyntaxError(
+                "'%s' must be given a path to a file" % bits[0]
+            )
 
         path = parser.compile_filter(bits[1])
 
@@ -131,10 +135,16 @@ def get_paths():
                     (Q(begin_month__lte=month) & Q(end_month__gte=month))
                     |
                     # Support ranges across year boundaries, e.g. 20/11 - 20/2
-                    (Q(begin_month__gt=F('end_month')) & (Q(begin_month__lte=month) | Q(end_month__gte=month)))
+                    (
+                        Q(begin_month__gt=F("end_month"))
+                        & (Q(begin_month__lte=month) | Q(end_month__gte=month))
+                    )
                 )
                 & (  # Day range check
-                    ((~Q(begin_month=month) | Q(begin_day__lte=day)) & (~Q(end_month=month) | Q(end_day__gte=day)))
+                    (
+                        (~Q(begin_month=month) | Q(begin_day__lte=day))
+                        & (~Q(end_month=month) | Q(end_day__gte=day))
+                    )
                 )
             )
         )
@@ -156,22 +166,22 @@ def get_paths():
         cache_timestamp = now
 
     except Exception as e:
-        logger.error(f'Error loading themes: {str(e)}')
+        logger.error(f"Error loading themes: {str(e)}")
 
 
-@register.inclusion_tag(themes_template('theme_styles.html'))
+@register.inclusion_tag(themes_template("theme_styles.html"))
 def theme_styles():
     get_paths()
-    return {'paths': style_paths}
+    return {"paths": style_paths}
 
 
-@register.inclusion_tag(themes_template('theme_scripts.html'))
+@register.inclusion_tag(themes_template("theme_scripts.html"))
 def theme_scripts():
     get_paths()
-    return {'paths': script_paths}
+    return {"paths": script_paths}
 
 
-@register.inclusion_tag(themes_template('theme_content.html'))
+@register.inclusion_tag(themes_template("theme_content.html"))
 def theme_content():
     get_paths()
-    return {'paths': content_paths}
+    return {"paths": content_paths}

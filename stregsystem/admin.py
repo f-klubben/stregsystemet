@@ -24,10 +24,13 @@ from stregsystem.models import (
     Achievement,
     AchievementComplete,
     AchievementTask,
-    AchievementConstraint
+    AchievementConstraint,
 )
 from stregsystem.templatetags.stregsystem_extras import money
-from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
+from stregsystem.utils import (
+    make_active_productlist_query,
+    make_inactive_productlist_query,
+)
 
 
 def refund(modeladmin, request, queryset):
@@ -42,22 +45,22 @@ refund.short_description = "Refund selected"
 
 
 class SaleAdmin(admin.ModelAdmin):
-    list_filter = ('room', 'timestamp')
+    list_filter = ("room", "timestamp")
     list_display = (
-        'get_username',
-        'get_fullname',
-        'get_product_name',
-        'get_room_name',
-        'timestamp',
-        'get_price_display',
+        "get_username",
+        "get_fullname",
+        "get_product_name",
+        "get_room_name",
+        "timestamp",
+        "get_price_display",
     )
     actions = [refund]
-    search_fields = ['^member__username', '=product__id', 'product__name']
-    valid_lookups = 'member'
-    autocomplete_fields = ['member', 'product']
+    search_fields = ["^member__username", "=product__id", "product__name"]
+    valid_lookups = "member"
+    autocomplete_fields = ["member", "product"]
 
     class Media:
-        css = {'all': ('stregsystem/select2-stregsystem.css',)}
+        css = {"all": ("stregsystem/select2-stregsystem.css",)}
 
     def get_username(self, obj):
         return obj.member.username
@@ -117,32 +120,32 @@ def toggle_active_selected_products(modeladmin, request, queryset):
 
 
 class ProductActivatedListFilter(admin.SimpleListFilter):
-    title = 'activated'
-    parameter_name = 'activated'
+    title = "activated"
+    parameter_name = "activated"
 
     def lookups(self, request, model_admin):
         return (
-            ('Yes', 'Yes'),
-            ('No', 'No'),
+            ("Yes", "Yes"),
+            ("No", "No"),
         )
 
     def queryset(self, request, queryset):
-        if self.value() == 'Yes':
+        if self.value() == "Yes":
             return make_active_productlist_query(queryset)
-        elif self.value() == 'No':
+        elif self.value() == "No":
             return make_inactive_productlist_query(queryset)
         else:
             return queryset
 
 
 class ProductAdmin(admin.ModelAdmin):
-    search_fields = ('name', 'price', 'id')
-    list_filter = (ProductActivatedListFilter, 'deactivate_date', 'price')
+    search_fields = ("name", "price", "id")
+    list_filter = (ProductActivatedListFilter, "deactivate_date", "price")
     list_display = (
-        'activated',
-        'id',
-        'name',
-        'get_price_display',
+        "activated",
+        "id",
+        "name",
+        "get_price_display",
     )
     fields = (
         "name",
@@ -157,7 +160,7 @@ class ProductAdmin(admin.ModelAdmin):
     readonly_fields = ("get_bought",)
 
     actions = [toggle_active_selected_products]
-    filter_horizontal = ('categories', 'rooms')
+    filter_horizontal = ("categories", "rooms")
 
     def get_price_display(self, obj):
         if obj.price is None:
@@ -181,24 +184,24 @@ class ProductAdmin(admin.ModelAdmin):
 
 class NamedProductAdmin(admin.ModelAdmin):
     search_fields = (
-        'name',
-        'product',
+        "name",
+        "product",
     )
     list_display = (
-        'name',
-        'product',
+        "name",
+        "product",
     )
     fields = (
-        'name',
-        'product',
+        "name",
+        "product",
     )
     autocomplete_fields = [
-        'product',
+        "product",
     ]
 
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'items_in_category')
+    list_display = ("id", "name", "items_in_category")
 
     def items_in_category(self, obj):
         return obj.product_set.count()
@@ -210,7 +213,7 @@ class MemberForm(forms.ModelForm):
         exclude = []
 
     def clean_username(self):
-        username = self.cleaned_data['username']
+        username = self.cleaned_data["username"]
         if self.instance is None or self.instance.pk is None:
             if Member.objects.filter(username__iexact=username).exists():
                 raise forms.ValidationError("Brugernavnet er allerede taget")
@@ -219,33 +222,55 @@ class MemberForm(forms.ModelForm):
 
 class MemberAdmin(admin.ModelAdmin):
     form = MemberForm
-    list_filter = ('want_spam',)
-    search_fields = ('username', 'firstname', 'lastname', 'email')
-    list_display = ('username', 'firstname', 'lastname', 'balance', 'email', 'notes')
+    list_filter = ("want_spam",)
+    search_fields = ("username", "firstname", "lastname", "email")
+    list_display = ("username", "firstname", "lastname", "balance", "email", "notes")
 
     # fieldsets is like fields, except that they are grouped and with descriptions
     fieldsets = (
         (
             None,
             {
-                'fields': ('username', 'firstname', 'lastname', 'year', 'gender', 'email'),
-                'description': "Basal information omkring fember",
+                "fields": (
+                    "username",
+                    "firstname",
+                    "lastname",
+                    "year",
+                    "gender",
+                    "email",
+                ),
+                "description": "Basal information omkring fember",
             },
         ),
-        (None, {'fields': ('notes',), 'description': "Studieretning + evt. andet i noter"}),
+        (
+            None,
+            {"fields": ("notes",), "description": "Studieretning + evt. andet i noter"},
+        ),
         (
             None,
             {
-                'fields': ('active', 'want_spam', 'signup_due_paid', 'balance', 'undo_count'),
-                'description': "Lad være med at rode med disse, med mindre du ved hvad du laver ...",
+                "fields": (
+                    "active",
+                    "want_spam",
+                    "signup_due_paid",
+                    "balance",
+                    "undo_count",
+                ),
+                "description": "Lad være med at rode med disse, med mindre du ved hvad du laver ...",
             },
         ),
     )
 
     def save_model(self, request, obj, form, change):
-        if 'username' in form.changed_data and change:
-            if Member.objects.filter(username__iexact=obj.username).exclude(pk=obj.pk).exists():
-                messages.add_message(request, messages.WARNING, 'Det brugernavn var allerede optaget')
+        if "username" in form.changed_data and change:
+            if (
+                Member.objects.filter(username__iexact=obj.username)
+                .exclude(pk=obj.pk)
+                .exists()
+            ):
+                messages.add_message(
+                    request, messages.WARNING, "Det brugernavn var allerede optaget"
+                )
         super().save_model(request, obj, form, change)
 
     def autocomplete_view(self, request):
@@ -262,17 +287,22 @@ class MemberAdmin(admin.ModelAdmin):
 
         def get_queryset(self):
             qs = super().get_queryset()
-            return qs.filter(active=True).order_by('username')
+            return qs.filter(active=True).order_by("username")
 
 
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('get_username', 'timestamp', 'get_amount_display', 'is_mobilepayment')
-    valid_lookups = 'member'
-    search_fields = ['member__username']
-    autocomplete_fields = ['member']
+    list_display = (
+        "get_username",
+        "timestamp",
+        "get_amount_display",
+        "is_mobilepayment",
+    )
+    valid_lookups = "member"
+    search_fields = ["member__username"]
+    autocomplete_fields = ["member"]
 
     class Media:
-        css = {'all': ('stregsystem/select2-stregsystem.css',)}
+        css = {"all": ("stregsystem/select2-stregsystem.css",)}
 
     def get_username(self, obj):
         return obj.member.username
@@ -296,20 +326,20 @@ class PaymentAdmin(admin.ModelAdmin):
 
 class MobilePaymentAdmin(admin.ModelAdmin):
     list_display = (
-        'payment',
-        'customer_name',
-        'comment',
-        'timestamp',
-        'transaction_id',
-        'get_amount_display',
-        'status',
+        "payment",
+        "customer_name",
+        "comment",
+        "timestamp",
+        "transaction_id",
+        "get_amount_display",
+        "status",
     )
-    valid_lookups = 'member'
-    search_fields = ['member__username']
-    autocomplete_fields = ['member', 'payment']
+    valid_lookups = "member"
+    search_fields = ["member__username"]
+    autocomplete_fields = ["member", "payment"]
 
     class Media:
-        css = {'all': ('stregsystem/select2-stregsystem.css',)}
+        css = {"all": ("stregsystem/select2-stregsystem.css",)}
 
     def get_amount_display(self, obj):
         return money(obj.amount)
@@ -318,11 +348,11 @@ class MobilePaymentAdmin(admin.ModelAdmin):
     get_amount_display.admin_order_field = "amount"
 
     # django-bug, .delete() is not called https://stackoverflow.com/questions/1471909/django-model-delete-not-triggered
-    actions = ['really_delete_selected']
+    actions = ["really_delete_selected"]
 
     def get_actions(self, request):
         actions = super(MobilePaymentAdmin, self).get_actions(request)
-        del actions['delete_selected']
+        del actions["delete_selected"]
         return actions
 
     def really_delete_selected(self, _, queryset):
@@ -333,10 +363,18 @@ class MobilePaymentAdmin(admin.ModelAdmin):
 
 
 class LogEntryAdmin(admin.ModelAdmin):
-    date_hierarchy = 'action_time'
-    list_filter = ['content_type', 'action_flag']
-    search_fields = ['object_repr', 'change_message', 'user__username']
-    list_display = ['action_time', 'user', 'content_type', 'object_id', 'action_flag', 'change_message', 'object_repr']
+    date_hierarchy = "action_time"
+    list_filter = ["content_type", "action_flag"]
+    search_fields = ["object_repr", "change_message", "user__username"]
+    list_display = [
+        "action_time",
+        "user",
+        "content_type",
+        "object_id",
+        "action_flag",
+        "change_message",
+        "object_repr",
+    ]
 
     def has_view_permission(self, request, obj=None):
         return request.user.is_superuser
@@ -352,7 +390,14 @@ class LogEntryAdmin(admin.ModelAdmin):
 
 
 class ThemeAdmin(admin.ModelAdmin):
-    list_display = ["name", "override", "begin_month", "begin_day", "end_month", "end_day"]
+    list_display = [
+        "name",
+        "override",
+        "begin_month",
+        "begin_day",
+        "end_month",
+        "end_day",
+    ]
     search_fields = ["name"]
 
     @admin.action(description="Do not force chosen themes")
@@ -371,18 +416,19 @@ class ThemeAdmin(admin.ModelAdmin):
 
 
 class ProductNoteAdmin(admin.ModelAdmin):
-    search_fields = ('active', 'text')
+    search_fields = ("active", "text")
     list_display = (
-        'active',
-        'text',
+        "active",
+        "text",
     )
 
     actions = [toggle_active_selected_products]
 
+
 class AchievementAdmin(admin.ModelAdmin):
 
-    search_fields = ['title', 'description']
-    list_display = ['title', 'description', 'icon_png', 'begin_at']
+    search_fields = ["title", "description"]
+    list_display = ["title", "description", "icon_png", "begin_at"]
 
     @admin.action(description="Set begin_at to now")
     def set_begin_at_to_now(self, request, queryset):
@@ -400,7 +446,9 @@ class AchievementAdmin(admin.ModelAdmin):
             for title, err in errors:
                 messages.error(request, f"Could not update '{title}': {err}")
         else:
-            self.message_user(request, "Successfully set 'begin_at' to now for selected achievements.")
+            self.message_user(
+                request, "Successfully set 'begin_at' to now for selected achievements."
+            )
 
     @admin.action(description="Set begin_at to null")
     def set_begin_at_to_null(self, request, queryset):
@@ -415,45 +463,86 @@ class AchievementAdmin(admin.ModelAdmin):
 
         if errors:
             for title, err in errors:
-                messages.error(request, f"Could not clear 'begin_at' for '{title}': {err}")
+                messages.error(
+                    request, f"Could not clear 'begin_at' for '{title}': {err}"
+                )
         else:
-            self.message_user(request, "Successfully cleared 'begin_at' for selected achievements.")
+            self.message_user(
+                request, "Successfully cleared 'begin_at' for selected achievements."
+            )
+
     actions = [set_begin_at_to_now, set_begin_at_to_null]
+
 
 class AchievementTaskAdmin(admin.ModelAdmin):
 
-    valid_lookups = 'member'
-    search_fields = ['achievement__title', 'achievement__description', 'product__name', 'category__name']
-    list_display = ['achievement', 'get_product', 'category', 'goal_count', 'task_type', 'alcohol_content', 'caffeine_content']
+    valid_lookups = "member"
+    search_fields = [
+        "achievement__title",
+        "achievement__description",
+        "product__name",
+        "category__name",
+    ]
+    list_display = [
+        "achievement",
+        "get_product",
+        "category",
+        "goal_count",
+        "task_type",
+        "alcohol_content",
+        "caffeine_content",
+    ]
 
     def get_product(self, obj):
         p = obj.product.__str__()
         return p[:20] + "..." if p and len(p) > 20 else p or ""
 
+
 class AchievementCompleteAdmin(admin.ModelAdmin):
 
-    valid_lookups = ['member', 'achievement']
-    search_fields = ['member__username', 'achievement__title', 'achievement__description', 'completed_at']
-    list_display = ['get_username', 'get_achievement_title', 'get_achievement_description', 'completed_at']
+    valid_lookups = ["member", "achievement"]
+    search_fields = [
+        "member__username",
+        "achievement__title",
+        "achievement__description",
+        "completed_at",
+    ]
+    list_display = [
+        "get_username",
+        "get_achievement_title",
+        "get_achievement_description",
+        "completed_at",
+    ]
 
     def get_username(self, obj):
         return obj.member.username
-    
+
     def get_achievement_title(self, obj):
         return obj.achievement.title
-    
-    get_achievement_title.short_description = 'Achievement Title'
+
+    get_achievement_title.short_description = "Achievement Title"
 
     def get_achievement_description(self, obj):
         return obj.achievement.description
-    
-    get_achievement_description.short_description = 'Achievement Description'
+
+    get_achievement_description.short_description = "Achievement Description"
+
 
 class AchievementConstraintAdmin(admin.ModelAdmin):
 
-    valid_lookups = ['achievement']
-    search_fields = ['achievement__title', 'achievement__description']
-    list_display = ['achievement', 'month_start', 'month_end', 'day_start', 'day_end', 'time_start', 'time_end', 'weekday']
+    valid_lookups = ["achievement"]
+    search_fields = ["achievement__title", "achievement__description"]
+    list_display = [
+        "achievement",
+        "month_start",
+        "month_end",
+        "day_start",
+        "day_end",
+        "time_start",
+        "time_end",
+        "weekday",
+    ]
+
 
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)

@@ -8,33 +8,33 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stregsystem', '0005_auto_20170927_1821'),
+        ("stregsystem", "0005_auto_20170927_1821"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='category',
-            name='name',
+            model_name="category",
+            name="name",
             field=models.CharField(max_length=64),
         ),
         migrations.AlterField(
-            model_name='news',
-            name='title',
+            model_name="news",
+            name="title",
             field=models.CharField(max_length=64),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='name',
+            model_name="product",
+            name="name",
             field=models.CharField(max_length=64),
         ),
         migrations.AlterField(
-            model_name='room',
-            name='description',
+            model_name="room",
+            name="description",
             field=models.CharField(max_length=64),
         ),
         migrations.AlterField(
-            model_name='room',
-            name='name',
+            model_name="room",
+            name="name",
             field=models.CharField(max_length=64),
         ),
     ]

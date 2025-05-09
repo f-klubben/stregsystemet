@@ -6,18 +6,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stregsystem', '0008_add_sale_products_id_timestamp_index'),
+        ("stregsystem", "0008_add_sale_products_id_timestamp_index"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='member',
-            name='gender',
-            field=models.CharField(choices=[('U', 'Unknown'), ('M', 'Male'), ('F', 'Female')], max_length=1),
+            model_name="member",
+            name="gender",
+            field=models.CharField(
+                choices=[("U", "Unknown"), ("M", "Male"), ("F", "Female")], max_length=1
+            ),
         ),
         migrations.AlterField(
-            model_name='member',
-            name='year',
-            field=models.CharField(default='2019', max_length=4),
+            model_name="member",
+            name="year",
+            field=models.CharField(default="2019", max_length=4),
         ),
     ]

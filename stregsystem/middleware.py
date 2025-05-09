@@ -11,32 +11,32 @@ class CorsMiddleware:
         if isinstance(req, WSGIRequest):
             req_headers = req.headers
 
-        if req.method == 'OPTIONS' and "access-control-request-method" in req_headers:
+        if req.method == "OPTIONS" and "access-control-request-method" in req_headers:
             return self.handle_preflight(req)
 
         res = self.get_response(req)
 
         # Allow cookies to be sent for CORS requests
-        res['access-control-allow-credentials'] = 'true'
+        res["access-control-allow-credentials"] = "true"
         CorsMiddleware.set_origin_access(req_headers, res)
 
         return res
 
     @staticmethod
     def set_origin_access(req, res):
-        res['vary'] = 'Origin'
-        if 'origin' in req:
-            res['access-control-allow-origin'] = req['origin']
+        res["vary"] = "Origin"
+        if "origin" in req:
+            res["access-control-allow-origin"] = req["origin"]
         else:
-            res['access-control-allow-origin'] = '*'
+            res["access-control-allow-origin"] = "*"
 
     @staticmethod
     def handle_preflight(req):
         res = http.HttpResponse()
 
         CorsMiddleware.set_origin_access(req, res)
-        res['access-control-allow-methods'] = 'POST, GET, OPTIONS, DELETE'
-        res['access-control-allow-headers'] = 'content-type'
-        res['access-control-max-age'] = '86400'
+        res["access-control-allow-methods"] = "POST, GET, OPTIONS, DELETE"
+        res["access-control-allow-headers"] = "content-type"
+        res["access-control-max-age"] = "86400"
 
         return res

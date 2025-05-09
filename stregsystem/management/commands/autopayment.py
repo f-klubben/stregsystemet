@@ -16,7 +16,10 @@ def submit_filled_mobilepayments(user: User) -> int:
     MobilePayment.approve_member_filled_mobile_payments()
     MobilePayment.submit_all_processed_mobile_payments(user)
 
-    return MobilePayment.objects.filter(status=MobilePayment.APPROVED).count() - before_count
+    return (
+        MobilePayment.objects.filter(status=MobilePayment.APPROVED).count()
+        - before_count
+    )
 
 
 class Command(BaseCommand):
@@ -25,18 +28,26 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # if no payments to be processed exists, stop job
         if make_unprocessed_member_filled_mobilepayment_query().count() == 0:
-            self.stdout.write(self.style.NOTICE("[autopayment] No payments to be auto-processed"))
+            self.stdout.write(
+                self.style.NOTICE("[autopayment] No payments to be auto-processed")
+            )
             return
 
         # if logging user does not exist, stop job
         if User.objects.filter(username="autopayment").exists():
             auto_user = User.objects.get(username="autopayment")
         else:
-            self.stdout.write(self.style.ERROR("[autopayment] No user 'autopayment' exists, cannot do autopayments."))
+            self.stdout.write(
+                self.style.ERROR(
+                    "[autopayment] No user 'autopayment' exists, cannot do autopayments."
+                )
+            )
             return
 
         count = submit_filled_mobilepayments(auto_user)
 
         self.stdout.write(
-            self.style.SUCCESS(f'[autopayment] Successfully submitted {count} mobilepayments automatically')
+            self.style.SUCCESS(
+                f"[autopayment] Successfully submitted {count} mobilepayments automatically"
+            )
         )

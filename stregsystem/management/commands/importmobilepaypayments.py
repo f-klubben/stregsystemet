@@ -14,7 +14,7 @@ from stregsystem.vipps_api import AccountingAPI
 
 
 class Command(BaseCommand):
-    help = 'Imports the latest payments from MobilePay'
+    help = "Imports the latest payments from MobilePay"
 
     # Cutoff for when this iteration of the Mobilepay-API (Vipps) is deployed
     manual_cutoff_date = date(2024, 4, 9)
@@ -24,15 +24,15 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            'days_back',
-            nargs='?',
+            "days_back",
+            nargs="?",
             type=int,
             default=7,
             help="Days back from today to look for MobilePay transactions (max 31 days)",
         )
 
     def handle(self, *args, **options):
-        self.days_back = options['days_back'] if options['days_back'] <= 31 else 7
+        self.days_back = options["days_back"] if options["days_back"] <= 31 else 7
         self.import_mobilepay_payments()
 
     def fetch_transactions(self) -> list:
@@ -53,20 +53,22 @@ class Command(BaseCommand):
 
             return transactions
         except HTTPError as e:
-            self.logger.error(f"Got an HTTP error when trying to fetch transactions: {e.response}")
+            self.logger.error(
+                f"Got an HTTP error when trying to fetch transactions: {e.response}"
+            )
         except Exception as e:
-            self.logger.error(f'Got an error when trying to fetch transactions: {e}')
+            self.logger.error(f"Got an error when trying to fetch transactions: {e}")
 
     def import_mobilepay_payments(self):
         transactions = self.fetch_transactions()
         if len(transactions) == 0:
-            self.logger.info(f'Ran, but no transactions found')
+            self.logger.info(f"Ran, but no transactions found")
             return
 
         for transaction in transactions:
             self.import_mobilepay_payment(transaction)
 
-        self.logger.info('Successfully ran MobilePayment API import')
+        self.logger.info("Successfully ran MobilePayment API import")
 
     def import_mobilepay_payment(self, transaction):
         """
@@ -89,30 +91,36 @@ class Command(BaseCommand):
         :param transaction:
         :return:
         """
-        if transaction['entryType'] != 'capture':
+        if transaction["entryType"] != "capture":
             return
 
-        payment_datetime = parse_datetime(transaction['time'])
+        payment_datetime = parse_datetime(transaction["time"])
 
         if payment_datetime.date() < self.manual_cutoff_date:
-            self.logger.debug(f'Skipping transaction because it is before payment cutoff date {payment_datetime}')
+            self.logger.debug(
+                f"Skipping transaction because it is before payment cutoff date {payment_datetime}"
+            )
             return
 
-        trans_id = transaction['pspReference']
+        trans_id = transaction["pspReference"]
 
         if MobilePayment.objects.filter(transaction_id=trans_id).exists():
-            self.logger.debug(f'Skipping transaction since it already exists (PSP-Reference: {trans_id})')
+            self.logger.debug(
+                f"Skipping transaction since it already exists (PSP-Reference: {trans_id})"
+            )
             return
 
-        currency_code = transaction['currency']
-        if currency_code != 'DKK':
-            self.logger.warning(f'Does ONLY support DKK (Transaction ID: {trans_id}), was {currency_code}')
+        currency_code = transaction["currency"]
+        if currency_code != "DKK":
+            self.logger.warning(
+                f"Does ONLY support DKK (Transaction ID: {trans_id}), was {currency_code}"
+            )
             return
 
-        amount = transaction['amount']
+        amount = transaction["amount"]
 
-        comment = strip_emoji(transaction['message'])
-        name = transaction['name']  # Danish legal name, no reason to sanitize.
+        comment = strip_emoji(transaction["message"])
+        name = transaction["name"]  # Danish legal name, no reason to sanitize.
 
         MobilePayment.objects.create(
             amount=amount,  # already in streg-ører
@@ -124,4 +132,4 @@ class Command(BaseCommand):
             status=MobilePayment.UNSET,
         )
 
-        self.logger.info(f'Imported transaction id: {trans_id} for amount: {amount}')
+        self.logger.info(f"Imported transaction id: {trans_id} for amount: {amount}")

@@ -1,1 +1,1 @@
-default_app_config = 'stregsystem.apps.StregConfig'
+default_app_config = "stregsystem.apps.StregConfig"

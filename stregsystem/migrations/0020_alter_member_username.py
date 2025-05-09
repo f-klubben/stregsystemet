@@ -7,13 +7,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stregsystem', '0019_theme'),
+        ("stregsystem", "0019_theme"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='member',
-            name='username',
-            field=models.CharField(max_length=16, validators=[django.core.validators.RegexValidator(code='invalid_username', regex='^\\S+$')]),
+            model_name="member",
+            name="username",
+            field=models.CharField(
+                max_length=16,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        code="invalid_username", regex="^\\S+$"
+                    )
+                ],
+            ),
         ),
     ]

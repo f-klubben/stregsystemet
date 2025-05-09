@@ -7,13 +7,15 @@ import stregsystem.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stregsystem', '0010_auto_20200305_0917'),
+        ("stregsystem", "0010_auto_20200305_0917"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='member',
-            name='year',
-            field=models.CharField(default=stregsystem.models.get_current_year, max_length=4),
+            model_name="member",
+            name="year",
+            field=models.CharField(
+                default=stregsystem.models.get_current_year, max_length=4
+            ),
         ),
     ]

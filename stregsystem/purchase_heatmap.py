@@ -34,10 +34,16 @@ class ColorCategorizedHeatmapColorMode(HeatmapColorMode):
     products_by_color: Tuple[List[int], List[int], List[int]]
     max_items_day: int
 
-    def __init__(self, max_items_day: int, products_by_color: Tuple[List[int], List[int], List[int]]):
+    def __init__(
+        self,
+        max_items_day: int,
+        products_by_color: Tuple[List[int], List[int], List[int]],
+    ):
         self.max_items_day = max_items_day
         self.products_by_color = products_by_color
-        super().__init__(mode_name="ColorCategorized", mode_description="Med kategorier")
+        super().__init__(
+            mode_name="ColorCategorized", mode_description="Med kategorier"
+        )
 
     def get_day_color(self, products: List[Product]) -> Tuple[int, int, int]:
         category_representation = [0, 0, 0]
@@ -64,9 +70,12 @@ class ColorCategorizedHeatmapColorMode(HeatmapColorMode):
         return f"{len(products)} {'vare' if len(products) == 1 else 'varer'} købt"
 
     @staticmethod
-    def get_products_by_categories(category_name_color: Tuple[str, str, str]) -> Tuple[List[int], List[int], List[int]]:
+    def get_products_by_categories(
+        category_name_color: Tuple[str, str, str],
+    ) -> Tuple[List[int], List[int], List[int]]:
         return tuple(
-            Category.objects.filter(name=category).values_list("product", flat=True) for category in category_name_color
+            Category.objects.filter(name=category).values_list("product", flat=True)
+            for category in category_name_color
         )
 
 
@@ -83,7 +92,9 @@ class ItemCountHeatmapColorMode(HeatmapColorMode):
 
         lerp_value = len(products) / self.max_items_day
 
-        return lerp_color((144, 238, 144), (0, 100, 0), lerp_value)  # Lightgreen - Darkgreen
+        return lerp_color(
+            (144, 238, 144), (0, 100, 0), lerp_value
+        )  # Lightgreen - Darkgreen
 
     def get_day_summary(self, products: List[Product]) -> str:
         return f"{len(products)} {'vare' if len(products) == 1 else 'varer'} købt"
@@ -112,7 +123,9 @@ class MoneySumHeatmapColorMode(HeatmapColorMode):
         day_sum = sum(p.price for p in products)
         lerp_value = day_sum / self.max_money_day_oere
 
-        return lerp_color((255, 255, 200), (255, 255, 0), lerp_value)  # Lightyellow - Yellow
+        return lerp_color(
+            (255, 255, 200), (255, 255, 0), lerp_value
+        )  # Lightyellow - Yellow
 
     def get_day_summary(self, products: List[Product]) -> str:
         return f"{money(sum(p.price for p in products))} 𝓕$ brugt"
@@ -122,32 +135,52 @@ class MoneySumHeatmapColorMode(HeatmapColorMode):
         max_product_sum = 0
 
         for day_date, product_list in day_list:
-            max_product_sum = max(max_product_sum, sum(product.price for product in product_list))
+            max_product_sum = max(
+                max_product_sum, sum(product.price for product in product_list)
+            )
 
         return max_product_sum
 
 
-def prepare_heatmap_template_context(member: Member, weeks_to_display: int, end_date: datetime.date) -> dict:
+def prepare_heatmap_template_context(
+    member: Member, weeks_to_display: int, end_date: datetime.date
+) -> dict:
     """Prepares the context required to successfully load purchase_heatmap.html rendering template."""
     __raw_heatmap_data = __get_heatmap_data_by_date(member, end_date, weeks_to_display)
 
-    __products_in_color_categories = ColorCategorizedHeatmapColorMode.get_products_by_categories(
-        ("Øl", "Energidrik", "Sodavand")
+    __products_in_color_categories = (
+        ColorCategorizedHeatmapColorMode.get_products_by_categories(
+            ("Øl", "Energidrik", "Sodavand")
+        )
     )
 
-    __max_items_bought = ItemCountHeatmapColorMode.get_max_product_count(__raw_heatmap_data)
+    __max_items_bought = ItemCountHeatmapColorMode.get_max_product_count(
+        __raw_heatmap_data
+    )
 
     # Default heatmap modes.
     heatmap_modes = [
         ItemCountHeatmapColorMode(__max_items_bought),
-        MoneySumHeatmapColorMode(MoneySumHeatmapColorMode.get_products_money_sum(__raw_heatmap_data)),
-        ColorCategorizedHeatmapColorMode(__max_items_bought, __products_in_color_categories),
+        MoneySumHeatmapColorMode(
+            MoneySumHeatmapColorMode.get_products_money_sum(__raw_heatmap_data)
+        ),
+        ColorCategorizedHeatmapColorMode(
+            __max_items_bought, __products_in_color_categories
+        ),
     ]
-    __reorganized_heatmap_data = __convert_purchase_data_to_heatmap_day(__raw_heatmap_data, heatmap_modes)
+    __reorganized_heatmap_data = __convert_purchase_data_to_heatmap_day(
+        __raw_heatmap_data, heatmap_modes
+    )
 
-    column_labels, rows = get_heatmap_graph_data(weeks_to_display, __reorganized_heatmap_data, end_date)
+    column_labels, rows = get_heatmap_graph_data(
+        weeks_to_display, __reorganized_heatmap_data, end_date
+    )
 
-    return {"column_labels": column_labels, "rows": rows, "heatmap_modes": heatmap_modes}
+    return {
+        "column_labels": column_labels,
+        "rows": rows,
+        "heatmap_modes": heatmap_modes,
+    }
 
 
 def get_heatmap_graph_data(
@@ -158,22 +191,37 @@ def get_heatmap_graph_data(
     row_labels = ["", "Mandag", "", "Onsdag", "", "Fredag", ""]
     rows = zip(row_labels, reorganized_heatmap_data)
 
-    column_labels = [str((end_date - timedelta(days=7 * x)).isocalendar()[1]) for x in range(weeks_to_display)][::-1]
+    column_labels = [
+        str((end_date - timedelta(days=7 * x)).isocalendar()[1])
+        for x in range(weeks_to_display)
+    ][::-1]
 
     return column_labels, rows
 
 
 def __convert_purchase_data_to_heatmap_day(
-    products_by_date: List[Tuple[date, List[Product]]], heatmap_modes: List[HeatmapColorMode]
+    products_by_date: List[Tuple[date, List[Product]]],
+    heatmap_modes: List[HeatmapColorMode],
 ) -> List[HeatmapDay]:
     days = []
 
     for day_index in range(len(products_by_date)):
         day_date, product_list = products_by_date[day_index]
-        day_colors = [color_mode.get_day_color(product_list) for color_mode in heatmap_modes]
-        day_summaries = [color_mode.get_day_summary(product_list) for color_mode in heatmap_modes]
+        day_colors = [
+            color_mode.get_day_color(product_list) for color_mode in heatmap_modes
+        ]
+        day_summaries = [
+            color_mode.get_day_summary(product_list) for color_mode in heatmap_modes
+        ]
 
-        days.append(HeatmapDay(day_date, [product.id for product in product_list], day_colors, day_summaries))
+        days.append(
+            HeatmapDay(
+                day_date,
+                [product.id for product in product_list],
+                day_colors,
+                day_summaries,
+            )
+        )
 
     return days
 
@@ -191,8 +239,8 @@ def __get_heatmap_data_by_date(
 
     last_sale_list = list(
         member.sale_set.filter(timestamp__gte=cutoff_date, timestamp__lte=end_date)
-        .select_related('product')
-        .order_by('-timestamp')
+        .select_related("product")
+        .order_by("-timestamp")
     )
 
     products_by_day = []
@@ -203,7 +251,10 @@ def __get_heatmap_data_by_date(
         products_by_day.append([])
         dates_by_day.append(single_date)
 
-        while sale_index < len(last_sale_list) and last_sale_list[sale_index].timestamp.date() == single_date:
+        while (
+            sale_index < len(last_sale_list)
+            and last_sale_list[sale_index].timestamp.date() == single_date
+        ):
             products_by_day[-1].append(last_sale_list[sale_index].product)
             sale_index += 1
 
@@ -228,7 +279,9 @@ def __organize_heatmap_data_by_weekdays(heatmap_data: list) -> list:
     return new_list
 
 
-def lerp_color(color1: Tuple[int, int, int], color2: Tuple[int, int, int], value: float) -> Tuple[int, int, int]:
+def lerp_color(
+    color1: Tuple[int, int, int], color2: Tuple[int, int, int], value: float
+) -> Tuple[int, int, int]:
     """Linearly interpolate between two 3-dimensional tuples."""
     return (
         int(color1[0] + (color2[0] - color1[0]) * value),

@@ -8,13 +8,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stregsystem', '0003_category'),
+        ("stregsystem", "0003_category"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='alcohol_content_ml',
+            model_name="product",
+            name="alcohol_content_ml",
             field=models.FloatField(default=0.0, null=True),
         ),
     ]

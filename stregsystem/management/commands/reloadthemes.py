@@ -7,7 +7,7 @@ from stregsystem.models import Theme
 
 
 class Command(BaseCommand):
-    help = 'Load themes configuration into the database and/or test fixture'
+    help = "Load themes configuration into the database and/or test fixture"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -21,11 +21,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         def load_json(filename):
-            with open(filename, 'r') as file:
+            with open(filename, "r") as file:
                 return json.load(file)
 
         def save_json(data, filename):
-            with open(filename, 'w') as file:
+            with open(filename, "w") as file:
                 json.dump(data, file, indent=2)
 
         def convert_theme(theme):
@@ -49,8 +49,12 @@ class Command(BaseCommand):
             model_id = "stregsystem.theme"
 
             input_themes_path = path.join(settings.BASE_DIR, "stregsystem/themes.json")
-            input_testdata_path = path.join(settings.BASE_DIR, "stregsystem/fixtures/testdata.json")
-            output_path = path.join(settings.BASE_DIR, "stregsystem/fixtures/testdata-themes.json")
+            input_testdata_path = path.join(
+                settings.BASE_DIR, "stregsystem/fixtures/testdata.json"
+            )
+            output_path = path.join(
+                settings.BASE_DIR, "stregsystem/fixtures/testdata-themes.json"
+            )
 
             try:
                 themes = load_json(input_themes_path)
@@ -80,10 +84,18 @@ class Command(BaseCommand):
 
                 save_json(output, output_path)
 
-                self.stdout.write(self.style.SUCCESS('Successfully loaded themes into testdata-themes fixture'))
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        "Successfully loaded themes into testdata-themes fixture"
+                    )
+                )
 
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f'Error loading themes into testdata-themes fixture: {str(e)}'))
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"Error loading themes into testdata-themes fixture: {str(e)}"
+                    )
+                )
 
         # Insert into database
         if options["output"] in ["both", "database"]:
@@ -99,7 +111,11 @@ class Command(BaseCommand):
                     for theme in themes:
                         Theme.objects.create(**convert_theme(theme))
 
-                self.stdout.write(self.style.SUCCESS('Successfully loaded themes into database'))
+                self.stdout.write(
+                    self.style.SUCCESS("Successfully loaded themes into database")
+                )
 
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f'Error loading themes into database: {str(e)}'))
+                self.stdout.write(
+                    self.style.ERROR(f"Error loading themes into database: {str(e)}")
+                )

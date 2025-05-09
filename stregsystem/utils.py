@@ -23,7 +23,9 @@ def make_active_productlist_query(queryset) -> QuerySet:
     now = timezone.now()
     # Create a query for the set of products that MIGHT be active. Might
     # because they can be out of stock. Which we compute later
-    active_candidates = queryset.filter(Q(active=True) & (Q(deactivate_date=None) | Q(deactivate_date__gte=now)))
+    active_candidates = queryset.filter(
+        Q(active=True) & (Q(deactivate_date=None) | Q(deactivate_date__gte=now))
+    )
     # This query selects all the candidates that are out of stock.
     candidates_out_of_stock = (
         active_candidates.filter(sale__timestamp__gt=F("start_date"))
@@ -33,7 +35,9 @@ def make_active_productlist_query(queryset) -> QuerySet:
     )
     # We can now create a query that selects all the candidates which are not
     # out of stock.
-    return active_candidates.exclude(Q(start_date__isnull=False) & Q(id__in=candidates_out_of_stock))
+    return active_candidates.exclude(
+        Q(start_date__isnull=False) & Q(id__in=candidates_out_of_stock)
+    )
 
 
 def make_inactive_productlist_query(queryset) -> QuerySet:
@@ -49,7 +53,9 @@ def make_inactive_productlist_query(queryset) -> QuerySet:
         .filter(c__gte=F("quantity"))
         .values("id")
     )
-    return queryset.filter(Q(id__in=inactive_candidates) | Q(id__in=inactive_out_of_stock))
+    return queryset.filter(
+        Q(id__in=inactive_candidates) | Q(id__in=inactive_out_of_stock)
+    )
 
 
 def make_room_specific_query(room) -> QuerySet:
@@ -69,13 +75,19 @@ def unprocessed_mobilepayments_filter() -> Q:
 
 
 def make_unprocessed_mobilepayment_query() -> QuerySet:
-    from stregsystem.models import MobilePayment  # import locally to avoid circular import
+    from stregsystem.models import (
+        MobilePayment,
+    )  # import locally to avoid circular import
 
-    return MobilePayment.objects.filter(unprocessed_mobilepayments_filter()).order_by('-timestamp')
+    return MobilePayment.objects.filter(unprocessed_mobilepayments_filter()).order_by(
+        "-timestamp"
+    )
 
 
 def make_processed_mobilepayment_query() -> QuerySet:
-    from stregsystem.models import MobilePayment  # import locally to avoid circular import
+    from stregsystem.models import (
+        MobilePayment,
+    )  # import locally to avoid circular import
 
     return MobilePayment.objects.filter(
         Q(payment__isnull=True)
@@ -85,10 +97,14 @@ def make_processed_mobilepayment_query() -> QuerySet:
 
 
 def make_unprocessed_member_filled_mobilepayment_query() -> QuerySet:
-    from stregsystem.models import MobilePayment  # import locally to avoid circular import
+    from stregsystem.models import (
+        MobilePayment,
+    )  # import locally to avoid circular import
 
     return MobilePayment.objects.filter(
-        unprocessed_mobilepayments_filter() & Q(amount__gte=5000) & Q(member__isnull=False)
+        unprocessed_mobilepayments_filter()
+        & Q(amount__gte=5000)
+        & Q(member__isnull=False)
     )
 
 
@@ -98,7 +114,7 @@ def make_unprocessed_membership_payment_query() -> QuerySet:
     return MobilePayment.objects.filter(
         unprocessed_mobilepayments_filter()
         & Q(member__isnull=True)
-        & Q(comment__regex=r'^signup:[0-9a-fA-F-]{36}\+.{1,16}$')
+        & Q(comment__regex=r"^signup:[0-9a-fA-F-]{36}\+.{1,16}$")
     )
 
 
@@ -117,13 +133,13 @@ def parse_csv_and_create_mobile_payments(csv_file):
     import csv
 
     # get csv reader and ignore header
-    reader = csv.reader(csv_file[1:], delimiter=';', quotechar='"')
+    reader = csv.reader(csv_file[1:], delimiter=";", quotechar='"')
     for row in reader:
         from stregsystem.models import MobilePayment
 
         mobile_payment = MobilePayment(
             member=None,
-            amount=row[2].replace(',', ''),
+            amount=row[2].replace(",", ""),
             timestamp=parse_datetime(row[3]),
             customer_name=row[4],
             transaction_id=row[7],
@@ -135,7 +151,9 @@ def parse_csv_and_create_mobile_payments(csv_file):
             mobile_payment.validate_unique()
 
             # do case insensitive exact match on active members
-            mobile_payment.member = mobile_payment_exact_match_member(mobile_payment.comment)
+            mobile_payment.member = mobile_payment_exact_match_member(
+                mobile_payment.comment
+            )
             mobile_payment.save()
             imported_transactions += 1
         except ValidationError:
@@ -151,14 +169,16 @@ def mobile_payment_exact_match_member(comment):
         return match.get()
     elif match.count() > 1:
         # something is very wrong, there should be no active users which are duplicates post PR #178
-        raise RuntimeError("Duplicate usernames found at MobilePayment import. Should not exist post PR #178")
+        raise RuntimeError(
+            "Duplicate usernames found at MobilePayment import. Should not exist post PR #178"
+        )
 
 
 def strip_emoji(text):
     # allowlist decided by string.printables and all unique chars from usernames
     return re.sub(
         '[^a-zA-Z0-9äåæéëöø!"#$%&()*+,\-_./:;<=>?@\\\^`\]{|}~£§¶Ø\s]',
-        '',
+        "",
         text,
     ).strip()
 
@@ -172,12 +192,12 @@ def qr_code(data) -> HttpResponse:
 
 
 def mobilepay_launch_uri(comment: str, amount: float) -> str:
-    query = {'phone': '90601', 'comment': comment}
+    query = {"phone": "90601", "comment": comment}
 
     if amount is not None:
-        query['amount'] = amount
+        query["amount"] = amount
 
-    return 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
+    return "mobilepay://send?{}".format(urllib.parse.urlencode(query))
 
 
 class stregsystemTestRunner(DiscoverRunner):
@@ -194,7 +214,9 @@ class PaymentToolException(RuntimeError):
     def __init__(self, racy_mbpayments: QuerySet):
         self.racy_mbpayments = racy_mbpayments
         self.inconsistent_mbpayments_count = self.racy_mbpayments.count()
-        self.inconsistent_transaction_ids = [x.transaction_id for x in self.racy_mbpayments]
+        self.inconsistent_transaction_ids = [
+            x.transaction_id for x in self.racy_mbpayments
+        ]
 
 
 class fakefile:

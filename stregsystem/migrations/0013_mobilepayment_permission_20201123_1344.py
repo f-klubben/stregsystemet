@@ -6,12 +6,14 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stregsystem', '0012_mobilepayment'),
+        ("stregsystem", "0012_mobilepayment"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='mobilepayment',
-            options={'permissions': (('mobilepaytool_access', 'MobilePaytool access'),)},
+            name="mobilepayment",
+            options={
+                "permissions": (("mobilepaytool_access", "MobilePaytool access"),)
+            },
         ),
     ]

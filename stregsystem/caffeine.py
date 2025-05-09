@@ -44,7 +44,10 @@ def current_caffeine_in_body_compound_interest(intakes: List[Intake]) -> float:
         # first do degradation of current caffeine in blood using compound rule (kn = k0 * (1 + r)^n), maxing to 0
         mg_blood = max(
             mg_blood
-            * ((1 - CAFFEINE_DEGRADATION_PR_HOUR) ** ((intake.timestamp - last_intake_time) / timedelta(hours=1))),
+            * (
+                (1 - CAFFEINE_DEGRADATION_PR_HOUR)
+                ** ((intake.timestamp - last_intake_time) / timedelta(hours=1))
+            ),
             0,
         )
         # swap current timestamp with last intake time to calculate degradation timespan in next iteration

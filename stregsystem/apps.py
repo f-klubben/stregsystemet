@@ -5,7 +5,7 @@ from stregsystem.signals import after_member_save, after_pending_signup_save
 
 
 class StregConfig(AppConfig):
-    name = 'stregsystem'
+    name = "stregsystem"
 
     def ready(self):
         from stregsystem.models import Member, PendingSignup

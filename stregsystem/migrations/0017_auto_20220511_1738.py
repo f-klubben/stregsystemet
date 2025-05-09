@@ -7,13 +7,21 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stregsystem', '0016_namedproduct'),
+        ("stregsystem", "0016_namedproduct"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='namedproduct',
-            name='name',
-            field=models.CharField(max_length=50, unique=True, validators=[django.core.validators.RegexValidator(regex='^[^\\d:\\-_][\\w\\-]+$')]),
+            model_name="namedproduct",
+            name="name",
+            field=models.CharField(
+                max_length=50,
+                unique=True,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        regex="^[^\\d:\\-_][\\w\\-]+$"
+                    )
+                ],
+            ),
         ),
     ]

@@ -19,7 +19,7 @@ def send_welcome_mail(member):
     send_template_mail(
         member,
         "welcome.html",
-        {**vars(member), 'formatted_balance': money(member.balance)},
+        {**vars(member), "formatted_balance": money(member.balance)},
         None,  # Original code didn't specify a subject line.
     )
 
@@ -28,7 +28,11 @@ def send_payment_mail(member, amount, mobilepay_comment):
     send_template_mail(
         member,
         "deposit_manual.html" if mobilepay_comment else "deposit_automatic.html",
-        {**vars(member), 'formatted_amount': money(amount), 'mobilepay_comment': escape(mobilepay_comment)},
+        {
+            **vars(member),
+            "formatted_amount": money(amount),
+            "mobilepay_comment": escape(mobilepay_comment),
+        },
         "Stregsystem payment",
     )
 
@@ -48,7 +52,9 @@ def send_userdata_mail(member):
     sales: list[Sale] = member.sale_set.order_by("timestamp")
     payments: list[Payment] = member.payment_set.order_by("timestamp")
     mobilepayments: list[MobilePayment] = member.mobilepayment_set.order_by("timestamp")
-    mobilepay_payments: list[Payment] = [mobilepayment.payment for mobilepayment in mobilepayments]
+    mobilepay_payments: list[Payment] = [
+        mobilepayment.payment for mobilepayment in mobilepayments
+    ]
 
     if member.gender in [i for (i, _) in member.GENDER_CHOICES]:
         gender = [text for (i, text) in member.GENDER_CHOICES if member.gender == i][0]
@@ -56,11 +62,15 @@ def send_userdata_mail(member):
         gender = member.gender
 
     sales_csv = rows_to_csv(
-        [["Timestamp", "Name", "Price"]] + [[sale.timestamp, sale.product.name, sale.price] for sale in sales]
+        [["Timestamp", "Name", "Price"]]
+        + [[sale.timestamp, sale.product.name, sale.price] for sale in sales]
     )
     payments_csv = rows_to_csv(
         [["Timestamp", "Amount", "Is Mobilepay"]]
-        + [[payment.timestamp, payment.amount, payment in mobilepay_payments] for payment in payments]
+        + [
+            [payment.timestamp, payment.amount, payment in mobilepay_payments]
+            for payment in payments
+        ]
     )
     userdata_csv = rows_to_csv(
         [
@@ -97,31 +107,37 @@ def send_userdata_mail(member):
         member,
         "send_csv.html",
         {**vars(member), "fember": member.username},
-        f'{member.username} has requested their user data!',
-        {"sales.csv": sales_csv.encode(), "payments.csv": payments_csv.encode(), "userdata.csv": userdata_csv.encode()},
+        f"{member.username} has requested their user data!",
+        {
+            "sales.csv": sales_csv.encode(),
+            "payments.csv": payments_csv.encode(),
+            "userdata.csv": userdata_csv.encode(),
+        },
     )
     member.save()
     return True
 
 
-def send_template_mail(member, target_template: str, context: dict, subject: str, attachments: dict = {}):
+def send_template_mail(
+    member, target_template: str, context: dict, subject: str, attachments: dict = {}
+):
     msg = MIMEMultipart()
-    msg['From'] = 'treo@fklub.dk'
-    msg['To'] = member.email
-    msg['Subject'] = subject
+    msg["From"] = "treo@fklub.dk"
+    msg["To"] = member.email
+    msg["Subject"] = subject
     html = render_to_string(f"mail/{target_template}", context)
-    msg.attach(MIMEText(html, 'html'))
+    msg.attach(MIMEText(html, "html"))
 
-    if hasattr(settings, 'TEST_MODE'):
+    if hasattr(settings, "TEST_MODE"):
         return
 
     for name, attachment in attachments.items():
         attachment = MIMEApplication(attachment, Name=name)
-        attachment['Content-Disposition'] = f'attachment; filename={name}'
+        attachment["Content-Disposition"] = f"attachment; filename={name}"
         msg.attach(attachment)
 
     try:
-        smtpObj = smtplib.SMTP('localhost', 25)
-        smtpObj.sendmail('treo@fklub.dk', member.email, msg.as_string())
+        smtpObj = smtplib.SMTP("localhost", 25)
+        smtpObj.sendmail("treo@fklub.dk", member.email, msg.as_string())
     except Exception as e:
         logger.error(str(e))

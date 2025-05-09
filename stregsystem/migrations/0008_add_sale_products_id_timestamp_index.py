@@ -8,12 +8,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stregsystem', '0007_change_bought_to_limit_start_date'),
+        ("stregsystem", "0007_change_bought_to_limit_start_date"),
     ]
 
     operations = [
         migrations.AlterIndexTogether(
-            name='sale',
-            index_together=set([('product', 'timestamp')]),
+            name="sale",
+            index_together=set([("product", "timestamp")]),
         ),
     ]

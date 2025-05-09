@@ -8,18 +8,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stregsystem', '0004_product_alcohol_content'),
+        ("stregsystem", "0004_product_alcohol_content"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='rooms',
-            field=models.ManyToManyField(blank=True, to='stregsystem.Room'),
+            model_name="product",
+            name="rooms",
+            field=models.ManyToManyField(blank=True, to="stregsystem.Room"),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='categories',
-            field=models.ManyToManyField(blank=True, to='stregsystem.Category'),
+            model_name="product",
+            name="categories",
+            field=models.ManyToManyField(blank=True, to="stregsystem.Category"),
         ),
     ]
