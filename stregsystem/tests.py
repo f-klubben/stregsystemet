@@ -46,11 +46,7 @@ from stregsystem.models import (
 )
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
-from stregsystem.utils import (
-    mobile_payment_exact_match_member,
-    strip_emoji,
-    PaymentToolException,
-)
+from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, PaymentToolException
 from stregsystem.mail import data_sent
 
 
@@ -91,178 +87,154 @@ class SaleViewTests(TestCase):
     fixtures = ["initial_data"]
 
     def test_make_sale_letter_quickbuy(self):
-        response = self.client.post(
-            reverse("quickbuy", args="1"), {"quickbuy": "jokke a"}
-        )
+        response = self.client.post(reverse('quickbuy', args="1"), {"quickbuy": "jokke a"})
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed("stregsystem/error_invalidquickbuy.html")
 
-    @patch("stregsystem.models.Member.can_fulfill")
-    @patch("stregsystem.models.Member.fulfill")
-    def test_make_sale_quickbuy_success_for_multiple_named_product(
-        self, fulfill, can_fulfill
-    ):
+    @patch('stregsystem.models.Member.can_fulfill')
+    @patch('stregsystem.models.Member.fulfill')
+    def test_make_sale_quickbuy_success_for_multiple_named_product(self, fulfill, can_fulfill):
         can_fulfill.return_value = True
         item = Product.objects.get(id=1)
-        NamedProduct.objects.create(name="test1", product=item)
+        NamedProduct.objects.create(name='test1', product=item)
 
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)), {"quickbuy": "jokke test1:2"}
-        )
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke test1:2"})
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        assertCountEqual(self, response.context["products"], [("Limfjordsporter", 2)])
-        self.assertEqual(
-            response.context["member"], Member.objects.get(username="jokke")
-        )
+        assertCountEqual(self, response.context["products"], [('Limfjordsporter', 2)])
+        self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(1800))
 
-    @patch("stregsystem.models.Member.can_fulfill")
-    @patch("stregsystem.models.Member.fulfill")
+    @patch('stregsystem.models.Member.can_fulfill')
+    @patch('stregsystem.models.Member.fulfill')
     def test_make_sale_quickbuy_success_for_named_product(self, fulfill, can_fulfill):
         can_fulfill.return_value = True
         item = Product.objects.get(id=1)
-        NamedProduct.objects.create(name="test1", product=item)
+        NamedProduct.objects.create(name='test1', product=item)
 
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)), {"quickbuy": "jokke test1"}
-        )
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke test1"})
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        assertCountEqual(self, response.context["products"], {("Limfjordsporter", 1)})
-        self.assertEqual(
-            response.context["member"], Member.objects.get(username="jokke")
-        )
+        assertCountEqual(self, response.context["products"], {('Limfjordsporter', 1)})
+        self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))
 
-    @patch("stregsystem.models.Member.can_fulfill")
-    @patch("stregsystem.models.Member.fulfill")
+    @patch('stregsystem.models.Member.can_fulfill')
+    @patch('stregsystem.models.Member.fulfill')
     def test_make_sale_quickbuy_success(self, fulfill, can_fulfill):
         can_fulfill.return_value = True
 
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)), {"quickbuy": "jokke 1"}
-        )
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke 1"})
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        assertCountEqual(self, response.context["products"], {("Limfjordsporter", 1)})
-        self.assertEqual(
-            response.context["member"], Member.objects.get(username="jokke")
-        )
+        assertCountEqual(self, response.context["products"], {('Limfjordsporter', 1)})
+        self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))
 
     def test_quickbuy_member_case_is_insensitive(self):
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)), {"quickbuy": "jokke"}
-        )
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke"})
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/menu.html")
 
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)), {"quickbuy": "JOKKE"}
-        )
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "JOKKE"})
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/menu.html")
 
     def test_make_sale_quickbuy_wrong_product_for_named_product(self):
         item = Product.objects.get(id=1)
-        NamedProduct.objects.create(name="test1", product=item)
+        NamedProduct.objects.create(name='test1', product=item)
 
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)), {"quickbuy": "jokke gnu99"}
-        )
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke gnu99"})
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/error_invalidquickbuy.html")
 
     def test_create_named_product_fails_for_invalid_name(self):
         item = Product.objects.get(id=1)
-        prod = NamedProduct(name="11", product=item)
+        prod = NamedProduct(name='11', product=item)
         with self.assertRaises(ValidationError):
             prod.full_clean()
 
     def test_create_named_product_fails_for_invalid_name_2(self):
         item = Product.objects.get(id=1)
-        prod = NamedProduct(name="test øl", product=item)
+        prod = NamedProduct(name='test øl', product=item)
         with self.assertRaises(ValidationError):
             prod.full_clean()
 
     def test_create_named_product_fails_for_invalid_name_3(self):
         item = Product.objects.get(id=1)
-        prod = NamedProduct(name="øl:2", product=item)
+        prod = NamedProduct(name='øl:2', product=item)
         with self.assertRaises(ValidationError):
             prod.full_clean()
 
     def test_create_named_product_fails_for_invalid_name_4(self):
         item = Product.objects.get(id=1)
-        prod = NamedProduct(name="", product=item)
+        prod = NamedProduct(name='', product=item)
         with self.assertRaises(ValidationError):
             prod.full_clean()
 
     def test_create_named_product_succeed_for_valid_name(self):
         item = Product.objects.get(id=1)
-        prod = NamedProduct(name="øl", product=item)
+        prod = NamedProduct(name='øl', product=item)
         prod.full_clean()
 
     def test_create_named_product_succeed_for_valid_name_2(self):
         item = Product.objects.get(id=1)
-        prod = NamedProduct(name="monster-mango", product=item)
+        prod = NamedProduct(name='monster-mango', product=item)
         prod.full_clean()
 
     def test_create_named_product_succeed_for_valid_name_3(self):
         item = Product.objects.get(id=1)
-        prod = NamedProduct(name="ale16", product=item)
+        prod = NamedProduct(name='ale16', product=item)
         prod.full_clean()
 
     def test_create_named_product_succeed_for_valid_name_4(self):
         item = Product.objects.get(id=1)
-        prod = NamedProduct(name="månedens-øl", product=item)
+        prod = NamedProduct(name='månedens-øl', product=item)
         prod.full_clean()
 
     def test_make_sale_quickbuy_fail(self):
-        member_username = "jan"
+        member_username = 'jan'
         member_before = Member.objects.get(username=member_username)
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)), {"quickbuy": member_username + " 1"}
-        )
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": member_username + " 1"})
         member_after = Member.objects.get(username=member_username)
 
         self.assertEqual(response.status_code, 402)
         self.assertTemplateUsed(response, "stregsystem/error_stregforbud.html")
         self.assertEqual(member_before.balance, member_after.balance)
 
-        self.assertEqual(
-            response.context["member"], Member.objects.get(username=member_username)
-        )
+        self.assertEqual(response.context["member"], Member.objects.get(username=member_username))
 
     def test_make_sale_quickbuy_wrong_product(self):
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)), {"quickbuy": "jokke 99"}
-        )
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke 99"})
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/error_productdoesntexist.html")
 
-    @patch("stregsystem.models.Member.can_fulfill")
+    def test_products_show_when_quickbuying(self):
+        response = self.client.post(reverse('quickbuy', args="1"), {"quickbuy": "jokke 1"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Ingen produkter.")
+
+    @patch('stregsystem.models.Member.can_fulfill')
     def test_make_sale_menusale_fail(self, can_fulfill):
         can_fulfill.return_value = False
         member_id = 1
         member_before = Member.objects.get(id=member_id)
 
-        response = self.client.post(
-            reverse("menu", args=(1, member_id)), data={"product_id": 1}
-        )
+        response = self.client.post(reverse('menu', args=(1, member_id)), data={'product_id': 1})
 
         member_after = Member.objects.get(id=member_id)
 
@@ -271,14 +243,12 @@ class SaleViewTests(TestCase):
         self.assertTemplateUsed(response, "stregsystem/error_stregforbud.html")
         self.assertEqual(response.context["member"], Member.objects.get(id=1))
 
-    @patch("stregsystem.models.Member.can_fulfill")
-    @patch("stregsystem.models.Member.fulfill")
+    @patch('stregsystem.models.Member.can_fulfill')
+    @patch('stregsystem.models.Member.fulfill')
     def test_make_sale_menusale_success(self, fulfill, can_fulfill):
         can_fulfill.return_value = True
 
-        response = self.client.post(
-            reverse("menu", args=(1, 1)), data={"product_id": 1}
-        )
+        response = self.client.post(reverse('menu', args=(1, 1)), data={'product_id': 1})
         self.assertTemplateUsed(response, "stregsystem/menu.html")
 
         self.assertEqual(response.status_code, 200)
@@ -289,37 +259,32 @@ class SaleViewTests(TestCase):
         fulfill.assert_called_once_with(PayTransaction(900))
 
     def test_quicksale_has_status_line(self):
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)), {"quickbuy": "jokke 1"}
-        )
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke 1"})
 
         self.assertContains(
             response,
-            '<b><span class="username">jokke</span> har lige købt 1 Limfjordsporter for tilsammen '
-            "9.00 kr.</b>",
+            "<b><span class=\"username\">jokke</span> har lige købt 1 Limfjordsporter for tilsammen " "9.00 kr.</b>",
             html=True,
         )
 
     def test_usermenu(self):
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)), {"quickbuy": "jokke"}
-        )
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke"})
 
         self.assertTemplateUsed(response, "stregsystem/menu.html")
 
     def test_quickbuy_empty(self):
-        response = self.client.post(reverse("quickbuy", args=(1,)), {"quickbuy": ""})
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": ""})
 
         self.assertTemplateUsed(response, "stregsystem/index.html")
 
     def test_index(self):
-        response = self.client.post(reverse("index"))
+        response = self.client.post(reverse('index'))
 
         # Assert permanent redirect
         self.assertEqual(response.status_code, 301)
 
     def test_menu_index(self):
-        response = self.client.post(reverse("menu_index", args=(1,)))
+        response = self.client.post(reverse('menu_index', args=(1,)))
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index.html")
@@ -330,9 +295,7 @@ class SaleViewTests(TestCase):
         self.assertNotContains(response, "NonExistentProduct")
 
     def test_quickbuy_no_known_member(self):
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)), {"quickbuy": "notinthere"}
-        )
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "notinthere"})
 
         self.assertTemplateUsed(response, "stregsystem/error_usernotfound.html")
 
@@ -341,9 +304,7 @@ class SaleViewTests(TestCase):
         before_bought = before.bought
         before_member = Member.objects.get(username="jokke")
 
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)), {"quickbuy": "jokke 2"}
-        )
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke 2"})
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
@@ -359,9 +320,7 @@ class SaleViewTests(TestCase):
         before = Product.objects.get(id=1)
         before_member = Member.objects.get(username="jokke")
 
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)), {"quickbuy": "jokke 1"}
-        )
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke 1"})
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
@@ -377,9 +336,7 @@ class SaleViewTests(TestCase):
         before = Product.objects.get(id=1)
         before_member = Member.objects.get(username="jokke")
 
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)), {"quickbuy": "jokke 3"}
-        )
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke 3"})
 
         self.assertEqual(response.status_code, 200)
         # I don't know which template to use (I should probably make one). So
@@ -397,9 +354,7 @@ class SaleViewTests(TestCase):
         before_product = Product.objects.get(id=4)
         before_member = Member.objects.get(username="jokke")
 
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)), {"quickbuy": "jokke 4"}
-        )
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke 4"})
 
         after_product = Product.objects.get(id=4)
         after_member = Member.objects.get(username="jokke")
@@ -414,9 +369,7 @@ class SaleViewTests(TestCase):
         before_product = Product.objects.get(id=1)
         before_member = Member.objects.get(username="jokke")
 
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)), {"quickbuy": "jokke 1"}
-        )
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke 1"})
 
         after_product = Product.objects.get(id=1)
         after_member = Member.objects.get(username="jokke")
@@ -430,9 +383,7 @@ class SaleViewTests(TestCase):
         before_product = Product.objects.get(id=4)
         before_member = Member.objects.get(username="jokke")
 
-        response = self.client.post(
-            reverse("menu", args=(1, before_member.id)), data={"product_id": 4}
-        )
+        response = self.client.post(reverse('menu', args=(1, before_member.id)), data={'product_id': 4})
 
         after_product = Product.objects.get(id=4)
         after_member = Member.objects.get(username="jokke")
@@ -445,9 +396,7 @@ class SaleViewTests(TestCase):
 
     def test_multibuy_hint_not_applicable(self):
         member = Member.objects.get(username="jokke")
-        give_multibuy_hint, sale_hints = stregsystem_views._multibuy_hint(
-            timezone.now(), member
-        )
+        give_multibuy_hint, sale_hints = stregsystem_views._multibuy_hint(timezone.now(), member)
         self.assertFalse(give_multibuy_hint)
         self.assertIsNone(sale_hints)
 
@@ -459,9 +408,7 @@ class SaleViewTests(TestCase):
             product=coke,
             price=100,
         )
-        give_multibuy_hint, sale_hints = stregsystem_views._multibuy_hint(
-            timezone.now(), member
-        )
+        give_multibuy_hint, sale_hints = stregsystem_views._multibuy_hint(timezone.now(), member)
         self.assertFalse(give_multibuy_hint)
         self.assertIsNone(sale_hints)
 
@@ -480,10 +427,7 @@ class SaleViewTests(TestCase):
             timezone.datetime(2018, 1, 1, tzinfo=pytz.UTC), member
         )
         self.assertTrue(give_multibuy_hint)
-        self.assertEqual(
-            sale_hints,
-            "{} {}:{}".format('<span class="username">jokke</span>', coke.id, 2),
-        )
+        self.assertEqual(sale_hints, "{} {}:{}".format("<span class=\"username\">jokke</span>", coke.id, 2))
 
 
 class UserInfoViewTests(TestCase):
@@ -516,7 +460,7 @@ class UserInfoViewTests(TestCase):
 
     def test_renders(self):
         response = self.client.post(
-            reverse("userinfo", args=(self.room.id, self.jokke.id)),
+            reverse('userinfo', args=(self.room.id, self.jokke.id)),
         )
 
         self.assertEqual(response.status_code, 200)
@@ -524,14 +468,14 @@ class UserInfoViewTests(TestCase):
 
     def test_last_sale(self):
         response = self.client.post(
-            reverse("userinfo", args=(self.room.id, self.jokke.id)),
+            reverse('userinfo', args=(self.room.id, self.jokke.id)),
         )
 
         self.assertSequenceEqual(response.context["last_sale_list"], self.sales[::-1])
 
     def test_last_payment(self):
         response = self.client.post(
-            reverse("userinfo", args=(self.room.id, self.jokke.id)),
+            reverse('userinfo', args=(self.room.id, self.jokke.id)),
         )
 
         self.assertEqual(response.context["last_payment"], self.payments[-1])
@@ -552,23 +496,17 @@ class PurchaseHeatmapTests(TestCase):
 
     def test_empty_user(self):
         with freeze_time(timezone.datetime(2000, 1, 1)) as frozen_time:
-            heatmap_context = prepare_heatmap_template_context(
-                self.jokke, 5, datetime.date.today()
-            )
+            heatmap_context = prepare_heatmap_template_context(self.jokke, 5, datetime.date.today())
 
-        for weekday_header, rows in heatmap_context["rows"]:
+        for weekday_header, rows in heatmap_context['rows']:
             for row_data in rows:
                 self.assertEqual(len(row_data.products), 0)
 
     def test_weeks_correct(self):
         with freeze_time(timezone.datetime(2000, 1, 1)) as frozen_time:
-            heatmap_context = prepare_heatmap_template_context(
-                self.jokke, 5, datetime.date.today()
-            )
+            heatmap_context = prepare_heatmap_template_context(self.jokke, 5, datetime.date.today())
 
-            self.assertEqual(
-                heatmap_context["column_labels"], ["48", "49", "50", "51", "52"]
-            )
+            self.assertEqual(heatmap_context['column_labels'], ['48', '49', '50', '51', '52'])
 
     def test_user_with_some_purchases(self):
         # TODO: Do test methods endure side-effects ? Or do they reset.
@@ -584,13 +522,11 @@ class PurchaseHeatmapTests(TestCase):
                 frozen_time.tick()
 
             frozen_time.tick(datetime.timedelta(days=1))
-            heatmap_context = prepare_heatmap_template_context(
-                self.jokke, 5, datetime.date.today()
-            )
+            heatmap_context = prepare_heatmap_template_context(self.jokke, 5, datetime.date.today())
 
             found_date = False
 
-            for weekday_header, rows in heatmap_context["rows"]:
+            for weekday_header, rows in heatmap_context['rows']:
                 for row_data in rows:
                     if str(row_data.date) == "2000-01-01":
                         found_date = True
@@ -640,10 +576,7 @@ class OrderTest(TestCase):
             self.product,
         ]
         order = Order.from_products(self.member, self.room, products)
-        self.assertEqual(
-            list(Counter(products).items()),
-            [(item.product, item.count) for item in order.items],
-        )
+        self.assertEqual(list(Counter(products).items()), [(item.product, item.count) for item in order.items])
 
     def test_order_total_single_item(self):
         order = Order(self.member, self.room)
@@ -661,7 +594,7 @@ class OrderTest(TestCase):
 
         self.assertEqual(order.total(), 20)
 
-    @patch("stregsystem.models.Member.fulfill")
+    @patch('stregsystem.models.Member.fulfill')
     def test_order_execute_single_transaction(self, fulfill):
         order = Order(self.member, self.room)
 
@@ -672,7 +605,7 @@ class OrderTest(TestCase):
 
         fulfill.assert_called_once_with(PayTransaction(10))
 
-    @patch("stregsystem.models.Member.fulfill")
+    @patch('stregsystem.models.Member.fulfill')
     def test_order_execute_multi_transaction(self, fulfill):
         order = Order(self.member, self.room)
 
@@ -683,7 +616,7 @@ class OrderTest(TestCase):
 
         fulfill.assert_called_once_with(PayTransaction(20))
 
-    @patch("stregsystem.models.Member.fulfill")
+    @patch('stregsystem.models.Member.fulfill')
     def test_order_execute_single_no_remaining(self, fulfill):
         self.product.sale_set.create(price=100, member=self.member)
         self.product.start_date = datetime.date(year=2017, month=1, day=1)
@@ -698,7 +631,7 @@ class OrderTest(TestCase):
 
         fulfill.was_not_called()
 
-    @patch("stregsystem.models.Member.fulfill")
+    @patch('stregsystem.models.Member.fulfill')
     def test_order_execute_multi_some_remaining(self, fulfill):
         self.product.sale_set.create(price=100, member=self.member)
         self.product.start_date = datetime.date(year=2017, month=1, day=1)
@@ -713,7 +646,7 @@ class OrderTest(TestCase):
 
         fulfill.was_not_called()
 
-    @patch("stregsystem.models.Member.can_fulfill")
+    @patch('stregsystem.models.Member.can_fulfill')
     def test_order_execute_no_money(self, can_fulfill):
         can_fulfill.return_value = False
         balance_before = self.member.balance
@@ -785,28 +718,21 @@ class ProductTests(TestCase):
 
     def test_is_active_active_not_expired(self):
         product = Product.objects.create(
-            active=True,
-            price=100,
-            deactivate_date=(timezone.now() + datetime.timedelta(hours=1)),
+            active=True, price=100, deactivate_date=(timezone.now() + datetime.timedelta(hours=1))
         )
 
         self.assertTrue(product.is_active())
 
     def test_is_active_active_expired(self):
         product = Product.objects.create(
-            active=True,
-            price=100,
-            deactivate_date=(timezone.now() - datetime.timedelta(hours=1)),
+            active=True, price=100, deactivate_date=(timezone.now() - datetime.timedelta(hours=1))
         )
 
         self.assertFalse(product.is_active())
 
     def test_is_active_active_out_of_stock(self):
         product = Product.objects.create(
-            active=True,
-            price=100,
-            quantity=1,
-            start_date=datetime.date(year=2017, month=1, day=1),
+            active=True, price=100, quantity=1, start_date=datetime.date(year=2017, month=1, day=1)
         )
         product.sale_set.create(price=100, member=self.jeff)
 
@@ -814,10 +740,7 @@ class ProductTests(TestCase):
 
     def test_is_active_active_in_stock(self):
         product = Product.objects.create(
-            active=True,
-            price=100,
-            quantity=2,
-            start_date=datetime.date(year=2017, month=1, day=1),
+            active=True, price=100, quantity=2, start_date=datetime.date(year=2017, month=1, day=1)
         )
         product.sale_set.create(price=100, member=self.jeff)
 
@@ -833,19 +756,14 @@ class ProductTests(TestCase):
 
     def test_is_active_deactive_expired(self):
         product = Product.objects.create(
-            active=False,
-            price=100,
-            deactivate_date=(timezone.now() - datetime.timedelta(hours=1)),
+            active=False, price=100, deactivate_date=(timezone.now() - datetime.timedelta(hours=1))
         )
 
         self.assertFalse(product.is_active())
 
     def test_is_active_deactive_out_of_stock(self):
         product = Product.objects.create(
-            active=False,
-            price=100,
-            quantity=1,
-            start_date=datetime.date(year=2017, month=12, day=1),
+            active=False, price=100, quantity=1, start_date=datetime.date(year=2017, month=12, day=1)
         )
         product.sale_set.create(price=100, member=self.jeff)
 
@@ -853,10 +771,7 @@ class ProductTests(TestCase):
 
     def test_is_active_deactive_in_stock(self):
         product = Product.objects.create(
-            active=False,
-            price=100,
-            quantity=2,
-            start_date=datetime.date(year=2017, month=12, day=1),
+            active=False, price=100, quantity=2, start_date=datetime.date(year=2017, month=12, day=1)
         )
         product.sale_set.create(price=100, member=self.jeff)
 
@@ -886,7 +801,7 @@ class ProductNoteTest(TestCase):
         self.secondary_test_product_note.products.add(test_product)
 
         # Get the menu
-        response = self.client.post(reverse("menu_index", args=(1,)))
+        response = self.client.post(reverse('menu_index', args=(1,)))
 
         # Test that the note is in the menu
         self.assertContains(response, "TEST-NOTE")
@@ -907,11 +822,11 @@ class ProductNoteTest(TestCase):
         self.test_product_note.products.add(test_product)
 
         # Get the menu
-        response = self.client.post(reverse("menu_index", args=(1,)))
+        response = self.client.post(reverse('menu_index', args=(1,)))
 
         self.assertContains(
             response,
-            '<div class="note-box" style="background-color: Yellow; color: ">COLORED-NOTE</div>',
+            "<div class=\"note-box\" style=\"background-color: Yellow; color: \">COLORED-NOTE</div>",
             html=True,
         )
 
@@ -935,7 +850,7 @@ class ProductNoteTest(TestCase):
         self.test_product_note.products.add(test_product)
 
         # Get the menu
-        response = self.client.post(reverse("menu_index", args=(1,)))
+        response = self.client.post(reverse('menu_index', args=(1,)))
 
         # Test that the note is in the menu
         self.assertNotContains(response, "EXPIRED-NOTE")
@@ -954,7 +869,7 @@ class ProductNoteTest(TestCase):
         self.test_product_note.products.add(test_product)
 
         # Get the menu
-        response = self.client.post(reverse("menu_index", args=(1,)))
+        response = self.client.post(reverse('menu_index', args=(1,)))
 
         # Test that the inactive note doesn't show up
         self.assertNotContains(response, "INACTIVE-NOTE")
@@ -1053,85 +968,63 @@ class MemberTests(TestCase):
         self.assertEqual(member.balance, 90)
 
     def test_promille_no_drinks(self):
-        user = Member.objects.create(username="test", gender="M")
+        user = Member.objects.create(username="test", gender='M')
         non_alcoholic = Product.objects.create(name="mælk", price=1.0, active=True)
 
-        user.sale_set.create(
-            product=non_alcoholic, member=user, price=non_alcoholic.price
-        )
+        user.sale_set.create(product=non_alcoholic, member=user, price=non_alcoholic.price)
 
         self.assertEqual(0.0, user.calculate_alcohol_promille())
 
     def test_promille_with_alcohol_male(self):
-        user = Member.objects.create(username="test", gender="M")
+        user = Member.objects.create(username="test", gender='M')
 
         # (330 ml * 4.6%) = 15.18
-        alcoholic_drink = Product.objects.create(
-            name="øl", price=2.0, alcohol_content_ml=15.18, active=True
-        )
+        alcoholic_drink = Product.objects.create(name="øl", price=2.0, alcohol_content_ml=15.18, active=True)
 
         user.sale_set.create(product=alcoholic_drink, price=alcoholic_drink.price)
 
         self.assertAlmostEqual(0.21, user.calculate_alcohol_promille(), places=2)
 
     def test_promille_with_alcohol_female(self):
-        user = Member.objects.create(username="test", gender="F")
+        user = Member.objects.create(username="test", gender='F')
 
         # (330 ml * 4.6%) = 15.18
-        alcoholic_drink = Product.objects.create(
-            name="øl", price=2.0, alcohol_content_ml=15.18, active=True
-        )
+        alcoholic_drink = Product.objects.create(name="øl", price=2.0, alcohol_content_ml=15.18, active=True)
 
         user.sale_set.create(product=alcoholic_drink, price=alcoholic_drink.price)
 
         self.assertAlmostEqual(0.25, user.calculate_alcohol_promille(), places=2)
 
     def test_promille_staggered_male(self):
-        user = Member.objects.create(username="test", gender="M")
+        user = Member.objects.create(username="test", gender='M')
 
         # (330 ml * 4.6%) = 15.18
-        alcoholic_drink = Product.objects.create(
-            name="øl", price=2.0, alcohol_content_ml=15.18, active=True
-        )
+        alcoholic_drink = Product.objects.create(name="øl", price=2.0, alcohol_content_ml=15.18, active=True)
 
-        with freeze_time(
-            timezone.datetime(year=2000, month=1, day=1, hour=0, minute=0)
-        ) as ft:
+        with freeze_time(timezone.datetime(year=2000, month=1, day=1, hour=0, minute=0)) as ft:
             for i in range(5):
                 ft.tick(delta=datetime.timedelta(minutes=10))
-                user.sale_set.create(
-                    product=alcoholic_drink, price=alcoholic_drink.price
-                )
+                user.sale_set.create(product=alcoholic_drink, price=alcoholic_drink.price)
 
         # The last drink was at 2000/01/01 00:50:00
 
-        with freeze_time(
-            timezone.datetime(year=2000, month=1, day=1, hour=0, minute=50)
-        ) as ft:
+        with freeze_time(timezone.datetime(year=2000, month=1, day=1, hour=0, minute=50)) as ft:
             self.assertAlmostEqual(0.97, user.calculate_alcohol_promille(), places=2)
 
     def test_promille_staggered_female(self):
-        user = Member.objects.create(username="test", gender="F")
+        user = Member.objects.create(username="test", gender='F')
 
         # (330 ml * 4.6%) = 15.18
-        alcoholic_drink = Product.objects.create(
-            name="øl", price=2.0, alcohol_content_ml=15.18, active=True
-        )
+        alcoholic_drink = Product.objects.create(name="øl", price=2.0, alcohol_content_ml=15.18, active=True)
 
-        with freeze_time(
-            timezone.datetime(year=2000, month=1, day=1, hour=0, minute=0)
-        ) as ft:
+        with freeze_time(timezone.datetime(year=2000, month=1, day=1, hour=0, minute=0)) as ft:
             for i in range(5):
                 ft.tick(delta=datetime.timedelta(minutes=10))
-                user.sale_set.create(
-                    product=alcoholic_drink, price=alcoholic_drink.price
-                )
+                user.sale_set.create(product=alcoholic_drink, price=alcoholic_drink.price)
 
         # The last drink was at 2000/01/01 00:50:00
 
-        with freeze_time(
-            timezone.datetime(year=2000, month=1, day=1, hour=0, minute=50)
-        ) as ft:
+        with freeze_time(timezone.datetime(year=2000, month=1, day=1, hour=0, minute=50)) as ft:
             self.assertAlmostEqual(1.15, user.calculate_alcohol_promille(), places=2)
 
     def test_send_userdata(self):
@@ -1183,28 +1076,20 @@ class BallmerPeakTests(TestCase):
 
 class MemberModelFormTests(TestCase):
     def setUp(self):
-        jeff = Member.objects.create(
-            username="jeff", firstname="jeff", lastname="jefferson", gender="M"
-        )
+        jeff = Member.objects.create(username="jeff", firstname="jeff", lastname="jefferson", gender="M")
 
     def test_cant_create_duplicate_username(self):
-        jeff = Member(
-            username="jeff", firstname="jeffrey", lastname="jefferson", gender="M"
-        )
+        jeff = Member(username="jeff", firstname="jeffrey", lastname="jefferson", gender="M")
         form = MemberForm(model_to_dict(jeff))
         self.assertFalse(form.is_valid())
 
     def test_cant_create_duplicate_username_in_other_case(self):
-        jeff = Member(
-            username="JeFf", firstname="jeffrey", lastname="jefferson", gender="M"
-        )
+        jeff = Member(username="JeFf", firstname="jeffrey", lastname="jefferson", gender="M")
         form = MemberForm(model_to_dict(jeff))
         self.assertFalse(form.is_valid())
 
     def test_can_create_non_duplicate_username(self):
-        not_jeff = Member(
-            username="not_jeff", firstname="jeff", lastname="jefferson", gender="M"
-        )
+        not_jeff = Member(username="not_jeff", firstname="jeff", lastname="jefferson", gender="M")
         form = MemberForm(model_to_dict(not_jeff))
         self.assertTrue(form.is_valid())
 
@@ -1212,25 +1097,17 @@ class MemberModelFormTests(TestCase):
 class MemberAdminTests(TestCase):
     def setUp(self):
         password = "very_secure"
-        super_user = User.objects.create_superuser(
-            "superuser", "test@example.com", password
-        )
+        super_user = User.objects.create_superuser('superuser', 'test@example.com', password)
 
-        self.jeff = Member.objects.create(
-            pk=1, username="jeff", firstname="jeff", lastname="jefferson", gender="M"
-        )
+        self.jeff = Member.objects.create(pk=1, username="jeff", firstname="jeff", lastname="jefferson", gender="M")
 
-        self.jeff2 = Member.objects.create(
-            pk=2, username="jeffrey", firstname="jeff", lastname="jefferson", gender="M"
-        )
+        self.jeff2 = Member.objects.create(pk=2, username="jeffrey", firstname="jeff", lastname="jefferson", gender="M")
 
     def test_creates_warning_for_duplicate_usernames(self):
         self.client.login(username="superuser", password="very_secure")
         self.jeff2.username = "jeff"
         response = self.client.post(
-            reverse("admin:stregsystem_member_change", kwargs={"object_id": 2}),
-            model_to_dict(self.jeff2),
-            follow=False,
+            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}), model_to_dict(self.jeff2), follow=False
         )
 
         messages = list(get_messages(response.wsgi_request))
@@ -1244,9 +1121,7 @@ class MemberAdminTests(TestCase):
         self.client.login(username="superuser", password="very_secure")
         self.jeff2.username = "mr_jefferson"
         response = self.client.post(
-            reverse("admin:stregsystem_member_change", kwargs={"object_id": 2}),
-            model_to_dict(self.jeff2),
-            follow=False,
+            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}), model_to_dict(self.jeff2), follow=False
         )
 
         messages = list(get_messages(response.wsgi_request))
@@ -1259,9 +1134,7 @@ class MemberAdminTests(TestCase):
 class ProductActivatedListFilterTests(TestCase):
     def setUp(self):
         jeff = Member.objects.create(username="jeff")
-        Product.objects.create(
-            name="active_dec_none", price=1.0, active=True, deactivate_date=None
-        )
+        Product.objects.create(name="active_dec_none", price=1.0, active=True, deactivate_date=None)
         Product.objects.create(
             name="active_dec_future",
             price=1.0,
@@ -1275,9 +1148,7 @@ class ProductActivatedListFilterTests(TestCase):
             deactivate_date=(timezone.now() - datetime.timedelta(hours=1)),
         )
 
-        Product.objects.create(
-            name="deactivated_dec_none", price=1.0, active=False, deactivate_date=None
-        )
+        Product.objects.create(name="deactivated_dec_none", price=1.0, active=False, deactivate_date=None)
         Product.objects.create(
             name="deactivated_dec_future",
             price=1.0,
@@ -1309,104 +1180,72 @@ class ProductActivatedListFilterTests(TestCase):
         p.sale_set.create(price=100, member=jeff)
 
     def test_active_trivial(self):
-        fy = admin.ProductActivatedListFilter(
-            None, {"activated": "Yes"}, Product, ProductAdmin
-        )
+        fy = admin.ProductActivatedListFilter(None, {'activated': 'Yes'}, Product, ProductAdmin)
         qy = list(fy.queryset(None, Product.objects.all()))
-        fn = admin.ProductActivatedListFilter(
-            None, {"activated": "No"}, Product, ProductAdmin
-        )
+        fn = admin.ProductActivatedListFilter(None, {'activated': 'No'}, Product, ProductAdmin)
         qn = list(fn.queryset(None, Product.objects.all()))
 
         self.assertIn(Product.objects.get(name="active_dec_none"), qy)
         self.assertNotIn(Product.objects.get(name="active_dec_none"), qn)
 
     def test_active_deac_future(self):
-        fy = admin.ProductActivatedListFilter(
-            None, {"activated": "Yes"}, Product, ProductAdmin
-        )
+        fy = admin.ProductActivatedListFilter(None, {'activated': 'Yes'}, Product, ProductAdmin)
         qy = list(fy.queryset(None, Product.objects.all()))
-        fn = admin.ProductActivatedListFilter(
-            None, {"activated": "No"}, Product, ProductAdmin
-        )
+        fn = admin.ProductActivatedListFilter(None, {'activated': 'No'}, Product, ProductAdmin)
         qn = list(fn.queryset(None, Product.objects.all()))
 
         self.assertIn(Product.objects.get(name="active_dec_future"), qy)
         self.assertNotIn(Product.objects.get(name="active_dec_future"), qn)
 
     def test_active_deac_past(self):
-        fy = admin.ProductActivatedListFilter(
-            None, {"activated": "Yes"}, Product, ProductAdmin
-        )
+        fy = admin.ProductActivatedListFilter(None, {'activated': 'Yes'}, Product, ProductAdmin)
         qy = list(fy.queryset(None, Product.objects.all()))
-        fn = admin.ProductActivatedListFilter(
-            None, {"activated": "No"}, Product, ProductAdmin
-        )
+        fn = admin.ProductActivatedListFilter(None, {'activated': 'No'}, Product, ProductAdmin)
         qn = list(fn.queryset(None, Product.objects.all()))
 
         self.assertNotIn(Product.objects.get(name="active_dec_past"), qy)
         self.assertIn(Product.objects.get(name="active_dec_past"), qn)
 
     def test_inactive_trivial(self):
-        fy = admin.ProductActivatedListFilter(
-            None, {"activated": "Yes"}, Product, ProductAdmin
-        )
+        fy = admin.ProductActivatedListFilter(None, {'activated': 'Yes'}, Product, ProductAdmin)
         qy = list(fy.queryset(None, Product.objects.all()))
-        fn = admin.ProductActivatedListFilter(
-            None, {"activated": "No"}, Product, ProductAdmin
-        )
+        fn = admin.ProductActivatedListFilter(None, {'activated': 'No'}, Product, ProductAdmin)
         qn = list(fn.queryset(None, Product.objects.all()))
 
         self.assertNotIn(Product.objects.get(name="deactivated_dec_none"), qy)
         self.assertIn(Product.objects.get(name="deactivated_dec_none"), qn)
 
     def test_inactive_deac_future(self):
-        fy = admin.ProductActivatedListFilter(
-            None, {"activated": "Yes"}, Product, ProductAdmin
-        )
+        fy = admin.ProductActivatedListFilter(None, {'activated': 'Yes'}, Product, ProductAdmin)
         qy = list(fy.queryset(None, Product.objects.all()))
-        fn = admin.ProductActivatedListFilter(
-            None, {"activated": "No"}, Product, ProductAdmin
-        )
+        fn = admin.ProductActivatedListFilter(None, {'activated': 'No'}, Product, ProductAdmin)
         qn = list(fn.queryset(None, Product.objects.all()))
 
         self.assertNotIn(Product.objects.get(name="deactivated_dec_future"), qy)
         self.assertIn(Product.objects.get(name="deactivated_dec_future"), qn)
 
     def test_inactive_deac_past(self):
-        fy = admin.ProductActivatedListFilter(
-            None, {"activated": "Yes"}, Product, ProductAdmin
-        )
+        fy = admin.ProductActivatedListFilter(None, {'activated': 'Yes'}, Product, ProductAdmin)
         qy = list(fy.queryset(None, Product.objects.all()))
-        fn = admin.ProductActivatedListFilter(
-            None, {"activated": "No"}, Product, ProductAdmin
-        )
+        fn = admin.ProductActivatedListFilter(None, {'activated': 'No'}, Product, ProductAdmin)
         qn = list(fn.queryset(None, Product.objects.all()))
 
         self.assertNotIn(Product.objects.get(name="deactivated_dec_past"), qy)
         self.assertIn(Product.objects.get(name="deactivated_dec_past"), qn)
 
     def test_active_none_left(self):
-        fy = admin.ProductActivatedListFilter(
-            None, {"activated": "Yes"}, Product, ProductAdmin
-        )
+        fy = admin.ProductActivatedListFilter(None, {'activated': 'Yes'}, Product, ProductAdmin)
         qy = list(fy.queryset(None, Product.objects.all()))
-        fn = admin.ProductActivatedListFilter(
-            None, {"activated": "No"}, Product, ProductAdmin
-        )
+        fn = admin.ProductActivatedListFilter(None, {'activated': 'No'}, Product, ProductAdmin)
         qn = list(fn.queryset(None, Product.objects.all()))
 
         self.assertNotIn(Product.objects.get(name="active_none_left"), qy)
         self.assertIn(Product.objects.get(name="active_none_left"), qn)
 
     def test_active_some_left(self):
-        fy = admin.ProductActivatedListFilter(
-            None, {"activated": "Yes"}, Product, ProductAdmin
-        )
+        fy = admin.ProductActivatedListFilter(None, {'activated': 'Yes'}, Product, ProductAdmin)
         qy = list(fy.queryset(None, Product.objects.all()))
-        fn = admin.ProductActivatedListFilter(
-            None, {"activated": "No"}, Product, ProductAdmin
-        )
+        fn = admin.ProductActivatedListFilter(None, {'activated': 'No'}, Product, ProductAdmin)
         qn = list(fn.queryset(None, Product.objects.all()))
 
         self.assertIn(Product.objects.get(name="active_some_left"), qy)
@@ -1418,18 +1257,16 @@ class ProductRoomFilterTests(TestCase):
 
     def test_general_room_dont_get_special_items(self):
         numberOfSpecialItems = 2
-        response = self.client.get(reverse("menu_index", args=(1,)))
-        product_pairs = response.context["product_note_pair_list"]
+        response = self.client.get(reverse('menu_index', args=(1,)))
+        product_pairs = response.context['product_note_pair_list']
         specialProduct = Product.objects.get(pk=3)
 
         any(self.assertFalse(specialProduct == pair.product) for pair in product_pairs)
-        self.assertEqual(
-            len(product_pairs), len(Product.objects.all()) - numberOfSpecialItems
-        )
+        self.assertEqual(len(product_pairs), len(Product.objects.all()) - numberOfSpecialItems)
 
     def test_special_room_get_special_items(self):
-        response = self.client.get(reverse("menu_index", args=(2,)))
-        product_pairs = response.context["product_note_pair_list"]
+        response = self.client.get(reverse('menu_index', args=(2,)))
+        product_pairs = response.context['product_note_pair_list']
         specialProduct = Product.objects.get(pk=3)
 
         self.assertTrue(any(specialProduct == pair.product) for pair in product_pairs)
@@ -1452,7 +1289,7 @@ class CategoryAdminTests(TestCase):
 
 class QuickbuyParserTests(TestCase):
     def setUp(self):
-        self.test_username = "test"
+        self.test_username = 'test'
 
     def test_username_only(self):
         buy_string = self.test_username
@@ -1464,7 +1301,7 @@ class QuickbuyParserTests(TestCase):
 
     def test_single_buy(self):
         product_ids = [42]
-        buy_string = self.test_username + " 42"
+        buy_string = self.test_username + ' 42'
 
         username, products = parser.parse(buy_string)
 
@@ -1511,22 +1348,22 @@ class QuickbuyParserTests(TestCase):
         self.assertEqual(len(products), 0)
 
     def test_negative_quantifier(self):
-        buy_string = self.test_username + " 42:-1 1337:3"
+        buy_string = self.test_username + ' 42:-1 1337:3'
         with self.assertRaises(parser.QuickBuyError):
             parser.parse(buy_string)
 
     def test_missing_quantifier(self):
-        buy_string = self.test_username + " 42: 1337:3"
+        buy_string = self.test_username + ' 42: 1337:3'
         with self.assertRaises(parser.QuickBuyError):
             parser.parse(buy_string)
 
     def test_invalid_quantifier(self):
-        buy_string = self.test_username + " 42:a 1337:3"
+        buy_string = self.test_username + ' 42:a 1337:3'
         with self.assertRaises(parser.QuickBuyError):
             parser.parse(buy_string)
 
     def test_invalid_productId(self):
-        buy_string = self.test_username + " a:2 1337:3"
+        buy_string = self.test_username + ' a:2 1337:3'
         with self.assertRaises(parser.QuickBuyError):
             parser.parse(buy_string)
 
@@ -1537,23 +1374,19 @@ class RazziaTests(TestCase):
         self.flanmad = Product.objects.create(name="FLan mad", price=2.0, active=True)
         self.notflan = Product.objects.create(name="Ikke Flan", price=2.0, active=True)
 
-        self.alan = Member.objects.create(
-            username="tester", firstname="Alan", lastname="Alansen"
-        )
-        self.bob = Member.objects.create(
-            username="bob", firstname="bob", lastname="bob"
-        )
+        self.alan = Member.objects.create(username="tester", firstname="Alan", lastname="Alansen")
+        self.bob = Member.objects.create(username="bob", firstname="bob", lastname="bob")
 
-        with freeze_time("2017-02-02"):
+        with freeze_time('2017-02-02'):
             Sale.objects.create(member=self.alan, product=self.flan, price=1.0)
 
-        with freeze_time("2017-02-15"):
+        with freeze_time('2017-02-15'):
             Sale.objects.create(member=self.alan, product=self.flan, price=1.0)
 
-        with freeze_time("2017-02-07"):
+        with freeze_time('2017-02-07'):
             Sale.objects.create(member=self.alan, product=self.flanmad, price=1.0)
 
-        with freeze_time("2017-02-05"):
+        with freeze_time('2017-02-05'):
             Sale.objects.create(member=self.alan, product=self.notflan, price=1.0)
 
     def test_sales_to_user_in_period(self):
@@ -1586,58 +1419,54 @@ class MobilePaymentTests(TestCase):
         self.fixture_path = "stregsystem/fixtures/mobilepay-sales-testdata-fixture.csv"
 
         # setup admin
-        self.super_user = User.objects.create_superuser(
-            "superuser", "test@example.com", "hunter2"
-        )
-        self.autopayment_user = User.objects.create_superuser(
-            "autopayment", "foo@bar.com", "hunter2"
-        )
+        self.super_user = User.objects.create_superuser('superuser', 'test@example.com', "hunter2")
+        self.autopayment_user = User.objects.create_superuser('autopayment', 'foo@bar.com', 'hunter2')
 
         # Create members, directly mirrors fixture in 'stregsystem/fixtures/testdata-mobilepay.json'
         self.members = {
-            "jdoe": {
-                "username": "jdoe",
-                "firstname": "John",
-                "lastname": "Doe",
-                "email": "jdoe@nsa.gov",
-                "balance": 42000,
+            'jdoe': {
+                'username': 'jdoe',
+                'firstname': 'John',
+                'lastname': 'Doe',
+                'email': 'jdoe@nsa.gov',
+                'balance': 42000,
             },
-            "marx": {
-                "username": "marx",
-                "firstname": "Karl",
-                "lastname": "Marx",
-                "email": "marx@nsa.gov",
-                "balance": 6900,
+            'marx': {
+                'username': 'marx',
+                'firstname': 'Karl',
+                'lastname': 'Marx',
+                'email': 'marx@nsa.gov',
+                'balance': 6900,
             },
-            "tables": {
-                "username": "tables",
-                "firstname": "Bobby",
-                "lastname": "Tables",
-                "email": "tables@nsa.gov",
-                "balance": 12500,
+            'tables': {
+                'username': 'tables',
+                'firstname': 'Bobby',
+                'lastname': 'Tables',
+                'email': 'tables@nsa.gov',
+                'balance': 12500,
             },
-            "mlarsen": {
-                "username": "mlarsen",
-                "firstname": "Martin",
-                "lastname": "Larsen",
-                "email": "mlarsen@nsa.gov",
-                "balance": 10000,
+            'mlarsen': {
+                'username': 'mlarsen',
+                'firstname': 'Martin',
+                'lastname': 'Larsen',
+                'email': 'mlarsen@nsa.gov',
+                'balance': 10000,
             },
-            "tester": {
-                "username": "tester",
-                "firstname": "Test",
-                "lastname": "Testsen",
-                "email": "tables@nsa.gov",
-                "balance": 50000,
+            'tester': {
+                'username': 'tester',
+                'firstname': 'Test',
+                'lastname': 'Testsen',
+                'email': 'tables@nsa.gov',
+                'balance': 50000,
             },
         }
         for member in self.members:
             Member.objects.create(
-                username=self.members[member]["username"],
-                firstname=self.members[member]["firstname"],
-                lastname=self.members[member]["lastname"],
-                email=self.members[member]["email"],
-                balance=self.members[member]["balance"],
+                username=self.members[member]['username'],
+                firstname=self.members[member]['firstname'],
+                lastname=self.members[member]['lastname'],
+                email=self.members[member]['email'],
+                balance=self.members[member]['balance'],
             ).save()
 
         from stregsystem.utils import parse_csv_and_create_mobile_payments
@@ -1697,28 +1526,20 @@ class MobilePaymentTests(TestCase):
             },
         ]
         # fixture where only marx is approved
-        self.fixture_form_data_marx_approved = deepcopy(
-            self.fixture_form_data_no_change
-        )
-        self.fixture_form_data_marx_approved[3]["status"] = MobilePayment.APPROVED
+        self.fixture_form_data_marx_approved = deepcopy(self.fixture_form_data_no_change)
+        self.fixture_form_data_marx_approved[3]['status'] = MobilePayment.APPROVED
 
         # fixture where both marx and jdoe is approved
-        self.fixture_form_data_marx_jdoe_approved = deepcopy(
-            self.fixture_form_data_marx_approved
-        )
-        self.fixture_form_data_marx_jdoe_approved[4]["status"] = MobilePayment.APPROVED
+        self.fixture_form_data_marx_jdoe_approved = deepcopy(self.fixture_form_data_marx_approved)
+        self.fixture_form_data_marx_jdoe_approved[4]['status'] = MobilePayment.APPROVED
 
     def test_csv_parsing(self):
         self.assertEqual(MobilePayment.objects.count(), 6)
 
         # two bobby-payments in test data
-        self.assertEqual(
-            MobilePayment.objects.filter(comment__icontains="tables").count(), 2
-        )
+        self.assertEqual(MobilePayment.objects.filter(comment__icontains="tables").count(), 2)
 
-        payment_timestamp = MobilePayment.objects.get(
-            transaction_id="156E027485173228"
-        ).timestamp
+        payment_timestamp = MobilePayment.objects.get(transaction_id="156E027485173228").timestamp
         # manually accounting for UTC+1 timezone at time of transaction
         real_timestamp = datetime.datetime(2019, 11, 29, 12, 51, 8, tzinfo=pytz.UTC)
         self.assertLess((payment_timestamp - real_timestamp).seconds, 1)
@@ -1738,112 +1559,77 @@ class MobilePaymentTests(TestCase):
 
     def test_member_exact_matching(self):
         for matched_member in MobilePayment.objects.filter(member__isnull=False):
-            self.assertEqual(
-                matched_member.member, Member.objects.get(pk=matched_member.member.pk)
-            )
+            self.assertEqual(matched_member.member, Member.objects.get(pk=matched_member.member.pk))
 
     def test_approved_payment_balance(self):
         # member balance unchanged
-        self.assertEqual(
-            Member.objects.get(username__exact="jdoe").balance,
-            self.members["jdoe"]["balance"],
-        )
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
 
         # submit mobile payment
         self.client.login(username="superuser", password="hunter2")
 
-        mobile_payment = MobilePayment.objects.get(
-            transaction_id__exact="016E027417049990"
-        )
+        mobile_payment = MobilePayment.objects.get(transaction_id__exact="016E027417049990")
         mobile_payment.status = MobilePayment.APPROVED
         mobile_payment.save()
 
         MobilePayment.submit_all_processed_mobile_payments(self.super_user)
 
         self.assertEqual(
-            Member.objects.get(username__exact="jdoe").balance,
-            self.members["jdoe"]["balance"] + mobile_payment.amount,
+            Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'] + mobile_payment.amount
         )
 
     def test_ignored_payment_balance(self):
         # member balance unchanged
-        self.assertEqual(
-            Member.objects.get(username__exact="tester").balance,
-            self.members["tester"]["balance"],
-        )
+        self.assertEqual(Member.objects.get(username__exact="tester").balance, self.members["tester"]['balance'])
 
         # submit mobile payment
         self.client.login(username="superuser", password="hunter2")
 
-        mobile_payment = MobilePayment.objects.get(
-            transaction_id__exact="207E027395896809"
-        )
+        mobile_payment = MobilePayment.objects.get(transaction_id__exact="207E027395896809")
         mobile_payment.status = MobilePayment.IGNORED
         mobile_payment.save()
 
         MobilePayment.submit_all_processed_mobile_payments(self.super_user)
 
-        self.assertEqual(
-            Member.objects.get(username__exact="tester").balance,
-            self.members["tester"]["balance"],
-        )
+        self.assertEqual(Member.objects.get(username__exact="tester").balance, self.members["tester"]['balance'])
 
     def test_batch_submission_balance(self):
         # member balance unchanged
         for member in self.members:
             self.assertEqual(
-                Member.objects.get(
-                    username__exact=self.members[member]["username"]
-                ).balance,
-                self.members[member]["balance"],
+                Member.objects.get(username__exact=self.members[member]['username']).balance,
+                self.members[member]['balance'],
             )
 
         # submit mobile payment
         self.client.login(username="superuser", password="hunter2")
 
         # approve all exact matches
-        for matched_mobile_payment in MobilePayment.objects.filter(
-            member__isnull=False
-        ):
+        for matched_mobile_payment in MobilePayment.objects.filter(member__isnull=False):
             matched_mobile_payment.status = MobilePayment.APPROVED
             matched_mobile_payment.save()
 
         # manually approve bobby
-        bobby_tables_mobile_payment1 = MobilePayment.objects.get(
-            transaction_id__exact="232E027452733666"
-        )
-        bobby_tables_mobile_payment1.member = Member.objects.get(
-            username__exact="tables"
-        )
+        bobby_tables_mobile_payment1 = MobilePayment.objects.get(transaction_id__exact="232E027452733666")
+        bobby_tables_mobile_payment1.member = Member.objects.get(username__exact="tables")
         bobby_tables_mobile_payment1.status = MobilePayment.APPROVED
         bobby_tables_mobile_payment1.save()
 
         MobilePayment.submit_all_processed_mobile_payments(self.super_user)
 
         # assert that each member who has an approved mobile payment has their balance updated by the amount given
-        for approved_mobile_payment in MobilePayment.objects.filter(
-            status__exact=MobilePayment.APPROVED
-        ):
+        for approved_mobile_payment in MobilePayment.objects.filter(status__exact=MobilePayment.APPROVED):
             member = Member.objects.get(pk=approved_mobile_payment.member.pk)
-            self.assertEqual(
-                member.balance,
-                approved_mobile_payment.amount
-                + self.members[member.username]["balance"],
-            )
+            self.assertEqual(member.balance, approved_mobile_payment.amount + self.members[member.username]['balance'])
 
     def test_member_balance_on_delete_approved_mobilepayment(self):
         # member balance unchanged before submission
-        self.assertEqual(
-            Member.objects.get(username__exact="jdoe").balance,
-            self.members["jdoe"]["balance"],
-        )
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
 
         # submit mobile payment
         self.client.login(username="superuser", password="hunter2")
 
-        mobile_payment = MobilePayment.objects.get(
-            transaction_id__exact="016E027417049990"
-        )
+        mobile_payment = MobilePayment.objects.get(transaction_id__exact="016E027417049990")
         mobile_payment.status = MobilePayment.APPROVED
         mobile_payment.save()
 
@@ -1851,83 +1637,56 @@ class MobilePaymentTests(TestCase):
 
         # ensure new balance is mobilepayment amount
         self.assertEqual(
-            Member.objects.get(username__exact="jdoe").balance,
-            self.members["jdoe"]["balance"] + mobile_payment.amount,
+            Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'] + mobile_payment.amount
         )
 
         # delete payment
         MobilePayment.objects.get(transaction_id__exact="016E027417049990").delete()
 
         # ensure member balance is original amount, as deletion of mobilepayment should revert change
-        self.assertEqual(
-            Member.objects.get(username__exact="jdoe").balance,
-            self.members["jdoe"]["balance"],
-        )
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
 
     def test_member_balance_on_delete_ignored_mobilepayment(self):
         # member balance unchanged before submission
-        self.assertEqual(
-            Member.objects.get(username__exact="jdoe").balance,
-            self.members["jdoe"]["balance"],
-        )
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
 
         # submit mobile payment
         self.client.login(username="superuser", password="hunter2")
 
-        mobile_payment = MobilePayment.objects.get(
-            transaction_id__exact="016E027417049990"
-        )
+        mobile_payment = MobilePayment.objects.get(transaction_id__exact="016E027417049990")
         mobile_payment.status = MobilePayment.IGNORED
         mobile_payment.save()
 
         MobilePayment.submit_all_processed_mobile_payments(self.super_user)
 
         # ensure balance is still initial amount
-        self.assertEqual(
-            Member.objects.get(username__exact="jdoe").balance,
-            self.members["jdoe"]["balance"],
-        )
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
 
         # delete payment
         mobile_payment.delete()
 
         # ensure member balance is original amount, as deletion of mobilepayment should revert change
-        self.assertEqual(
-            Member.objects.get(username__exact="jdoe").balance,
-            self.members["jdoe"]["balance"],
-        )
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
 
     def test_member_balance_on_delete_unset_mobilepayment(self):
         # member balance unchanged before submission
-        self.assertEqual(
-            Member.objects.get(username__exact="jdoe").balance,
-            self.members["jdoe"]["balance"],
-        )
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
 
         # submit mobile payments
         self.client.login(username="superuser", password="hunter2")
         MobilePayment.submit_all_processed_mobile_payments(self.super_user)
 
         # ensure balance is still initial amount
-        self.assertEqual(
-            Member.objects.get(username__exact="jdoe").balance,
-            self.members["jdoe"]["balance"],
-        )
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
 
         # delete payment
         MobilePayment.objects.get(transaction_id__exact="016E027417049990").delete()
 
         # ensure member balance is original amount, as deletion of mobilepayment should revert change
-        self.assertEqual(
-            Member.objects.get(username__exact="jdoe").balance,
-            self.members["jdoe"]["balance"],
-        )
+        self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
 
     def test_exact_guess(self):
-        self.assertEqual(
-            Member.objects.get(username__exact="marx"),
-            mobile_payment_exact_match_member("marx"),
-        )
+        self.assertEqual(Member.objects.get(username__exact="marx"), mobile_payment_exact_match_member("marx"))
 
     def test_emoji_strip(self):
         self.assertEqual(strip_emoji("Tilmeld Lichi 😎"), "Tilmeld Lichi")
@@ -1960,12 +1719,7 @@ class MobilePaymentTests(TestCase):
         MobilePayment.approve_member_filled_mobile_payments()
         MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
         # assert that no changes have been made, also that MobilePaytoolException is not thrown
-        self.assertEqual(
-            MobilePayment.process_submitted(
-                self.fixture_form_data_no_change, self.super_user
-            ),
-            0,
-        )
+        self.assertEqual(MobilePayment.process_submitted(self.fixture_form_data_no_change, self.super_user), 0)
 
     def test_mobilepaytool_race_error_marx(self):
         # do autopayment
@@ -1975,9 +1729,7 @@ class MobilePaymentTests(TestCase):
         # assert exception is thrown and values in exception are as expected
         with self.assertRaises(PaymentToolException):
             try:
-                MobilePayment.process_submitted(
-                    self.fixture_form_data_marx_approved, self.super_user
-                )
+                MobilePayment.process_submitted(self.fixture_form_data_marx_approved, self.super_user)
             except PaymentToolException as e:
                 self.assertEqual(e.inconsistent_mbpayments_count, 1)
                 self.assertEqual(e.inconsistent_transaction_ids, ["241E027449465355"])
@@ -1991,104 +1743,91 @@ class MobilePaymentTests(TestCase):
         # assert exception is thrown and values in exception are as expected
         with self.assertRaises(PaymentToolException):
             try:
-                MobilePayment.process_submitted(
-                    self.fixture_form_data_marx_jdoe_approved, self.super_user
-                )
+                MobilePayment.process_submitted(self.fixture_form_data_marx_jdoe_approved, self.super_user)
             except PaymentToolException as e:
                 self.assertEqual(e.inconsistent_mbpayments_count, 2)
-                self.assertEqual(
-                    e.inconsistent_transaction_ids,
-                    ["241E027449465355", "016E027417049990"],
-                )
+                self.assertEqual(e.inconsistent_transaction_ids, ["241E027449465355", "016E027417049990"])
                 raise e
 
 
 class AutoPaymentTests(TestCase):
     def setUp(self):
-        self.autopayment_user = User.objects.create_superuser(
-            "autopayment", "foo@bar.com", "hunter2"
-        )
+        self.autopayment_user = User.objects.create_superuser('autopayment', 'foo@bar.com', 'hunter2')
         self.member = Member.objects.create(
-            username="tester",
-            firstname="Test",
-            lastname="Testsen",
-            email="tables@nsa.gov",
-            balance=178,
+            username='tester', firstname='Test', lastname='Testsen', email='tables@nsa.gov', balance=178
         )
 
     def test_ignore_lt_50_20(self):
-        comment = "tester"
+        comment = 'tester'
         MobilePayment.objects.create(
             amount=2000,
             comment=comment,
             timestamp=parse_datetime("2022-05-16T13:51:08.8574424+01:00"),
-            transaction_id="156E027485173228",
+            transaction_id='156E027485173228',
             member=mobile_payment_exact_match_member(comment),
         )
 
         MobilePayment.approve_member_filled_mobile_payments()
         MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
 
-        unset = MobilePayment.objects.get(transaction_id="156E027485173228")
+        unset = MobilePayment.objects.get(transaction_id='156E027485173228')
         self.assertEqual(unset.status, MobilePayment.UNSET)
 
     def test_ignore_lt_50_49(self):
-        comment = "tester"
+        comment = 'tester'
         MobilePayment.objects.create(
             amount=4999,
             comment=comment,
             timestamp=parse_datetime("2022-05-16T13:51:08.8574424+01:00"),
-            transaction_id="156E027485173228",
+            transaction_id='156E027485173228',
             member=mobile_payment_exact_match_member(comment),
         )
 
         MobilePayment.approve_member_filled_mobile_payments()
         MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
 
-        unset = MobilePayment.objects.get(transaction_id="156E027485173228")
+        unset = MobilePayment.objects.get(transaction_id='156E027485173228')
         self.assertEqual(unset.status, MobilePayment.UNSET)
 
     def test_approve_gte_50(self):
-        comment = "tester"
+        comment = 'tester'
         MobilePayment.objects.create(
             amount=5000,
             comment=comment,
             timestamp=parse_datetime("2022-05-16T13:51:09.8574424+01:00"),
-            transaction_id="156E027485173229",
+            transaction_id='156E027485173229',
             member=mobile_payment_exact_match_member(comment),
         )
 
         MobilePayment.approve_member_filled_mobile_payments()
         MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
 
-        approved = MobilePayment.objects.get(transaction_id="156E027485173229")
+        approved = MobilePayment.objects.get(transaction_id='156E027485173229')
         self.assertEqual(approved.status, MobilePayment.APPROVED)
 
     def test_approve_gte_50_big(self):
-        comment = "tester"
+        comment = 'tester'
         MobilePayment.objects.create(
             amount=500000,
             comment=comment,
             timestamp=parse_datetime("2022-05-16T13:51:09.8574424+01:00"),
-            transaction_id="156E027485173229",
+            transaction_id='156E027485173229',
             member=mobile_payment_exact_match_member(comment),
         )
 
         MobilePayment.approve_member_filled_mobile_payments()
         MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
 
-        approved = MobilePayment.objects.get(transaction_id="156E027485173229")
+        approved = MobilePayment.objects.get(transaction_id='156E027485173229')
         self.assertEqual(approved.status, MobilePayment.APPROVED)
 
-    @mock.patch("stregsystem.models.send_payment_mail", autospec=True)
+    @mock.patch('stregsystem.models.send_payment_mail', autospec=True)
     def test_payment_mail_normal_mobile_payment(self, mock_mail_method: MagicMock):
         from stregsystem.management.commands.autopayment import Command
 
         mock_mail_method.return_value = None
 
-        MobilePayment.objects.create(
-            amount=5000, timestamp=timezone.now(), member=self.member
-        )
+        MobilePayment.objects.create(amount=5000, timestamp=timezone.now(), member=self.member)
 
         cmd = Command()
         cmd.handle()
@@ -2103,38 +1842,28 @@ class CaffeineCalculatorTest(TestCase):
         self.assertEqual(product.caffeine_content_mg, 0)
 
     def test_calculate_is_zero_if_no_caffeine_is_consumed(self):
-        user = Member.objects.create(username="test", gender="M", balance=100)
-        NOTcoffee = Product.objects.create(
-            name="koffeinfri kaffe", price=2.0, caffeine_content_mg=0, active=True
-        )
+        user = Member.objects.create(username="test", gender='M', balance=100)
+        NOTcoffee = Product.objects.create(name="koffeinfri kaffe", price=2.0, caffeine_content_mg=0, active=True)
 
         user.sale_set.create(product=NOTcoffee, price=NOTcoffee.price)
 
         self.assertEqual(0, user.calculate_caffeine_in_body())
 
     def test_calculate_is_non_zero_if_some_caffeine_is_consumed(self):
-        user = Member.objects.create(username="test", gender="M", balance=100)
+        user = Member.objects.create(username="test", gender='M', balance=100)
         coffee = Product.objects.create(
-            name="koffeinholdig kaffe",
-            price=2.0,
-            caffeine_content_mg=CAFFEINE_IN_COFFEE,
-            active=True,
+            name="koffeinholdig kaffe", price=2.0, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True
         )
 
         user.sale_set.create(product=coffee, price=coffee.price)
 
-        self.assertAlmostEqual(
-            CAFFEINE_IN_COFFEE, user.calculate_caffeine_in_body(), delta=0.001
-        )
+        self.assertAlmostEqual(CAFFEINE_IN_COFFEE, user.calculate_caffeine_in_body(), delta=0.001)
 
     def test_caffeine_1_hour(self):
         with freeze_time() as frozen_datetime:
-            user = Member.objects.create(username="test", gender="M", balance=100)
+            user = Member.objects.create(username="test", gender='M', balance=100)
             coffee = Product.objects.create(
-                name="Kaffe☕☕☕",
-                price=1,
-                caffeine_content_mg=CAFFEINE_IN_COFFEE,
-                active=True,
+                name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True
             )
 
             user.sale_set.create(product=coffee, price=coffee.price)
@@ -2150,12 +1879,9 @@ class CaffeineCalculatorTest(TestCase):
     def test_caffeine_degradation_for_1_to_10_hours(self):
         for hours in range(1, 10):
             with freeze_time() as frozen_datetime:
-                user = Member.objects.create(username="test", gender="M", balance=100)
+                user = Member.objects.create(username="test", gender='M', balance=100)
                 coffee = Product.objects.create(
-                    name="Kaffe☕☕☕",
-                    price=1,
-                    caffeine_content_mg=CAFFEINE_IN_COFFEE,
-                    active=True,
+                    name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True
                 )
 
                 user.sale_set.create(product=coffee, price=coffee.price)
@@ -2169,12 +1895,9 @@ class CaffeineCalculatorTest(TestCase):
 
     def test_caffeine_half_time_twice_with_two_cups(self):
         with freeze_time() as frozen_datetime:
-            user = Member.objects.create(username="test", gender="M", balance=100)
+            user = Member.objects.create(username="test", gender='M', balance=100)
             coffee = Product.objects.create(
-                name="Kaffe☕☕☕",
-                price=1,
-                caffeine_content_mg=CAFFEINE_IN_COFFEE,
-                active=True,
+                name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True
             )
 
             user.sale_set.create(product=coffee, price=coffee.price)
@@ -2191,10 +1914,7 @@ class CaffeineCalculatorTest(TestCase):
 
             # expected value is compound interest of 1 cup in mg for 5h, then rest + 1 cup in mg for additional 5h
             self.assertAlmostEqual(
-                (
-                    (CAFFEINE_IN_COFFEE * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 5)
-                    + CAFFEINE_IN_COFFEE
-                )
+                ((CAFFEINE_IN_COFFEE * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 5) + CAFFEINE_IN_COFFEE)
                 * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** 5,
                 user.calculate_caffeine_in_body(),
                 delta=0.001,
@@ -2205,12 +1925,9 @@ class CaffeineCalculatorTest(TestCase):
         tick_two = datetime.timedelta(hours=1, minutes=13, seconds=16)
 
         with freeze_time() as frozen_datetime:
-            user = Member.objects.create(username="test", gender="M", balance=100)
+            user = Member.objects.create(username="test", gender='M', balance=100)
             coffee = Product.objects.create(
-                name="Kaffe☕☕☕",
-                price=1,
-                caffeine_content_mg=CAFFEINE_IN_COFFEE,
-                active=True,
+                name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True
             )
 
             # do sale and tick_one
@@ -2219,9 +1936,7 @@ class CaffeineCalculatorTest(TestCase):
 
             # calc and assert degradation of 1 cup during tick_one
             expected_caffeine_in_body = float(
-                CAFFEINE_IN_COFFEE
-                * (1 - CAFFEINE_DEGRADATION_PR_HOUR)
-                ** (tick_one / datetime.timedelta(hours=1)),
+                CAFFEINE_IN_COFFEE * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** (tick_one / datetime.timedelta(hours=1)),
             )
 
             self.assertAlmostEqual(
@@ -2239,8 +1954,7 @@ class CaffeineCalculatorTest(TestCase):
 
             expected_caffeine_in_body = float(
                 expected_caffeine_in_body
-                * (1 - CAFFEINE_DEGRADATION_PR_HOUR)
-                ** (tick_two / datetime.timedelta(hours=1)),
+                * (1 - CAFFEINE_DEGRADATION_PR_HOUR) ** (tick_two / datetime.timedelta(hours=1)),
             )
 
             self.assertAlmostEqual(
@@ -2250,12 +1964,9 @@ class CaffeineCalculatorTest(TestCase):
             )
 
     def test_caffeine_str_is_correct_length(self):
-        user = Member.objects.create(username="test", gender="F", balance=100)
+        user = Member.objects.create(username="test", gender='F', balance=100)
         coffee = Product.objects.create(
-            name="Kaffe☕☕☕",
-            price=1,
-            caffeine_content_mg=CAFFEINE_IN_COFFEE,
-            active=True,
+            name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True
         )
 
         # do five sales of coffee and assert that emoji renderer returns same amount of emoji
@@ -2265,63 +1976,40 @@ class CaffeineCalculatorTest(TestCase):
                 user.sale_set.create(product=coffee, price=coffee.price)
 
             # keep assert within scope of freeze_time to ensure degradation is not applied
-            self.assertEqual(
-                "☕" * sales, caffeine_emoji_render(user.calculate_caffeine_in_body())
-            )
+            self.assertEqual("☕" * sales, caffeine_emoji_render(user.calculate_caffeine_in_body()))
 
     def test_rich_guy_is_leading_coffee_addict(self):
-        coffee_addict = Member.objects.create(
-            username="Anders", gender="M", balance=100
-        )
-        average_developer = Member.objects.create(
-            username="my-guy", gender="M", balance=50
-        )
+        coffee_addict = Member.objects.create(username="Anders", gender="M", balance=100)
+        average_developer = Member.objects.create(username="my-guy", gender="M", balance=50)
         coffee_category = Category.objects.create(name="Caffeine☕☕☕", pk=6)
         coffee_category.save()
-        coffee = Product.objects.create(
-            name="Kaffe☕☕☕", price=1, caffeine_content_mg=70, active=True
-        )
+        coffee = Product.objects.create(name="Kaffe☕☕☕", price=1, caffeine_content_mg=70, active=True)
         coffee.save()
         coffee.categories.add(coffee_category)
 
-        [
-            coffee_addict.sale_set.create(product=coffee, price=coffee.price)
-            for _ in range(5)
-        ]
-        [
-            average_developer.sale_set.create(product=coffee, price=coffee.price)
-            for _ in range(2)
-        ]
+        [coffee_addict.sale_set.create(product=coffee, price=coffee.price) for _ in range(5)]
+        [average_developer.sale_set.create(product=coffee, price=coffee.price) for _ in range(2)]
 
         self.assertTrue(coffee_addict.is_leading_coffee_addict())
         self.assertFalse(average_developer.is_leading_coffee_addict())
 
     def test_if_sunday_is_in_week(self):
         coffee_addict = Member.objects.create(username="Ida", gender="F", balance=100)
-        average_developer = Member.objects.create(
-            username="my-gal", gender="F", balance=50
-        )
+        average_developer = Member.objects.create(username="my-gal", gender="F", balance=50)
         coffee_category = Category.objects.create(name="Caffeine☕☕☕", pk=6)
         coffee_category.save()
         coffee = Product.objects.create(
-            name="Kaffe☕☕☕",
-            price=1,
-            caffeine_content_mg=CAFFEINE_IN_COFFEE,
-            active=True,
+            name="Kaffe☕☕☕", price=1, caffeine_content_mg=CAFFEINE_IN_COFFEE, active=True
         )
         # matches coffee id in production. Will be implemented with categories later, when production have a coffee
         # category
         coffee.save()
         coffee.categories.add(coffee_category)
 
-        with freeze_time(
-            timezone.datetime(year=2021, day=29, month=11, hour=8)
-        ) as monday:
+        with freeze_time(timezone.datetime(year=2021, day=29, month=11, hour=8)) as monday:
             coffee_addict.sale_set.create(product=coffee, price=coffee.price)
 
-        with freeze_time(
-            timezone.datetime(year=2021, day=5, month=12, hour=8)
-        ) as sunday:
+        with freeze_time(timezone.datetime(year=2021, day=5, month=12, hour=8)) as sunday:
             coffee_addict.sale_set.create(product=coffee, price=coffee.price)
             average_developer.sale_set.create(product=coffee, price=coffee.price)
 
@@ -2331,26 +2019,22 @@ class CaffeineCalculatorTest(TestCase):
 
 class SignupTest(TestCase):
     def setUp(self):
-        self.autopayment_user = User.objects.create_superuser(
-            "autopayment", "foo@bar.com", "hunter2"
-        )
-        self.mock_mobile_payment = MobilePayment(
-            timestamp=timezone.now(), amount=20000, transaction_id="1"
-        )
+        self.autopayment_user = User.objects.create_superuser('autopayment', 'foo@bar.com', 'hunter2')
+        self.mock_mobile_payment = MobilePayment(timestamp=timezone.now(), amount=20000, transaction_id="1")
 
     def test_signup_request_creation(self):
         user_info = {
-            "username": "john",
-            "firstname": "John",
-            "lastname": "doe",
-            "email": "johndoe@example.com",
-            "gender": "M",
+            'username': 'john',
+            'firstname': 'John',
+            'lastname': 'doe',
+            'email': 'johndoe@example.com',
+            'gender': 'M',
         }
 
-        self.client.post(reverse("signup"), user_info)
+        self.client.post(reverse('signup'), user_info)
 
         # assert that the member was created and that the due payment status is correctly set
-        member = Member.objects.get(username=user_info["username"])
+        member = Member.objects.get(username=user_info['username'])
         self.assertIsNotNone(member)
         self.assertFalse(member.signup_due_paid)
 
@@ -2359,10 +2043,8 @@ class SignupTest(TestCase):
         self.assertIsNotNone(signup_request)
 
     def test_signup_completion(self):
-        member = Member.objects.create(username="john", signup_due_paid=False)
-        signup = PendingSignup.objects.create(
-            member=member, status=ApprovalModel.APPROVED
-        )
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        signup = PendingSignup.objects.create(member=member, status=ApprovalModel.APPROVED)
         signup.complete(self.mock_mobile_payment)
 
         # Assert that the signup due payment status has been updated correctly
@@ -2374,7 +2056,7 @@ class SignupTest(TestCase):
             _ = PendingSignup.objects.get(member=member)
 
     def test_excess_payment_balance(self):
-        member = Member.objects.create(username="john", signup_due_paid=False)
+        member = Member.objects.create(username='john', signup_due_paid=False)
         signup = PendingSignup.objects.create(member=member, due=-50000)
         signup.complete(self.mock_mobile_payment)
 
@@ -2385,7 +2067,7 @@ class SignupTest(TestCase):
     def test_autopayment_command_single_payment(self):
         from stregsystem.management.commands.autopayment import Command
 
-        member = Member.objects.create(username="john", signup_due_paid=False)
+        member = Member.objects.create(username='john', signup_due_paid=False)
         PendingSignup.objects.create(member=member, status=ApprovalModel.APPROVED)
 
         self.mock_mobile_payment.member = member
@@ -2413,19 +2095,15 @@ class SignupTest(TestCase):
         """
         from stregsystem.management.commands.autopayment import Command
 
-        member = Member.objects.create(username="john", signup_due_paid=False)
+        member = Member.objects.create(username='john', signup_due_paid=False)
         PendingSignup.objects.create(
-            member=member,
-            due=self.mock_mobile_payment.amount * 2,
-            status=ApprovalModel.APPROVED,
+            member=member, due=self.mock_mobile_payment.amount * 2, status=ApprovalModel.APPROVED
         )
 
         self.mock_mobile_payment.member = member
         self.mock_mobile_payment.save()
 
-        second_payment = MobilePayment(
-            timestamp=timezone.now(), amount=20000, transaction_id="2", member=member
-        )
+        second_payment = MobilePayment(timestamp=timezone.now(), amount=20000, transaction_id="2", member=member)
 
         cmd = Command()
         cmd.handle()
@@ -2461,19 +2139,13 @@ class SignupTest(TestCase):
         """
         from stregsystem.management.commands.autopayment import Command
 
-        member = Member.objects.create(username="john", signup_due_paid=False)
-        PendingSignup.objects.create(
-            member=member,
-            due=self.mock_mobile_payment.amount,
-            status=ApprovalModel.UNSET,
-        )
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        PendingSignup.objects.create(member=member, due=self.mock_mobile_payment.amount, status=ApprovalModel.UNSET)
 
         self.mock_mobile_payment.member = member
         self.mock_mobile_payment.save()
 
-        second_payment = MobilePayment(
-            timestamp=timezone.now(), amount=20000, transaction_id="2", member=member
-        )
+        second_payment = MobilePayment(timestamp=timezone.now(), amount=20000, transaction_id="2", member=member)
 
         cmd = Command()
         cmd.handle()
@@ -2505,7 +2177,7 @@ class SignupTest(TestCase):
         """
         Tests that a signup is successful, when approved after due is paid.
         """
-        member = Member.objects.create(username="john", signup_due_paid=True)
+        member = Member.objects.create(username='john', signup_due_paid=True)
         signup = PendingSignup.objects.create(member=member, status=ApprovalModel.UNSET)
 
         # Approve signup after due has been paid.
@@ -2516,11 +2188,9 @@ class SignupTest(TestCase):
         with self.assertRaises(PendingSignup.DoesNotExist):
             _ = PendingSignup.objects.get(member=member)
 
-    @mock.patch("stregsystem.models.send_payment_mail", autospec=True)
-    @mock.patch("stregsystem.models.send_welcome_mail", autospec=True)
-    def test_only_welcome_mail_excess_balance(
-        self, mock_welcome_mail: MagicMock, mock_payment_mail: MagicMock
-    ):
+    @mock.patch('stregsystem.models.send_payment_mail', autospec=True)
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_only_welcome_mail_excess_balance(self, mock_welcome_mail: MagicMock, mock_payment_mail: MagicMock):
         """
         Test that only welcome mail is sent, when a member is signed up with excess payment.
         """
@@ -2529,11 +2199,9 @@ class SignupTest(TestCase):
         mock_welcome_mail.return_value = None
         mock_payment_mail.return_value = None
 
-        member = Member.objects.create(username="john", signup_due_paid=False)
+        member = Member.objects.create(username='john', signup_due_paid=False)
         PendingSignup.objects.create(
-            member=member,
-            due=self.mock_mobile_payment.amount / 2,
-            status=ApprovalModel.APPROVED,
+            member=member, due=self.mock_mobile_payment.amount / 2, status=ApprovalModel.APPROVED
         )
 
         self.mock_mobile_payment.member = member
@@ -2545,11 +2213,9 @@ class SignupTest(TestCase):
         mock_payment_mail.assert_not_called()
         mock_welcome_mail.assert_called_once()
 
-    @mock.patch("stregsystem.models.send_payment_mail", autospec=True)
-    @mock.patch("stregsystem.models.send_welcome_mail", autospec=True)
-    def test_only_welcome_mail_no_excess_balance(
-        self, mock_welcome_mail: MagicMock, mock_payment_mail: MagicMock
-    ):
+    @mock.patch('stregsystem.models.send_payment_mail', autospec=True)
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_only_welcome_mail_no_excess_balance(self, mock_welcome_mail: MagicMock, mock_payment_mail: MagicMock):
         """
         Test that only welcome mail is sent, when a member is signed up.
         """
@@ -2558,12 +2224,8 @@ class SignupTest(TestCase):
         mock_welcome_mail.return_value = None
         mock_payment_mail.return_value = None
 
-        member = Member.objects.create(username="john", signup_due_paid=False)
-        PendingSignup.objects.create(
-            member=member,
-            due=self.mock_mobile_payment.amount,
-            status=ApprovalModel.APPROVED,
-        )
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        PendingSignup.objects.create(member=member, due=self.mock_mobile_payment.amount, status=ApprovalModel.APPROVED)
 
         self.mock_mobile_payment.member = member
         self.mock_mobile_payment.save()
@@ -2579,7 +2241,7 @@ class MailTests(TestCase):
     def setUp(self):
         pass
 
-    @mock.patch("stregsystem.models.send_welcome_mail", autospec=True)
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
     def test_welcome_mail_manual_create_member(self, mock_mail_method: MagicMock):
         mock_mail_method.return_value = None
 
@@ -2587,13 +2249,11 @@ class MailTests(TestCase):
 
         mock_mail_method.assert_called_once()
 
-    @mock.patch("stregsystem.models.send_welcome_mail", autospec=True)
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
     def test_no_welcome_mail_no_paid_approved(self, mock_mail_method: MagicMock):
         mock_mail_method.return_value = None
 
-        member = Member.objects.create(
-            username="jeff", email="test@example.com", signup_due_paid=False
-        )
+        member = Member.objects.create(username="jeff", email="test@example.com", signup_due_paid=False)
         signup_request = PendingSignup(member=member, due=200 * 100)
         signup_request.save()
 
@@ -2601,14 +2261,12 @@ class MailTests(TestCase):
 
         mock_mail_method.assert_not_called()
 
-    @mock.patch("stregsystem.models.send_welcome_mail", autospec=True)
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
     def test_no_welcome_mail_paid_unset(self, mock_mail_method: MagicMock):
         mock_mail_method.return_value = None
 
         # Create member with no due paid
-        member = Member.objects.create(
-            username="jeff", email="test@example.com", signup_due_paid=False
-        )
+        member = Member.objects.create(username="jeff", email="test@example.com", signup_due_paid=False)
         signup_request = PendingSignup(member=member, due=200)
         signup_request.save()
 
@@ -2617,14 +2275,12 @@ class MailTests(TestCase):
         signup_request.complete(payment)
         mock_mail_method.assert_not_called()
 
-    @mock.patch("stregsystem.models.send_welcome_mail", autospec=True)
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
     def test_welcome_mail_paid_approved(self, mock_mail_method: MagicMock):
         mock_mail_method.return_value = None
 
         # Create member with no due paid, then attach pendingsignup, and then say they've paid.
-        member = Member.objects.create(
-            username="jeff", email="test@example.com", signup_due_paid=False
-        )
+        member = Member.objects.create(username="jeff", email="test@example.com", signup_due_paid=False)
         signup_request = PendingSignup(member=member, due=200)
         signup_request.save()
 
