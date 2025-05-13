@@ -18,7 +18,10 @@ from stregsystem.models import (
 
 
 def get_new_achievements(member: Member, product: Product, amount: int = 1) -> List[Achievement]:
-    """Gets newly acquired achievements after having bought something"""
+    """
+    Gets newly acquired achievements after having bought something
+    (This function assumes that a Sale was JUST made)
+    """
 
     categories = list(product.categories.values_list('id', flat=True))
     now = datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
@@ -110,7 +113,6 @@ def _find_completed_achievements(
             task_type = at.task_type
             sales = task_to_sales[at.id]
             used_funds = sales.aggregate(total=Sum('price'))['total']  # Sum of prices
-
             remaining_funds = member.balance
             alcohol_promille = member.calculate_alcohol_promille()
             caffeine = member.calculate_caffeine_in_body()
@@ -163,6 +165,34 @@ def _filter_sales(achievement_tasks: List[AchievementTask], member: Member, now:
 
         if begin_time:
             relevant_sales = relevant_sales.filter(timestamp__gte=begin_time)
+
+        # Additional filtering based on achievement constraints
+        constraints = achievement.achievementconstraint_set.all()
+        for constraint in constraints:
+            if constraint.month_start and constraint.month_end:
+                relevant_sales = relevant_sales.filter(
+                    timestamp__month__gte=constraint.month_start, 
+                    timestamp__month__lte=constraint.month_end
+                    )
+            if constraint.day_start and constraint.day_end:
+                relevant_sales = relevant_sales.filter(
+                    timestamp__day__gte=constraint.day_start,
+                    timestamp__day__lte=constraint.day_end
+                    )
+            if constraint.time_start and constraint.time_end:
+                relevant_sales = relevant_sales.filter(
+                    timestamp__time__gte=constraint.time_start,
+                    timestamp__time__lte=constraint.time_end
+                    )
+            if constraint.weekday:
+                weekday_map = {
+                    'mon': 0, 'tue': 1, 'wed': 2,
+                    'thu': 3, 'fri': 4, 'sat': 5, 'sun': 6
+                }
+                weekday_int = weekday_map.get(constraint.weekday[:3].lower(), None)
+                if weekday_int is not None:
+                    relevant_sales = relevant_sales.filter(timestamp__week_day=((weekday_int + 2) % 7 + 1))
+
 
         # Filter for specific product if defined
         if at.product:
