@@ -932,7 +932,19 @@ class AchievementConstraint(models.Model):
             raise ValidationError(errors)
 
     def __str__(self):
-        return f"Constraint for {self.achievement.title}"
+        parts = [f"Constraint for '{self.achievement.title}'"]
+
+        if self.month_start and self.month_end:
+            parts.append(f"Months: {self.month_start}-{self.month_end}")
+        if self.day_start and self.day_end:
+            parts.append(f"Days: {self.day_start}-{self.day_end}")
+        if self.time_start and self.time_end:
+            parts.append(f"Time: {self.time_start.strftime('%H:%M')}–{self.time_end.strftime('%H:%M')}")
+        if self.weekday is not None:
+            weekday_dict = dict(self.WEEK_DAYS)
+            parts.append(f"Weekday: {weekday_dict[int(self.weekday)]}")
+
+        return ", ".join(parts)
 
 
 class AchievementTask(models.Model):
