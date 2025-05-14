@@ -11,6 +11,8 @@ from django.core.validators import RegexValidator
 from django.db import models, transaction
 from django.db.models import Count
 from django.utils import timezone
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
 
 from stregsystem.caffeine import Intake, CAFFEINE_TIME_INTERVAL, current_caffeine_in_body_compound_interest
 from stregsystem.deprecated import deprecated
@@ -863,3 +865,142 @@ class Theme(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Achievement(models.Model):
+    title = models.CharField(max_length=50)
+    description = models.CharField(max_length=100)
+    icon_png = models.CharField(max_length=255)
+
+    begin_at = models.DateTimeField(null=True, blank=True)
+    duration = models.DurationField(null=True, blank=True)
+
+    def clean(self):
+        super().clean()
+        if self.begin_at and self.duration:
+            raise ValidationError("Only one of 'begin_at' or 'duration' can be set, or neither.")
+
+    def __str__(self):
+        return f"{self.title}: {self.description}"
+
+
+class AchievementConstraint(models.Model):
+    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
+
+    month_start = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(12)])
+    month_end = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(12)])
+
+    day_start = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(31)])
+    day_end = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(31)])
+
+    time_start = models.TimeField(null=True, blank=True)
+    time_end = models.TimeField(null=True, blank=True)
+
+    WEEK_DAYS = [
+        (0, "Monday"),
+        (1, "Tuesday"),
+        (2, "Wednesday"),
+        (3, "Thursday"),
+        (4, "Friday"),
+        (5, "Saturday"),
+        (6, "Sunday"),
+    ]
+
+    weekday = models.IntegerField(choices=WEEK_DAYS, null=True, blank=True)
+
+    def clean(self):
+        errors = {}
+
+        # Helper to validate pairs
+        def validate_pair(start, end, field_name):
+            start_val = getattr(self, start)
+            end_val = getattr(self, end)
+
+            if start_val is not None and end_val is None:
+                errors[end] = f"{field_name}_end must be set if {field_name}_start is set."
+            elif end_val is not None and start_val is None:
+                errors[start] = f"{field_name}_start must be set if {field_name}_end is set."
+            elif start_val is not None and end_val is not None:
+                if start_val > end_val:
+                    errors[start] = f"{field_name}_start must be less than or equal to {field_name}_end."
+
+        validate_pair('month_start', 'month_end', 'month')
+        validate_pair('day_start', 'day_end', 'day')
+        validate_pair('time_start', 'time_end', 'time')
+
+        if errors:
+            raise ValidationError(errors)
+
+    def __str__(self):
+        parts = [f"Constraint for '{self.achievement.title}'"]
+
+        if self.month_start and self.month_end:
+            parts.append(f"Months: {self.month_start}-{self.month_end}")
+        if self.day_start and self.day_end:
+            parts.append(f"Days: {self.day_start}-{self.day_end}")
+        if self.time_start and self.time_end:
+            parts.append(f"Time: {self.time_start.strftime('%H:%M')}–{self.time_end.strftime('%H:%M')}")
+        if self.weekday is not None:
+            weekday_dict = dict(self.WEEK_DAYS)
+            parts.append(f"Weekday: {weekday_dict[int(self.weekday)]}")
+
+        return ", ".join(parts)
+
+
+class AchievementTask(models.Model):
+    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)  # An achievement can have many 'tasks'
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
+    alcohol_content = models.BooleanField(default=False)
+    caffeine_content = models.BooleanField(default=False)
+
+    # (For used- & remaining_funds: 500 = 5.00 kr.)
+    # (For alcohol = True or caffeine = True: 300 = 3.00 ml or 3.00 mg)
+    goal_count = models.IntegerField(default=1)
+    TASK_TYPES = [
+        ("default", "Default"),
+        ("any", "Any"),
+        ("used_funds", "Used Funds"),
+        ("remaining_funds", "Remaining Funds"),
+    ]
+    task_type = models.CharField(max_length=50, choices=TASK_TYPES, default="default")
+
+    def clean(self):
+        super().clean()
+
+        # Collect all fields into a list of booleans indicating whether they are set
+        fields_set = [
+            bool(self.product),
+            bool(self.category),
+            self.alcohol_content is not None and self.alcohol_content,
+            self.caffeine_content is not None and self.caffeine_content,
+        ]
+
+        # Count how many are set
+        if sum(fields_set) > 1:
+            raise ValidationError(
+                "Only one of 'product', 'category', 'alcohol_content', or 'caffeine_content' can be set, or none."
+            )
+
+    def __str__(self):
+        if self.product is not None:
+            type = f"product={self.product.name}"
+        elif self.category is not None:
+            type = f"category={self.category.name}"
+        else:
+            type = f"type={self.task_type}"
+
+        return f"{self.achievement}: [{type}] Goal: {self.goal_count})"
+
+
+class AchievementComplete(models.Model):  # A members progress on a task
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("member", "achievement")
+
+    def __str__(self):
+        return f"{self.member.username} ({self.achievement.title})"

@@ -3,6 +3,9 @@ from django import forms
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
+from django.core.exceptions import ValidationError
+from datetime import datetime
+import pytz
 
 from stregsystem.models import (
     Category,
@@ -18,6 +21,10 @@ from stregsystem.models import (
     PendingSignup,
     Theme,
     ProductNote,
+    Achievement,
+    AchievementComplete,
+    AchievementTask,
+    AchievementConstraint,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
@@ -191,7 +198,7 @@ class NamedProductAdmin(admin.ModelAdmin):
 
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'items_in_category')
+    list_display = ('id', 'name', 'items_in_category')
 
     def items_in_category(self, obj):
         return obj.product_set.count()
@@ -373,6 +380,104 @@ class ProductNoteAdmin(admin.ModelAdmin):
     actions = [toggle_active_selected_products]
 
 
+class AchievementAdmin(admin.ModelAdmin):
+
+    search_fields = ['title', 'description']
+    list_display = ['title', 'description', 'icon_png', 'begin_at']
+
+    @admin.action(description="Set begin_at to now")
+    def set_begin_at_to_now(self, request, queryset):
+        tz = pytz.timezone("Europe/Copenhagen")
+        errors = []
+        for obj in queryset:
+            obj.begin_at = datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
+            try:
+                obj.full_clean()
+                obj.save()
+            except ValidationError as e:
+                errors.append((obj.title, e))
+
+        if errors:
+            for title, err in errors:
+                messages.error(request, f"Could not update '{title}': {err}")
+        else:
+            self.message_user(request, "Successfully set 'begin_at' to now for selected achievements.")
+
+    @admin.action(description="Set begin_at to null")
+    def set_begin_at_to_null(self, request, queryset):
+        errors = []
+        for obj in queryset:
+            obj.begin_at = None
+            try:
+                obj.full_clean()
+                obj.save()
+            except ValidationError as e:
+                errors.append((obj.title, e))
+
+        if errors:
+            for title, err in errors:
+                messages.error(request, f"Could not clear 'begin_at' for '{title}': {err}")
+        else:
+            self.message_user(request, "Successfully cleared 'begin_at' for selected achievements.")
+
+    actions = [set_begin_at_to_now, set_begin_at_to_null]
+
+
+class AchievementTaskAdmin(admin.ModelAdmin):
+
+    valid_lookups = 'member'
+    search_fields = ['achievement__title', 'achievement__description', 'product__name', 'category__name']
+    list_display = [
+        'achievement',
+        'get_product',
+        'category',
+        'goal_count',
+        'task_type',
+        'alcohol_content',
+        'caffeine_content',
+    ]
+
+    def get_product(self, obj):
+        p = obj.product.__str__()
+        return p[:20] + "..." if p and len(p) > 20 else p or ""
+
+
+class AchievementCompleteAdmin(admin.ModelAdmin):
+
+    valid_lookups = ['member', 'achievement']
+    search_fields = ['member__username', 'achievement__title', 'achievement__description', 'completed_at']
+    list_display = ['get_username', 'get_achievement_title', 'get_achievement_description', 'completed_at']
+
+    def get_username(self, obj):
+        return obj.member.username
+
+    def get_achievement_title(self, obj):
+        return obj.achievement.title
+
+    get_achievement_title.short_description = 'Achievement Title'
+
+    def get_achievement_description(self, obj):
+        return obj.achievement.description
+
+    get_achievement_description.short_description = 'Achievement Description'
+
+
+class AchievementConstraintAdmin(admin.ModelAdmin):
+
+    valid_lookups = ['achievement']
+    search_fields = ['achievement__title', 'achievement__description']
+    list_display = [
+        'achievement',
+        'month_start',
+        'month_end',
+        'day_start',
+        'day_end',
+        'time_start',
+        'time_end',
+        'weekday',
+    ]
+
+
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(Member, MemberAdmin)
@@ -386,3 +491,7 @@ admin.site.register(MobilePayment, MobilePaymentAdmin)
 admin.site.register(PendingSignup)
 admin.site.register(Theme, ThemeAdmin)
 admin.site.register(ProductNote, ProductNoteAdmin)
+admin.site.register(Achievement, AchievementAdmin)
+admin.site.register(AchievementTask, AchievementTaskAdmin)
+admin.site.register(AchievementComplete, AchievementCompleteAdmin)
+admin.site.register(AchievementConstraint, AchievementConstraintAdmin)

@@ -43,6 +43,9 @@ from stregsystem.models import (
     NamedProduct,
     ApprovalModel,
     ProductNote,
+    Achievement,
+    AchievementComplete,
+    AchievementTask,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -56,6 +59,12 @@ from stregsystem.utils import (
     make_unprocessed_signups_query,
 )
 
+from .achievements import (
+    get_new_achievements,
+    get_acquired_achievements,
+    get_missing_achievements,
+    get_user_leaderboard_position,
+)
 from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
 from .forms import PaymentToolForm, QRPaymentForm, PurchaseForm, SignupForm, RankingDateForm, SignupToolForm
@@ -228,12 +237,23 @@ def quicksale(request, room, member: Member, bought_ids):
         member_balance,
     ) = __set_local_values(member, room, products, order, now)
 
+    new_achievements: List[Achievement] = []
+    for p, count in Counter(products).most_common():
+        new_achievements.extend(get_new_achievements(member, p))
+
     products = Counter([str(product.name) for product in products]).most_common()
+
+    # THIS WAS NOT IN THE ORIGINAL STREGSYSTEM AND I ADDED IT BECAUSE OTHERWISE IT WOULD
+    # NOT SHOW THE PRODUCTS AFTER USING QUICKBUY
+    ProductNotePair = namedtuple('ProductNotePair', 'product note')
+    product_note_pair_list = [
+        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room.id)
+    ]
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
 
-def usermenu(request, room, member, bought, from_sale=False):
+def usermenu(request, room, member, bought, new_achievements=[], from_sale=False):
     negative_balance = member.balance < 0
     product_list = __get_productlist(room.id)
     ProductNotePair = namedtuple('ProductNotePair', 'product note')
@@ -286,6 +306,10 @@ def menu_userinfo(request, room_id, member_id):
 
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()
+    acquired_achievements = get_acquired_achievements(member)
+    missing_achievements = get_missing_achievements(member)
+    achievement_progress_str = f"{len(acquired_achievements)}/{len(acquired_achievements)+len(missing_achievements)}"
+    achievement_top_percentage = f"{round(get_user_leaderboard_position(member) * 100, 2)}%"
 
     return render(request, 'stregsystem/menu_userinfo.html', locals())
 
@@ -426,6 +450,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
+    new_achievements = []
 
     if not member.signup_due_paid:
         return render(request, 'stregsystem/error_signupdue.html', locals())
@@ -453,6 +478,8 @@ def menu_sale(request, room_id, member_id, product_id=None):
 
             order.execute()
 
+            new_achievements = get_new_achievements(member, product)
+
         except Product.DoesNotExist:
             pass
         except StregForbudError:
@@ -463,7 +490,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
 
     # Refresh member, to get new amount
     member = Member.objects.get(pk=member_id, active=True)
-    return usermenu(request, room, member, product, from_sale=True)
+    return usermenu(request, room, member, product, new_achievements, from_sale=True)
 
 
 @staff_member_required()
