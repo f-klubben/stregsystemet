@@ -237,7 +237,7 @@
     "pk": 3,
     "fields": {
       "achievement": 10,
-      "weekday": "wed"
+      "weekday": 2
     }
   },
   {

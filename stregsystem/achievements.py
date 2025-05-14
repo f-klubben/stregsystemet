@@ -65,29 +65,44 @@ def get_user_leaderboard_position(member: Member) -> float:
     """
     Returns the top percentage that the member is in
     based on number of completed achievements among all users.
-    Example: 0.1 means top 10%.
+    Users with the same total share the same rank.
     """
-    # Count number of achievements completed per member
+    # Build leaderboard with total achievement counts
     leaderboard = (
-        AchievementComplete.objects.filter(completed_at__isnull=False)
+        AchievementComplete.objects.all()
         .values('member')
-        .annotate(total=Count('id'))  # Count of achievements per user
-        .order_by('-total')  # Rank by total descending
+        .annotate(total=Count('id'))
+        .order_by('-total', 'member')  # tie-break deterministically
     )
 
-    total_members = leaderboard.count()
-    if total_members == 0:
-        return 1.0  # No data, treat user as lowest rank
+    if not leaderboard:
+        return 1.0
 
-    # Find the current user's index (rank)
-    for index, entry in enumerate(leaderboard):
-        if entry['member'] == member.id:
-            position = index + 1  # Convert to 1-based rank
-            break
-    else:
-        return 1.0  # User has no achievements
+    # Assign ranks with dense ranking
+    ranks = {}
+    current_rank = 1
+    last_total = None
 
-    return position / total_members  # Normalize to percentage
+    for entry in leaderboard:
+        member_id = entry['member']
+        total = entry['total']
+
+        if total != last_total:
+            rank = current_rank
+        # if total == last_total, keep previous rank
+
+        ranks[member_id] = rank
+        last_total = total
+        current_rank += 1
+
+    if member.id not in ranks:
+        return 1.0  # Member has no achievements
+
+    member_rank = ranks[member.id]
+    total_ranks = len(set(ranks.values()))  # total distinct rank positions
+
+    return member_rank / total_ranks
+
 
 
 def _find_completed_achievements(
@@ -184,15 +199,9 @@ def _filter_sales(achievement_tasks: List[AchievementTask], member: Member, now:
                     timestamp__time__gte=constraint.time_start,
                     timestamp__time__lte=constraint.time_end
                     )
-            if constraint.weekday:
-                weekday_map = {
-                    'mon': 0, 'tue': 1, 'wed': 2,
-                    'thu': 3, 'fri': 4, 'sat': 5, 'sun': 6
-                }
-                weekday_int = weekday_map.get(constraint.weekday[:3].lower(), None)
-                if weekday_int is not None:
-                    relevant_sales = relevant_sales.filter(timestamp__week_day=((weekday_int + 2) % 7 + 1))
-
+            if constraint.weekday is not None:
+                django_weekday = ((constraint.weekday + 1) % 7) + 1
+                relevant_sales = relevant_sales.filter(timestamp__week_day=django_weekday)
 
         # Filter for specific product if defined
         if at.product:
@@ -281,7 +290,7 @@ def _is_achievement_active(achievement: Achievement, now: datetime) -> bool:
             continue
         if c.time_end and now.time() > c.time_end:
             continue
-        if c.weekday and now.strftime("%a").lower()[:3] != c.weekday:
+        if c.weekday is not None and now.weekday() != c.weekday:
             continue
         return True  # At least one constraint matches
 

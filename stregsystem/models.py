@@ -897,25 +897,32 @@ class AchievementConstraint(models.Model):
     time_end = models.TimeField(null=True, blank=True)
 
     WEEK_DAYS = [
-        ("mon", "Monday"),
-        ("tue", "Tuesday"),
-        ("wed", "Wednesday"),
-        ("thu", "Thursday"),
-        ("fri", "Friday"),
-        ("sat", "Saturday"),
-        ("sun", "Sunday"),
+        (0, "Monday"),
+        (1, "Tuesday"),
+        (2, "Wednesday"),
+        (3, "Thursday"),
+        (4, "Friday"),
+        (5, "Saturday"),
+        (6, "Sunday"),
     ]
-    weekday = models.CharField(max_length=3, choices=WEEK_DAYS, null=True, blank=True)
+
+    weekday = models.IntegerField(choices=WEEK_DAYS, null=True, blank=True)
 
     def clean(self):
         errors = {}
 
         # Helper to validate pairs
         def validate_pair(start, end, field_name):
-            if getattr(self, start) is not None and getattr(self, end) is None:
+            start_val = getattr(self, start)
+            end_val = getattr(self, end)
+
+            if start_val is not None and end_val is None:
                 errors[end] = f"{field_name}_end must be set if {field_name}_start is set."
-            elif getattr(self, end) is not None and getattr(self, start) is None:
+            elif end_val is not None and start_val is None:
                 errors[start] = f"{field_name}_start must be set if {field_name}_end is set."
+            elif start_val is not None and end_val is not None:
+                if start_val > end_val:
+                    errors[start] = f"{field_name}_start must be less than or equal to {field_name}_end."
 
         validate_pair('month_start', 'month_end', 'month')
         validate_pair('day_start', 'day_end', 'day')

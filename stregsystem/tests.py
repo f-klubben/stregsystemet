@@ -2297,7 +2297,9 @@ class MailTests(TestCase):
 
 class AchievementLogicTests(TestCase):
     def setUp(self):
-        self.member = Member.objects.create(username="testuser", balance=100)
+        self.member1 = Member.objects.create(username="testuser1", balance=100)
+        self.member2 = Member.objects.create(username="testuser2", balance=100)
+        self.member3 = Member.objects.create(username="testuser3", balance=100)
         self.category_beer = Category.objects.create(name="Beer Category")
         self.product_beer = Product.objects.create(name="Beer", price=10, alcohol_content_ml=500, active=True)
         self.product_beer.categories.add(self.category_beer)
@@ -2317,27 +2319,33 @@ class AchievementLogicTests(TestCase):
             goal_count=2
         )
 
-    def test_get_new_achievements_returns_correct_achievement(self):
-        Sale.objects.create(
-            member=self.member, 
-            product=self.product_beer, 
-            price=10
-        )
+        self.cph_tz = pytz.timezone("Europe/Copenhagen")
 
-        new_achievements = get_new_achievements(self.member, self.product_beer)
+        self.create_sale = lambda : {
+            Sale.objects.create(
+                member=self.member1, 
+                product=self.product_beer, 
+                price=10
+            )}
+        
+        self.create_achievement_complete = lambda a, m=self.member1 : {
+            AchievementComplete.objects.create(
+                member = m,
+                achievement = a
+        )}
+
+
+    def test_get_new_achievements_returns_correct_achievement(self):
+        self.create_sale()
+
+        new_achievements = get_new_achievements(self.member1, self.product_beer)
         self.assertIn(self.achievement_beer_drinker, new_achievements)
         self.assertNotIn(self.achievement_better_beer_drinker, new_achievements)
 
 
-    def test_get_new_achievements_constraints_work(self):
-        cph_tz = pytz.timezone("Europe/Copenhagen")
-
-        with freeze_time(cph_tz.localize(datetime.datetime(2025, 5, 12, 12, 1))):
-            Sale.objects.create(
-                member=self.member, 
-                product=self.product_beer, 
-                price=10
-            )
+    def test_get_new_achievements_constraints(self):
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 12, 12, 1))):
+            self.create_sale()
 
         AchievementConstraint.objects.create(
             achievement=self.achievement_beer_drinker,
@@ -2346,42 +2354,26 @@ class AchievementLogicTests(TestCase):
             day_start=12,
             day_end=13,
             time_start=datetime.time(12, 00),
-            time_end=datetime.time(13, 00)
+            time_end=datetime.time(13, 00),
         )
 
-        with freeze_time(cph_tz.localize(datetime.datetime(2025, 5, 13, 12, 50, 0))):
-            new_achievements_1 = get_new_achievements(self.member, self.product_beer)
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 13, 12, 50, 0))):
+            new_achievements_1 = get_new_achievements(self.member1, self.product_beer)
 
-        with freeze_time(cph_tz.localize(datetime.datetime(2025, 5, 13, 13, 1, 0))):
-            new_achievements_2 = get_new_achievements(self.member, self.product_beer)
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 13, 13, 1, 0))):
+            new_achievements_2 = get_new_achievements(self.member1, self.product_beer)
 
-        with freeze_time(cph_tz.localize(datetime.datetime(2025, 5, 14, 12, 50, 0))):
-            new_achievements_3 = get_new_achievements(self.member, self.product_beer)
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 14, 12, 50, 0))):
+            new_achievements_3 = get_new_achievements(self.member1, self.product_beer)
 
         self.assertIn(self.achievement_beer_drinker, new_achievements_1)
         self.assertNotIn(self.achievement_beer_drinker, new_achievements_2)
         self.assertNotIn(self.achievement_beer_drinker, new_achievements_3)
 
 
-    def test_get_new_achievements_task_and_constraints_work_together(self):
-        cph_tz = pytz.timezone("Europe/Copenhagen")
-        
-        with freeze_time(cph_tz.localize(datetime.datetime(2025, 4, 12, 12, 1))):
-            Sale.objects.create(
-                member=self.member, 
-                product=self.product_beer, 
-                price=10 
-            )
-
-        with freeze_time(cph_tz.localize(datetime.datetime(2025, 5, 12, 12, 1))):
-            Sale.objects.create(
-                member=self.member, 
-                product=self.product_beer, 
-                price=10
-            )
-
+    def test_new_achievements_require_all_tasks_and_constraints(self):
         AchievementConstraint.objects.create( # An AchievementConstraint that covers all days
-            achievement=self.achievement_better_beer_drinker,
+            achievement=self.achievement_better_beer_drinker, # Needs TWO beer sales
             month_start=5, # Only May 
             month_end=5,
             day_start=12,
@@ -2390,18 +2382,114 @@ class AchievementLogicTests(TestCase):
             time_end=datetime.time(13, 00)
         )
 
-        with freeze_time(cph_tz.localize(datetime.datetime(2025, 5, 13, 12, 50, 0))):
-            new_achievements_1 = get_new_achievements(self.member, self.product_beer)
+        # Is not the correct month 
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 4, 12, 12, 1))):
+            self.create_sale()
 
-        with freeze_time(cph_tz.localize(datetime.datetime(2025, 5, 12, 12, 5))):
-            Sale.objects.create(
-                member=self.member, 
-                product=self.product_beer, 
-                price=10
-            )
+        # Is within the achievement constraint
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 12, 12, 1))):
+            self.create_sale()
 
-        with freeze_time(cph_tz.localize(datetime.datetime(2025, 5, 13, 12, 50, 0))):
-            new_achievements_2 = get_new_achievements(self.member, self.product_beer)
+        # get_new_achievements is called within the achievement constraint 
+        # (the output should not contain the achievement, as it needs TWO beer sales)
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 13, 12, 50, 0))):
+            new_achievements_1 = get_new_achievements(self.member1, self.product_beer)
+
+        # Is within the achievement constraint
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 12, 12, 5))):
+            self.create_sale()
+
+        # get_new_achievements is called within the achievement constraint 
+        # (The output should contain the achievement now)
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 13, 12, 50, 0))):
+            new_achievements_2 = get_new_achievements(self.member1, self.product_beer)
 
         self.assertNotIn(self.achievement_better_beer_drinker, new_achievements_1)
         self.assertIn(self.achievement_better_beer_drinker, new_achievements_2)
+
+
+    def test_get_new_achievements_weekday_constraint(self):
+        AchievementConstraint.objects.create(
+            achievement=self.achievement_beer_drinker,
+            weekday=3 # Thursday
+        )
+
+        # This day is a Wednesday
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 14))):
+            self.create_sale()
+
+        # A Thursday (Should not return beer_drinker achievement)
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15))):
+            new_achievements_1 = get_new_achievements(self.member1, self.product_beer)
+
+        # This day is a Thursday
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15))):
+            self.create_sale()
+
+        # A Thursday (Should return beer_drinker achievement)
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15))):
+            new_achievements_2 = get_new_achievements(self.member1, self.product_beer)
+
+        self.assertNotIn(self.achievement_beer_drinker, new_achievements_1)
+        self.assertIn(self.achievement_beer_drinker, new_achievements_2)        
+
+
+    def test_get_new_achievements_does_not_return_completed_achievements(self):
+        AchievementComplete.objects.create(
+            member = self.member1,
+            achievement = self.achievement_beer_drinker
+        )
+
+        self.create_sale()
+        self.create_sale()
+
+        new_achievements = get_new_achievements(self.member1, self.product_beer)  
+
+        self.assertNotIn(self.achievement_beer_drinker, new_achievements)
+        self.assertIn(self.achievement_better_beer_drinker, new_achievements)        
+
+
+    def test_get_acquired_achievements_returns_correct_achievements(self):
+        self.create_achievement_complete(self.achievement_beer_drinker)
+        acquired_achievements_1 = list(get_acquired_achievements(self.member1))
+
+        self.create_achievement_complete(self.achievement_better_beer_drinker)
+        acquired_achievements_2 = list(get_acquired_achievements(self.member1))
+        
+        self.assertIn(self.achievement_beer_drinker, acquired_achievements_1)
+        self.assertNotIn(self.achievement_better_beer_drinker, acquired_achievements_1)
+
+        self.assertIn(self.achievement_beer_drinker, acquired_achievements_2)
+        self.assertIn(self.achievement_better_beer_drinker, acquired_achievements_2)
+    
+
+    def test_get_missing_achievements_returns_correct_achievements(self):
+        self.create_achievement_complete(self.achievement_beer_drinker)
+        acquired_achievements_1 = list(get_missing_achievements(self.member1))
+
+        self.create_achievement_complete(self.achievement_better_beer_drinker)
+        acquired_achievements_2 = list(get_missing_achievements(self.member1))
+        
+        self.assertNotIn(self.achievement_beer_drinker, acquired_achievements_1)
+        self.assertIn(self.achievement_better_beer_drinker, acquired_achievements_1)
+
+        self.assertNotIn(self.achievement_beer_drinker, acquired_achievements_2)
+        self.assertNotIn(self.achievement_better_beer_drinker, acquired_achievements_2)
+
+
+    def test_get_user_leaderboard_position_returns_correct_percentage(self):
+
+        # Of all members with achievements, this member has the lowest amount (top 100%)
+        self.create_achievement_complete(self.achievement_beer_drinker, self.member2)
+
+        # This user has the most achievements, but since only 2 has achievements, he is top 50%
+        self.create_achievement_complete(self.achievement_beer_drinker, self.member3)
+        self.create_achievement_complete(self.achievement_better_beer_drinker, self.member3)
+
+        top_percentage_1 = get_user_leaderboard_position(self.member1)
+        top_percentage_2 = get_user_leaderboard_position(self.member2)
+        top_percentage_3 = get_user_leaderboard_position(self.member3)
+
+        self.assertEqual(top_percentage_1, 1.0) # A member with no achievements is always top 100%
+        self.assertEqual(top_percentage_2, 1.0) 
+        self.assertEqual(top_percentage_3, 0.5)
