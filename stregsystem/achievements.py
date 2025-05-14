@@ -104,7 +104,6 @@ def get_user_leaderboard_position(member: Member) -> float:
     return member_rank / total_ranks
 
 
-
 def _find_completed_achievements(
     related_achievement_tasks: List[AchievementTask], member: Member, now: datetime
 ) -> List[Achievement]:
@@ -186,19 +185,16 @@ def _filter_sales(achievement_tasks: List[AchievementTask], member: Member, now:
         for constraint in constraints:
             if constraint.month_start and constraint.month_end:
                 relevant_sales = relevant_sales.filter(
-                    timestamp__month__gte=constraint.month_start, 
-                    timestamp__month__lte=constraint.month_end
-                    )
+                    timestamp__month__gte=constraint.month_start, timestamp__month__lte=constraint.month_end
+                )
             if constraint.day_start and constraint.day_end:
                 relevant_sales = relevant_sales.filter(
-                    timestamp__day__gte=constraint.day_start,
-                    timestamp__day__lte=constraint.day_end
-                    )
+                    timestamp__day__gte=constraint.day_start, timestamp__day__lte=constraint.day_end
+                )
             if constraint.time_start and constraint.time_end:
                 relevant_sales = relevant_sales.filter(
-                    timestamp__time__gte=constraint.time_start,
-                    timestamp__time__lte=constraint.time_end
-                    )
+                    timestamp__time__gte=constraint.time_start, timestamp__time__lte=constraint.time_end
+                )
             if constraint.weekday is not None:
                 django_weekday = ((constraint.weekday + 1) % 7) + 1
                 relevant_sales = relevant_sales.filter(timestamp__week_day=django_weekday)
