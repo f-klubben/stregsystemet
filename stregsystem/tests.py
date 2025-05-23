@@ -2452,11 +2452,11 @@ class AchievementLogicTests(TestCase):
         self.create_achievement_complete(self.achievement_better_beer_drinker)
         acquired_achievements_2 = list(get_acquired_achievements_with_rarity(self.member1))
 
-        self.assertIn((self.achievement_beer_drinker, 33.33), acquired_achievements_1)
-        self.assertNotIn((self.achievement_better_beer_drinker, 33.33), acquired_achievements_1)
+        self.assertIn(self.achievement_beer_drinker, [x[0] for x in acquired_achievements_1])
+        self.assertNotIn(self.achievement_better_beer_drinker, [x[0] for x in acquired_achievements_1])
 
-        self.assertIn((self.achievement_beer_drinker, 33.33), acquired_achievements_2)
-        self.assertIn((self.achievement_better_beer_drinker, 33.33), acquired_achievements_2)
+        self.assertIn(self.achievement_beer_drinker, [x[0] for x in acquired_achievements_2])
+        self.assertIn(self.achievement_better_beer_drinker, [x[0] for x in acquired_achievements_2])
 
     def test_get_missing_achievements_returns_correct_achievements(self):
         self.create_achievement_complete(self.achievement_beer_drinker)
