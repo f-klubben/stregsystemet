@@ -8,6 +8,9 @@ from django.shortcuts import render
 
 from .models import KioskItem
 
+import logging
+
+logger = logging.getLogger("kiosk")
 
 def kiosk(request):
     return render(request, 'kiosk.html', locals())
@@ -27,6 +30,7 @@ def find_random_media(request):
         .first()
     )
     if item is None:
+        logging.warning("No active kiosk items found 1")
         raise Http404("No active kiosk items found")
 
     response_data = {
@@ -49,6 +53,7 @@ def find_next_media_real(request, item_id):
         .count()
     )
     if item_count == 0:
+        logging.warning("No active kiosk items found 2")
         raise Http404("No active kiosk items found")
 
     # Get the item at the index, trust that Django does this smartly.
