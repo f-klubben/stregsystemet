@@ -298,30 +298,28 @@ def menu_userinfo(request, room_id, member_id):
 
     acquired_achievements: List[Tuple[Achievement, float]] = get_acquired_achievements_with_rarity(member)
     missing_achievements: QuerySet[Achievement] = get_missing_achievements(member)
-    achievement_progress_str: str = f"{len(acquired_achievements)}/{len(acquired_achievements)+len(missing_achievements)}"
+    achievement_progress_str: str = (
+        f"{len(acquired_achievements)}/{len(acquired_achievements)+len(missing_achievements)}"
+    )
     achievement_top_percentage: str = f"{round(get_user_leaderboard_position(member) * 100, 2)}%"
     achievement_missing_icon: str = f"{settings.MEDIA_URL}stregsystem/achievement/achievement_missing.png"
 
     def get_color_by_rarity(rarity):
         if rarity <= 1:
-            color = (243,175,25) # Fortnite Orange (Legendary)
+            color = (243, 175, 25)  # Fortnite Orange (Legendary)
         elif rarity <= 5:
-            color = (157,77,187) # Fortnite Purple (Epic)
+            color = (157, 77, 187)  # Fortnite Purple (Epic)
         elif rarity <= 10:
-            color = (76,81,247) # Fortnite Blue (Rare)
+            color = (76, 81, 247)  # Fortnite Blue (Rare)
         elif rarity <= 25:
-            color = (49,146,54) # Fortnite Green (Common)
+            color = (49, 146, 54)  # Fortnite Green (Common)
         else:
-            color = (140,140,140) # Fortnite Green (Uncommon)
+            color = (140, 140, 140)  # Fortnite Green (Uncommon)
         return f"rgb{color}"
 
     # Convert the acquired achievements to a list of tuples with rounded rarity and color
     acquired_achievements = [
-        (
-            achievement,
-            f"{round(rarity, 2)}%",
-            get_color_by_rarity(rarity)
-        )
+        (achievement, f"{round(rarity, 2)}%", get_color_by_rarity(rarity))
         for achievement, rarity in acquired_achievements
     ]
 

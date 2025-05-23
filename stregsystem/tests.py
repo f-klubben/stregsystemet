@@ -2308,25 +2308,25 @@ class AchievementLogicTests(TestCase):
             task_type="product",
             product=self.product_beer,
             goal_value=1,
-            )
-        
+        )
+
         self.achievement_beer_drinker = Achievement.objects.create(
-            title="Beer Drinker", 
+            title="Beer Drinker",
             description="Drink a Beer",
-            )
-        
+        )
+
         self.achievement_beer_drinker.tasks.add(self.task_beer_drinker)
-        
+
         self.task_better_beer_drinker = AchievementTask.objects.create(
             task_type="product",
             product=self.product_beer,
             goal_value=2,
-            )
+        )
 
         self.achievement_better_beer_drinker = Achievement.objects.create(
-            title="Better Beer Drinker", 
+            title="Better Beer Drinker",
             description="Drink two Beers",
-            )
+        )
 
         self.achievement_better_beer_drinker.tasks.add(self.task_better_beer_drinker)
 
@@ -2336,7 +2336,7 @@ class AchievementLogicTests(TestCase):
 
         self.create_achievement_complete = lambda a, m=self.member1: {
             AchievementComplete.objects.create(member=m, achievement=a)
-            }
+        }
 
     def test_get_new_achievements_returns_correct_achievement(self):
         self.create_sale()

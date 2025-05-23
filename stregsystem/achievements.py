@@ -15,7 +15,7 @@ from stregsystem.models import (
     Achievement,
     AchievementComplete,
     AchievementTask,
-    AchievementConstraint
+    AchievementConstraint,
 )
 
 
@@ -53,9 +53,7 @@ def get_acquired_achievements_with_rarity(member: Member) -> List[Tuple[Achievem
     """
 
     # Get the total number of members who have completed any achievement
-    total_members = Member.objects.filter(
-        achievementcomplete__isnull=False
-    ).distinct().count()
+    total_members = Member.objects.filter(achievementcomplete__isnull=False).distinct().count()
 
     if total_members == 0:
         return []
@@ -63,9 +61,7 @@ def get_acquired_achievements_with_rarity(member: Member) -> List[Tuple[Achievem
     # For each of those achievements, calculate how many members have completed it
     achievements_with_counts = Achievement.objects.annotate(
         completed_count=Count('achievementcomplete__member', distinct=True)
-    ).filter(
-        achievementcomplete__member=member
-    )
+    ).filter(achievementcomplete__member=member)
 
     # Compute rarity as percentage
     result = [
@@ -151,7 +147,9 @@ def _find_completed_achievements(
     return completed_achievements
 
 
-def _filter_relevant_sales(achievements: List[Achievement], member: Member, now: datetime) -> Dict[AchievementTask, QuerySet[Sale]]:
+def _filter_relevant_sales(
+    achievements: List[Achievement], member: Member, now: datetime
+) -> Dict[AchievementTask, QuerySet[Sale]]:
     # Start with all sales for this member, select related to reduce hits
     member_sales = Sale.objects.filter(member=member).select_related('product').prefetch_related('product__categories')
     task_to_sales: Dict[int, QuerySet[int]] = {}
@@ -180,18 +178,15 @@ def _filter_relevant_sales(achievements: List[Achievement], member: Member, now:
             for constraint in constraints:
                 if constraint.month_start and constraint.month_end:
                     relevant_sales = relevant_sales.filter(
-                        timestamp__month__gte=constraint.month_start,
-                        timestamp__month__lte=constraint.month_end
+                        timestamp__month__gte=constraint.month_start, timestamp__month__lte=constraint.month_end
                     )
                 if constraint.day_start and constraint.day_end:
                     relevant_sales = relevant_sales.filter(
-                        timestamp__day__gte=constraint.day_start,
-                        timestamp__day__lte=constraint.day_end
+                        timestamp__day__gte=constraint.day_start, timestamp__day__lte=constraint.day_end
                     )
                 if constraint.time_start and constraint.time_end:
                     relevant_sales = relevant_sales.filter(
-                        timestamp__time__gte=constraint.time_start,
-                        timestamp__time__lte=constraint.time_end
+                        timestamp__time__gte=constraint.time_start, timestamp__time__lte=constraint.time_end
                     )
                 if constraint.weekday is not None:
                     # Django uses Sunday=1 to Saturday=7
@@ -211,15 +206,13 @@ def _filter_relevant_sales(achievements: List[Achievement], member: Member, now:
 
 
 def _filter_active_relevant_achievements(
-    product: Product,
-    constraints: QuerySet[Achievement],
-    now: datetime
+    product: Product, constraints: QuerySet[Achievement], now: datetime
 ) -> List[Achievement]:
 
     # Prefetch constraints and tasks with related product and category data
     achievements_qs = constraints.prefetch_related(
         Prefetch('constraints'),
-        Prefetch('tasks', queryset=AchievementTask.objects.select_related('product', 'category'))
+        Prefetch('tasks', queryset=AchievementTask.objects.select_related('product', 'category')),
     )
 
     # List to store filtered achievements

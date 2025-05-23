@@ -867,36 +867,36 @@ class Theme(models.Model):
     def __str__(self):
         return self.name
 
+
 class Achievement(models.Model):
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=100)
     icon = models.ImageField(upload_to="stregsystem/achievement")
 
     active_from = models.DateTimeField(
-        null=True, 
-        blank=True, 
-        help_text="Start datetime for tracking. Conflicts with 'Active Duration'. Leave both blank for all-time history."
-        )
-    
+        null=True,
+        blank=True,
+        help_text="Start datetime for tracking. Conflicts with 'Active Duration'. Leave both blank for all-time history.",
+    )
+
     active_duration = models.DurationField(
-        null=True, 
-        blank=True, 
-        help_text="Time window for tracking. Conflicts with 'Active From'. Leave both blank for all-time history."
-        )
+        null=True,
+        blank=True,
+        help_text="Time window for tracking. Conflicts with 'Active From'. Leave both blank for all-time history.",
+    )
 
     constraints = models.ManyToManyField(
-        'AchievementConstraint', 
-        blank=True, 
+        'AchievementConstraint',
+        blank=True,
         related_name='achievements',
-        help_text="Optional time-based constraints for this achievement."
-        )
-    
+        help_text="Optional time-based constraints for this achievement.",
+    )
+
     tasks = models.ManyToManyField(
-        'AchievementTask', 
+        'AchievementTask',
         related_name='achievements',
-        help_text="Tasks that must be completed to earn this achievement."
-        )
-    
+        help_text="Tasks that must be completed to earn this achievement.",
+    )
 
     def is_active(self, now: datetime) -> bool:
         constraints: AchievementConstraint = self.constraints.all()
@@ -904,23 +904,20 @@ class Achievement(models.Model):
         if not constraints.exists():
             return True
 
-        return all(c.is_active(now) for c in constraints) # All constraints needs to be active
-    
+        return all(c.is_active(now) for c in constraints)  # All constraints needs to be active
 
     def is_relevant_for_purchase(self, product: Product) -> bool:
         tasks: AchievementTask = self.tasks.all()
 
-        return any(t.is_relevant_for_purchase(product) for t in tasks) # Only one task needs to be relevant
-
+        return any(t.is_relevant_for_purchase(product) for t in tasks)  # Only one task needs to be relevant
 
     def clean(self):
         super().clean()
         if self.active_from and self.active_duration:
             raise ValidationError("Only one of 'Active From' or 'Active Duration' can be set, or neither.")
-        
+
         if not self.pk or not self.tasks.exists():
             raise ValidationError("An achievement must have at least one task.")
-
 
     def __str__(self):
         str_list = [f"{self.title} - {self.description}"]
@@ -951,47 +948,46 @@ class AchievementConstraint(models.Model):
         (12, "December"),
     ]
 
-
     month_start = models.IntegerField(
         choices=MONTHS,
-        null=True, 
-        blank=True, 
+        null=True,
+        blank=True,
         validators=[MinValueValidator(1), MaxValueValidator(12)],
-        help_text="If not set, other constraints to no specific months. (requires Month End)."
-        )
-    
+        help_text="If not set, other constraints to no specific months. (requires Month End).",
+    )
+
     month_end = models.IntegerField(
         choices=MONTHS,
         null=True,
         blank=True,
         validators=[MinValueValidator(1), MaxValueValidator(12)],
-        help_text="If not set, other constraints to no specific months. (requires Month Start)."
+        help_text="If not set, other constraints to no specific months. (requires Month Start).",
     )
 
     day_start = models.IntegerField(
         null=True,
         blank=True,
         validators=[MinValueValidator(1), MaxValueValidator(31)],
-        help_text="If not set, constraints apply to no specific days. (requires Day End)."
+        help_text="If not set, constraints apply to no specific days. (requires Day End).",
     )
-    
+
     day_end = models.IntegerField(
         null=True,
         blank=True,
         validators=[MinValueValidator(1), MaxValueValidator(31)],
-        help_text="If not set, other constraints apply no specfic days. (requires Day Start)."
+        help_text="If not set, other constraints apply no specfic days. (requires Day Start).",
     )
 
     time_start = models.TimeField(
         null=True,
         blank=True,
-        help_text="If not set, other constraints apply no specfic time range. (requires Time End)."
+        help_text="If not set, other constraints apply no specfic time range. (requires Time End).",
     )
-    
+
     time_end = models.TimeField(
         null=True,
         blank=True,
-        help_text="If not set, other constraints apply no specfic time range. (requires Time Start)."
+        help_text="If not set, other constraints apply no specfic time range. (requires Time Start).",
     )
 
     WEEK_DAYS = [
@@ -1005,21 +1001,18 @@ class AchievementConstraint(models.Model):
     ]
 
     weekday = models.IntegerField(
-        choices=WEEK_DAYS,
-        null=True,
-        blank=True,
-        help_text="If not set, other constraints apply no specfic weekday."
+        choices=WEEK_DAYS, null=True, blank=True, help_text="If not set, other constraints apply no specfic weekday."
     )
 
     def is_active(self, now: datetime) -> bool:
         return (
-            (not self.month_start or now.month >= self.month_start) and
-            (not self.month_end or now.month <= self.month_end) and
-            (not self.day_start or now.day >= self.day_start) and
-            (not self.day_end or now.day <= self.day_end) and
-            (not self.time_start or now.time() >= self.time_start) and
-            (not self.time_end or now.time() <= self.time_end) and
-            (self.weekday is None or now.weekday() == self.weekday)
+            (not self.month_start or now.month >= self.month_start)
+            and (not self.month_end or now.month <= self.month_end)
+            and (not self.day_start or now.day >= self.day_start)
+            and (not self.day_end or now.day <= self.day_end)
+            and (not self.time_start or now.time() >= self.time_start)
+            and (not self.time_end or now.time() <= self.time_end)
+            and (self.weekday is None or now.weekday() == self.weekday)
         )
 
     def clean(self):
@@ -1071,43 +1064,39 @@ class AchievementTask(models.Model):
         # Specific item types
         ("product", "Specific Product"),
         ("category", "Product Category"),
-
         # Broad purchase-based task
         ("any_purchase", "Any Purchase"),
-
         # Content-based goals
         ("alcohol_content", "Alcohol Content"),
         ("caffeine_content", "Caffeine Content"),
-
         # Financial-based goals
         ("used_funds", "Used Funds"),
-        ("remaining_funds", "Remaining Funds")
+        ("remaining_funds", "Remaining Funds"),
     ]
     task_type = models.CharField(
-        max_length=50, 
-        choices=TASK_TYPES, 
-        null=False, 
+        max_length=50,
+        choices=TASK_TYPES,
+        null=False,
         blank=False,
-        )
+    )
 
     product = models.ForeignKey(
-        Product, 
-        on_delete=models.CASCADE, 
-        null=True, 
+        Product,
+        on_delete=models.CASCADE,
+        null=True,
         blank=True,
-        help_text="Only has to be set, if 'Specific Product' was chosen as the Task Type."
-        )
-    
-    category = models.ForeignKey(
-        Category, 
-        on_delete=models.CASCADE, 
-        null=True, 
-        blank=True,
-        help_text="Only has to be set, if 'Product Category' was chosen as the Task Type."
-        )
+        help_text="Only has to be set, if 'Specific Product' was chosen as the Task Type.",
+    )
 
-    goal_value = models.IntegerField(
-        help_text="E.g. 300 = 3.00ml or mg. For funds: 500 = 5.00 kr.")
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        help_text="Only has to be set, if 'Product Category' was chosen as the Task Type.",
+    )
+
+    goal_value = models.IntegerField(help_text="E.g. 300 = 3.00ml or mg. For funds: 500 = 5.00 kr.")
 
     def is_relevant(self, product: Product, categories: List[int]) -> bool:
         """
@@ -1125,7 +1114,7 @@ class AchievementTask(models.Model):
             return True
 
         return False
-    
+
     def is_task_completed(self, sales: List[Sale], member: Member) -> bool:
         """
         Determines if the task is completed based on the sales and member's attributes.
@@ -1136,22 +1125,17 @@ class AchievementTask(models.Model):
         alcohol_promille = member.calculate_alcohol_promille()
         caffeine = member.calculate_caffeine_in_body()
 
-        if ((task_type == "product" or 
-             task_type == "category" or 
-             task_type == "any_purchase") and 
-             sales.count() < self.goal_value):
+        if (
+            task_type == "product" or task_type == "category" or task_type == "any_purchase"
+        ) and sales.count() < self.goal_value:
             return False
-        elif (task_type == "alcohol_content" and 
-              alcohol_promille < (self.goal_value / 100)):
+        elif task_type == "alcohol_content" and alcohol_promille < (self.goal_value / 100):
             return False
-        elif (task_type == "caffeine_content" and 
-              caffeine < (self.goal_value / 100)):
+        elif task_type == "caffeine_content" and caffeine < (self.goal_value / 100):
             return False
-        elif (task_type == "used_funds" and 
-              used_funds < self.goal_value):
+        elif task_type == "used_funds" and used_funds < self.goal_value:
             return False
-        elif (task_type == "remaining_funds" and 
-              remaining_funds < self.goal_value):
+        elif task_type == "remaining_funds" and remaining_funds < self.goal_value:
             return False
 
         return True
@@ -1161,7 +1145,7 @@ class AchievementTask(models.Model):
 
         if not self.task_type:
             raise ValidationError("Task type must be selected.")
-        
+
         if self.task_type == "product":
             if not self.product:
                 raise ValidationError("Product must be set if task_type is 'product'.")
@@ -1179,7 +1163,6 @@ class AchievementTask(models.Model):
         # Ensure goal_value is positive
         if self.goal_value <= 0:
             raise ValidationError("Goal value must be greater than 0.")
-
 
     def is_relevant_for_purchase(self, product: Product) -> bool:
         if self.task_type in ["any_purchase", "used_funds", "remaining_funds"]:

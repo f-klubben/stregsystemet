@@ -385,11 +385,7 @@ class ProductNoteAdmin(admin.ModelAdmin):
 
 
 class AchievementForm(forms.ModelForm):
-    existing_icons = forms.ChoiceField(
-        label="Or choose an existing image",
-        required=False,
-        choices=[]
-    )
+    existing_icons = forms.ChoiceField(label="Or choose an existing image", required=False, choices=[])
 
     class Meta:
         model = Achievement
@@ -453,31 +449,19 @@ class AchievementAdmin(admin.ModelAdmin):
     list_display = ['title', 'description', 'get_icon', 'get_active_from_or_active_duration']
 
     fieldsets = (
-        (None, {
-            'fields': ('title', 'description')
-        }),
-        (None, {
-            'fields': (('icon', 'existing_icons'),)
-        }),
-        (None, {
-            'fields': ('tasks', 'constraints')
-        }),
-        (None, {
-            'fields': (('active_from', 'active_duration'),)
-        }),
+        (None, {'fields': ('title', 'description')}),
+        (None, {'fields': (('icon', 'existing_icons'),)}),
+        (None, {'fields': ('tasks', 'constraints')}),
+        (None, {'fields': (('active_from', 'active_duration'),)}),
     )
 
     def get_icon(self, obj):
         if obj.icon:
             filename = obj.icon.name.rsplit('/', 1)[-1]
             filename = filename.rsplit('\\', 1)[-1]
-            return format_html(
-                '<img src="{}" style="height: 20px;"/> {}',
-                obj.icon.url,
-                filename
-            )
+            return format_html('<img src="{}" style="height: 20px;"/> {}', obj.icon.url, filename)
         return "-"
-    
+
     get_icon.short_description = 'Icon'
 
     def get_active_from_or_active_duration(self, obj):
@@ -485,7 +469,7 @@ class AchievementAdmin(admin.ModelAdmin):
             return f"Active From: {obj.active_from.strftime('%Y-%m-%d %H:%M:%S')}"
         elif obj.active_duration is not None:
             return f"Active Duration: {obj.active_duration}"
-        
+
     get_active_from_or_active_duration.short_description = "Active-From / -Duration"
 
     @admin.action(description="Set Active From to now")
@@ -505,6 +489,7 @@ class AchievementAdmin(admin.ModelAdmin):
 
     actions = [set_active_from_to_now, set_active_from_to_null]
 
+
 class AchievementTaskAdmin(admin.ModelAdmin):
     list_display = [
         'notes',
@@ -519,7 +504,9 @@ class AchievementTaskAdmin(admin.ModelAdmin):
             name = str(obj.product)
             return name[:20] + "..." if len(name) > 20 else name
         return ""
+
     get_product.short_description = "Product"
+
 
 class AchievementCompleteAdmin(admin.ModelAdmin):
 
@@ -554,21 +541,31 @@ class AchievementConstraintAdmin(admin.ModelAdmin):
     ]
 
     fieldsets = (
-        (None, {
-            'fields': ['notes']
-        }),
-        (None, {
-            'fields': ['month_start', 'month_end'],
-        }),
-        (None, {
-            'fields': ['day_start', 'day_end'],
-        }),
-        (None, {
-            'fields': ['time_start', 'time_end'],
-        }),
-        (None, {
-            'fields': ['weekday'],
-        }),
+        (None, {'fields': ['notes']}),
+        (
+            None,
+            {
+                'fields': ['month_start', 'month_end'],
+            },
+        ),
+        (
+            None,
+            {
+                'fields': ['day_start', 'day_end'],
+            },
+        ),
+        (
+            None,
+            {
+                'fields': ['time_start', 'time_end'],
+            },
+        ),
+        (
+            None,
+            {
+                'fields': ['weekday'],
+            },
+        ),
     )
 
 
