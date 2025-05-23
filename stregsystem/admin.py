@@ -1,11 +1,15 @@
 from django.contrib import admin
 from django import forms
+from django.conf import settings
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
 from django.core.exceptions import ValidationError
+from django.utils.html import format_html
 from datetime import datetime
+import hashlib
 import pytz
+import os
 
 from stregsystem.models import (
     Category,
@@ -380,67 +384,142 @@ class ProductNoteAdmin(admin.ModelAdmin):
     actions = [toggle_active_selected_products]
 
 
+class AchievementForm(forms.ModelForm):
+    existing_icons = forms.ChoiceField(
+        label="Or choose an existing image",
+        required=False,
+        choices=[]
+    )
+
+    class Meta:
+        model = Achievement
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        folder_path = os.path.join(settings.MEDIA_ROOT, 'stregsystem/achievement')
+        choices = [('', '---')]
+        if os.path.exists(folder_path):
+            for filename in sorted(os.listdir(folder_path)):
+                if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')):
+                    path = os.path.join('stregsystem/achievement', filename)
+                    choices.append((path, filename))
+        self.fields['existing_icons'].choices = choices
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        new_upload = self.files.get('icon')
+        selected_icon_path = self.cleaned_data.get('existing_icons')
+
+        if new_upload:
+            uploaded_bytes = new_upload.read()
+            uploaded_hash = hashlib.md5(uploaded_bytes).hexdigest()
+
+            folder_path = os.path.join(settings.MEDIA_ROOT, 'stregsystem/achievement')
+            match_found = False
+
+            for filename in os.listdir(folder_path):
+                file_path = os.path.join(folder_path, filename)
+
+                # Check for matching hash
+                with open(file_path, 'rb') as f:
+                    existing_hash = hashlib.md5(f.read()).hexdigest()
+                    if uploaded_hash == existing_hash:
+                        # Match found — use existing file
+                        instance.icon.name = os.path.join('stregsystem/achievement', filename)
+                        match_found = True
+                        break
+
+            if not match_found:
+                # No match — reset file pointer and let Django upload it
+                new_upload.seek(0)  # important!
+                instance.icon = new_upload
+
+        elif selected_icon_path:
+            # No upload, but existing image selected
+            instance.icon.name = selected_icon_path
+
+        if commit:
+            instance.save()
+        return instance
+
+
 class AchievementAdmin(admin.ModelAdmin):
+    form = AchievementForm
 
     search_fields = ['title', 'description']
-    list_display = ['title', 'description', 'icon_png', 'begin_at']
+    list_display = ['title', 'description', 'get_icon', 'get_active_from_or_active_duration']
 
-    @admin.action(description="Set begin_at to now")
-    def set_begin_at_to_now(self, request, queryset):
+    fieldsets = (
+        (None, {
+            'fields': ('title', 'description')
+        }),
+        (None, {
+            'fields': (('icon', 'existing_icons'),)
+        }),
+        (None, {
+            'fields': ('tasks', 'constraints')
+        }),
+        (None, {
+            'fields': (('active_from', 'active_duration'),)
+        }),
+    )
+
+    def get_icon(self, obj):
+        if obj.icon:
+            filename = obj.icon.name.rsplit('/', 1)[-1]
+            filename = filename.rsplit('\\', 1)[-1]
+            return format_html(
+                '<img src="{}" style="height: 20px;"/> {}',
+                obj.icon.url,
+                filename
+            )
+        return "-"
+    
+    get_icon.short_description = 'Icon'
+
+    def get_active_from_or_active_duration(self, obj):
+        if obj.active_from is not None:
+            return f"Active From: {obj.active_from.strftime('%Y-%m-%d %H:%M:%S')}"
+        elif obj.active_duration is not None:
+            return f"Active Duration: {obj.active_duration}"
+        
+    get_active_from_or_active_duration.short_description = "Active-From / -Duration"
+
+    @admin.action(description="Set Active From to now")
+    def set_active_from_to_now(self, request, queryset):
         tz = pytz.timezone("Europe/Copenhagen")
-        errors = []
         for obj in queryset:
-            obj.begin_at = datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
-            try:
-                obj.full_clean()
-                obj.save()
-            except ValidationError as e:
-                errors.append((obj.title, e))
+            obj.active_from = datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
+            obj.full_clean()
+            obj.save()
 
-        if errors:
-            for title, err in errors:
-                messages.error(request, f"Could not update '{title}': {err}")
-        else:
-            self.message_user(request, "Successfully set 'begin_at' to now for selected achievements.")
-
-    @admin.action(description="Set begin_at to null")
-    def set_begin_at_to_null(self, request, queryset):
-        errors = []
+    @admin.action(description="Set Active From to None")
+    def set_active_from_to_null(self, request, queryset):
         for obj in queryset:
-            obj.begin_at = None
-            try:
-                obj.full_clean()
-                obj.save()
-            except ValidationError as e:
-                errors.append((obj.title, e))
+            obj.active_from = None
+            obj.full_clean()
+            obj.save()
 
-        if errors:
-            for title, err in errors:
-                messages.error(request, f"Could not clear 'begin_at' for '{title}': {err}")
-        else:
-            self.message_user(request, "Successfully cleared 'begin_at' for selected achievements.")
-
-    actions = [set_begin_at_to_now, set_begin_at_to_null]
-
+    actions = [set_active_from_to_now, set_active_from_to_null]
 
 class AchievementTaskAdmin(admin.ModelAdmin):
-
-    valid_lookups = 'member'
-    search_fields = ['achievement__title', 'achievement__description', 'product__name', 'category__name']
     list_display = [
-        'achievement',
+        'notes',
+        'task_type',
+        'goal_value',
         'get_product',
         'category',
-        'goal_count',
-        'task_type',
-        'alcohol_content',
-        'caffeine_content',
     ]
 
     def get_product(self, obj):
-        p = obj.product.__str__()
-        return p[:20] + "..." if p and len(p) > 20 else p or ""
-
+        if obj.product:
+            name = str(obj.product)
+            return name[:20] + "..." if len(name) > 20 else name
+        return ""
+    get_product.short_description = "Product"
 
 class AchievementCompleteAdmin(admin.ModelAdmin):
 
@@ -463,11 +542,8 @@ class AchievementCompleteAdmin(admin.ModelAdmin):
 
 
 class AchievementConstraintAdmin(admin.ModelAdmin):
-
-    valid_lookups = ['achievement']
-    search_fields = ['achievement__title', 'achievement__description']
     list_display = [
-        'achievement',
+        'notes',
         'month_start',
         'month_end',
         'day_start',
@@ -476,6 +552,24 @@ class AchievementConstraintAdmin(admin.ModelAdmin):
         'time_end',
         'weekday',
     ]
+
+    fieldsets = (
+        (None, {
+            'fields': ['notes']
+        }),
+        (None, {
+            'fields': ['month_start', 'month_end'],
+        }),
+        (None, {
+            'fields': ['day_start', 'day_end'],
+        }),
+        (None, {
+            'fields': ['time_start', 'time_end'],
+        }),
+        (None, {
+            'fields': ['weekday'],
+        }),
+    )
 
 
 admin.site.register(LogEntry, LogEntryAdmin)

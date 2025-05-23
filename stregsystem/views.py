@@ -1,7 +1,7 @@
 import datetime
 import io
 import json
-from typing import List, Type
+from typing import List, Type, Tuple
 
 import pytz
 import qrcode
@@ -16,7 +16,7 @@ from collections import (
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.core import management
-from django.db.models import Q, Count, Sum
+from django.db.models import Q, Count, Sum, QuerySet
 from django.forms import modelformset_factory
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
@@ -61,7 +61,7 @@ from stregsystem.utils import (
 
 from .achievements import (
     get_new_achievements,
-    get_acquired_achievements,
+    get_acquired_achievements_with_rarity,
     get_missing_achievements,
     get_user_leaderboard_position,
 )
@@ -255,6 +255,7 @@ def usermenu(request, room, member, bought, new_achievements=[], from_sale=False
         bp_minutes,
         bp_seconds,
     ) = ballmer_peak(promille)
+    MEDIA_ROOT = settings.MEDIA_ROOT
 
     caffeine = member.calculate_caffeine_in_body()
     cups = caffeine_mg_to_coffee_cups(caffeine)
@@ -294,10 +295,35 @@ def menu_userinfo(request, room_id, member_id):
 
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()
-    acquired_achievements = get_acquired_achievements(member)
-    missing_achievements = get_missing_achievements(member)
-    achievement_progress_str = f"{len(acquired_achievements)}/{len(acquired_achievements)+len(missing_achievements)}"
-    achievement_top_percentage = f"{round(get_user_leaderboard_position(member) * 100, 2)}%"
+
+    acquired_achievements: List[Tuple[Achievement, float]] = get_acquired_achievements_with_rarity(member)
+    missing_achievements: QuerySet[Achievement] = get_missing_achievements(member)
+    achievement_progress_str: str = f"{len(acquired_achievements)}/{len(acquired_achievements)+len(missing_achievements)}"
+    achievement_top_percentage: str = f"{round(get_user_leaderboard_position(member) * 100, 2)}%"
+    achievement_missing_icon: str = f"{settings.MEDIA_URL}stregsystem/achievement/achievement_missing.png"
+
+    def get_color_by_rarity(rarity):
+        if rarity <= 1:
+            color = (243,175,25) # Fortnite Orange (Legendary)
+        elif rarity <= 5:
+            color = (157,77,187) # Fortnite Purple (Epic)
+        elif rarity <= 10:
+            color = (76,81,247) # Fortnite Blue (Rare)
+        elif rarity <= 25:
+            color = (49,146,54) # Fortnite Green (Common)
+        else:
+            color = (140,140,140) # Fortnite Green (Uncommon)
+        return f"rgb{color}"
+
+    # Convert the acquired achievements to a list of tuples with rounded rarity and color
+    acquired_achievements = [
+        (
+            achievement,
+            f"{round(rarity, 2)}%",
+            get_color_by_rarity(rarity)
+        )
+        for achievement, rarity in acquired_achievements
+    ]
 
     return render(request, 'stregsystem/menu_userinfo.html', locals())
 

@@ -5,18 +5,17 @@
     "fields": {
       "title": "First Purchase",
       "description": "Make your first purchase!",
-      "icon_png": "achievement_beer.png"
+      "icon":"stregsystem/achievement/achievement_beer.png",
+      "tasks": [1]
     }
   },
   {
     "model": "stregsystem.achievementtask",
     "pk": 1,
     "fields": {
-      "achievement": 1,
-      "product": null,
-      "category": null,
-      "goal_count": 1,
-      "task_type": "any"
+      "task_type": "any_purchase",
+      "goal_value": 1,
+      "notes": "Any purchase"
     }
   },
   {
@@ -25,18 +24,18 @@
     "fields": {
       "title": "Beginning Acoholic!",
       "description": "Buy your first beer.",
-      "icon_png": "achievement_beer.png"
+      "icon":"stregsystem/achievement/achievement_beer.png",
+      "tasks": [2]
     }
   },
   {
     "model": "stregsystem.achievementtask",
     "pk": 2,
     "fields": {
-      "achievement": 2,
+      "task_type": "product",
       "product": 14,
-      "category": null,
-      "goal_count": 1,
-      "task_type": "default"
+      "goal_value": 1,
+      "notes": "Buy one beer"
     }
   },
   {
@@ -45,39 +44,38 @@
     "fields": {
       "title": "Party Starter",
       "description": "Buy five drinks.",
-      "icon_png": "achievement_beer.png"
+      "icon":"stregsystem/achievement/achievement_beer.png",
+      "tasks": [3]
     }
   },
   {
     "model": "stregsystem.achievementtask",
     "pk": 3,
     "fields": {
-      "achievement": 3,
-      "product": null,
+      "task_type": "category",
       "category": 3,
-      "goal_count": 5,
-      "task_type": "default"
+      "goal_value": 5,
+      "notes": "Buy five drinks"
     }
   },
-
   {
     "model": "stregsystem.achievement",
     "pk": 4,
     "fields": {
       "title": "Beer Enthusiast",
       "description": "Buy 10 beers.",
-      "icon_png": "achievement_beer.png"
+      "icon":"stregsystem/achievement/achievement_beer.png",
+      "tasks": [4]
     }
   },
   {
     "model": "stregsystem.achievementtask",
     "pk": 4,
     "fields": {
-      "achievement": 4,
+      "task_type": "product",
       "product": 14,
-      "category": null,
-      "goal_count": 10,
-      "task_type": "default"
+      "goal_value": 10,
+      "notes": "Buy 10 beers"
     }
   },
   {
@@ -86,18 +84,17 @@
     "fields": {
       "title": "Big Spender",
       "description": "Spend over 500 kr.",
-      "icon_png": "achievement_beer.png"
+      "icon":"stregsystem/achievement/achievement_beer.png",
+      "tasks": [5]
     }
   },
   {
     "model": "stregsystem.achievementtask",
     "pk": 5,
     "fields": {
-      "achievement": 5,
-      "product": null,
-      "category": null,
-      "goal_count": 50000,
-      "task_type": "used_funds"
+      "task_type": "used_funds",
+      "goal_value": 50000,
+      "notes": "Use 500 kr."
     }
   },
   {
@@ -106,30 +103,19 @@
     "fields": {
       "title": "Drugged up!",
       "description": "Buy a beer and a coffee within a minute",
-      "icon_png": "achievement_beer.png",
-      "duration": "00:01:00"
+      "icon":"stregsystem/achievement/achievement_beer.png",
+      "active_duration": "00:01:00",
+      "tasks": [6, 2]
     }
   },
   {
     "model": "stregsystem.achievementtask",
     "pk": 6,
     "fields": {
-      "achievement": 6,
-      "product": null,
+      "task_type": "category",
       "category": 6,
-      "goal_count": 1,
-      "task_type": "default"
-    }
-  },
-  {
-    "model": "stregsystem.achievementtask",
-    "pk": 7,
-    "fields": {
-      "achievement": 6,
-      "product": null,
-      "category": 3,
-      "goal_count": 1,
-      "task_type": "default"
+      "goal_value": 1,
+      "notes": "Buy one from Caffeine Category"
     }
   },
   {
@@ -138,18 +124,18 @@
     "fields": {
       "title": "Heavy Drinker",
       "description": "Buy 20 beers.",
-      "icon_png": "achievement_beer.png"
+      "icon":"stregsystem/achievement/achievement_beer.png",
+      "tasks": [7]
     }
   },
   {
     "model": "stregsystem.achievementtask",
-    "pk": 8,
+    "pk": 7,
     "fields": {
-      "achievement": 7,
+      "task_type": "product",
       "product": 14,
-      "category": null,
-      "goal_count": 20,
-      "task_type": "default"
+      "goal_value": 20,
+      "notes": "Buy 20 beers"
     }
   },
   {
@@ -158,27 +144,18 @@
     "fields": {
       "title": "Night Owl",
       "description": "Make purchases after midnight.",
-      "icon_png": "achievement_beer.png"
-    }
-  },
-  {
-    "model": "stregsystem.achievementtask",
-    "pk": 9,
-    "fields": {
-      "achievement": 8,
-      "product": null,
-      "category": null,
-      "goal_count": 1,
-      "task_type": "any"
+      "icon":"stregsystem/achievement/achievement_beer.png",
+      "tasks": [1],
+      "constraints": [1]
     }
   },
   {
     "model": "stregsystem.achievementconstraint",
     "pk": 1,
     "fields": {
-      "achievement": 8,
       "time_start": "00:00:00",
-      "time_end": "04:00:00"
+      "time_end": "04:00:00",
+      "notes": "Between 00:00 and 04:00"
     }
   },
   {
@@ -187,29 +164,20 @@
     "fields": {
       "title": "What a random day huh?",
       "description": "Make a purchase the 19th of April.",
-      "icon_png": "achievement_beer.png"
-    }
-  },
-  {
-    "model": "stregsystem.achievementtask",
-    "pk": 10,
-    "fields": {
-      "achievement": 9,
-      "product": null,
-      "category": null,
-      "goal_count": 1,
-      "task_type": "any"
+      "icon":"stregsystem/achievement/achievement_beer.png",
+      "tasks": [1],
+      "constraints": [2]
     }
   },
   {
     "model": "stregsystem.achievementconstraint",
     "pk": 2,
     "fields": {
-      "achievement": 9,
       "day_start": 19,
       "day_end": 19,
       "month_start": 4,
-      "month_end": 4
+      "month_end": 4,
+      "notes": "19th April"
     }
   },
   {
@@ -218,26 +186,17 @@
     "fields": {
       "title": "It is Wednesday my coder!",
       "description": "Make a purchase on a Wednesday.",
-      "icon_png": "achievement_beer.png"
-    }
-  },
-  {
-    "model": "stregsystem.achievementtask",
-    "pk": 11,
-    "fields": {
-      "achievement": 10,
-      "product": null,
-      "category": null,
-      "goal_count": 1,
-      "task_type": "any"
+      "icon":"stregsystem/achievement/achievement_beer.png",
+      "tasks": [1],
+      "constraints": [3]
     }
   },
   {
     "model": "stregsystem.achievementconstraint",
     "pk": 3,
     "fields": {
-      "achievement": 10,
-      "weekday": 2
+      "weekday": 2,
+      "notes": "A Wednesday"
     }
   },
   {
@@ -246,19 +205,17 @@
     "fields": {
       "title": "Drunk MF'er",
       "description": "You are now drunk.",
-      "icon_png": "achievement_beer.png"
+      "icon":"stregsystem/achievement/achievement_beer.png",
+      "tasks": [8]
     }
   },
   {
     "model": "stregsystem.achievementtask",
-    "pk": 12,
+    "pk": 8,
     "fields": {
-      "achievement": 11,
-      "product": null,
-      "category": null,
-      "goal_count": 30,
-      "alcohol_content": true,
-      "task_type": "default"
+      "task_type": "alcohol_content",
+      "goal_value": 300,
+      "notes": "Alcohol Content of 3.0"
     }
   }
 ]

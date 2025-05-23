@@ -96,24 +96,27 @@
    </table>
    <a href="/{{room.id}}/send_csv_mail/{{member.id}}/">Anmod om bruger data</a>
 
-   <p><b>Achievements ({{ achievement_progress_str }}):</b></p>
-   <h3><b>You are Top: {{ achievement_top_percentage }}</b></h3>
-   <div class="achievement-grid">
-      {% for achievement in acquired_achievements %}
-         <div class="achievement-card">   
-            <img 
-               class="achievement-logo" 
-               src="{% static 'stregsystem/achievement/' %}{{ achievement.icon_png }}" 
-               alt="Achievement Logo">
-            <div class="achievement-title">{{ achievement.title }}</div>
-            <div class="achievement-description">{{ achievement.description }}</div>
-         </div>
+   <h3><b>Achievements ({{ achievement_progress_str }}):</b></h3>
+   <p><b>You are Top: {{ achievement_top_percentage }}</b></p>
+   <div class="achievement-grid" id="achievements">
+      {% for achievement_tuple in acquired_achievements %}
+         {% with achievement=achievement_tuple.0 rarity=achievement_tuple.1 color=achievement_tuple.2 %}
+            <div class="achievement-card">
+               <div class="rarity-badge" style="background-color: {{ color }}">{{ rarity }}</div>    
+               <img 
+                  class="achievement-logo" 
+                  src="{{ achievement.icon.url }}" 
+                  alt="Achievement Logo">
+               <div class="achievement-title">{{ achievement.title }}</div>
+               <div class="achievement-description">{{ achievement.description }}</div>
+            </div>
+         {% endwith %}
       {% endfor %}
       {% for achievement in missing_achievements %}
       <div class="achievement-card">
          <img 
             class="achievement-logo" 
-            src="{% static 'stregsystem/achievement/achievement_missing.png' %}" 
+            src={{ achievement_missing_icon }}
             alt="Achievement Logo">
          <div class="achievement-title">{{ achievement.title }}</div>
       </div>
@@ -122,6 +125,7 @@
 </main>
 
 <style>
+
    .achievement-grid {
       display: flex;
       flex-wrap: wrap;
@@ -130,6 +134,18 @@
       margin-top: 10px;
    }
    
+   .rarity-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      color: #fff;
+      font-size: 0.75em;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+   }
+
    .achievement-card {
       display: flex;
       flex-direction: column;
@@ -140,7 +156,9 @@
       border: 1px solid #ddd;
       border-radius: 8px;
       background-color: #f9f9f9;
-   }
+      position: relative; /* Needed for tooltip positioning */
+      cursor: pointer; /* Hint that it’s interactive */
+    }
    
    .achievement-logo {
       width: 40px;
