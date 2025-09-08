@@ -98,7 +98,7 @@ def get_user_leaderboard_position(member: Member) -> float:
     )
 
     if not leaderboard:
-        return 1.0
+        return 100.0
 
     # Assign ranks with dense ranking
     ranks = {}
@@ -118,7 +118,7 @@ def get_user_leaderboard_position(member: Member) -> float:
         current_rank += 1
 
     if member.id not in ranks:
-        return 1.0  # Member has no achievements
+        return 100.0  # Member has no achievements
 
     member_rank = ranks[member.id]
     total_ranks = len(set(ranks.values()))  # total distinct rank positions

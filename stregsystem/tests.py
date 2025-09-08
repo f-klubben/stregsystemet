@@ -2490,6 +2490,6 @@ class AchievementLogicTests(TestCase):
         top_percentage_2 = get_user_leaderboard_position(self.member2)
         top_percentage_3 = get_user_leaderboard_position(self.member3)
 
-        self.assertEqual(top_percentage_1, 1.0)  # A member with no achievements is always top 100%
-        self.assertEqual(top_percentage_2, 1.0)
-        self.assertEqual(top_percentage_3, 0.5)
+        self.assertEqual(top_percentage_1, 100.0)  # A member with no achievements is always top 100%
+        self.assertEqual(top_percentage_2, 100.0)
+        self.assertEqual(top_percentage_3, 50.0)
