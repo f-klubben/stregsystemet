@@ -313,7 +313,7 @@ def menu_userinfo(request, room_id, member_id):
     achievement_progress_str: str = (
         f"{len(acquired_achievements)}/{len(acquired_achievements)+len(missing_achievements)}"
     )
-    achievement_top_percentage: str = f"{round(get_user_leaderboard_position(member) * 100, 2)}%"
+    achievement_top_percentage: float = get_user_leaderboard_position(member)
     achievement_missing_icon: str = f"{settings.MEDIA_URL}stregsystem/achievement/achievement_missing.png"
 
     def get_color_by_rarity(rarity):

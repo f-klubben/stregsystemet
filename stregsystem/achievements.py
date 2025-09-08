@@ -86,6 +86,8 @@ def get_user_leaderboard_position(member: Member) -> float:
     Returns the top percentage that the member is in
     based on number of completed achievements among all users.
     Users with the same total share the same rank.
+
+    output is a float between 0.0 and 100.0 (2 decimal places)
     """
     # Build leaderboard with total achievement counts
     leaderboard = (
@@ -121,7 +123,8 @@ def get_user_leaderboard_position(member: Member) -> float:
     member_rank = ranks[member.id]
     total_ranks = len(set(ranks.values()))  # total distinct rank positions
 
-    return member_rank / total_ranks
+    result = member_rank / total_ranks
+    return round(result * 100, 2)
 
 
 def _find_completed_achievements(
