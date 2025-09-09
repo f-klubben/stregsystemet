@@ -97,7 +97,7 @@
    <a href="/{{room.id}}/send_csv_mail/{{member.id}}/">Anmod om bruger data</a>
 
    <h3><b>Achievements ({{ achievement_progress_str }}):</b></h3>
-   <p><b>You are Top: {{ achievement_top_percentage }}</b></p>
+   <p><b>You are Top: {{ achievement_top_percentage }}%</b></p>
    <div class="achievement-grid" id="achievements">
       {% for achievement_tuple in acquired_achievements %}
          {% with achievement=achievement_tuple.0 rarity=achievement_tuple.1 color=achievement_tuple.2 %}
