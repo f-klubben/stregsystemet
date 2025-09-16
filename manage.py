@@ -2,6 +2,10 @@
 import os
 import sys
 
+import setup_utils
+
+setup_utils.check_for_debugger(sys.argv)
+
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "treo.settings")
     try:
