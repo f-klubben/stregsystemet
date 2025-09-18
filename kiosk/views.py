@@ -75,7 +75,7 @@ def find_next_media_real(request, item_id):
             )
             .order_by('ordering', 'id')[0]
         )
-    
+
     media_url = next_item.media.url if next_item.media else next_item.website_url
     is_image = next_item.is_image if next_item.media else False
 
