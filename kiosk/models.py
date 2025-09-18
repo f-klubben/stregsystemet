@@ -13,6 +13,7 @@ class KioskItem(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True, unique=False)
     notes = models.CharField(max_length=2000, blank=True, null=True)
     uploaded_date = models.DateField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
     media = models.FileField(upload_to='kiosk', null=False, validators=[validate_file_extension])
     ordering = models.IntegerField(null=False, default=random_ordering, blank=False)

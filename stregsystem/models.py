@@ -180,6 +180,8 @@ class Member(models.Model):  # id automatisk...
     undo_count = models.IntegerField(default=0)  # for 'undos' i alt
     notes = models.TextField(blank=True)
     signup_due_paid = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     stregforbud_override = False
 
@@ -347,6 +349,8 @@ class Payment(models.Model):  # id automatisk...
     timestamp = models.DateTimeField(auto_now_add=True)
     amount = models.IntegerField()  # penge, oere...
     notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     @deprecated
     def amount_display(self):
@@ -586,6 +590,8 @@ class Product(models.Model):  # id automatisk...
     rooms = models.ManyToManyField(Room, blank=True)
     alcohol_content_ml = models.FloatField(default=0.0, null=True)
     caffeine_content_mg = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     @deprecated
     def __unicode__(self):
@@ -646,6 +652,8 @@ class ProductNote(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.text + " (" + " | ".join(str(x.name) for x in self.products.all()) + ")"
@@ -681,6 +689,8 @@ class Sale(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     price = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         index_together = [
@@ -721,6 +731,8 @@ class News(models.Model):
     text = models.TextField()
     pub_date = models.DateTimeField()
     stop_date = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name_plural = "News"
@@ -739,6 +751,8 @@ class PendingSignup(ApprovalModel):
 
     member = models.ForeignKey(Member, on_delete=models.CASCADE, null=False)
     due = models.IntegerField(default=200 * 100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def generate_mobilepay_url(self):
         comment = self.member.username
@@ -847,6 +861,8 @@ class Theme(models.Model):
     begin_day = models.PositiveSmallIntegerField("Begin day", default=1)
     end_month = models.PositiveSmallIntegerField("End month")
     end_day = models.PositiveSmallIntegerField("End day", default=31)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     NONE = "N"
     SHOW = "S"
