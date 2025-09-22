@@ -1,19 +1,23 @@
 import debugpy
 
+waitForDebugArg = "--waitForDebug"
+debugPort = 5678
+
 
 def check_for_debugger(args: list[str]):
     """
     Checks whether a debugger is expected and if so waits for it.
     """
 
-    waitForDebugArg = "--waitForDebug"
-
     if waitForDebugArg in args:
         listen_and_wait_for_debugger()
 
 
 def listen_and_wait_for_debugger():
-    debugPort = 5678
+    """
+    Listens for a debugger to attach and waits until it does.
+    """
+
     attachDebuggerNotification = f"###\n Waiting for debugger on port {debugPort}! Either attach a debugger or run without the '{waitForDebugArg}' arg. \n###"
     print(attachDebuggerNotification)
     debugpy.listen(("localhost", debugPort))
