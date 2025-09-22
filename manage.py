@@ -4,9 +4,10 @@ import sys
 
 import setup_utils
 
-setup_utils.check_for_debugger(sys.argv)
 
 if __name__ == "__main__":
+    setup_utils.check_for_debugger(sys.argv)
+
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "treo.settings")
     try:
         from django.core.management import execute_from_command_line
