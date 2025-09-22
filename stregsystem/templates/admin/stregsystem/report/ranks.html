@@ -15,17 +15,18 @@
 	{% endif %}
 <center>
 	<div id="statscontainer" style="margin-top: 12px; width: 1200px; float: left;">
-		<div id="stats" style="width: 200px; float: left;">
+		{% for stat_list in stat_lists %}
+		<div class="stats" style="width: 200px; float: left;">
 			<table border="1" cellspacing="2" cellpadding="2">
 			<tr>
-				<th valign="top" colspan="3">Øl</th>
+				<th valign="top" colspan="3">{{stat_list.0}}</th>
 			</tr>
 	  		<tr>
 		  	  <th>#</th>
 	  	  	<th>Bruger</th>
   			  <th>Antal</th>
 		  	</tr>
-		  	{% for stat in beer_stat_list %}
+		  	{% for stat in stat_list.1 %}
 			  <tr>
 		      <td>{{forloop.counter}}</td>
   			  <td>{{stat.username}}</td>
@@ -34,82 +35,7 @@
 		  {% endfor %}
 			</table>
 		</div>
-		<div id="stats2" style="width: 200px; float: left;">
-			<table border="1" cellspacing="2" cellpadding="2">
-			<tr>
-				<th valign="top" colspan="3">Koffein</th>
-			</tr>
-	  		<tr>
-		  	  <th>#</th>
-	  	  	<th>Bruger</th>
-  			  <th>Antal</th>
-		  	</tr>
-		  	{% for stat in caffeine_stat_list %}
-			  <tr>
-		      <td>{{forloop.counter}}</td>
-  			  <td>{{stat.username}}</td>
-	  		  <td>{{stat.sale__count}}</td>
-		  	</tr>
-		  {% endfor %}
-			</table>
-		</div>
-		<div id="stats3" style="width: 200px; float: left;">
-			<table border="1" cellspacing="2" cellpadding="2">
-			<tr>
-				<th valign="top" colspan="3">Mælkeprodukter</th>
-			</tr>
-	  		<tr>
-		  	  <th>#</th>
-	  	  	<th>Bruger</th>
-  			  <th>Antal</th>
-		  	</tr>
-		  	{% for stat in milk_stat_list %}
-			  <tr>
-		      <td>{{forloop.counter}}</td>
-  			  <td>{{stat.username}}</td>
-	  		  <td>{{stat.sale__count}}</td>
-		  	</tr>
-		  {% endfor %}
-			</table>
-		</div>
-		<div id="stats4" style="width: 200px; float: left;">
-			<table border="1" cellspacing="2" cellpadding="2">
-			<tr>
-				<th valign="top" colspan="3">Kaffe</th>
-			</tr>
-	  		<tr>
-		  	  <th>#</th>
-	  	  	<th>Bruger</th>
-  			  <th>Antal</th>
-		  	</tr>
-		  	{% for stat in coffee_stat_list %}
-			  <tr>
-		    	<td>{{forloop.counter}}</td>
-  			  <td>{{stat.username}}</td>
-	  		  <td>{{stat.sale__count}}</td>
-		  	</tr>
-		  {% endfor %}
-			</table>
-		</div>
-		<div id="stats5" style="width: 200px; float: left;">
-			<table border="1" cellspacing="2" cellpadding="2">
-			<tr>
-				<th valign="top" colspan="3">Vitaminvand</th>
-			</tr>
-	  		<tr>
-		  	  <th>#</th>
-	  	  	<th>Bruger</th>
-  			  <th>Antal</th>
-		  	</tr>
-		  	{% for stat in vitamin_stat_list %}
-			  <tr>
-		    	<td>{{forloop.counter}}</td>
-  			  <td>{{stat.username}}</td>
-	  		  <td>{{stat.sale__count}}</td>
-		  	</tr>
-		  {% endfor %}
-			</table>
-		</div>
+		{% endfor %}
 		<div id="stats6" style="width: 200px; float: left;">
 			<table border="1" cellspacing="2" cellpadding="2">
 			<tr>
