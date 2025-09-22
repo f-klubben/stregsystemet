@@ -1,7 +1,7 @@
 Debuggers
 ========
 
-When running the server, using the argument --waitForDebug will tell the [manage.py](./manage.py) file to wait for a debugger to be attached before initializing the Django environment and running the command.
+When running the server, using the argument `--waitForDebug` will tell the [manage.py](./manage.py) file to wait for a debugger to be attached before initializing the Django environment and running the command.
 
 VSCode
 -------
