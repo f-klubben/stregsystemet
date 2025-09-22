@@ -5,11 +5,11 @@ When running the server, using the argument `--waitForDebug` will tell the [mana
 
 VSCode
 -------
-In VSCode to attach the debugger requires you to create a launch.json file, you can do this through the `Run and Debug` menu, which contains the following:
+In VSCode to attach the debugger requires you to create a launch.json file, you can do this through the `Run and Debug` menu, which contains the following configuration:
 ```json
 {
     "name": "Attach Debugger",
-    "type": "python",
+    "type": "debugpy",
     "request": "attach",
     "connect": {
         "host": "localhost",

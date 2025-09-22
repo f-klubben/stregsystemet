@@ -6,7 +6,7 @@ import setup_utils
 
 
 if __name__ == "__main__":
-    setup_utils.check_for_debugger(sys.argv)
+    cleanArgs = setup_utils.check_for_debugger(sys.argv)
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "treo.settings")
     try:
@@ -24,4 +24,4 @@ if __name__ == "__main__":
                 "forget to activate a virtual environment?"
             )
         raise
-    execute_from_command_line(sys.argv)
+    execute_from_command_line(cleanArgs)

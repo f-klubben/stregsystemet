@@ -4,13 +4,16 @@ waitForDebugArg = "--waitForDebug"
 debugPort = 5678
 
 
-def check_for_debugger(args: list[str]):
+def check_for_debugger(args: list[str]) -> list[str]:
     """
-    Checks whether a debugger is expected and if so waits for it.
+    Checks whether a debugger is expected and if so waits for it. Return the args not containing the waitForDebugArg.
     """
 
     if waitForDebugArg in args:
         listen_and_wait_for_debugger()
+        args.remove(waitForDebugArg)
+
+    return args
 
 
 def listen_and_wait_for_debugger():
