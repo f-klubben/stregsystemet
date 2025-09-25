@@ -346,6 +346,7 @@ class Payment(models.Model):  # id automatisk...
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     amount = models.IntegerField()  # penge, oere...
+    notes = models.TextField(blank=True)
 
     @deprecated
     def amount_display(self):
@@ -564,6 +565,7 @@ class Category(models.Model):
 class Room(models.Model):
     name = models.CharField(max_length=64)
     description = models.CharField(max_length=64)
+    notes = models.TextField(blank=True)
 
     @deprecated
     def __unicode__(self):
@@ -624,6 +626,29 @@ class Product(models.Model):  # id automatisk...
             out_of_stock = False
 
         return self.active and not expired and not out_of_stock
+
+
+class ProductNote(models.Model):
+    """A tag that can be assigned to products.
+
+    Model for notes about a product, which should be visible in a certain range of time.
+    Such as a note stating that the product is new for the first couple of weeks.
+    """
+
+    products = models.ManyToManyField(Product)
+    rooms = models.ManyToManyField(Room, blank=True)
+    text = models.TextField()
+    active = models.BooleanField(default=True)
+    background_color = models.CharField(
+        max_length=20, help_text="Write a valid html color (default: red)", blank="red"
+    )  # If anyone wants to use LightGoldenRodYellow, they can
+    text_color = models.CharField(max_length=20, help_text="Write a valid html color (default: black)", blank="black")
+    start_date = models.DateField()
+    end_date = models.DateField()
+    comment = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.text + " (" + " | ".join(str(x.name) for x in self.products.all()) + ")"
 
 
 class NamedProduct(models.Model):
