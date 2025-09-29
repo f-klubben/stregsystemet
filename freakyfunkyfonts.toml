@@ -1,0 +1,33 @@
+[fonts]
+pool = [
+   #System defaults
+   "Times New Roman", 
+   "Times", 
+   #"Georgia", 
+   "Garamond", 
+   "Cambria", 
+   "Palatino Linotype", 
+   "Book Antiqua",
+   # Google serif fonts (require link injection)
+   "Lora", 
+   "Crimson Text", 
+   "Cardo", 
+   "PT Serif", 
+   "Noto Serif", 
+   "EB Garamond", 
+   "Spectral", 
+   "Source Serif Pro", 
+]
+
+
+[inject]
+tags = [
+  '<link href="https://fonts.googleapis.com/css2?family=Lora&family=Crimson+Text&family=Cardo&family=PT+Serif&family=Noto+Serif&family=EB+Garamond&family=Spectral&family=Source+Serif+Pro&display=swap" rel="stylesheet">'
+]
+
+[behaviour]
+# HTML tags to skip completely
+skip_tags = ['head', 'title', 'meta', 'link', 'style', 'script']
+# Where to apply the font chaos
+# Options: "body" (only inside <body>), "all" (whole document)
+scope = ["body", "article", "main"]
