@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def send_welcome_mail(member):
+    logger.debug(f"Sending welcome mail to: {member.id}")
     send_template_mail(
         member,
         "welcome.html",
@@ -25,6 +26,7 @@ def send_welcome_mail(member):
 
 
 def send_payment_mail(member, amount, mobilepay_comment):
+    logger.debug(f"Sending payment mail to: {member.id}")
     send_template_mail(
         member,
         "deposit_manual.html" if mobilepay_comment else "deposit_automatic.html",
@@ -39,6 +41,7 @@ data_sent = {}
 def send_userdata_mail(member):
     from .models import Payment, Sale, MobilePayment
 
+    logger.debug(f"Sending userdata to:: {member.id}")
     now = timezone.now()
     td = now - timezone.timedelta(minutes=5)
     if member.id in data_sent.keys() and data_sent[member.id] > td:

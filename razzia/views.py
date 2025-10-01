@@ -8,6 +8,9 @@ from django.utils import timezone
 from razzia.models import Razzia, RazziaEntry
 from stregsystem.models import Member
 
+import logging
+
+logger = logging.getLogger("razzia")
 
 # Create your views here.
 @permission_required("razzia.view_razzia")
@@ -29,6 +32,7 @@ def razzia_view_single(request, razzia_id, queryname, title=None):
 
     result = list(Member.objects.filter(username__iexact=queryname))
     if len(result) == 0:
+        logger.warning(f"Member not found: {queryname}")
         return render(request, template, locals())
 
     member = result[0]
@@ -47,6 +51,7 @@ def razzia_view_single(request, razzia_id, queryname, title=None):
         drunkard = True
         remaining_time_secs = int(((entries[0].time + razzia.turn_interval) - timezone.now()).total_seconds() % 60)
         remaining_time_mins = int(((entries[0].time + razzia.turn_interval) - timezone.now()).total_seconds() // 60)
+        logger.debug(f"Member back too soon: {remaining_time_mins} min, {remaining_time_secs} sec")
         return render(request, template, locals())
 
     RazziaEntry(member=member, razzia=razzia).save()
@@ -59,10 +64,13 @@ def razzia_menu(request, new_text=None, title=None):
     razzias = Razzia.objects.order_by('-pk')[:3]
 
     if not request.user.has_perm("razzia.browse_razzia"):
+        logger.warning(f"Permission denied, missing browse_razzia", request)
         if len(razzias) == 0:
+            logger.debug("No razzias to redirect to")
             # In case no razzias are available, default to no permission
             raise PermissionDenied
 
+        logger.debug("Redirect to first razzia")
         return redirect('razzia_view', razzia_id=razzias[0].pk)
 
     return render(request, 'menu.html', locals())
@@ -72,12 +80,14 @@ def razzia_menu(request, new_text=None, title=None):
 def new_razzia(request):
     razzia = Razzia(name="Foobar V2", turn_interval=datetime.timedelta(minutes=30))
     razzia.save()
+    logger.debug(f"New razzia created: {razzia.id}")
 
     return redirect('razzia_view', razzia_id=razzia.pk)
 
 
 @permission_required("razzia.view_razziaentry")
 def razzia_members(request, razzia_id, title=None):
+    logger.debug("Razzia find members")
     razzia = get_object_or_404(Razzia, pk=razzia_id)
     unique_members = razzia.members.all().distinct().count()
     return render(request, 'members.html', locals())
