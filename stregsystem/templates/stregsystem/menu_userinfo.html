@@ -1,5 +1,7 @@
 {% extends "stregsystem/base.html" %}
 
+{% load static %}
+
 {% load stregsystem_extras %}
 
 {% block title %}Treoens stregsystem : Brugerinfo {% endblock %}
@@ -93,7 +95,89 @@
       </tr>
    </table>
    <a href="/{{room.id}}/send_csv_mail/{{member.id}}/">Anmod om bruger data</a>
+
+   <h3><b>Achievements ({{ achievement_progress_str }}):</b></h3>
+   <p><b>You are Top: {{ achievement_top_percentage }}%</b></p>
+   <div class="achievement-grid" id="achievements">
+      {% for achievement_tuple in acquired_achievements %}
+         {% with achievement=achievement_tuple.0 rarity=achievement_tuple.1 color=achievement_tuple.2 %}
+            <div class="achievement-card">
+               <div class="rarity-badge" style="background-color: {{ color }}">{{ rarity }}</div>    
+               <img 
+                  class="achievement-logo" 
+                  src="{{ achievement.icon.url }}" 
+                  alt="Achievement Logo">
+               <div class="achievement-title">{{ achievement.title }}</div>
+               <div class="achievement-description">{{ achievement.description }}</div>
+            </div>
+         {% endwith %}
+      {% endfor %}
+      {% for achievement in missing_achievements %}
+      <div class="achievement-card">
+         <img 
+            class="achievement-logo" 
+            src={{ achievement_missing_icon }}
+            alt="Achievement Logo">
+         <div class="achievement-title">{{ achievement.title }}</div>
+      </div>
+   {% endfor %}
+   </div>
 </main>
 
-{% endblock %}
+<style>
 
+   .achievement-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 10px;
+   }
+   
+   .rarity-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      color: #fff;
+      font-size: 0.75em;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+   }
+
+   .achievement-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 120px;
+      text-align: center;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+      position: relative; /* Needed for tooltip positioning */
+      cursor: pointer; /* Hint that it’s interactive */
+    }
+   
+   .achievement-logo {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      margin-bottom: 8px;
+   }
+   
+   .achievement-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+   }
+   
+   .achievement-description {
+      font-size: 0.85em;
+      color: #555;
+   }
+   
+</style>
+
+
+{% endblock %}

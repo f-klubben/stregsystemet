@@ -1,8 +1,15 @@
 from django.contrib import admin
 from django import forms
+from django.conf import settings
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
+from django.core.exceptions import ValidationError
+from django.utils.html import format_html
+from datetime import datetime
+import hashlib
+import pytz
+import os
 
 from stregsystem.models import (
     Category,
@@ -18,6 +25,10 @@ from stregsystem.models import (
     PendingSignup,
     Theme,
     ProductNote,
+    Achievement,
+    AchievementComplete,
+    AchievementTask,
+    AchievementConstraint,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
@@ -191,7 +202,7 @@ class NamedProductAdmin(admin.ModelAdmin):
 
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'items_in_category')
+    list_display = ('id', 'name', 'items_in_category')
 
     def items_in_category(self, obj):
         return obj.product_set.count()
@@ -373,6 +384,191 @@ class ProductNoteAdmin(admin.ModelAdmin):
     actions = [toggle_active_selected_products]
 
 
+class AchievementForm(forms.ModelForm):
+    existing_icons = forms.ChoiceField(label="Or choose an existing image", required=False, choices=[])
+
+    class Meta:
+        model = Achievement
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        folder_path = os.path.join(settings.MEDIA_ROOT, 'stregsystem/achievement')
+        choices = [('', '---')]
+        if os.path.exists(folder_path):
+            for filename in sorted(os.listdir(folder_path)):
+                if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')):
+                    path = os.path.join('stregsystem/achievement', filename)
+                    choices.append((path, filename))
+        self.fields['existing_icons'].choices = choices
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        new_upload = self.files.get('icon')
+        selected_icon_path = self.cleaned_data.get('existing_icons')
+
+        if new_upload:
+            uploaded_bytes = new_upload.read()
+            uploaded_hash = hashlib.md5(uploaded_bytes).hexdigest()
+
+            folder_path = os.path.join(settings.MEDIA_ROOT, 'stregsystem/achievement')
+            match_found = False
+
+            for filename in os.listdir(folder_path):
+                file_path = os.path.join(folder_path, filename)
+
+                # Check for matching hash
+                with open(file_path, 'rb') as f:
+                    existing_hash = hashlib.md5(f.read()).hexdigest()
+                    if uploaded_hash == existing_hash:
+                        # Match found — use existing file
+                        instance.icon.name = os.path.join('stregsystem/achievement', filename)
+                        match_found = True
+                        break
+
+            if not match_found:
+                # No match — reset file pointer and let Django upload it
+                new_upload.seek(0)  # important!
+                instance.icon = new_upload
+
+        elif selected_icon_path:
+            # No upload, but existing image selected
+            instance.icon.name = selected_icon_path
+
+        if commit:
+            instance.save()
+        return instance
+
+
+class AchievementAdmin(admin.ModelAdmin):
+    form = AchievementForm
+
+    search_fields = ['title', 'description']
+    list_display = ['title', 'description', 'get_icon', 'get_active_from_or_active_duration']
+
+    fieldsets = (
+        (None, {'fields': ('title', 'description')}),
+        (None, {'fields': (('icon', 'existing_icons'),)}),
+        (None, {'fields': ('tasks', 'constraints')}),
+        (None, {'fields': (('active_from', 'active_duration'),)}),
+    )
+
+    def get_icon(self, obj):
+        if obj.icon:
+            filename = obj.icon.name.rsplit('/', 1)[-1]
+            filename = filename.rsplit('\\', 1)[-1]
+            return format_html('<img src="{}" style="height: 20px;"/> {}', obj.icon.url, filename)
+        return "-"
+
+    get_icon.short_description = 'Icon'
+
+    def get_active_from_or_active_duration(self, obj):
+        if obj.active_from is not None:
+            return f"Active From: {obj.active_from.strftime('%Y-%m-%d %H:%M:%S')}"
+        elif obj.active_duration is not None:
+            return f"Active Duration: {obj.active_duration}"
+
+    get_active_from_or_active_duration.short_description = "Active-From / -Duration"
+
+    @admin.action(description="Set Active From to now")
+    def set_active_from_to_now(self, request, queryset):
+        tz = pytz.timezone("Europe/Copenhagen")
+        for obj in queryset:
+            obj.active_from = datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
+            obj.full_clean()
+            obj.save()
+
+    @admin.action(description="Set Active From to None")
+    def set_active_from_to_null(self, request, queryset):
+        for obj in queryset:
+            obj.active_from = None
+            obj.full_clean()
+            obj.save()
+
+    actions = [set_active_from_to_now, set_active_from_to_null]
+
+
+class AchievementTaskAdmin(admin.ModelAdmin):
+    list_display = [
+        'notes',
+        'task_type',
+        'goal_value',
+        'get_product',
+        'category',
+    ]
+
+    def get_product(self, obj):
+        if obj.product:
+            name = str(obj.product)
+            return name[:20] + "..." if len(name) > 20 else name
+        return ""
+
+    get_product.short_description = "Product"
+
+
+class AchievementCompleteAdmin(admin.ModelAdmin):
+
+    valid_lookups = ['member', 'achievement']
+    search_fields = ['member__username', 'achievement__title', 'achievement__description', 'completed_at']
+    list_display = ['get_username', 'get_achievement_title', 'get_achievement_description', 'completed_at']
+
+    def get_username(self, obj):
+        return obj.member.username
+
+    def get_achievement_title(self, obj):
+        return obj.achievement.title
+
+    get_achievement_title.short_description = 'Achievement Title'
+
+    def get_achievement_description(self, obj):
+        return obj.achievement.description
+
+    get_achievement_description.short_description = 'Achievement Description'
+
+
+class AchievementConstraintAdmin(admin.ModelAdmin):
+    list_display = [
+        'notes',
+        'month_start',
+        'month_end',
+        'day_start',
+        'day_end',
+        'time_start',
+        'time_end',
+        'weekday',
+    ]
+
+    fieldsets = (
+        (None, {'fields': ['notes']}),
+        (
+            None,
+            {
+                'fields': ['month_start', 'month_end'],
+            },
+        ),
+        (
+            None,
+            {
+                'fields': ['day_start', 'day_end'],
+            },
+        ),
+        (
+            None,
+            {
+                'fields': ['time_start', 'time_end'],
+            },
+        ),
+        (
+            None,
+            {
+                'fields': ['weekday'],
+            },
+        ),
+    )
+
+
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(Member, MemberAdmin)
@@ -386,3 +582,7 @@ admin.site.register(MobilePayment, MobilePaymentAdmin)
 admin.site.register(PendingSignup)
 admin.site.register(Theme, ThemeAdmin)
 admin.site.register(ProductNote, ProductNoteAdmin)
+admin.site.register(Achievement, AchievementAdmin)
+admin.site.register(AchievementTask, AchievementTaskAdmin)
+admin.site.register(AchievementComplete, AchievementCompleteAdmin)
+admin.site.register(AchievementConstraint, AchievementConstraintAdmin)
