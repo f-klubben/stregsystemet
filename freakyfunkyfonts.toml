@@ -26,8 +26,18 @@ tags = [
 ]
 
 [behaviour]
-# HTML tags to skip completely
 skip_tags = ['head', 'title', 'meta', 'link', 'style', 'script']
-# Where to apply the font chaos
-# Options: "body" (only inside <body>), "all" (whole document)
 scope = ["body", "article", "main"]
+
+[date_ranges]
+include=[
+  { range = "12-13:12-13"}, #, temporal = ["00:00-23:59"] },
+  { range = "12-27:12-27"},
+  { range = "08-07:08-07"}, 
+  { range = "08-12:08-12"}, 
+  { range = "11-11:11-11"}, 
+  { range = "04-01:04-01"}, # 1 april 
+]
+
+[paths]
+exclude = ["^/admin/", "^/kiosk/", "^/select2/", "^/static/"]
