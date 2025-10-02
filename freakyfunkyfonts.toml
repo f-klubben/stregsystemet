@@ -1,0 +1,43 @@
+[fonts]
+pool = [
+   #System defaults
+   "Times New Roman", 
+   "Times", 
+   #"Georgia", 
+   "Garamond", 
+   "Cambria", 
+   "Palatino Linotype", 
+   "Book Antiqua",
+   # Google serif fonts (require link injection)
+   "Lora", 
+   "Crimson Text", 
+   "Cardo", 
+   "PT Serif", 
+   "Noto Serif", 
+   "EB Garamond", 
+   "Spectral", 
+   "Source Serif Pro", 
+]
+
+
+[inject]
+tags = [
+  '<link href="https://fonts.googleapis.com/css2?family=Lora&family=Crimson+Text&family=Cardo&family=PT+Serif&family=Noto+Serif&family=EB+Garamond&family=Spectral&family=Source+Serif+Pro&display=swap" rel="stylesheet">'
+]
+
+[behaviour]
+skip_tags = ['head', 'title', 'meta', 'link', 'style', 'script']
+scope = ["body", "article", "main"]
+
+[date_ranges]
+include=[
+  { range = "12-13:12-13"}, #, temporal = ["00:00-23:59"] },
+  { range = "12-27:12-27"},
+  { range = "08-07:08-07"}, 
+  { range = "08-12:08-12"}, 
+  { range = "11-11:11-11"}, 
+  { range = "04-01:04-01"}, # 1 april 
+]
+
+[paths]
+exclude = ["^/admin/", "^/kiosk/", "^/select2/", "^/static/"]
