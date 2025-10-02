@@ -8,4 +8,4 @@ django-debug-toolbar==4.3.0
 requests==2.32.4
 qrcode==7.4.2
 debugpy==1.8.16
-django-freakyfunkyfonts>=1.4.0
+django-freakyfunkyfonts>=1.4.1
