@@ -102,3 +102,7 @@ Using the debugging tool [MailHog](https://github.com/mailhog/MailHog) (Follow t
 Themes
 -------
 [Read more about themes here.](./themes.md)
+
+Attaching Debugger
+-------
+[Read about attaching a debugger here.](./debugger.md)
