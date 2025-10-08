@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("kiosk", "0007_auto_20230823_1138"),
+        ("kiosk", "0008_kioskitem_website_url_alter_kioskitem_media"),
     ]
 
     operations = [
