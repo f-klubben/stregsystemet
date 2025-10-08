@@ -205,7 +205,7 @@ def __get_heatmap_data_by_date(
 
         while sale_index < len(last_sale_list) and last_sale_list[sale_index].timestamp.date() == single_date:
             products_by_day[-1].append(last_sale_list[sale_index].product)
-            sale_index += 1 # TODO: Stop from counting every sale
+            sale_index += 1
 
     # remove added day
     products_by_day.pop(0)
