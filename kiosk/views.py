@@ -29,10 +29,14 @@ def find_random_media(request):
     if item is None:
         raise Http404("No active kiosk items found")
 
+    media_url = item.media.url if item.media else item.website_url
+    is_image = item.is_image if item.media else False
+
     response_data = {
         "id": item.id,
-        "url": item.media.url,
-        "is_image": item.is_image,
+        "url": media_url,
+        "is_image": is_image,
+        "has_media": item.has_media,
     }
     return HttpResponse(json.dumps(response_data), content_type="application/json")
 
@@ -71,9 +75,14 @@ def find_next_media_real(request, item_id):
             )
             .order_by('ordering', 'id')[0]
         )
+
+    media_url = next_item.media.url if next_item.media else next_item.website_url
+    is_image = next_item.is_image if next_item.media else False
+
     response_data = {
         "id": next_item.id,
-        "url": next_item.media.url,
-        "is_image": next_item.is_image,
+        "url": media_url,
+        "is_image": is_image,
+        "has_media": next_item.has_media,
     }
     return HttpResponse(json.dumps(response_data), content_type="application/json")
