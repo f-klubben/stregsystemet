@@ -122,6 +122,10 @@ def sale(request, room_id):
     room = get_object_or_404(Room, pk=room_id)
     news = __get_news()
     product_list = __get_productlist(room_id)
+    ProductNotePair = namedtuple('ProductNotePair', 'product note')
+    product_note_pair_list = [
+        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room_id)
+    ]
 
     buy_string = request.POST['quickbuy'].strip()
     # Handle empty line
@@ -159,19 +163,17 @@ def sale(request, room_id):
 
 def _multibuy_hint(now, member):
     # Get a timestamp to fetch sales for the member for the last 60 sec
-    earliest_recent_purchase = now - datetime.timedelta(seconds=60)
+    earliest_recent_sale = now - datetime.timedelta(seconds=60)
     # get the sales with this timestamp
-    recent_purchases = Sale.objects.filter(member=member, timestamp__gt=earliest_recent_purchase)
-    number_of_recent_distinct_purchases = recent_purchases.values('timestamp').distinct().count()
+    recent_sales = Sale.objects.filter(member=member, timestamp__gt=earliest_recent_sale)
+    number_of_recent_distinct_sales = recent_sales.values('timestamp').distinct().count()
+    recent_unique_sales = recent_sales.values('product').distinct().annotate(total=Count('product'))
 
     # add hint for multibuy
-    if number_of_recent_distinct_purchases > 1:
+    if number_of_recent_distinct_sales > 1:
         sale_dict = {}
-        for sale in recent_purchases:
-            if not str(sale.product.id) in sale_dict:
-                sale_dict[str(sale.product.id)] = 1
-            else:
-                sale_dict[str(sale.product.id)] = sale_dict[str(sale.product.id)] + 1
+        for unique_sale in recent_unique_sales:
+            sale_dict[str(unique_sale['product'])] = unique_sale['total']
         sale_hints = ["<span class=\"username\">{}</span>".format(member.username)]
         if all(sale_count == 1 for sale_count in sale_dict.values()):
             return (False, None)
@@ -188,6 +190,10 @@ def _multibuy_hint(now, member):
 def quicksale(request, room, member: Member, bought_ids):
     news = __get_news()
     product_list = __get_productlist(room.id)
+    ProductNotePair = namedtuple('ProductNotePair', 'product note')
+    product_note_pair_list = [
+        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room.id)
+    ]
     now = timezone.now()
 
     # Retrieve products and construct transaction
@@ -228,6 +234,10 @@ def quicksale(request, room, member: Member, bought_ids):
 def usermenu(request, room, member, bought, from_sale=False):
     negative_balance = member.balance < 0
     product_list = __get_productlist(room.id)
+    ProductNotePair = namedtuple('ProductNotePair', 'product note')
+    product_note_pair_list = [
+        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room.id)
+    ]
     news = __get_news()
     promille = member.calculate_alcohol_promille()
     (
@@ -877,16 +887,25 @@ def api_quicksale(request, room, member: Member, bought_ids):
 
 def __append_bought_ids_to_product_list(products, bought_ids, time_now, room):
     try:
-        for i in bought_ids:
+        # Get the amount of unique items bought
+        unique_product_dict = {}
+        for unique_id in bought_ids:
+            if unique_id not in unique_product_dict:
+                unique_product_dict[unique_id] = 1
+            else:
+                unique_product_dict[unique_id] += 1
+
+        # Add the given amount of different products
+        for key, value in unique_product_dict.items():
             product = Product.objects.get(
-                Q(pk=i),
+                Q(pk=key),
                 Q(active=True),
                 Q(deactivate_date__gte=time_now) | Q(deactivate_date__isnull=True),
                 Q(rooms__id=room.id) | Q(rooms=None),
             )
-            products.append(product)
+            products.extend([product for _ in range(value)])
     except Product.DoesNotExist:
-        return "Invalid product id", 400, i
+        return "Invalid product id", 400, key
     return "OK", 200, None
 
 

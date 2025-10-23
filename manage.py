@@ -2,7 +2,12 @@
 import os
 import sys
 
+import setup_utils
+
+
 if __name__ == "__main__":
+    cleanArgs = setup_utils.check_for_debugger(sys.argv)
+
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "treo.settings")
     try:
         from django.core.management import execute_from_command_line
@@ -19,4 +24,4 @@ if __name__ == "__main__":
                 "forget to activate a virtual environment?"
             )
         raise
-    execute_from_command_line(sys.argv)
+    execute_from_command_line(cleanArgs)
