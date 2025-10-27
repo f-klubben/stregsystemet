@@ -1,1 +1,2 @@
-docker run --rm -v $(pwd):/local redocly/cli build-docs /local/stregsystem.yaml -o /local/out/index.html
+OUT=${1:-$PWD/out}
+docker run --rm -v $(pwd):/local -v $OUT:/out redocly/cli build-docs /local/stregsystem.yaml -o /out/index.html
