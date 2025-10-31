@@ -77,6 +77,7 @@
                 xmlHttp.open("GET", "/kiosk/next_real/" + this_id + "/", true);
             }
             xmlHttp.send(null);
+
         });
 
         swap();
@@ -85,7 +86,9 @@
         setTimeout(updateKiosk, currentDuration);
     }
 
+    // Initial call to start the cycle
     updateKiosk();
+
     </script>
 </body>
 
