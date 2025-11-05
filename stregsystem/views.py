@@ -279,9 +279,8 @@ def menu_userinfo(request, room_id, member_id):
         total_amount=Sum('price'), total_purchases=Count('timestamp')
     )
 
-
     all_sales = member.sale_set.order_by('-timestamp')
-    paginator = Paginator(all_sales, 10) 
+    paginator = Paginator(all_sales, 10)
     page_number = request.GET.get('page', 1)
     last_sale_list = paginator.get_page(page_number)
 
