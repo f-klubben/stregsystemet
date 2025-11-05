@@ -232,37 +232,3 @@ footer {
 
 
 
-
-
-.scrollable-table {
-  max-height: 350px;
-  overflow-y: auto;
-  border: 1px outset black; 
-
-}
-
-.scrollable-table table {
-  width: 100%;
-  border-collapse: separate;  
-  border-spacing: 1.5px 0;  
-  border: none;
-}
-
-.scrollable-table th {
-  border: 1px outset black;   
-  position: sticky;
-  top: 0;                     
-  z-index: 2;
-  background-color: white;   
-  padding: 3.5px;
-}
-
-
-.scrollable-table tbody td {
-  border: 1px outset black;   
-  padding: 3.5px;
-  background-color: white;
-}
-
-
-
