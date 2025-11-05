@@ -32,9 +32,10 @@
    </p>
 
    <br />
+   <p><b>Alle køb</b></p>
 
-   <p><b>Sidste 10 køb</b></p>
-   <table class="default">
+   <div class="scrollable-table">
+      <table class="scrollable-table">
       <tr>
          <th>Dato og tidspunkt</th>
          <th>Produkt</th>
@@ -43,13 +44,16 @@
       {% autoescape off %}
       {% for sale in last_sale_list %}
          <tr>
-            <td>{{sale.timestamp}}</td>
-            <td>{{sale.product.name}}</td>
-            <td class="price">{{sale.price|money}}</td>
+            <td>{{ sale.timestamp }}</td>
+            <td>{{ sale.product.name }}</td>
+            <td class="price" style="padding-right: 5px;">{{ sale.price|money }}</td>
          </tr>
       {% endfor %}
       {% endautoescape %}
    </table>
+   </div>
+
+
 
    <br />
 
