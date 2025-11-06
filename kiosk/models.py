@@ -2,6 +2,7 @@ import random
 from django.utils import timezone
 from .validators import validate_file_extension, valid_images
 from django.db import models
+from django.core.validators import MinValueValidator
 import os
 
 
@@ -19,6 +20,9 @@ class KioskItem(models.Model):
     ordering = models.IntegerField(null=False, default=random_ordering, blank=False)
     start_datetime = models.DateTimeField(null=True, blank=True)
     end_datetime = models.DateTimeField(null=True, blank=True)
+    duration = models.IntegerField(
+        null=False, default=10000, blank=False, validators=[MinValueValidator(1000)], verbose_name="Duration (ms)"
+    )
 
     @property
     def has_media(self):
