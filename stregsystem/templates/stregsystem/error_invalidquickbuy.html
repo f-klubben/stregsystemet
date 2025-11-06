@@ -2,13 +2,18 @@
 
 {% load stregsystem_extras %}
 
+{% block head %}
+{{ block.super }}
+{% include "stregsystem/gdpr.html" %}
+{% endblock %}
+
 {% block headline %}
 <div>Du forsøgte at bruge quickbuy men fejlede.</div>
 <div>This incident will be reported.</div>
 {% endblock %}
 {% block message %}
 <div class="center error-container">
-<pre class="the-pre-error">{{ correct }}</pre><pre class="the-error">{{ incorrect }}</pre>
+<pre class="the-pre-error username">{{ correct }}</pre><pre class="the-error">{{ incorrect }}</pre>
 <pre class="the-error-pointer">
 {{ error_ptr }}
 {{ error_msg }}
