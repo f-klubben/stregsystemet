@@ -55,11 +55,11 @@
 
    <div class="pagination">
   {% if last_sale_list.has_previous %}
-    <a href="?page={{ last_sale_list.previous_page_number }}">Forrige</a>
+    <a href="?purchaselist={{ last_sale_list.previous_page_number }}">Forrige</a>
   {% endif %}
   Side {{ last_sale_list.number }} af {{ last_sale_list.paginator.num_pages }}
   {% if last_sale_list.has_next %}
-    <a href="?page={{ last_sale_list.next_page_number }}">Næste</a>
+    <a href="?purchaselist={{ last_sale_list.next_page_number }}">Næste</a>
   {% endif %}
    </div>
 

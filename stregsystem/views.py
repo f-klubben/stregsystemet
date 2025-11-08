@@ -279,8 +279,8 @@ def menu_userinfo(request, room_id, member_id):
 
     all_sales = member.sale_set.order_by('-timestamp')
     paginator = Paginator(all_sales, 10)
-    page_number = request.GET.get('page', 1)
-    last_sale_list = paginator.get_page(page_number)
+    list_number = request.GET.get('purchaselist', 1)
+    last_sale_list = paginator.get_page(list_number)
 
     try:
         last_payment = member.payment_set.order_by('-timestamp')[0]
