@@ -14,6 +14,7 @@ class KioskItem(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True, unique=False)
     notes = models.CharField(max_length=2000, blank=True, null=True)
     uploaded_date = models.DateField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
     media = models.FileField(upload_to='kiosk', blank=True, validators=[validate_file_extension])
     website_url = models.URLField(blank=True)
