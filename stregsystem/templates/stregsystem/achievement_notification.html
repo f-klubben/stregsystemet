@@ -1,0 +1,105 @@
+{% load static %}
+
+{% for achievement in new_achievements %}
+    <a href="/{{room.id}}/user/{{member.id}}#achievements" class="achievement-link">
+        <div class="achievement-container">
+            <img class="achievement-icon" src="{{ achievement.icon.url }}" alt="Achievement Icon">
+            <div class="text-wrapper">
+                <div class="title-text">{{ achievement.title }}</div>
+                <div class="description-text">{{ achievement.description }}</div>
+            </div>
+        </div>
+    </a>
+{% endfor %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const achievements = document.querySelectorAll('.achievement-container');
+        const delayBetween = 5200; // Total time per popup
+
+        achievements.forEach((element, index) => {
+            setTimeout(() => {
+                element.style.display = 'flex';
+                element.classList.add('animate-popup');
+
+                // Hide again and remove animation
+                setTimeout(() => {
+                    element.style.display = 'none';
+                    element.classList.remove('animate-popup');
+                }, delayBetween); // Hide before next shows
+            }, index * delayBetween);
+        });
+    });
+</script>
+
+<style>
+
+    .achievement-link {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .achievement-container {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        width: 300px;
+        height: 80px;
+        padding: 10px;
+        box-sizing: border-box;
+        display: none;
+        align-items: center;
+        text-align: left;
+        background: url("{% static 'stregsystem/achievement/achievementBG.png' %}") no-repeat center/cover;
+    }
+
+    .achievement-icon {
+        width: 50px;
+        height: 50px;
+        margin-right: 10px;
+        flex-shrink: 0;
+    }
+
+    .text-wrapper {
+        display: flex;
+        flex-direction: column;
+        color: #FFFFFF;
+        z-index: 2;
+        font-family: Georgia, serif;
+    }
+
+    .title-text {
+        font-size: 18px;
+        font-weight: bold;
+        color: #FFFFFF;
+    }
+
+    .description-text {
+        font-size: 16px;
+        color: #ECECEC
+    }
+
+    @keyframes pop-up-down {
+        0% {
+            transform: translateY(100vh);
+            opacity: 0;
+        }
+        20% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        80% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(100vh);
+            opacity: 0;
+        }
+    }
+
+    .animate-popup {
+        animation: pop-up-down 6s ease-in-out forwards;
+    }
+
+</style>

@@ -1,7 +1,7 @@
 import datetime
 import io
 import json
-from typing import List, Type
+from typing import List, Type, Tuple
 
 import pytz
 import qrcode
@@ -16,7 +16,7 @@ from collections import (
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.core import management
-from django.db.models import Q, Count, Sum
+from django.db.models import Q, Count, Sum, QuerySet
 from django.forms import modelformset_factory
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
@@ -43,6 +43,9 @@ from stregsystem.models import (
     NamedProduct,
     ApprovalModel,
     ProductNote,
+    Achievement,
+    AchievementComplete,
+    AchievementTask,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -56,6 +59,12 @@ from stregsystem.utils import (
     make_unprocessed_signups_query,
 )
 
+from .achievements import (
+    get_new_achievements,
+    get_acquired_achievements_with_rarity,
+    get_missing_achievements,
+    get_user_leaderboard_position,
+)
 from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
 from .forms import PaymentToolForm, QRPaymentForm, PurchaseForm, SignupForm, RankingDateForm, SignupToolForm
@@ -226,12 +235,23 @@ def quicksale(request, room, member: Member, bought_ids):
         member_balance,
     ) = __set_local_values(member, room, products, order, now)
 
+    new_achievements: List[Achievement] = []
+    for p, count in Counter(products).most_common():
+        new_achievements.extend(get_new_achievements(member, p))
+
     products = Counter([str(product.name) for product in products]).most_common()
+
+    # THIS WAS NOT IN THE ORIGINAL STREGSYSTEM AND I ADDED IT BECAUSE OTHERWISE IT WOULD
+    # NOT SHOW THE PRODUCTS AFTER USING QUICKBUY
+    ProductNotePair = namedtuple('ProductNotePair', 'product note')
+    product_note_pair_list = [
+        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room.id)
+    ]
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
 
-def usermenu(request, room, member, bought, from_sale=False):
+def usermenu(request, room, member, bought, new_achievements=[], from_sale=False):
     negative_balance = member.balance < 0
     product_list = __get_productlist(room.id)
     ProductNotePair = namedtuple('ProductNotePair', 'product note')
@@ -245,6 +265,7 @@ def usermenu(request, room, member, bought, from_sale=False):
         bp_minutes,
         bp_seconds,
     ) = ballmer_peak(promille)
+    MEDIA_ROOT = settings.MEDIA_ROOT
 
     caffeine = member.calculate_caffeine_in_body()
     cups = caffeine_mg_to_coffee_cups(caffeine)
@@ -284,6 +305,33 @@ def menu_userinfo(request, room_id, member_id):
 
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()
+
+    acquired_achievements: List[Tuple[Achievement, float]] = get_acquired_achievements_with_rarity(member)
+    missing_achievements: QuerySet[Achievement] = get_missing_achievements(member)
+    achievement_progress_str: str = (
+        f"{len(acquired_achievements)}/{len(acquired_achievements)+len(missing_achievements)}"
+    )
+    achievement_top_percentage: float = get_user_leaderboard_position(member)
+    achievement_missing_icon: str = f"{settings.MEDIA_URL}stregsystem/achievement/achievement_missing.png"
+
+    def get_color_by_rarity(rarity):
+        if rarity <= 1:
+            color = (243, 175, 25)  # Fortnite Orange (Legendary)
+        elif rarity <= 5:
+            color = (157, 77, 187)  # Fortnite Purple (Epic)
+        elif rarity <= 10:
+            color = (76, 81, 247)  # Fortnite Blue (Rare)
+        elif rarity <= 25:
+            color = (49, 146, 54)  # Fortnite Green (Common)
+        else:
+            color = (140, 140, 140)  # Fortnite Green (Uncommon)
+        return f"rgb{color}"
+
+    # Convert the acquired achievements to a list of tuples with rounded rarity and color
+    acquired_achievements = [
+        (achievement, f"{round(rarity, 2)}%", get_color_by_rarity(rarity))
+        for achievement, rarity in acquired_achievements
+    ]
 
     return render(request, 'stregsystem/menu_userinfo.html', locals())
 
@@ -424,6 +472,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
     room = Room.objects.get(pk=room_id)
     news = __get_news()
     member = Member.objects.get(pk=member_id, active=True)
+    new_achievements = []
 
     if not member.signup_due_paid:
         return render(request, 'stregsystem/error_signupdue.html', locals())
@@ -451,6 +500,8 @@ def menu_sale(request, room_id, member_id, product_id=None):
 
             order.execute()
 
+            new_achievements = get_new_achievements(member, product)
+
         except Product.DoesNotExist:
             pass
         except StregForbudError:
@@ -461,7 +512,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
 
     # Refresh member, to get new amount
     member = Member.objects.get(pk=member_id, active=True)
-    return usermenu(request, room, member, product, from_sale=True)
+    return usermenu(request, room, member, product, new_achievements, from_sale=True)
 
 
 @staff_member_required()

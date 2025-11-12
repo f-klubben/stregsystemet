@@ -122,8 +122,10 @@
     {% endautoescape %}
   {% endblock %}
   <br />
-  {% include "stregsystem/purchase_heatmap.html" %}
-</main>
-
+    {% include "stregsystem/purchase_heatmap.html" %}
+  </main>
+  {% block achievement %}
+    {% include "stregsystem/achievement_notification.html" %}
+  {% endblock %}
 {% endblock %}
 
