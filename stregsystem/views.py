@@ -97,6 +97,7 @@ def roomindex(request):
 
 def index(request, room_id):
     room = get_object_or_404(Room, pk=int(room_id))
+    product_list = __get_productlist(room_id)
     ProductNotePair = namedtuple('ProductNotePair', 'product note')
     product_note_pair_list = [
         ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room_id)
