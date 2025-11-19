@@ -1,0 +1,54 @@
+{% extends "stregsystem/base.html" %}
+
+{% load stregsystem_extras %}
+
+{% block title %}Treoens stregsystem : User Tickets {% endblock %}
+
+{% block content %}
+
+<main class="center">
+    <h3>{{member.firstname}} {{member.lastname}} ({{member.email}})</h3>
+
+    <h2><a href="/{{room.id}}/sale/{{member.id}}">Tilbage til produktmenu</a></h2>
+
+    <h4>Billetter relateret til dig</h4>
+
+    <table class="default">
+        <tr>
+            <th>Event</th>
+            <th>Ticket Navn</th>
+            <th>Beskrivelse</th>
+            <th>Købt af</th>
+            <th>Tildelt til</th>
+        </tr>
+        {% autoescape off %}
+        {% for ticket_assignment in ticket_assignments %}
+            <tr>
+                <td>{{ ticket_assignment.ticket.event_instance.name }}</td>
+                <td>{{ ticket_assignment.ticket.name }}</td>
+                <td>{{ ticket_assignment.ticket.description }}</td>
+                <td>{{ ticket_assignment.assigned_by_member }}</td>
+                <td>{{ ticket_assignment.assigned_to_name }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="5">Ingen billetter releateret til dig.</td>
+            </tr>
+        {% endfor %}
+        {% endautoescape %}
+    </table>
+
+    <div class="pagination">
+        {% if ticket_assignments.has_previous %}
+            <a href="?assignment_table_index={{ ticket_assignments.previous_page_number }}">Forrige</a>
+        {% endif %}
+        Side {{ ticket_assignments.number }} af {{ ticket_assignments.paginator.num_pages }}
+        {% if ticket_assignments.has_next %}
+            <a href="?assignment_table_index={{ ticket_assignments.next_page_number }}">Næste</a>
+        {% endif %}
+    </div>
+
+
+
+{% endblock %}
+
