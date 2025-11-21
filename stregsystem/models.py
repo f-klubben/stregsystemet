@@ -21,6 +21,7 @@ from stregsystem.utils import (
     make_processed_mobilepayment_query,
     make_unprocessed_member_filled_mobilepayment_query,
     PaymentToolException,
+    get_bool_pretty,
 )
 
 
@@ -888,7 +889,7 @@ class EventInstance(models.Model):
         return f"{self.name_overwrite} ({self.start_time} - {self.end_time})"
 
     def from_start_to_end_time_str(self):
-        return f"{self.start_time.strftime('%d/%m/%Y %H:%M')} - {self.end_time.strftime('%d/%m/%Y %H:%M')}"
+        return f"Fra {self.start_time.strftime('%d/%m/%Y %H:%M')} - til {self.end_time.strftime('%d/%m/%Y %H:%M')}"
 
 
 class Ticket(models.Model):
@@ -906,7 +907,14 @@ class Ticket(models.Model):
         return f"{self.name} for {self.event_instance.name_overwrite}"
 
 
-class TicketPurchases(models.Model):
+class TicketPurchaseStatus(models.TextChoices):
+    ISSUED = "ISSUED", "Issued"
+    ADMIN_ISSUED = "ADMIN_ISSUED", "Issued by Admin"
+    STAND_BY = "STAND_BY", "On Stand-by"
+    REFUNDED = "REFUNDED", "Refunded"
+
+
+class TicketRecord(models.Model):
     ticket = models.ForeignKey(
         Ticket, on_delete=models.CASCADE, related_name="purchases"
     )
@@ -914,30 +922,15 @@ class TicketPurchases(models.Model):
         Member, on_delete=models.CASCADE, related_name="ticket_purchases"
     )
     purchased_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=TicketPurchaseStatus.choices, default=TicketPurchaseStatus.ISSUED)
 
     attended = models.BooleanField(default=False)
 
-    refunded = models.BooleanField(default=False)
-    refunded_at = models.DateTimeField(null=True, blank=True)
-
-    on_stand_by = models.BooleanField(default=False)
+    refunded_at = models.DateTimeField(blank=True)
 
     @staticmethod
     def get_member_purchases(member: Member):
-        return TicketPurchases.objects.filter(purchased_by=member)
-    
-    @staticmethod
-    def get_bool_pretty(value: bool) -> str:
-        return "Ja" if value else "Nej"
-    
-    def get_refunded_pretty(self) -> str:
-        return self.get_bool_pretty(self.refunded)
-
-    def get_stand_by_pretty(self) -> str:
-        return self.get_bool_pretty(self.on_stand_by)
+        return TicketRecord.objects.filter(purchased_by=member)    
 
     def __str__(self):
-        str = f"Billet: {self.ticket.name}, Købt af: {self.purchased_by.username}, Refunderet: {self.refunded}"
-        if not self.refunded and self.on_stand_by:
-            str += " (På stand-by)"
-        return str
+        return f"{self.purchased_by.username}'s billet: {self.ticket.name}, Status: {self.status}"
