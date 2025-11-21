@@ -15,6 +15,13 @@
   #product-buy-form {
     padding-bottom: 1em;
   }
+  .note-box {
+    display: inline;
+    padding: 2px 4px 2px 4px;
+    border-radius: 8px;
+    color: black;
+    background-color: red;
+  }
 </style>
 {% endblock %}
 
@@ -78,7 +85,7 @@
 
   {% block products %}
     {% autoescape off %}
-    {% if product_list %}
+    {% if product_note_pair_list %}
       <form method="post" action="/{{ room.id }}/sale/{{ member.id }}/" id="product-buy-form" name="product-buy-form">
         {% csrf_token %}
         <input type="hidden" value="{{ room.id }}" name="room_id">
@@ -89,27 +96,33 @@
               <th>Produkt</th>
               <th>Pris</th>
             </tr>
-            {% for product in product_list|partition:"2"|first %}
+              {% for pair in product_note_pair_list|partition:"2"|first %}
               <tr>
                 <td>
-                  <button value="{{ product.id }}" name="product_id" class="linkalike">{{product.name}}</button>
+                  {% for note in pair.note %}
+                    <div class="note-box" style="background-color: {{note.background_color}}; color: {{note.text_color}}">{{note.text}}</div>
+                  {% endfor %}
+                  <button value="{{ pair.product.id }}" name="product_id" class="linkalike">{{pair.product.name}}</button>
                 </td>
-                <td class="price">{{product.price|money}} kr</td>
+                <td class="price">{{pair.product.price|money}} kr</td>
               </tr>
             {% endfor %}
           </table>
-          {% if product_list|partition:"2"|last %}
+          {% if product_note_pair_list|partition:"2"|last %}
             <table class="default">
               <tr>
                 <th>Produkt</th>
                 <th>Pris</th>
               </tr>
-              {% for product in product_list|partition:"2"|last %}
+              {% for pair in product_note_pair_list|partition:"2"|last %}
               <tr>
                 <td>
-                  <button value="{{ product.id }}" name="product_id" class="linkalike">{{product.name}}</button>
+                  {% for note in pair.note %}
+                    <div class="note-box" style="background-color: {{note.background_color}}; color: {{note.text_color}}">{{note.text}}</div>
+                  {% endfor %}
+                  <button value="{{ pair.product.id }}" name="product_id" class="linkalike">{{pair.product.name}}</button>
                 </td>
-                <td class="price">{{product.price|money}} kr</td>
+                <td class="price">{{pair.product.price|money}} kr</td>
               </tr>
               {% endfor %}
             </table>
