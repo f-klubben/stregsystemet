@@ -864,3 +864,80 @@ class Theme(models.Model):
 
     def __str__(self):
         return self.name
+
+class Event(models.Model):
+    name = models.CharField(max_length=50)
+    description = models.TextField()
+    image = models.ImageField(upload_to="event_images/", blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class EventInstance(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="instances", null=False, blank=False)
+    name_overwrite = models.CharField(max_length=50, blank=True)
+    description_overwrite = models.TextField(blank=True)
+    image_overwrite = models.ImageField(upload_to="event_instance_images/", blank=True, null=True)
+    capacity = models.IntegerField(null=False, blank=False)
+    start_time = models.DateTimeField(null=False, blank=False)
+    end_time = models.DateTimeField(null=False, blank=False)
+    location = models.CharField(max_length=100, null=False, blank=False)
+
+    def __str__(self):
+        return f"{self.name_overwrite} ({self.start_time} - {self.end_time})"
+
+    def from_start_to_end_time_str(self):
+        return f"{self.start_time.strftime('%d/%m/%Y %H:%M')} - {self.end_time.strftime('%d/%m/%Y %H:%M')}"
+
+
+class Ticket(models.Model):
+    event_instance = models.ForeignKey(
+        EventInstance, on_delete=models.CASCADE, related_name="tickets"
+    )
+    name = models.CharField(max_length=50)
+    description = models.TextField()
+    quantity = models.IntegerField()
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="tickets"
+    )
+
+    def __str__(self):
+        return f"{self.name} for {self.event_instance.name_overwrite}"
+
+
+class TicketPurchases(models.Model):
+    ticket = models.ForeignKey(
+        Ticket, on_delete=models.CASCADE, related_name="purchases"
+    )
+    purchased_by = models.ForeignKey(
+        Member, on_delete=models.CASCADE, related_name="ticket_purchases"
+    )
+    purchased_at = models.DateTimeField(auto_now_add=True)
+
+    attended = models.BooleanField(default=False)
+
+    refunded = models.BooleanField(default=False)
+    refunded_at = models.DateTimeField(null=True, blank=True)
+
+    on_stand_by = models.BooleanField(default=False)
+
+    @staticmethod
+    def get_member_purchases(member: Member):
+        return TicketPurchases.objects.filter(purchased_by=member)
+    
+    @staticmethod
+    def get_bool_pretty(value: bool) -> str:
+        return "Ja" if value else "Nej"
+    
+    def get_refunded_pretty(self) -> str:
+        return self.get_bool_pretty(self.refunded)
+
+    def get_stand_by_pretty(self) -> str:
+        return self.get_bool_pretty(self.on_stand_by)
+
+    def __str__(self):
+        str = f"Billet: {self.ticket.name}, Købt af: {self.purchased_by.username}, Refunderet: {self.refunded}"
+        if not self.refunded and self.on_stand_by:
+            str += " (På stand-by)"
+        return str

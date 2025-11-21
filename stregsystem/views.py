@@ -44,6 +44,7 @@ from stregsystem.models import (
     NamedProduct,
     ApprovalModel,
     ProductNote,
+    TicketPurchases,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -423,6 +424,17 @@ def menu_userrank(request, room_id, member_id):
     }
 
     return render(request, 'stregsystem/menu_userrank.html', locals())
+
+def menu_user_tickets(request, room_id, member_id):
+    room = Room.objects.get(pk=room_id)
+    member = Member.objects.get(pk=member_id, active=True)
+
+    all_ticket_purchases_current_member = TicketPurchases.get_member_purchases(member).order_by("-purchased_at")
+    purchase_paginator = Paginator(all_ticket_purchases_current_member, 5)
+    purchase_page_number = request.GET.get('purchase_table_index', 1)
+    purchase_page = purchase_paginator.get_page(purchase_page_number)
+
+    return render(request, "stregsystem/menu_user_tickets.html", locals())
 
 
 def menu_sale(request, room_id, member_id, product_id=None):

@@ -18,6 +18,10 @@ from stregsystem.models import (
     PendingSignup,
     Theme,
     ProductNote,
+    Event,
+    EventInstance,
+    Ticket,
+    TicketPurchases,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
@@ -372,6 +376,18 @@ class ProductNoteAdmin(admin.ModelAdmin):
 
     actions = [toggle_active_selected_products]
 
+class EventAdmin(admin.ModelAdmin):
+    pass
+
+class EventInstanceAdmin(admin.ModelAdmin):
+    pass
+
+class TicketAdmin(admin.ModelAdmin):
+    pass
+
+class TicketPurchasesAdmin(admin.ModelAdmin):
+    pass
+
 
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)
@@ -386,3 +402,7 @@ admin.site.register(MobilePayment, MobilePaymentAdmin)
 admin.site.register(PendingSignup)
 admin.site.register(Theme, ThemeAdmin)
 admin.site.register(ProductNote, ProductNoteAdmin)
+admin.site.register(Event, EventAdmin)
+admin.site.register(EventInstance, EventInstanceAdmin)
+admin.site.register(Ticket, TicketAdmin)
+admin.site.register(TicketPurchases, TicketPurchasesAdmin)

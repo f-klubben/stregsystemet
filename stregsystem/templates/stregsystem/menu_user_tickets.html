@@ -16,22 +16,22 @@
     <table class="default">
         <tr>
             <th>Event</th>
-            <th>Ticket Navn</th>
+            <th>Billet Navn</th>
             <th>Beskrivelse</th>
-            <th>Købt af</th>
-            <th>Tildelt til</th>
+            <th>På Stand By</th>
+            <th>Refunderet</th>
         </tr>
         {% autoescape off %}
-        {% for ticket_assignment in ticket_purchases %}
-            <tr>
-                <td>{{ ticket_assignment.ticket.event_instance.name }}</td>
-                <td>{{ ticket_assignment.ticket.name }}</td>
-                <td>{{ ticket_assignment.ticket.description }}</td>
-                <td>{{ ticket_assignment.assigned_by_member }}</td>
-                <td>{{ ticket_assignment.assigned_to_name }}</td>
+        {% for ticket_purchase in purchase_page %}
+            <tr style="text-align:center;">
+                <td>{{ ticket_purchase.ticket.event_instance.name }}</td>
+                <td>{{ ticket_purchase.ticket.name }}</td>
+                <td>{{ ticket_purchase.ticket.description }}</td>
+                <td>{{ ticket_purchase.get_stand_by_pretty }}</td>
+                <td>{{ ticket_purchase.get_refunded_pretty }}</td>
             </tr>
         {% empty %}
-            <tr>
+            <tr style="text-align:center;">
                 <td colspan="5">Ingen billetter releateret til dig.</td>
             </tr>
         {% endfor %}
@@ -39,13 +39,22 @@
     </table>
 
     <div class="pagination">
-        {% if ticket_assignments.has_previous %}
-            <a href="?assignment_table_index={{ ticket_assignments.previous_page_number }}">Forrige</a>
+        <div>
+        {% if purchase_page.has_previous %}
+            <a href="?purchase_table_index={{ purchase_page.previous_page_number }}">Forrige</a>
+        {% else %}
+            Ingen Forrige        
         {% endif %}
-        Side {{ ticket_assignments.number }} af {{ ticket_assignments.paginator.num_pages }}
-        {% if ticket_assignments.has_next %}
-            <a href="?assignment_table_index={{ ticket_assignments.next_page_number }}">Næste</a>
+        -
+        {% if purchase_page.has_next %}
+            <a href="?purchase_table_index={{ purchase_page.next_page_number }}">Næste</a>
+        {% else %}
+            Ingen Næste
         {% endif %}
+        </div>
+        <div>
+            Side {{ purchase_page.number }} af {{ purchase_page.paginator.num_pages }}
+        </div>        
     </div>
 
 
