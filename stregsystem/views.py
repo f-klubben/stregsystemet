@@ -47,7 +47,7 @@ from stregsystem.models import (
     NamedProduct,
     ApprovalModel,
     ProductNote,
-    TicketAssignment,
+    TicketPurchases,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -473,9 +473,9 @@ def menu_user_tickets(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     member = Member.objects.get(pk=member_id, active=True)
 
-    ticket_assignments = TicketAssignment.get_related_assignments_for_member(
-        member
-    ).order_by("-assigned_at")
+    ticket_purchases = TicketPurchases.get_member_purchases(member).order_by(
+        "-purchased_at"
+    )
 
     return render(request, "stregsystem/menu_user_tickets.html", locals())
 

@@ -1,6 +1,5 @@
 import datetime
 import urllib.parse
-import django.enum
 from abc import abstractmethod
 from collections import Counter
 from email.utils import parseaddr
@@ -968,7 +967,7 @@ class EventInstance(models.Model):
     def __str__(self):
         return f"{self.name} ({self.start_time} - {self.end_time})"
 
-    def from_time_to_time_str(self):
+    def from_start_to_end_time_str(self):
         return f"{self.start_time.strftime('%d/%m/%Y %H:%M')} - {self.end_time.strftime('%d/%m/%Y %H:%M')}"
 
 
@@ -979,29 +978,36 @@ class Ticket(models.Model):
     name = models.CharField(max_length=50)
     description = models.TextField()
     quantity = models.IntegerField()
-    product = models.OneToOneField(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="tickets"
+    )
 
     def __str__(self):
         return f"{self.name} for {self.event_instance.name}"
 
 
-class TicketPurchaseState(models.TextChoices):
-    HELD = "held", "Held"
-    PURCHASED = "purchased", "Purchased"
-    ATTENDED = "attended", "Attended"
-    REFUNDED = "refunded", "Refunded"
-    CANCELED = "canceled", "Canceled"
-
-
 class TicketPurchases(models.Model):
-    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
-    state = models.CharField(max_length=20, choices=TicketPurchaseState.choices)
+    ticket = models.ForeignKey(
+        Ticket, on_delete=models.CASCADE, related_name="purchases"
+    )
     purchased_by = models.ForeignKey(
         Member, on_delete=models.CASCADE, related_name="ticket_purchases"
     )
     purchased_at = models.DateTimeField(auto_now_add=True)
+
     attended = models.BooleanField(default=False)
+
     refunded = models.BooleanField(default=False)
+    refunded_at = models.DateTimeField(null=True, blank=True)
+
+    on_stand_by = models.BooleanField(default=False)
+
+    @staticmethod
+    def get_member_purchases(member: Member):
+        return TicketPurchases.objects.filter(purchased_by=member)
 
     def __str__(self):
-        return f"Ticket: {self.ticket.name}, Purchased by: {self.purchased_by.username} ({self.state})"
+        str = f"Ticket: {self.ticket.name}, Purchased by: {self.purchased_by.username}, Refunded: {self.refunded}"
+        if not self.refunded and self.on_stand_by:
+            str += " (On stand-by)"
+        return str

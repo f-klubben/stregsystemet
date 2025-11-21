@@ -22,7 +22,7 @@
             <th>Tildelt til</th>
         </tr>
         {% autoescape off %}
-        {% for ticket_assignment in ticket_assignments %}
+        {% for ticket_assignment in ticket_purchases %}
             <tr>
                 <td>{{ ticket_assignment.ticket.event_instance.name }}</td>
                 <td>{{ ticket_assignment.ticket.name }}</td>
