@@ -21,7 +21,7 @@ from stregsystem.models import (
     Event,
     EventInstance,
     Ticket,
-    TicketPurchases,
+    TicketRecord,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
@@ -385,7 +385,7 @@ class EventInstanceAdmin(admin.ModelAdmin):
 class TicketAdmin(admin.ModelAdmin):
     pass
 
-class TicketPurchasesAdmin(admin.ModelAdmin):
+class TicketRecordAdmin(admin.ModelAdmin):
     pass
 
 
@@ -405,4 +405,4 @@ admin.site.register(ProductNote, ProductNoteAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(EventInstance, EventInstanceAdmin)
 admin.site.register(Ticket, TicketAdmin)
-admin.site.register(TicketPurchases, TicketPurchasesAdmin)
+admin.site.register(TicketRecord, TicketRecordAdmin)

@@ -919,7 +919,7 @@ class TicketRecord(models.Model):
         Ticket, on_delete=models.CASCADE, related_name="purchases"
     )
     purchased_by = models.ForeignKey(
-        Member, on_delete=models.CASCADE, related_name="ticket_purchases"
+        Member, on_delete=models.CASCADE, related_name="tickets"
     )
     purchased_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=TicketPurchaseStatus.choices, default=TicketPurchaseStatus.ISSUED)
