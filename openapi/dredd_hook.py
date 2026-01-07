@@ -26,7 +26,9 @@ def replace_4xx_parameter_values(transaction):
     It isn't possible to specify individual parameter example values for each response type in OpenAPI.
     To properly test the return value of not-found parameters, replace all parameters.
     """
-    if transaction['expected']['statusCode'][0] == '4':
+    replace_username = transaction['expected']['statusCode'][0] == '4'
+
+    if replace_username:
         new_path = update_query_parameter_values(transaction['fullPath'], not_found_parameter_values)
         print(f"Update endpoint path, from '{transaction['fullPath']}' to '{new_path}'")
         transaction['fullPath'] = new_path
