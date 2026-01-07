@@ -2,6 +2,7 @@ import random
 from django.utils import timezone
 from .validators import validate_file_extension, valid_images
 from django.db import models
+from django.core.validators import MinValueValidator
 import os
 
 
@@ -15,10 +16,18 @@ class KioskItem(models.Model):
     uploaded_date = models.DateField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
-    media = models.FileField(upload_to='kiosk', null=False, validators=[validate_file_extension])
+    media = models.FileField(upload_to='kiosk', blank=True, validators=[validate_file_extension])
+    website_url = models.URLField(blank=True)
     ordering = models.IntegerField(null=False, default=random_ordering, blank=False)
     start_datetime = models.DateTimeField(null=True, blank=True)
     end_datetime = models.DateTimeField(null=True, blank=True)
+    duration = models.IntegerField(
+        null=False, default=10000, blank=False, validators=[MinValueValidator(1000)], verbose_name="Duration (ms)"
+    )
+
+    @property
+    def has_media(self):
+        return bool(self.media)
 
     @property
     def is_image(self):
