@@ -28,6 +28,10 @@ def replace_4xx_parameter_values(transaction):
     """
     replace_username = transaction['expected']['statusCode'][0] == '4'
 
+    if transaction['request']['uri'] != "/api/signup":
+        # Signup is opposite, since we want to sign up a user that doesn't already exist.
+        replace_username = not replace_username
+
     if replace_username:
         new_path = update_query_parameter_values(transaction['fullPath'], not_found_parameter_values)
         print(f"Update endpoint path, from '{transaction['fullPath']}' to '{new_path}'")
