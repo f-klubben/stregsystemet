@@ -218,7 +218,7 @@ components:
       value: "Parameter missing: username"
     UsernameTakenExample:
       summary: Member with that username already exist
-      value: "Username taken"
+      value: "Username already taken"
     MissingOrInvalidParameterExample:
       summary: A parameter is invalid or missing
       value: "Parameter invalid: <parameter>"
@@ -288,7 +288,7 @@ components:
       example: "Parameter missing: username"
     usernameTakenMessage:
       type: string
-      example: "Username taken"
+      example: "Username already taken"
     invalidParameterMessage:
       type: string
       example: "Parameter invalid: <parameter>"
