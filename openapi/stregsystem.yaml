@@ -161,6 +161,20 @@ paths:
           $ref: '#/components/responses/SaleSuccess'
         '400':
           $ref: '#/components/responses/Member_RoomIdParameter_BadResponse'
+  /api/signup/status:
+    get:
+      tags:
+        - Signup
+      summary: Gets status regarding a signup
+      description: Retrieves the signup status for a specific member by username.
+      operationId: api_signup_status
+      parameters:
+        - $ref: '#/components/parameters/username_param'
+      responses:
+        '200':
+          $ref: '#/components/responses/SignupStatus'
+        '400':
+          $ref: '#/components/responses/MemberUsernameParameter_BadResponse'
   /api/signup:
     post:
       tags:
@@ -179,20 +193,6 @@ paths:
           $ref: '#/components/responses/SignupSuccess'
         '400':
           $ref: '#/components/responses/Signup_BadResponse'
-  /api/signup/status:
-    get:
-      tags:
-        - Signup
-      summary: Gets status regarding a signup
-      description: Retrieves the signup status for a specific member by username.
-      operationId: api_signup_status
-      parameters:
-        - $ref: '#/components/parameters/username_param'
-      responses:
-        '200':
-          $ref: '#/components/responses/SignupStatus'
-        '400':
-          $ref: '#/components/responses/MemberUsernameParameter_BadResponse'
 components:
   examples:
     MemberNotFoundExample:
