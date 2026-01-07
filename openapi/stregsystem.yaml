@@ -738,7 +738,7 @@ components:
     Signup_BadResponse:
       description: Username is taken, missing parameter, or invalid parameter.
       content:
-        text/html:
+        text/html; charset=utf-8:
           schema:
             oneOf:
               - $ref: '#/components/schemas/usernameTakenMessage'
