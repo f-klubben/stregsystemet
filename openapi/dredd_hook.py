@@ -45,10 +45,11 @@ def replace_4xx_parameter_values(transaction):
             transaction['request']['uri'] = new_path
 
 
-@hooks.before_each
-def replace_body_in_post_requests(transaction):
-    if transaction['expected']['statusCode'][0] == '4' and transaction['id'].startswith("POST"):
-        body = json.loads(transaction['request']['body'])
-        update_dictionary_values(body, not_found_parameter_values)
-
-        transaction['request']['body'] = json.dumps(body)
+#@hooks.before_each
+#def replace_body_in_post_requests(transaction):
+#    pass
+#    if transaction['expected']['statusCode'][0] == '4' and transaction['id'].startswith("POST"):
+#        body = json.loads(transaction['request']['body'])
+#        update_dictionary_values(body, not_found_parameter_values)
+#
+#        transaction['request']['body'] = json.dumps(body)
