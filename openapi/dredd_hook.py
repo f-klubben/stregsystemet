@@ -28,7 +28,7 @@ def replace_4xx_parameter_values(transaction):
     """
     replace_username = transaction['expected']['statusCode'][0] == '4'
 
-    if transaction['request']['uri'] != "/api/signup":
+    if transaction['request']['uri'] == "/api/signup":
         # Signup is opposite, since we want to sign up a user that doesn't already exist.
         replace_username = not replace_username
 
