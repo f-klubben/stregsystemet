@@ -1,6 +1,6 @@
 import dredd_hooks as hooks
 import json
-from utils import update_query_parameter_values, update_dictionary_values
+from utils import update_query_parameter_values, update_dictionary_values, replace_json_dictionary_values
 
 not_found_parameter_values = {
     'room_id': 1,
@@ -34,7 +34,9 @@ def replace_4xx_parameter_values(transaction):
             replace_username = not replace_username
 
         if replace_username:
-            update_dictionary_values(transaction['expected']['body'], not_found_parameter_values)
+            transaction['request']['body'] = replace_json_dictionary_values(
+                transaction['request']['body'],
+                not_found_parameter_values)
     else:
         if replace_username:
             new_path = update_query_parameter_values(transaction['fullPath'], not_found_parameter_values)
