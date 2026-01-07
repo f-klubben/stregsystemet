@@ -28,15 +28,19 @@ def replace_4xx_parameter_values(transaction):
     """
     replace_username = transaction['expected']['statusCode'][0] == '4'
 
-    if transaction['id'].endswith("/api/signup"):
+    if transaction['id'].startswith("POST"):
         # Signup is opposite, since we want to sign up a user that doesn't already exist.
-        replace_username = not replace_username
+        if transaction['id'].endswith("/api/signup"):
+            replace_username = not replace_username
 
-    if replace_username:
-        new_path = update_query_parameter_values(transaction['fullPath'], not_found_parameter_values)
-        print(f"Update endpoint path, from '{transaction['fullPath']}' to '{new_path}'")
-        transaction['fullPath'] = new_path
-        transaction['request']['uri'] = new_path
+        if replace_username:
+            update_dictionary_values(transaction['expected']['body'], not_found_parameter_values)
+    else:
+        if replace_username:
+            new_path = update_query_parameter_values(transaction['fullPath'], not_found_parameter_values)
+            print(f"Update endpoint path, from '{transaction['fullPath']}' to '{new_path}'")
+            transaction['fullPath'] = new_path
+            transaction['request']['uri'] = new_path
 
 
 @hooks.before_each
