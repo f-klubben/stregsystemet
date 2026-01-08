@@ -13,6 +13,7 @@ from collections import (
     namedtuple,
 )
 
+from django.core.paginator import Paginator
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.core import management
@@ -276,7 +277,11 @@ def menu_userinfo(request, room_id, member_id):
         total_amount=Sum('price'), total_purchases=Count('timestamp')
     )
 
-    last_sale_list = member.sale_set.order_by('-timestamp')[:10]
+    all_sales = member.sale_set.order_by('-timestamp')
+    paginator = Paginator(all_sales, 10)
+    list_number = request.GET.get('purchaselist', 1)
+    last_sale_list = paginator.get_page(list_number)
+
     try:
         last_payment = member.payment_set.order_by('-timestamp')[0]
     except IndexError:

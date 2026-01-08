@@ -28,7 +28,7 @@
 
 <header>
   <div class="left">
-    <input type="button" onclick="location.href='/{{room.id}}';" value="Genstart" tabindex="10" accesskey="q">
+    <input type="button" id="restartBtn" onclick="location.href='/{{room.id}}';" value="Genstart" tabindex="10" accesskey="q" >
   </div>
   <h1>
     {% block heading %}
@@ -58,5 +58,26 @@
   </ul>
 </footer>
 {% theme_content %}
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const restartBtn = document.getElementById("restartBtn");
+  
+  document.addEventListener("keydown", (event) => {
+    const active = document.activeElement;
+    const typing = active && (
+      active.tagName === "INPUT" ||
+      active.tagName === "TEXTAREA" ||
+      active.isContentEditable
+    );
+
+    if (event.key === "Enter" && !typing) {
+      event.preventDefault(); 
+      restartBtn?.click(); 
+    }
+  });
+});
+</script>
+
 </body>
 </html>
