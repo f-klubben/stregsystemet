@@ -1,0 +1,8 @@
+[project]
+name = "stregsystemet"
+version = "0.1"
+authors = [
+  { name = "FIT" }
+]
+license = { text = "THE LIMFJORDS-PORTER-WARE LICENSE" }
+requires-python = ">=3.10"
