@@ -1,6 +1,6 @@
 [project]
 name = "stregsystemet"
-version = "0.1"
+version = "v2.6.5"
 authors = [
   { name = "FIT" }
 ]
