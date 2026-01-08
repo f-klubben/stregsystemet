@@ -1,8 +1,10 @@
+from typing import Any
 from django.contrib import admin
 from django import forms
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
+from django.http import HttpRequest
 
 from stregsystem.models import (
     Category,
@@ -34,7 +36,16 @@ def refund(modeladmin, request, queryset):
 refund.short_description = "Refund selected"
 
 
-class SaleAdmin(admin.ModelAdmin):
+class BaseAdmin(admin.ModelAdmin):
+    """
+        Base admin class to add common attributes.
+        Such as created_at and updated_at fields.
+    """
+    def get_readonly_fields(self, request: HttpRequest, obj: Any | None = ...) -> list[str] | tuple[Any, ...]:
+        return list(super().get_readonly_fields(request, obj)) + ['created_at', 'updated_at',]
+
+
+class SaleAdmin(BaseAdmin):
     list_filter = ('room', 'timestamp')
     list_display = (
         'get_username',
@@ -128,7 +139,7 @@ class ProductActivatedListFilter(admin.SimpleListFilter):
             return queryset
 
 
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(BaseAdmin):
     search_fields = ('name', 'price', 'id')
     list_filter = (ProductActivatedListFilter, 'deactivate_date', 'price')
     list_display = (
@@ -147,7 +158,9 @@ class ProductAdmin(admin.ModelAdmin):
         "alcohol_content_ml",
         "caffeine_content_mg",
     )
-    readonly_fields = ("get_bought",)
+
+    def get_readonly_fields(self, request: HttpRequest, obj: Any | None = ...) -> list[str] | tuple[Any, ...]:
+        return list(super().get_readonly_fields(request, obj)) + ['get_bought']
 
     actions = [toggle_active_selected_products]
     filter_horizontal = ('categories', 'rooms')
@@ -172,7 +185,7 @@ class ProductAdmin(admin.ModelAdmin):
     activated.boolean = True
 
 
-class NamedProductAdmin(admin.ModelAdmin):
+class NamedProductAdmin(BaseAdmin):
     search_fields = (
         'name',
         'product',
@@ -190,7 +203,7 @@ class NamedProductAdmin(admin.ModelAdmin):
     ]
 
 
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(BaseAdmin):
     list_display = ('name', 'items_in_category')
 
     def items_in_category(self, obj):
@@ -210,7 +223,7 @@ class MemberForm(forms.ModelForm):
         return username
 
 
-class MemberAdmin(admin.ModelAdmin):
+class MemberAdmin(BaseAdmin):
     form = MemberForm
     list_filter = ('want_spam',)
     search_fields = ('username', 'firstname', 'lastname', 'email')
@@ -258,7 +271,7 @@ class MemberAdmin(admin.ModelAdmin):
             return qs.filter(active=True).order_by('username')
 
 
-class PaymentAdmin(admin.ModelAdmin):
+class PaymentAdmin(BaseAdmin):
     list_display = ('get_username', 'timestamp', 'get_amount_display', 'is_mobilepayment')
     valid_lookups = 'member'
     search_fields = ['member__username']
@@ -287,7 +300,7 @@ class PaymentAdmin(admin.ModelAdmin):
     is_mobilepayment.boolean = True
 
 
-class MobilePaymentAdmin(admin.ModelAdmin):
+class MobilePaymentAdmin(BaseAdmin):
     list_display = (
         'payment',
         'customer_name',
@@ -325,7 +338,7 @@ class MobilePaymentAdmin(admin.ModelAdmin):
     really_delete_selected.short_description = "Delete and refund selected entries"
 
 
-class LogEntryAdmin(admin.ModelAdmin):
+class LogEntryAdmin(BaseAdmin):
     date_hierarchy = 'action_time'
     list_filter = ['content_type', 'action_flag']
     search_fields = ['object_repr', 'change_message', 'user__username']
@@ -344,7 +357,7 @@ class LogEntryAdmin(admin.ModelAdmin):
         return False
 
 
-class ThemeAdmin(admin.ModelAdmin):
+class ThemeAdmin(BaseAdmin):
     list_display = ["name", "override", "begin_month", "begin_day", "end_month", "end_day"]
     search_fields = ["name"]
 
@@ -363,7 +376,7 @@ class ThemeAdmin(admin.ModelAdmin):
     actions = [force_unset, force_show, force_hide]
 
 
-class ProductNoteAdmin(admin.ModelAdmin):
+class ProductNoteAdmin(BaseAdmin):
     search_fields = ('active', 'text')
     list_display = (
         'active',
