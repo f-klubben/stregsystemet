@@ -38,11 +38,15 @@ refund.short_description = "Refund selected"
 
 class BaseAdmin(admin.ModelAdmin):
     """
-        Base admin class to add common attributes.
-        Such as created_at and updated_at fields.
+    Base admin class to add common attributes.
+    Such as created_at and updated_at fields.
     """
+
     def get_readonly_fields(self, request: HttpRequest, obj: Any | None = ...) -> list[str] | tuple[Any, ...]:
-        return list(super().get_readonly_fields(request, obj)) + ['created_at', 'updated_at',]
+        return list(super().get_readonly_fields(request, obj)) + [
+            'created_at',
+            'updated_at',
+        ]
 
 
 class SaleAdmin(BaseAdmin):
