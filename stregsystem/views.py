@@ -425,6 +425,7 @@ def menu_userrank(request, room_id, member_id):
 
     return render(request, 'stregsystem/menu_userrank.html', locals())
 
+
 def menu_user_tickets(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     member = Member.objects.get(pk=member_id, active=True)

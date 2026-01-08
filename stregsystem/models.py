@@ -866,6 +866,7 @@ class Theme(models.Model):
     def __str__(self):
         return self.name
 
+
 class Event(models.Model):
     name = models.CharField(max_length=50)
     description = models.TextField()
@@ -893,15 +894,11 @@ class EventInstance(models.Model):
 
 
 class Ticket(models.Model):
-    event_instance = models.ForeignKey(
-        EventInstance, on_delete=models.CASCADE, related_name="tickets"
-    )
+    event_instance = models.ForeignKey(EventInstance, on_delete=models.CASCADE, related_name="tickets")
     name = models.CharField(max_length=50)
     description = models.TextField()
     quantity = models.IntegerField()
-    product = models.ForeignKey(
-        Product, on_delete=models.CASCADE, related_name="tickets"
-    )
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="tickets")
 
     def __str__(self):
         return f"{self.name} for {self.event_instance.name_overwrite}"
@@ -915,12 +912,8 @@ class TicketPurchaseStatus(models.TextChoices):
 
 
 class TicketRecord(models.Model):
-    ticket = models.ForeignKey(
-        Ticket, on_delete=models.CASCADE, related_name="purchases"
-    )
-    purchased_by = models.ForeignKey(
-        Member, on_delete=models.CASCADE, related_name="tickets"
-    )
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="purchases")
+    purchased_by = models.ForeignKey(Member, on_delete=models.CASCADE, related_name="tickets")
     purchased_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=TicketPurchaseStatus.choices, default=TicketPurchaseStatus.ISSUED)
 
@@ -930,7 +923,7 @@ class TicketRecord(models.Model):
 
     @staticmethod
     def get_member_purchases(member: Member):
-        return TicketRecord.objects.filter(purchased_by=member)    
+        return TicketRecord.objects.filter(purchased_by=member)
 
     def __str__(self):
         return f"{self.purchased_by.username}'s billet: {self.ticket.name}, Status: {self.status}"

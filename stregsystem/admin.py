@@ -376,14 +376,18 @@ class ProductNoteAdmin(admin.ModelAdmin):
 
     actions = [toggle_active_selected_products]
 
+
 class EventAdmin(admin.ModelAdmin):
     pass
+
 
 class EventInstanceAdmin(admin.ModelAdmin):
     pass
 
+
 class TicketAdmin(admin.ModelAdmin):
     pass
+
 
 class TicketRecordAdmin(admin.ModelAdmin):
     pass
