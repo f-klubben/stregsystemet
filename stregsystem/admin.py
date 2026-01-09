@@ -256,14 +256,8 @@ class MemberAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if "username" in form.changed_data and change:
-            if (
-                Member.objects.filter(username__iexact=obj.username)
-                .exclude(pk=obj.pk)
-                .exists()
-            ):
-                messages.add_message(
-                    request, messages.WARNING, "Det brugernavn var allerede optaget"
-                )
+            if Member.objects.filter(username__iexact=obj.username).exclude(pk=obj.pk).exists():
+                messages.add_message(request, messages.WARNING, "Det brugernavn var allerede optaget")
         super().save_model(request, obj, form, change)
 
     def autocomplete_view(self, request):
