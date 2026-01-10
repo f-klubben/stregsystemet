@@ -3,6 +3,7 @@ import urllib.parse
 from abc import abstractmethod
 from collections import Counter
 from email.utils import parseaddr
+from datetime import datetime
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
@@ -46,6 +47,12 @@ class NoMoreInventoryError(Exception):
 
 # Create your models here.
 
+class BaseModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
 
 # So we have two "basic" operations to do with money
 # we can take money from a user and we can give them money
@@ -157,7 +164,7 @@ def get_current_year():
     return str(timezone.now().year)
 
 
-class Member(models.Model):  # id automatisk...
+class Member(BaseModel):  # id automatisk...
     GENDER_CHOICES = (
         ('U', 'Unknown'),
         ('M', 'Male'),
@@ -181,8 +188,6 @@ class Member(models.Model):  # id automatisk...
     undo_count = models.IntegerField(default=0)  # for 'undos' i alt
     notes = models.TextField(blank=True)
     signup_due_paid = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     stregforbud_override = False
 
@@ -342,16 +347,14 @@ class Member(models.Model):  # id automatisk...
         return user_with_most_coffees_bought == self
 
 
-class Payment(models.Model):  # id automatisk...
-    class Meta:
+class Payment(BaseModel):  # id automatisk...
+    class Meta(BaseModel.Meta):
         permissions = (("import_batch_payments", "Import batch payments"),)
 
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     amount = models.IntegerField()  # penge, oere...
     notes = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     @deprecated
     def amount_display(self):
@@ -400,8 +403,8 @@ class Payment(models.Model):  # id automatisk...
             super(Payment, self).delete(*args, **kwargs)
 
 
-class ApprovalModel(models.Model):
-    class Meta:
+class ApprovalModel(BaseModel):
+    class Meta(BaseModel.Meta):
         abstract = True
 
     UNSET = 'U'
@@ -447,7 +450,7 @@ class ApprovalModel(models.Model):
 
 
 class MobilePayment(ApprovalModel):
-    class Meta:
+    class Meta(ApprovalModel.Meta):
         permissions = (("mobilepaytool_access", "MobilePaytool access"),)
 
     member = models.ForeignKey(
@@ -553,7 +556,7 @@ class MobilePayment(ApprovalModel):
                 payment.approve()
 
 
-class Category(models.Model):
+class Category(BaseModel):
     name = models.CharField(max_length=64)
 
     def __unicode__(self):
@@ -562,12 +565,12 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         verbose_name_plural = 'Categories'
 
 
 # XXX
-class Room(models.Model):
+class Room(BaseModel):
     name = models.CharField(max_length=64)
     description = models.CharField(max_length=64)
     notes = models.TextField(blank=True)
@@ -580,7 +583,7 @@ class Room(models.Model):
         return self.name
 
 
-class Product(models.Model):  # id automatisk...
+class Product(BaseModel):  # id automatisk...
     name = models.CharField(max_length=64)
     price = models.IntegerField()  # penge, oere...
     active = models.BooleanField()
@@ -591,8 +594,6 @@ class Product(models.Model):  # id automatisk...
     rooms = models.ManyToManyField(Room, blank=True)
     alcohol_content_ml = models.FloatField(default=0.0, null=True)
     caffeine_content_mg = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     @deprecated
     def __unicode__(self):
@@ -635,7 +636,7 @@ class Product(models.Model):  # id automatisk...
         return self.active and not expired and not out_of_stock
 
 
-class ProductNote(models.Model):
+class ProductNote(BaseModel):
     """A tag that can be assigned to products.
 
     Model for notes about a product, which should be visible in a certain range of time.
@@ -653,14 +654,12 @@ class ProductNote(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     comment = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.text + " (" + " | ".join(str(x.name) for x in self.products.all()) + ")"
 
 
-class NamedProduct(models.Model):
+class NamedProduct(BaseModel):
     name = models.CharField(max_length=50, unique=True, validators=[RegexValidator(regex=r'^[^\d:\-_][\w\-]+$')])
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='named_id')
 
@@ -671,7 +670,7 @@ class NamedProduct(models.Model):
         return self.name + " -> " + str(self.product.id)
 
 
-class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statistik?
+class OldPrice(BaseModel):  # gamle priser, skal huskes; til regnskab/statistik?
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='old_prices')
     price = models.IntegerField()  # penge, oere...
     changed_on = models.DateTimeField(auto_now_add=True)
@@ -684,16 +683,13 @@ class OldPrice(models.Model):  # gamle priser, skal huskes; til regnskab/statist
         return self.product.name + ": " + money(self.price) + " (" + str(self.changed_on) + ")"
 
 
-class Sale(models.Model):
+class Sale(BaseModel):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     room = models.ForeignKey(Room, on_delete=models.CASCADE, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     price = models.IntegerField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
+    class Meta(BaseModel.Meta):
         index_together = [
             ["product", "timestamp"],
         ]
@@ -727,15 +723,13 @@ class Sale(models.Model):
 
 
 # XXX
-class News(models.Model):
+class News(BaseModel):
     title = models.CharField(max_length=64)
     text = models.TextField()
     pub_date = models.DateTimeField()
     stop_date = models.DateTimeField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         verbose_name_plural = "News"
 
     @deprecated
@@ -747,13 +741,11 @@ class News(models.Model):
 
 
 class PendingSignup(ApprovalModel):
-    class Meta:
+    class Meta(ApprovalModel.Meta):
         permissions = (("signuptool_access", "Sign-up Tool access"),)
 
     member = models.ForeignKey(Member, on_delete=models.CASCADE, null=False)
     due = models.IntegerField(default=200 * 100)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def generate_mobilepay_url(self):
         comment = self.member.username
@@ -853,7 +845,7 @@ class PendingSignup(ApprovalModel):
         return len(pending_signup_ids)
 
 
-class Theme(models.Model):
+class Theme(BaseModel):
     name = models.CharField("Name", max_length=50)
     html = models.CharField("HTML filename", max_length=50, blank=True, default="")
     css = models.CharField("CSS filename", max_length=50, blank=True, default="")
@@ -862,8 +854,6 @@ class Theme(models.Model):
     begin_day = models.PositiveSmallIntegerField("Begin day", default=1)
     end_month = models.PositiveSmallIntegerField("End month")
     end_day = models.PositiveSmallIntegerField("End day", default=31)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     NONE = "N"
     SHOW = "S"
@@ -875,7 +865,7 @@ class Theme(models.Model):
     )
     override = models.CharField("Override", max_length=1, choices=OVERRIDE_CHOICES, default=NONE)
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         ordering = ["begin_month", "begin_day"]
 
     def __str__(self):
