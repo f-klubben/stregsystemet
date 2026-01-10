@@ -24,7 +24,10 @@ from stregsystem.models import (
     TicketRecord,
 )
 from stregsystem.templatetags.stregsystem_extras import money
-from stregsystem.utils import make_active_productlist_query, make_inactive_productlist_query
+from stregsystem.utils import (
+    make_active_productlist_query,
+    make_inactive_productlist_query,
+)
 
 
 def refund(modeladmin, request, queryset):
@@ -207,7 +210,7 @@ class MemberForm(forms.ModelForm):
         exclude = []
 
     def clean_username(self):
-        username = self.cleaned_data['username']
+        username = self.cleaned_data["username"]
         if self.instance is None or self.instance.pk is None:
             if Member.objects.filter(username__iexact=username).exists():
                 raise forms.ValidationError("Brugernavnet er allerede taget")
