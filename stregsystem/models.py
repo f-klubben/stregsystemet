@@ -906,13 +906,7 @@ class Ticket(models.Model):
     name = models.CharField(max_length=50)
     description = models.TextField()
     quantity = models.IntegerField()
-<<<<<<< HEAD
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="tickets")
-=======
-    product = models.OneToOneField(
-        Product, on_delete=models.CASCADE, related_name="tickets"
-    )
->>>>>>> 46b9fe7 (new ticket record model relations)
+    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name="tickets")
 
     @staticmethod
     def is_product_a_ticket(product: Product) -> tuple[bool, Optional[Ticket]]:
@@ -934,18 +928,8 @@ class TicketPurchaseStatus(models.TextChoices):
 
 
 class TicketRecord(models.Model):
-<<<<<<< HEAD
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="purchases")
-    purchased_by = models.ForeignKey(Member, on_delete=models.CASCADE, related_name="tickets")
-    purchased_at = models.DateTimeField(auto_now_add=True)
-=======
-    ticket = models.ForeignKey(
-        Ticket, on_delete=models.CASCADE, related_name="purchases"
-    )
-    sale = models.OneToOneField(
-        Sale, on_delete=models.CASCADE, related_name="ticket_record"
-    )
->>>>>>> 46b9fe7 (new ticket record model relations)
+    sale = models.OneToOneField(Sale, on_delete=models.CASCADE, related_name="ticket_record")
     status = models.CharField(max_length=20, choices=TicketPurchaseStatus.choices, default=TicketPurchaseStatus.ISSUED)
 
     attended = models.BooleanField(null=True, blank=True)
@@ -961,14 +945,7 @@ class TicketRecord(models.Model):
 
     @staticmethod
     def get_member_purchases(member: Member):
-<<<<<<< HEAD
-        return TicketRecord.objects.filter(purchased_by=member)
-
-    def __str__(self):
-        return f"{self.purchased_by.username}'s billet: {self.ticket.name}, Status: {self.status}"
-=======
         return TicketRecord.objects.filter(sale__member=member)
 
     def __str__(self):
         return f"{self.sale.member.username}'s billet: {self.ticket.name}, Status: {self.status}"
->>>>>>> 46b9fe7 (new ticket record model relations)
