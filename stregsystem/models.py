@@ -1,8 +1,10 @@
+from __future__ import annotations
 import datetime
 import urllib.parse
 from abc import abstractmethod
 from collections import Counter
 from email.utils import parseaddr
+from typing import Optional
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
@@ -708,6 +710,12 @@ class Sale(models.Model):
     def save(self, *args, **kwargs):
         if self.id:
             raise RuntimeError("Updates of sales are not allowed")
+
+        is_ticket, ticket = Ticket.is_product_a_ticket(self.product)
+        if is_ticket:
+            # Create a ticket record for this sale
+            TicketRecord.objects.create(ticket=ticket, sale=self)
+
         super(Sale, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
@@ -898,7 +906,21 @@ class Ticket(models.Model):
     name = models.CharField(max_length=50)
     description = models.TextField()
     quantity = models.IntegerField()
+<<<<<<< HEAD
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="tickets")
+=======
+    product = models.OneToOneField(
+        Product, on_delete=models.CASCADE, related_name="tickets"
+    )
+>>>>>>> 46b9fe7 (new ticket record model relations)
+
+    @staticmethod
+    def is_product_a_ticket(product: Product) -> tuple[bool, Optional[Ticket]]:
+        ticket = Ticket.objects.filter(product=product)
+        if ticket.exists():
+            return True, ticket.first()
+        else:
+            return False, None
 
     def __str__(self):
         return f"{self.name} for {self.event_instance.name_overwrite}"
@@ -912,18 +934,41 @@ class TicketPurchaseStatus(models.TextChoices):
 
 
 class TicketRecord(models.Model):
+<<<<<<< HEAD
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="purchases")
     purchased_by = models.ForeignKey(Member, on_delete=models.CASCADE, related_name="tickets")
     purchased_at = models.DateTimeField(auto_now_add=True)
+=======
+    ticket = models.ForeignKey(
+        Ticket, on_delete=models.CASCADE, related_name="purchases"
+    )
+    sale = models.OneToOneField(
+        Sale, on_delete=models.CASCADE, related_name="ticket_record"
+    )
+>>>>>>> 46b9fe7 (new ticket record model relations)
     status = models.CharField(max_length=20, choices=TicketPurchaseStatus.choices, default=TicketPurchaseStatus.ISSUED)
 
-    attended = models.BooleanField(default=False)
+    attended = models.BooleanField(null=True, blank=True)
 
     refunded_at = models.DateTimeField(blank=True)
+    refunded_by_admin = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="admin_refunded_tickets", null=True, blank=True
+    )
+
+    issued_by_admin = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="admin_issued_tickets", null=True, blank=True
+    )
 
     @staticmethod
     def get_member_purchases(member: Member):
+<<<<<<< HEAD
         return TicketRecord.objects.filter(purchased_by=member)
 
     def __str__(self):
         return f"{self.purchased_by.username}'s billet: {self.ticket.name}, Status: {self.status}"
+=======
+        return TicketRecord.objects.filter(sale__member=member)
+
+    def __str__(self):
+        return f"{self.sale.member.username}'s billet: {self.ticket.name}, Status: {self.status}"
+>>>>>>> 46b9fe7 (new ticket record model relations)
