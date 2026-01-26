@@ -961,11 +961,9 @@ def __set_local_values(member, room, products, order, now):
 
 
 def api_version(request):
-    return (
-        "OK",
-        200,
+    return JsonResponse(
         {
-            version: settings.STREGSYSTEM_VERSION,
-            api_version: "1.1",
-        },
+            'version': settings.STREGSYSTEM_VERSION,
+            'api_version': "1.1",
+        }
     )
