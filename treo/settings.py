@@ -270,3 +270,5 @@ global VERSION
 with open(PYPROJECT_PATH, "rb") as f:
     pyproject_data = tomllib.load(f)
     VERSION = pyproject_data["project"]["version"]
+
+print(f"Stregsystem: {VERSION}")
