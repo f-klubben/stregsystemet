@@ -15,11 +15,14 @@ import os
 from configparser import ConfigParser
 from io import StringIO
 import json
+import sys
 
 from django.conf.global_settings import DEFAULT_AUTO_FIELD
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+PYPROJECT_PATH = os.path.join(BASE_DIR, "pyproject.toml")
 
 # @UPGRADE remove the specific unicode "u" here when we finalize the upgrade to
 # python3. It's only required to satisfy python2 StringIO
@@ -250,3 +253,20 @@ LOGGING = {
         }
     }
 }
+
+# Use tomllib for Python 3.11+ or tomli for Python 3.10
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    try:
+        import tomli as tomllib
+    except ImportError:
+        raise ImportError(
+            "tomli is required for Python < 3.11. Install it with: pip install tomli"
+        )
+
+global VERSION
+
+with open(PYPROJECT_PATH, "rb") as f:
+    pyproject_data = tomllib.load(f)
+    VERSION = pyproject_data["project"]["version"]
