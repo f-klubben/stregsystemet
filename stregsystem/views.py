@@ -958,3 +958,15 @@ def __set_local_values(member, room, products, order, now):
         member_has_low_balance,
         member_balance,
     )
+
+def api_version(request):
+    from settings import VERSION
+
+    return (
+        "OK",
+        200,
+        {
+            version: VERSION,
+            api_version: "1.1",
+        }
+    )
