@@ -265,10 +265,12 @@ else:
             "tomli is required for Python < 3.11. Install it with: pip install tomli"
         )
 
-global STREGSYSTEM_VERSION
+global STREGSYSTEM_VERSION, STREGSYSTEM_API_VERSION
 
 with open(PYPROJECT_PATH, "rb") as f:
     pyproject_data = tomllib.load(f)
     STREGSYSTEM_VERSION = pyproject_data["project"]["version"]
+    STREGSYSTEM_API_VERSION = pyproject_data["tool"]["stregsystemet"]["api-version"]
 
 print(f"Stregsystem: {STREGSYSTEM_VERSION}")
+print(f"Stregsystem API: {STREGSYSTEM_API_VERSION}")

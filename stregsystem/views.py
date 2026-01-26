@@ -964,6 +964,6 @@ def api_version(request):
     return JsonResponse(
         {
             'version': settings.STREGSYSTEM_VERSION,
-            'api_version': "1.1",
+            'api_version': settings.STREGSYSTEM_API_VERSION,
         }
     )

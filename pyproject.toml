@@ -6,3 +6,6 @@ authors = [
 ]
 license = { text = "THE LIMFJORDS-PORTER-WARE LICENSE" }
 requires-python = ">=3.10"
+
+[tool.stregsystemet]
+api-version = "1.1"
