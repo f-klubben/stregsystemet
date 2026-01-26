@@ -959,14 +959,13 @@ def __set_local_values(member, room, products, order, now):
         member_balance,
     )
 
-def api_version(request):
-    from settings import VERSION
 
+def api_version(request):
     return (
         "OK",
         200,
         {
-            version: VERSION,
+            version: settings.STREGSYSTEM_VERSION,
             api_version: "1.1",
-        }
+        },
     )
