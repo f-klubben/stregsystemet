@@ -2,6 +2,7 @@ from django.conf import settings
 from django.urls import include, re_path
 from django.conf.urls.static import static
 from django.contrib import admin
+from oauth2_provider import urls as oauth2_urls
 
 """stregsystem URL Configuration
 
@@ -25,7 +26,7 @@ urlpatterns = [
     re_path(r'^', include("razzia.urls")),
     re_path(r'^kiosk/', include("kiosk.urls")),
     re_path(r'^admin/', admin.site.urls),
-
+    re_path(r'^o/', include(oauth2_urls)),
     re_path(r'^select2/', include('django_select2.urls')),
 ]
 
