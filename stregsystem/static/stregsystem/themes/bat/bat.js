@@ -112,8 +112,28 @@ function pointAndShoot() {
 	bat.y ??= Number(bat.element.style.getPropertyValue("--bat-y"));
 
 	// Calculate new coordinates
-	const { coordinate: newX, direction } = newCoordinate(bat.x);
-	const { coordinate: newY } = newCoordinate(bat.y);
+	let { coordinate: newX, direction } = newCoordinate(bat.x);
+	let { coordinate: newY } = newCoordinate(bat.y);
+
+	// !!! Regenerate coordiantes until valid spot found, not overlapping QR codes
+	if (isOverlappingQR(newX, newY) && !anyBatOverQR(bat)) {
+		// a bat is overlapping the QR area
+		// force new coordinates
+		let tries = 0;
+		while (isOverlappingQR(newX, newY) && tries < 10) {
+			const r1 = newCoordinate(bat.x); 
+			const r2 = newCoordinate(bat.y);
+			newX = r1.coordinate;
+			newY = r2.coordinate;
+			tries++;
+		}
+		if (tries === 10) {
+			// force in other direction
+			newX = clamp(0, bat.x + 15 * -direction, 100);
+			newY = clamp(0, bat.y + 15 * -direction, 100);
+		}
+	}
+
 	// Calculate the animation time based on how far
 	// the new coordinates are from the previous
 	const distance = Math.sqrt((bat.x - newX) ** 2 + (bat.y - newY) ** 2);
@@ -188,4 +208,39 @@ function newCoordinate(previous) {
  */
 function clamp(min, value, max) {
 	return Math.max(min, Math.min(max, value));
+}
+
+/**
+ * Helper checking if a bat overlaps a QR code element.
+ * @param {HTMLElement} x - The x coordinate of the bat in percentage.
+ * @param {HTMLElement} y - The y coordinate of the bat in percentage.
+ * @return {boolean} - True if an overlap is detected.
+ */
+function isOverlappingQR(x,y) {
+	const qrZones = document.querySelectorAll('.qr-code');
+	const px = (x/100) * window.innerWidth; // convert percentage to pixels
+	const py = (y/100) * window.innerHeight; // convert percentage to pixels
+
+	for (const zone of qrZones)  {
+		const rect = zone.getBoundingClientRect(); // get position and size of the QR zone
+		if (px >= rect.left && px <= rect.right && py >= rect.top && py <= rect.bottom) {
+			return true; // overlap detected
+		}
+	}
+	return false; // no overlap detected
+}
+
+/**
+ * Helper checking if there are any bat over the QR.
+ * @param {string} except - The bat to exclude from the check.
+ * @return {boolean} - True if any bat is over a QR code.
+ */
+function anyBatOverQR(except) {
+	for (const bat in batQueue) {
+		if (bat == except) continue;
+		if (isOverlappingQR(bat.x, bat.y)) {
+			return true;
+		}
+	}
+	return false;
 }
