@@ -115,8 +115,8 @@ function pointAndShoot() {
 	let { coordinate: newX, direction } = newCoordinate(bat.x);
 	let { coordinate: newY } = newCoordinate(bat.y);
 
-	// !!! Regenerate coordiantes until valid spot found, not overlapping QR codes
-	if (isOverlappingQR(newX, newY) && !anyBatOverQR(bat)) {
+	// !!! Regenerate coordinates until valid spot found, not overlapping QR codes
+	if (isOverlappingQR(newX, newY) && anyBatOverQR(bat)) {
 		// a bat is overlapping the QR area
 		// force new coordinates
 		let tries = 0;
@@ -232,13 +232,13 @@ function isOverlappingQR(x,y) {
 
 /**
  * Helper checking if there are any bat over the QR.
- * @param {string} except - The bat to exclude from the check.
+ * @param {object} except - The bat to exclude from the check.
  * @return {boolean} - True if any bat is over a QR code.
  */
 function anyBatOverQR(except) {
-	for (const bat in batQueue) {
-		if (bat == except) continue;
-		if (isOverlappingQR(bat.x, bat.y)) {
+	for (const bat of batQueue) {
+		if (bat === except) continue;
+		if (bat.x !== undefined && bat.y !== undefined && isOverlappingQR(bat.x, bat.y)) {
 			return true;
 		}
 	}
