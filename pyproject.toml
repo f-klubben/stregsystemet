@@ -4,5 +4,5 @@ version = "2.6.5"
 authors = [
   { name = "FIT" }
 ]
-license = { text = "THE LIMFJORDS-PORTER-WARE LICENSE" }
+license = { file = "LICENSE" }
 requires-python = ">=3.10"
