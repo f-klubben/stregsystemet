@@ -103,6 +103,10 @@ Themes
 -------
 [Read more about themes here.](./themes.md)
 
+Achievements
+-------
+[Read more about achievements here.](./achievements.md)
+
 Attaching Debugger
 -------
 [Read about attaching a debugger here.](./debugger.md)
