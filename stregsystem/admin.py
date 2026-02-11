@@ -25,29 +25,25 @@ from stregsystem.utils import (
     make_inactive_productlist_query,
 )
 
-
-def refund(modeladmin, request, queryset):
-    for obj in queryset:
-        transaction = PayTransaction(obj.price)
-        obj.member.rollback(transaction)
-        obj.member.save()
-    queryset.delete()
-
-
-refund.short_description = "Refund selected"
-
+@admin.action(description="Refunder valgte sales")
+def refund_sales(modeladmin, request, queryset):
+    for sale in queryset:
+        assert isinstance(sale, Sale)
+        sale.process_refund(request.user)
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
     list_display = (
         'get_username',
         'get_fullname',
+        'get_refunded',
         'get_product_name',
         'get_room_name',
         'timestamp',
         'get_price_display',
     )
-    actions = [refund]
+    readonly_fields = ("refunded_at", "refunded_by")
+    actions = [refund_sales]
     search_fields = ['^member__username', '=product__id', 'product__name']
     valid_lookups = 'member'
     autocomplete_fields = ['member', 'product']
@@ -66,6 +62,10 @@ class SaleAdmin(admin.ModelAdmin):
 
     get_fullname.short_description = "Full name"
     get_fullname.admin_order_field = "member__firstname"
+
+    def get_refunded(self, obj):
+        assert isinstance(obj, Sale)
+        return obj.is_refunded()
 
     def get_product_name(self, obj):
         return obj.product.name
