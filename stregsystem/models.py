@@ -952,6 +952,28 @@ class EventInstance(models.Model):
             return self.name_overwrite
         else:
             return self.event.name
+        
+    def get_stand_by_ticket_records(self):
+        return TicketRecord.objects.filter(
+            ticket__event_instance=self,
+            is_stand_by=True,
+        ).order_by('sale__timestamp')
+    
+    def get_issued_ticket_records(self):
+        return TicketRecord.objects.filter(
+            ticket__event_instance=self,
+            is_stand_by=False,
+            sale__refunded_at__isnull=True,
+        ).order_by('sale__timestamp')
+    
+    def refund_all_tickets(self, admin_user: User) -> None:
+        for ticket_record in self.get_issued_ticket_records():
+            ticket_record.process_refund(admin_user)
+        self.refund_all_stand_by_tickets(admin_user)
+
+    def refund_all_stand_by_tickets(self, admin_user: User) -> None:
+        for ticket_record in self.get_stand_by_ticket_records():
+            ticket_record.process_refund(admin_user)
 
     def __str__(self):
         return f"{self.name_overwrite} ({self.start_time} - {self.end_time})"
@@ -988,24 +1010,21 @@ class Ticket(models.Model):
 
 class TicketRecord(models.Model):
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="purchases")
-    sale = models.OneToOneField(Sale, on_delete=models.CASCADE, related_name="ticket_record")
+    sale = models.OneToOneField(Sale, on_delete=models.CASCADE, related_name="ticket_record", blank=True, null=True)
 
     has_attended = models.BooleanField(null=True, blank=True)
     is_stand_by = models.BooleanField(default=False, null=False)
 
-    issued_by = models.ForeignKey(
+    admin_issued_by = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="issued_tickets", null=True
+    )
+    admin_issued_to = models.ForeignKey(Member, on_delete=models.CASCADE, related_name="tickets", null=True
     )
 
     @staticmethod
     def create_from_sale_and_ticket(sale: Sale, ticket: Ticket) -> None:
-        # Count ticket sales for event instance, where is_refunded and is_stand_by is False, to determine if the ticket being created should be put on stand-by
-        event_instance = ticket.event_instance
-        ticket_sales_count = TicketRecord.objects.filter(
-            ticket__event_instance=event_instance, 
-            is_stand_by=False,
-            sale__refunded_at__isnull=True,
-        ).count()
+        # Count ticket sales for event instance, to determine if the ticket being created should be put on stand-by
+        ticket_sales_count = ticket.event_instance.get_issued_ticket_records().count()
 
         if ticket_sales_count < ticket.get_stand_by_limit():
             is_stand_by = False
@@ -1019,40 +1038,49 @@ class TicketRecord(models.Model):
         return TicketRecord.objects.filter(sale__member=member)
         
     def process_refund(self, adminUser: Optional[User]) -> None:
+        if (self.sale is None):
+            raise RuntimeError("Can't refund a ticket that hasn't been sold, i.e. was administerially issued")
+
         self.sale.process_refund(adminUser)
         self._issue_stand_by_ticket()
 
     def _issue_stand_by_ticket(self) -> None:
-        # Get all stand-by tickets for the same event instance, ordered by purchase time
-        standby_ticket_record = TicketRecord.objects.filter(
-            ticket__event_instance=self.ticket.event_instance,
-            is_stand_by=True,
-        ).order_by('sale__timestamp').first()
+        # Get the first stand-by ticket for the same event instance
+        standby_ticket_record = self.ticket.event_instance.get_stand_by_ticket_records().first()
 
         if not standby_ticket_record:
             return
 
         # Check if there are now fewer sales than the stand-by limit, and if so, issue the ticket
-        event_instance = standby_ticket_record.ticket.event_instance
-        ticket_sales_count = TicketRecord.objects.filter(
-                ticket__event_instance=event_instance,
-                is_stand_by=False,
-                sale__refunded_at__isnull=True,
-            ).count()
+        ticket_sales_count = standby_ticket_record.ticket.event_instance.get_issued_ticket_records().count()
 
         if ticket_sales_count < self.ticket.get_stand_by_limit():
             standby_ticket_record.is_stand_by = False
             standby_ticket_record.save()
 
     def is_refunded(self) -> bool:
-        return self.sale.refunded_at is not None
+        return self.sale is not None and self.sale.is_refunded()
     
     def get_refunded_pretty(self) -> str:
         return get_bool_pretty(self.is_refunded())
     
     def get_stand_by_pretty(self) -> str:
         return get_bool_pretty(self.is_stand_by)
-
+    
+    def get_ticket_owner(self) -> Member:
+        if self.sale is not None:
+            return self.sale.member
+        elif self.admin_issued_to is not None:
+            return self.admin_issued_to
+        else:
+            raise RuntimeError("Ticket has no owner")
+        
+    def save(self, *args, **kwargs):
+        if self.sale is not None and self.admin_issued_to is not None:
+            raise RuntimeError("Ticket can't have both a sale and an admin issuer")
+        if self.sale is None and self.admin_issued_to is None:
+            raise RuntimeError("Ticket must have either a sale or an admin issuer")
+        super(TicketRecord, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.sale.member.username}'s billet: {self.ticket.name} (Stand-by: {self.get_stand_by_pretty()}, Refunded: {self.get_refunded_pretty()})"
+        return f"{self.get_ticket_owner().username}'s billet: {self.ticket.name} (Stand-by: {self.get_stand_by_pretty()}, Refunded: {self.get_refunded_pretty()})"
