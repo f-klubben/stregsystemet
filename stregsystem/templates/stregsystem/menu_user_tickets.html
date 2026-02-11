@@ -24,7 +24,7 @@
         {% autoescape off %}
         {% for ticket_purchase in purchase_page %}
             <tr style="text-align:center;">
-                <td>{{ ticket_purchase.ticket.event_instance.name }}</td>
+                <td>{{ ticket_purchase.ticket.event_instance.get_name }}</td>
                 <td>{{ ticket_purchase.ticket.name }}</td>
                 <td>{{ ticket_purchase.ticket.description }}</td>
                 <td>{{ ticket_purchase.get_stand_by_pretty }}</td>

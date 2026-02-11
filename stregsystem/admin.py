@@ -391,9 +391,16 @@ class EventInstanceAdmin(admin.ModelAdmin):
 class TicketAdmin(admin.ModelAdmin):
     pass
 
+@admin.action(description="Refunder valgte ticket records")
+def refund_tickets(modeladmin, request, queryset):
+    admin_user = request.user
+
+    for ticket_record in queryset:
+        ticket_record.refund(admin_user)
 
 class TicketRecordAdmin(admin.ModelAdmin):
-    pass
+    actions = [refund_tickets]
+
 
 
 admin.site.register(LogEntry, LogEntryAdmin)
