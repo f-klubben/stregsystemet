@@ -2049,72 +2049,72 @@
         "model": "auth.permission",
         "pk": 103,
         "fields": {
-            "name": "Can add ticket",
+            "name": "Can add event instance",
             "content_type": 25,
-            "codename": "add_ticket"
+            "codename": "add_eventinstance"
         }
     },
     {
         "model": "auth.permission",
         "pk": 104,
         "fields": {
-            "name": "Can change ticket",
+            "name": "Can change event instance",
             "content_type": 25,
-            "codename": "change_ticket"
+            "codename": "change_eventinstance"
         }
     },
     {
         "model": "auth.permission",
         "pk": 105,
         "fields": {
-            "name": "Can delete ticket",
+            "name": "Can delete event instance",
             "content_type": 25,
-            "codename": "delete_ticket"
+            "codename": "delete_eventinstance"
         }
     },
     {
         "model": "auth.permission",
         "pk": 106,
         "fields": {
-            "name": "Can view ticket",
+            "name": "Can view event instance",
             "content_type": 25,
-            "codename": "view_ticket"
+            "codename": "view_eventinstance"
         }
     },
     {
         "model": "auth.permission",
         "pk": 107,
         "fields": {
-            "name": "Can add event instance",
+            "name": "Can add ticket",
             "content_type": 26,
-            "codename": "add_eventinstance"
+            "codename": "add_ticket"
         }
     },
     {
         "model": "auth.permission",
         "pk": 108,
         "fields": {
-            "name": "Can change event instance",
+            "name": "Can change ticket",
             "content_type": 26,
-            "codename": "change_eventinstance"
+            "codename": "change_ticket"
         }
     },
     {
         "model": "auth.permission",
         "pk": 109,
         "fields": {
-            "name": "Can delete event instance",
+            "name": "Can delete ticket",
             "content_type": 26,
-            "codename": "delete_eventinstance"
+            "codename": "delete_ticket"
         }
     },
     {
         "model": "auth.permission",
         "pk": 110,
         "fields": {
-            "name": "Can view event instance",
+            "name": "Can view ticket",
             "content_type": 26,
-            "codename": "view_eventinstance"
+            "codename": "view_ticket"
         }
     },
     {
@@ -2458,7 +2458,7 @@
         "pk": 25,
         "fields": {
             "app_label": "stregsystem",
-            "model": "ticket"
+            "model": "eventinstance"
         }
     },
     {
@@ -2466,7 +2466,7 @@
         "pk": 26,
         "fields": {
             "app_label": "stregsystem",
-            "model": "eventinstance"
+            "model": "ticket"
         }
     },
     {
