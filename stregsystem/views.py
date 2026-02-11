@@ -431,7 +431,12 @@ def menu_user_tickets(request, room_id, member_id):
     member = Member.objects.get(pk=member_id, active=True)
 
     all_ticket_purchases_current_member = TicketRecord.get_member_purchases(member).order_by("ticket__event_instance__start_time", "sale__timestamp")
-    purchase_paginator = Paginator(all_ticket_purchases_current_member, 5)
+
+    tickets_with_stand_by_queue = []
+    for ticket_purchase in all_ticket_purchases_current_member:
+        tickets_with_stand_by_queue.append((ticket_purchase, ticket_purchase.get_stand_by_queue_position()))
+
+    purchase_paginator = Paginator(tickets_with_stand_by_queue, 5)
     purchase_page_number = request.GET.get('purchase_table_index', 1)
     purchase_page = purchase_paginator.get_page(purchase_page_number)
 
@@ -440,6 +445,8 @@ def menu_user_tickets(request, room_id, member_id):
 def refund_ticket(request, room_id, ticket_purchase_id):
     room = Room.objects.get(pk=room_id)
     ticket_purchase = get_object_or_404(TicketRecord, pk=ticket_purchase_id)
+    
+    assert ticket_purchase.sale is not None, "Only sold tickets can be refunded"
     member = ticket_purchase.sale.member
 
     if request.method == "POST":

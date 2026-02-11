@@ -1035,14 +1035,32 @@ class TicketRecord(models.Model):
 
     @staticmethod
     def get_member_purchases(member: Member) -> models.QuerySet["TicketRecord"]:
-        return TicketRecord.objects.filter(sale__member=member)
-        
-    def process_refund(self, adminUser: Optional[User]) -> None:
-        if (self.sale is None):
-            raise RuntimeError("Can't refund a ticket that hasn't been sold, i.e. was administerially issued")
+        return TicketRecord.objects.filter(
+            models.Q(sale__member=member) | models.Q(admin_issued_to=member)
+        )
+    
+    def get_stand_by_queue_position(self) -> Optional[int]:
+        if not self.is_stand_by:
+            return None
 
+        # Get all stand-by tickets for the same event instance
+        stand_by_tickets = self.ticket.event_instance.get_stand_by_ticket_records()
+        # Find the position of this ticket in the queue
+        try:
+            return list(stand_by_tickets).index(self) + 1
+        except ValueError:
+            return None
+
+    def process_refund(self, adminUser: Optional[User]) -> None:
+        if not self.is_refundable():
+            raise RuntimeError("Can't refund a ticket that hasn't been sold, i.e. was administerially issued or is already refunded")
+
+        assert self.sale is not None, "Sale should not be None if ticket is refundable"
         self.sale.process_refund(adminUser)
         self._issue_stand_by_ticket()
+
+    def is_refundable(self) -> bool:
+        return self.sale is not None and not self.sale.is_refunded()
 
     def _issue_stand_by_ticket(self) -> None:
         # Get the first stand-by ticket for the same event instance

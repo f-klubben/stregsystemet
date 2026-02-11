@@ -1095,6 +1095,63 @@
         }
     },
     {
+        "model": "stregsystem.event",
+        "pk": 1,
+        "fields": {
+            "name": "Test Event",
+            "description": "Test Event Disc",
+            "image": "event_images/event-image_8hv5b4p.jpeg"
+        }
+    },
+    {
+        "model": "stregsystem.eventinstance",
+        "pk": 1,
+        "fields": {
+            "event": 1,
+            "name_overwrite": "Test Event Instance",
+            "description_overwrite": "Test Event Instance Desc",
+            "image_overwrite": "",
+            "capacity": 10,
+            "start_time": "2026-02-11T20:57:25Z",
+            "end_time": "9999-02-11T20:57:27Z",
+            "location": "Hjemme hos mig ;)"
+        }
+    },
+    {
+        "model": "stregsystem.ticket",
+        "pk": 1,
+        "fields": {
+            "event_instance": 1,
+            "name": "Fytte Test Event Instance",
+            "description": "Man kan k\u00f8be 4 af den her billet",
+            "quantity": 4,
+            "product": 51
+        }
+    },
+    {
+        "model": "stregsystem.ticket",
+        "pk": 2,
+        "fields": {
+            "event_instance": 1,
+            "name": "Flan Test Event Instance",
+            "description": "Man kan k\u00f8be 10 af den her billet",
+            "quantity": 10,
+            "product": 1836
+        }
+    },
+    {
+        "model": "stregsystem.ticketrecord",
+        "pk": 1,
+        "fields": {
+            "ticket": 2,
+            "sale": null,
+            "has_attended": null,
+            "is_stand_by": false,
+            "admin_issued_by": 1,
+            "admin_issued_to": 2
+        }
+    },
+    {
         "model": "admin.logentry",
         "pk": 1,
         "fields": {
@@ -1131,6 +1188,84 @@
             "object_repr": "<div id=\"maanedens-oel\"></div>\r\n<script>\r\n  var p = \"Ny!\";\r\n  var elem = document.getElementById(\"maanedens-oel\").parentElement;\r\n  // Set it to 7 and not 40 if you want the tests to break ;)\r\n  if (n",
             "action_flag": 2,
             "change_message": "[{\"changed\": {\"fields\": [\"Text\"]}}]"
+        }
+    },
+    {
+        "model": "admin.logentry",
+        "pk": 4,
+        "fields": {
+            "action_time": "2026-02-11T20:56:57.220Z",
+            "user": 1,
+            "content_type": 25,
+            "object_id": "1",
+            "object_repr": "Test Event",
+            "action_flag": 1,
+            "change_message": "[{\"added\": {}}]"
+        }
+    },
+    {
+        "model": "admin.logentry",
+        "pk": 5,
+        "fields": {
+            "action_time": "2026-02-11T20:57:57.723Z",
+            "user": 1,
+            "content_type": 26,
+            "object_id": "1",
+            "object_repr": "Test Event Instance (2026-02-11 21:57:25+01:00 - 9999-02-11 21:57:27+01:00)",
+            "action_flag": 1,
+            "change_message": "[{\"added\": {}}]"
+        }
+    },
+    {
+        "model": "admin.logentry",
+        "pk": 6,
+        "fields": {
+            "action_time": "2026-02-11T20:59:59.445Z",
+            "user": 1,
+            "content_type": 27,
+            "object_id": "1",
+            "object_repr": "Fytte Test Event Instance for Test Event Instance",
+            "action_flag": 1,
+            "change_message": "[{\"added\": {}}]"
+        }
+    },
+    {
+        "model": "admin.logentry",
+        "pk": 7,
+        "fields": {
+            "action_time": "2026-02-11T21:00:40.472Z",
+            "user": 1,
+            "content_type": 27,
+            "object_id": "2",
+            "object_repr": "Flan Test Event Instance for Test Event Instance",
+            "action_flag": 1,
+            "change_message": "[{\"added\": {}}]"
+        }
+    },
+    {
+        "model": "admin.logentry",
+        "pk": 8,
+        "fields": {
+            "action_time": "2026-02-11T21:01:16.335Z",
+            "user": 1,
+            "content_type": 28,
+            "object_id": "1",
+            "object_repr": "q's billet: Flan Test Event Instance (Stand-by: Nej, Refunded: Nej)",
+            "action_flag": 1,
+            "change_message": "[{\"added\": {}}]"
+        }
+    },
+    {
+        "model": "admin.logentry",
+        "pk": 9,
+        "fields": {
+            "action_time": "2026-02-11T21:02:41.889Z",
+            "user": 1,
+            "content_type": 28,
+            "object_id": "1",
+            "object_repr": "q's billet: Flan Test Event Instance (Stand-by: Nej, Refunded: Nej)",
+            "action_flag": 2,
+            "change_message": "[]"
         }
     },
     {
@@ -2200,7 +2335,7 @@
         "pk": 1,
         "fields": {
             "password": "pbkdf2_sha256$390000$Kt88MhSU3wsBuvk5eaezwQ$MV3CgIHzoVRz9GUh30vZTR6m0pEIJaiUtPEvN+QQye8=",
-            "last_login": "2025-01-13T23:26:16.491Z",
+            "last_login": "2026-02-11T20:56:21.272Z",
             "is_superuser": true,
             "username": "tester",
             "first_name": "test",
@@ -2489,6 +2624,14 @@
         "fields": {
             "app_label": "stregsystem",
             "model": "ticketrecord"
+        }
+    },
+    {
+        "model": "sessions.session",
+        "pk": "zwpk68lpb4osqcgu13htngl4b0td9qw8",
+        "fields": {
+            "session_data": ".eJxVjMEOwiAQRP-FsyFdKgU8evcbyMLuStXQpLQn47_bJj1o5jbvzbxVxHUpcW08x5HURYE6_XYJ85PrDuiB9T7pPNVlHpPeFX3Qpm8T8et6uH8HBVvZ1iEE3uIdZO8sS0IxuR-MnJ0TgBQoZe79AGyQbGfYi_VgJYPrRIjU5wvwETiI:1vqHG1:dtMCSGPXXmSJmjhLvM4JbLcoaflLpLPM_g2QZCeJZhk",
+            "expire_date": "2026-02-25T20:56:21.294Z"
         }
     }
 ]

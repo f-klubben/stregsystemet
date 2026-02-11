@@ -23,15 +23,26 @@
             <th></th>
         </tr>
         {% autoescape off %}
-        {% for ticket_purchase in purchase_page %}
+        {% for (ticket_purchase, stand_by_position) in purchase_page %}
             <tr style="text-align:center;">
                 <td>{{ ticket_purchase.ticket.event_instance.get_name }}</td>
                 <td>{{ ticket_purchase.ticket.name }}</td>
                 <td>{{ ticket_purchase.ticket.description }}</td>
-                <td>{{ ticket_purchase.get_stand_by_pretty }}</td>
-                <td>{{ ticket_purchase.get_refunded_pretty }}</td>
                 <td>
-                    {% if not ticket_purchase.sale.is_refunded %}
+                    {{ ticket_purchase.get_stand_by_pretty }}
+                    {% if stand_by_position is not None %}
+                        ({{ stand_by_position }}. i køen)
+                    {% endif %}
+                </td>
+                <td>
+                    {%if ticket_purchase.sale %} 
+                        {{ ticket_purchase.get_refunded_pretty }}
+                    {% else %}
+                        Admin udstedt ({{ ticket_purchase.admin_issued_by.get_full_name }})
+                    {% endif %}
+                </td>
+                <td>
+                    {% if ticket_purchase.sale.is_refundable %}
                         <form method="post" action="/{{room.id}}/refund_ticket/{{ticket_purchase.pk}}/">
                             {% csrf_token %}
                             <button type="submit">Refundér</button>
