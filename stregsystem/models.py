@@ -139,8 +139,13 @@ class Order(object):
             for i in range(item.count):
                 s = Sale(member=self.member, product=item.product, room=self.room, price=item.product.price)
                 sales.append(s)
+
         # Save all the sales
         Sale.objects.bulk_create(sales)
+
+        # Notify sale of creation
+        for sale in sales:
+            sale.on_bulk_created()
 
         # We changed the user balance, so save that
         self.member.save()
@@ -706,17 +711,25 @@ class Sale(models.Model):
 
     def __str__(self):
         return self.member.username + " " + self.product.name + " (" + money(self.price) + ") " + str(self.timestamp)
-
+    
+    def on_bulk_created(self):
+        is_ticket, ticket = Ticket.is_product_a_ticket(self.product)
+        if is_ticket:
+            assert ticket is not None, "Ticket should not be None if is_ticket is True"
+            TicketRecord.create_from_sale_and_ticket(self, ticket)
+    
     def save(self, *args, **kwargs):
         if self.id:
             raise RuntimeError("Updates of sales are not allowed")
 
+        print(f"Saving Sale: member={self.member}, product={self.product}, room={self.room}, price={self.price}")
+        super(Sale, self).save(*args, **kwargs)
+
         is_ticket, ticket = Ticket.is_product_a_ticket(self.product)
         if is_ticket:
-            # Create a ticket record for this sale
-            TicketRecord.objects.create(ticket=ticket, sale=self)
+            assert ticket is not None, "Ticket should not be None if is_ticket is True"
+            TicketRecord.create_from_sale_and_ticket(self, ticket)
 
-        super(Sale, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         if self.id:
@@ -910,9 +923,9 @@ class Ticket(models.Model):
 
     @staticmethod
     def is_product_a_ticket(product: Product) -> tuple[bool, Optional[Ticket]]:
-        ticket = Ticket.objects.filter(product=product)
-        if ticket.exists():
-            return True, ticket.first()
+        ticket = Ticket.objects.filter(product=product).first()
+        if ticket is not None:
+            return True, ticket
         else:
             return False, None
 
@@ -934,18 +947,42 @@ class TicketRecord(models.Model):
 
     attended = models.BooleanField(null=True, blank=True)
 
-    refunded_at = models.DateTimeField(blank=True)
+    refunded_at = models.DateTimeField(null=True, blank=True)
     refunded_by_admin = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="admin_refunded_tickets", null=True, blank=True
     )
 
     issued_by_admin = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="admin_issued_tickets", null=True, blank=True
+        User, on_delete=models.CASCADE, related_name="admin_issued_tickets", null=True
     )
+
+    @staticmethod
+    def create_from_sale_and_ticket(sale: Sale, ticket: Ticket) -> None:
+        # Count ticket sales for event instance, where status is not refunded, to determine if the ticket being created should be issued or put on stand-by
+        event_instance = ticket.event_instance
+        ticket_sales_count = TicketRecord.objects.filter(ticket__event_instance=event_instance, status__in=[TicketPurchaseStatus.ISSUED, TicketPurchaseStatus.ADMIN_ISSUED]).count()
+        if ticket_sales_count < ticket.quantity:
+            status = TicketPurchaseStatus.ISSUED
+        else:
+            status = TicketPurchaseStatus.STAND_BY
+
+        TicketRecord.objects.create(ticket=ticket, sale=sale, status=status)
 
     @staticmethod
     def get_member_purchases(member: Member):
         return TicketRecord.objects.filter(sale__member=member)
+        
+    def refund(self, admin_user: User):
+        if self.status == TicketPurchaseStatus.REFUNDED:
+            raise RuntimeError("Ticket is already refunded")
+        
+        if not admin_user.is_staff:
+            raise RuntimeError("Only staff users can refund tickets")
+
+        self.status = TicketPurchaseStatus.REFUNDED
+        self.refunded_at = timezone.now()
+        self.refunded_by_admin = admin_user
+        self.save()
 
     def __str__(self):
         return f"{self.sale.member.username}'s billet: {self.ticket.name}, Status: {self.status}"
