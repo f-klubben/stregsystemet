@@ -40,11 +40,13 @@ class SaleAdmin(admin.ModelAdmin):
     list_display = (
         'get_username',
         'get_fullname',
+        'get_refunded',
         'get_product_name',
         'get_room_name',
         'timestamp',
         'get_price_display',
     )
+    readonly_fields = ("refunded_at", "refunded_by")
     actions = [refund_sales]
     search_fields = ['^member__username', '=product__id', 'product__name']
     valid_lookups = 'member'
@@ -64,6 +66,10 @@ class SaleAdmin(admin.ModelAdmin):
 
     get_fullname.short_description = "Full name"
     get_fullname.admin_order_field = "member__firstname"
+
+    def get_refunded(self, obj):
+        assert isinstance(obj, Sale)
+        return obj.is_refunded()
 
     def get_product_name(self, obj):
         return obj.product.name

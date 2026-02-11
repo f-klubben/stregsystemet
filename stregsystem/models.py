@@ -713,14 +713,14 @@ class Sale(models.Model):
         return self.__str__()
 
     def __str__(self):
-        return self.member.username + " " + self.product.name + " (" + money(self.price) + ") " + str(self.timestamp)
+        return self.member.username + (" [REFUNDED]" if self.is_refunded() else " ") + self.product.name + " (" + money(self.price) + ") " + str(self.timestamp)
 
-    def process_refund(self, admin_user: User):
+    def process_refund(self, admin_user: Optional[User]) -> None:
         if self.is_refunded():
             raise RuntimeError("Sale has already been refunded")
         
-        if not admin_user.is_staff:
-            raise RuntimeError("Only staff users can process refunds")
+        if admin_user is not None and not admin_user.is_staff:
+            raise RuntimeError("Only staff users can refund tickets")
 
         self.refunded_at = timezone.now()
         self.refunded_by = admin_user
@@ -735,22 +735,40 @@ class Sale(models.Model):
         return self.refunded_at is not None
 
     def on_bulk_created(self):
-        is_ticket, ticket = Ticket.is_product_a_ticket(self.product)
-        if is_ticket:
-            assert ticket is not None, "Ticket should not be None if is_ticket is True"
-            TicketRecord.create_from_sale_and_ticket(self, ticket)
+        self.on_new_sale()
 
     def save(self, *args, **kwargs):
-        if self.id:
+        if not self._is_save_allowed():
             raise RuntimeError("Updates of sales are not allowed")
+        
+        already_exists = self.exists_in_database()
 
         print(f"Saving Sale: member={self.member}, product={self.product}, room={self.room}, price={self.price}")
         super(Sale, self).save(*args, **kwargs)
 
+        if not already_exists:
+            self.on_new_sale()
+
+    def on_new_sale(self):
         is_ticket, ticket = Ticket.is_product_a_ticket(self.product)
         if is_ticket:
             assert ticket is not None, "Ticket should not be None if is_ticket is True"
             TicketRecord.create_from_sale_and_ticket(self, ticket)
+
+    def _is_save_allowed(self):
+        # New sale, always allow save
+        if not self.exists_in_database():
+            return True  
+
+        database_value = Sale.objects.get(pk=self.pk)
+
+        if database_value.refunded_at is None and self.refunded_at is not None:
+            return True  # Allow saving if we're processing a refund (setting refunded_at from None to a timestamp)
+
+        return False  # Otherwise, disallow save
+    
+    def exists_in_database(self):
+        return self.pk is not None and Sale.objects.filter(pk=self.pk).exists()
 
 
     def delete(self, *args, **kwargs):
@@ -985,8 +1003,8 @@ class TicketRecord(models.Model):
         event_instance = ticket.event_instance
         ticket_sales_count = TicketRecord.objects.filter(
             ticket__event_instance=event_instance, 
-            is_refunded=False, 
             is_stand_by=False,
+            sale__refunded_at__isnull=True,
         ).count()
 
         if ticket_sales_count < ticket.get_stand_by_limit():
@@ -1000,14 +1018,8 @@ class TicketRecord(models.Model):
     def get_member_purchases(member: Member) -> models.QuerySet["TicketRecord"]:
         return TicketRecord.objects.filter(sale__member=member)
         
-    def process_refund(self, admin_user: User) -> None:
-        if self.is_refunded():
-            raise RuntimeError("Ticket is already refunded")
-        
-        if not admin_user.is_staff:
-            raise RuntimeError("Only staff users can refund tickets")
-
-        self.sale.process_refund(admin_user)
+    def process_refund(self, adminUser: Optional[User]) -> None:
+        self.sale.process_refund(adminUser)
         self._issue_stand_by_ticket()
 
     def _issue_stand_by_ticket(self) -> None:
@@ -1025,7 +1037,7 @@ class TicketRecord(models.Model):
         ticket_sales_count = TicketRecord.objects.filter(
                 ticket__event_instance=event_instance,
                 is_stand_by=False,
-                is_refunded=False,
+                sale__refunded_at__isnull=True,
             ).count()
 
         if ticket_sales_count < self.ticket.get_stand_by_limit():
@@ -1043,4 +1055,4 @@ class TicketRecord(models.Model):
 
 
     def __str__(self):
-        return f"{self.sale.member.username}'s billet: {self.ticket.name}, Status: {self.status}"
+        return f"{self.sale.member.username}'s billet: {self.ticket.name} (Stand-by: {self.get_stand_by_pretty()}, Refunded: {self.get_refunded_pretty()})"

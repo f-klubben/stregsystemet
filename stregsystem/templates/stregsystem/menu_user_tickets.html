@@ -20,6 +20,7 @@
             <th>Beskrivelse</th>
             <th>På Stand By</th>
             <th>Refunderet</th>
+            <th></th>
         </tr>
         {% autoescape off %}
         {% for ticket_purchase in purchase_page %}
@@ -29,6 +30,15 @@
                 <td>{{ ticket_purchase.ticket.description }}</td>
                 <td>{{ ticket_purchase.get_stand_by_pretty }}</td>
                 <td>{{ ticket_purchase.get_refunded_pretty }}</td>
+                <td>
+                    {% if not ticket_purchase.sale.is_refunded %}
+                        <form method="post" action="/{{room.id}}/refund_ticket/{{ticket_purchase.pk}}/">
+                            {% csrf_token %}
+                            <button type="submit">Refundér</button>
+                        </form>
+                    {% else %}
+                        Ingen handling
+                    {% endif %}                
             </tr>
         {% empty %}
             <tr style="text-align:center;">
