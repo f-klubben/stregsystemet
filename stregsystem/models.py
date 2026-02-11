@@ -714,16 +714,13 @@ class Sale(models.Model):
 
     def __str__(self):
         return self.member.username + " " + self.product.name + " (" + money(self.price) + ") " + str(self.timestamp)
-    
-    def on_bulk_created(self):
-        is_ticket, ticket = Ticket.is_product_a_ticket(self.product)
-        if is_ticket:
-            assert ticket is not None, "Ticket should not be None if is_ticket is True"
-            TicketRecord.create_from_sale_and_ticket(self, ticket)
 
     def process_refund(self, admin_user: User):
         if self.is_refunded():
             raise RuntimeError("Sale has already been refunded")
+        
+        if not admin_user.is_staff:
+            raise RuntimeError("Only staff users can process refunds")
 
         self.refunded_at = timezone.now()
         self.refunded_by = admin_user
@@ -736,7 +733,13 @@ class Sale(models.Model):
 
     def is_refunded(self):
         return self.refunded_at is not None
-    
+
+    def on_bulk_created(self):
+        is_ticket, ticket = Ticket.is_product_a_ticket(self.product)
+        if is_ticket:
+            assert ticket is not None, "Ticket should not be None if is_ticket is True"
+            TicketRecord.create_from_sale_and_ticket(self, ticket)
+
     def save(self, *args, **kwargs):
         if self.id:
             raise RuntimeError("Updates of sales are not allowed")
@@ -970,7 +973,7 @@ class TicketRecord(models.Model):
     sale = models.OneToOneField(Sale, on_delete=models.CASCADE, related_name="ticket_record")
 
     has_attended = models.BooleanField(null=True, blank=True)
-    is_stand_by = models.BooleanField(default=False)
+    is_stand_by = models.BooleanField(default=False, null=False)
 
     issued_by = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="issued_tickets", null=True
@@ -1022,6 +1025,7 @@ class TicketRecord(models.Model):
         ticket_sales_count = TicketRecord.objects.filter(
                 ticket__event_instance=event_instance,
                 is_stand_by=False,
+                is_refunded=False,
             ).count()
 
         if ticket_sales_count < self.ticket.get_stand_by_limit():

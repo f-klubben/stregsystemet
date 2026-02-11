@@ -29,17 +29,11 @@ from stregsystem.utils import (
     make_inactive_productlist_query,
 )
 
-
-def refund(modeladmin, request, queryset):
-    for obj in queryset:
-        transaction = PayTransaction(obj.price)
-        obj.member.rollback(transaction)
-        obj.member.save()
-    queryset.delete()
-
-
-refund.short_description = "Refund selected"
-
+@admin.action(description="Refunder valgte sales")
+def refund_sales(modeladmin, request, queryset):
+    for sale in queryset:
+        assert isinstance(sale, Sale)
+        sale.process_refund(request.user)
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
@@ -51,7 +45,7 @@ class SaleAdmin(admin.ModelAdmin):
         'timestamp',
         'get_price_display',
     )
-    actions = [refund]
+    actions = [refund_sales]
     search_fields = ['^member__username', '=product__id', 'product__name']
     valid_lookups = 'member'
     autocomplete_fields = ['member', 'product']
@@ -393,10 +387,9 @@ class TicketAdmin(admin.ModelAdmin):
 
 @admin.action(description="Refunder valgte ticket records")
 def refund_tickets(modeladmin, request, queryset):
-    admin_user = request.user
-
     for ticket_record in queryset:
-        ticket_record.refund(admin_user)
+        assert isinstance(ticket_record, TicketRecord)
+        ticket_record.process_refund(request.user)
 
 class TicketRecordAdmin(admin.ModelAdmin):
     actions = [refund_tickets]
