@@ -1,5 +1,5 @@
 Django==4.1.13
-Pillow==10.3.0
+Pillow==12.1.1
 Coverage==7.5.1
 pytz==2024.1
 freezegun==1.5.1
