@@ -396,17 +396,24 @@ def refund_stand_by_event_instances(modeladmin, request, queryset):
         event_instance.refund_all_stand_by_tickets(request.user)
 
 class EventInstanceAdmin(admin.ModelAdmin):
-    list_display = ('get_issue_count', 'get_stand_by_count',)
+    list_display = ('get_name','get_issue_count', 'get_stand_by_count',)
     readonly_fields = ('get_issue_count', 'get_stand_by_count',)
 
     actions = [refund_event_instances, refund_stand_by_event_instances]
 
+    @admin.display(description="Event name")
+    def get_name(self, obj):
+        assert isinstance(obj, EventInstance)
+        return obj.get_name()
+
     @admin.display(description="Issued tickets count")
     def get_issue_count(self, obj):
+        assert isinstance(obj, EventInstance)
         return obj.get_issued_ticket_records().count()
 
     @admin.display(description="Stand-by tickets count")
     def get_stand_by_count(self, obj):
+        assert isinstance(obj, EventInstance)
         return obj.get_stand_by_ticket_records().count()
 
 

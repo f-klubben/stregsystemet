@@ -1026,12 +1026,12 @@ class TicketRecord(models.Model):
         # Count ticket sales for event instance, to determine if the ticket being created should be put on stand-by
         ticket_sales_count = ticket.event_instance.get_issued_ticket_records().count()
 
-        if ticket_sales_count < ticket.get_stand_by_limit():
+        if ticket_sales_count <= ticket.get_stand_by_limit():
             is_stand_by = False
         else:
             is_stand_by = True
 
-        TicketRecord.objects.create(ticket=ticket, sale=sale, is_stand_by=is_stand_by, issued_by=None)
+        TicketRecord.objects.create(ticket=ticket, sale=sale, is_stand_by=is_stand_by)
 
     @staticmethod
     def get_member_purchases(member: Member) -> models.QuerySet["TicketRecord"]:
@@ -1056,6 +1056,9 @@ class TicketRecord(models.Model):
             raise RuntimeError("Can't refund a ticket that hasn't been sold, i.e. was administerially issued or is already refunded")
 
         assert self.sale is not None, "Sale should not be None if ticket is refundable"
+        self.is_stand_by = False
+        self.save()
+
         self.sale.process_refund(adminUser)
         self._issue_stand_by_ticket()
 
@@ -1072,7 +1075,7 @@ class TicketRecord(models.Model):
         # Check if there are now fewer sales than the stand-by limit, and if so, issue the ticket
         ticket_sales_count = standby_ticket_record.ticket.event_instance.get_issued_ticket_records().count()
 
-        if ticket_sales_count < self.ticket.get_stand_by_limit():
+        if ticket_sales_count <= self.ticket.get_stand_by_limit():
             standby_ticket_record.is_stand_by = False
             standby_ticket_record.save()
 

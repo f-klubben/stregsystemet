@@ -1,7 +1,7 @@
 import datetime
 import io
 import json
-from typing import List, Type
+from typing import List, Optional, Type
 
 import pytz
 import qrcode
@@ -432,13 +432,16 @@ def menu_user_tickets(request, room_id, member_id):
 
     all_ticket_purchases_current_member = TicketRecord.get_member_purchases(member).order_by("ticket__event_instance__start_time", "sale__timestamp")
 
-    tickets_with_stand_by_queue = []
-    for ticket_purchase in all_ticket_purchases_current_member:
-        tickets_with_stand_by_queue.append((ticket_purchase, ticket_purchase.get_stand_by_queue_position()))
-
-    purchase_paginator = Paginator(tickets_with_stand_by_queue, 5)
+    purchase_paginator = Paginator(all_ticket_purchases_current_member, 5)
     purchase_page_number = request.GET.get('purchase_table_index', 1)
     purchase_page = purchase_paginator.get_page(purchase_page_number)
+
+    tickets_with_stand_by_queue: List[tuple[TicketRecord, Optional[int]]] = []
+    for ticket_purchase in purchase_page:
+        assert isinstance(ticket_purchase, TicketRecord), "Expected ticket purchase to be of type TicketRecord"
+        tickets_with_stand_by_queue.append(
+            (ticket_purchase, ticket_purchase.get_stand_by_queue_position())
+        )
 
     return render(request, "stregsystem/menu_user_tickets.html", locals())
 

@@ -18,37 +18,36 @@
             <th>Event</th>
             <th>Billet Navn</th>
             <th>Beskrivelse</th>
-            <th>På Stand By</th>
-            <th>Refunderet</th>
+            <th>Status</th>
             <th></th>
         </tr>
         {% autoescape off %}
-        {% for (ticket_purchase, stand_by_position) in purchase_page %}
+        {% for ticket_record, stand_by_position in tickets_with_stand_by_queue %}
             <tr style="text-align:center;">
-                <td>{{ ticket_purchase.ticket.event_instance.get_name }}</td>
-                <td>{{ ticket_purchase.ticket.name }}</td>
-                <td>{{ ticket_purchase.ticket.description }}</td>
+                <td>{{ ticket_record.ticket.event_instance.get_name }}</td>
+                <td>{{ ticket_record.ticket.name }}</td>
+                <td>{{ ticket_record.ticket.description }}</td>
                 <td>
-                    {{ ticket_purchase.get_stand_by_pretty }}
                     {% if stand_by_position is not None %}
-                        ({{ stand_by_position }}. i køen)
-                    {% endif %}
-                </td>
-                <td>
-                    {%if ticket_purchase.sale %} 
-                        {{ ticket_purchase.get_refunded_pretty }}
+                        Reseveret ({{ stand_by_position }}. i køen)
+                    {% elif ticket_record.sale %}
+                        {% if ticket_record.sale.refunded_at is not None %}
+                            Refunderet
+                        {% else %}
+                            Udstedt
+                        {% endif %}
                     {% else %}
-                        Admin udstedt ({{ ticket_purchase.admin_issued_by.get_full_name }})
+                        Admin udstedt ({{ ticket_record.admin_issued_by.get_full_name }})
                     {% endif %}
                 </td>
                 <td>
-                    {% if ticket_purchase.sale.is_refundable %}
-                        <form method="post" action="/{{room.id}}/refund_ticket/{{ticket_purchase.pk}}/">
+                    {% if ticket_record.sale and ticket_record.sale.refunded_at is None %}
+                        <form method="post" action="/{{room.id}}/refund_ticket/{{ticket_record.pk}}/" onsubmit="return confirm('Er du sikker på, at du vil refundere billetten?');">              
                             {% csrf_token %}
                             <button type="submit">Refundér</button>
                         </form>
                     {% else %}
-                        Ingen handling
+                        -
                     {% endif %}                
             </tr>
         {% empty %}
