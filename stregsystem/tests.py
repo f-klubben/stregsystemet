@@ -25,6 +25,8 @@ from stregsystem.booze import ballmer_peak
 from stregsystem.caffeine import CAFFEINE_DEGRADATION_PR_HOUR, CAFFEINE_IN_COFFEE
 from stregsystem.models import (
     Category,
+    Event,
+    EventInstance,
     GetTransaction,
     Member,
     NoMoreInventoryError,
@@ -36,6 +38,8 @@ from stregsystem.models import (
     Room,
     Sale,
     StregForbudError,
+    Ticket,
+    TicketRecord,
     active_str,
     price_display,
     MobilePayment,
@@ -2289,3 +2293,216 @@ class MailTests(TestCase):
 
         signup_request.approve()
         mock_mail_method.assert_called_once()
+
+class EventAndTicketTests(TestCase):
+    """
+    setUpClass()
+    setUpTestData()
+
+    For each test method:
+        Start transaction
+        setUp()
+        test_*
+        tearDown()
+        Rollback transaction
+
+    tearDownClass()
+    """
+    fixtures = ["initial_data"]
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+
+        cls.member = Member.objects.create(username="test", email="test@example.com", balance=10000)
+
+        cls.admin = User.objects.create_superuser('admin', 'admin@example.com', 'adminpassword')
+
+        cls.event = Event.objects.create(name="Test Event", description="This is a test event.")
+
+        cls.event_instance = EventInstance.objects.create(event=cls.event, name_overwrite="Test Event Instance", description_overwrite="This is a test event instance.", capacity=5, start_time=timezone.now(), end_time=timezone.now() + datetime.timedelta(hours=2), location="Test Location")
+
+        cls.event_instance_2 = EventInstance.objects.create(event=cls.event, name_overwrite="Test Event Instance 2", description_overwrite="This is another test event instance.", capacity=5, start_time=timezone.now() + datetime.timedelta(hours=3), end_time=timezone.now() + datetime.timedelta(hours=6), location="Test Location 2")
+
+        cls.event_instance_product = Product.objects.create(name="Test Event Instance Product", price=100, active=True)
+
+        cls.event_instance_ticket = Ticket.objects.create(event_instance=cls.event_instance, name="Test Ticket", description="This is a test ticket.", quantity=1, product=cls.event_instance_product)
+
+        cls.event_instance_product_2 = Product.objects.create(name="Test Event Instance Product 2", price=150, active=True)
+
+        cls.event_instance_ticket_2 = Ticket.objects.create(event_instance=cls.event_instance, name="Test Ticket 2", description="This is another test ticket.", quantity=9, product=cls.event_instance_product_2)
+
+
+
+    def test_setup(self):
+        self.assertEqual(self.member.username, "test")
+        self.assertEqual(self.admin.username, "admin")
+        self.assertEqual(self.event.name, "Test Event")
+        self.assertEqual(self.event_instance.name_overwrite, "Test Event Instance")
+        self.assertEqual(self.event_instance_2.name_overwrite, "Test Event Instance 2")
+        self.assertEqual(self.event_instance_product.name, "Test Event Instance Product")
+        self.assertEqual(self.event_instance_ticket.name, "Test Ticket")
+        self.assertEqual(self.event_instance_product_2.name, "Test Event Instance Product 2")
+        self.assertEqual(self.event_instance_ticket_2.name, "Test Ticket 2")
+
+    def test_ticket_purchase(self):
+        # Purchase the product for the first ticket
+        response = self.client.post(
+            reverse("quickbuy", args=(1,)), {"quickbuy": f"test {self.event_instance_ticket.product.pk}"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(Sale.objects.filter(member=self.member, product=self.event_instance_ticket.product).exists())
+
+        ticket_records = TicketRecord.objects.filter(ticket=self.event_instance_ticket)
+        self.assertTrue(ticket_records.exists())
+        self.assertEqual(ticket_records.count(), 1)
+
+        ticket_record = ticket_records.first()
+        self.assertIsNotNone(ticket_record)
+
+        assert ticket_record is not None
+        self.assertIsNotNone(ticket_record.ticket)
+        self.assertIsNotNone(ticket_record.sale)
+        self.assertIsNone(ticket_record.has_attended)
+        self.assertFalse(ticket_record.is_stand_by)
+        self.assertIsNone(ticket_record.admin_issued_by)
+        self.assertIsNone(ticket_record.admin_issued_to)
+
+        member_purchases = TicketRecord.get_member_purchases(self.member)
+
+        self.assertEqual(member_purchases.count(), 1)
+        member_purchase = member_purchases.first()
+        self.assertIsNotNone(member_purchase)
+        assert member_purchase is not None
+        self.assertEqual(member_purchase.pk, ticket_record.pk)
+
+    def test_ticket_purchase_standby(self):
+        # Purchase the product for the first ticket
+        response = self.client.post(
+            reverse("quickbuy", args=(1,)),
+            {"quickbuy": f"test {self.event_instance_ticket.product.pk}"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            Sale.objects.filter(
+                member=self.member, product=self.event_instance_ticket.product
+            ).count(),
+            1,
+        )
+
+        # Purchase the product for the first ticket the second time, which should put the ticket on standby, since quantity is 
+        
+        response = self.client.post(
+            reverse("quickbuy", args=(1,)),
+            {"quickbuy": f"test {self.event_instance_ticket.product.pk}"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            Sale.objects.filter(
+                member=self.member, product=self.event_instance_ticket.product
+            ).count(),
+            2,
+        )
+
+        ticket_records = TicketRecord.objects.filter(ticket=self.event_instance_ticket)
+        self.assertTrue(ticket_records.exists())
+        self.assertEqual(ticket_records.count(), 2)
+
+        ticket_record_first = ticket_records.first()
+        self.assertIsNotNone(ticket_record_first)
+
+        assert ticket_record_first is not None
+        self.assertIsNotNone(ticket_record_first.ticket)
+        self.assertIsNotNone(ticket_record_first.sale)
+        self.assertIsNone(ticket_record_first.has_attended)
+        self.assertFalse(ticket_record_first.is_stand_by)
+        self.assertIsNone(ticket_record_first.admin_issued_by)
+        self.assertIsNone(ticket_record_first.admin_issued_to)
+
+        ticket_record_last = ticket_records.last()
+        self.assertIsNotNone(ticket_record_last)
+        assert ticket_record_last is not None
+
+        self.assertNotEqual(ticket_record_first.pk, ticket_record_last.pk)
+        self.assertIsNotNone(ticket_record_last.ticket)
+        self.assertIsNotNone(ticket_record_last.sale)
+        self.assertIsNone(ticket_record_last.has_attended)
+        self.assertTrue(ticket_record_last.is_stand_by)
+        self.assertIsNone(ticket_record_last.admin_issued_by)
+        self.assertIsNone(ticket_record_last.admin_issued_to)
+
+        # Purchase the product for the second ticket, which should not be on standby, since quantity is 9, and only 2 has been sold so far
+        response = self.client.post(
+            reverse("quickbuy", args=(1,)),
+            {"quickbuy": f"test {self.event_instance_ticket_2.product.pk}"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            Sale.objects.filter(
+                member=self.member, product=self.event_instance_ticket_2.product
+            ).count(),
+            1,
+        )
+        self.assertEqual(
+            Sale.objects.filter(
+                member=self.member
+            ).count(),
+            3,
+        )
+
+        ticket_records = TicketRecord.objects.filter(ticket=self.event_instance_ticket_2)
+
+        self.assertTrue(ticket_records.exists())
+        self.assertEqual(ticket_records.count(), 1)
+        ticket_record = ticket_records.first()
+        self.assertIsNotNone(ticket_record)
+        assert ticket_record is not None
+        self.assertIsNotNone(ticket_record.ticket)
+        self.assertIsNotNone(ticket_record.sale)
+        self.assertIsNone(ticket_record.has_attended)
+        self.assertFalse(ticket_record.is_stand_by)
+        self.assertIsNone(ticket_record.admin_issued_by)
+        self.assertIsNone(ticket_record.admin_issued_to)
+
+    def test_capacity_stand_by(self):
+        # Purchase the product for the first ticket 5 times, which should fill the capacity and put the rest on standby, since quantity is 1, and capacity is 5
+        capacity = self.event_instance.capacity
+
+        for i in range(capacity + 1):
+            response = self.client.post(
+                reverse("quickbuy", args=(1,)),
+                {"quickbuy": f"test {self.event_instance_ticket_2.product.pk}"},
+            )
+
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(
+                Sale.objects.filter(
+                    member=self.member, product=self.event_instance_ticket_2.product
+                ).count(),
+                i + 1,
+            )
+
+        ticket_records = TicketRecord.objects.filter(ticket=self.event_instance_ticket_2)
+        self.assertTrue(ticket_records.exists())
+        self.assertEqual(ticket_records.count(), capacity + 1)
+
+        last = ticket_records.last()
+        self.assertIsNotNone(last)
+        assert last is not None
+
+        for ticket_record in ticket_records:
+            self.assertIsNotNone(ticket_record)
+            assert ticket_record is not None
+            self.assertIsNotNone(ticket_record.ticket)
+            self.assertIsNotNone(ticket_record.sale)
+            self.assertIsNone(ticket_record.has_attended)
+            if ticket_record.pk == last.pk:
+                self.assertTrue(ticket_record.is_stand_by)
+            else:
+                self.assertFalse(ticket_record.is_stand_by)
+            self.assertIsNone(ticket_record.admin_issued_by)
+            self.assertIsNone(ticket_record.admin_issued_to)

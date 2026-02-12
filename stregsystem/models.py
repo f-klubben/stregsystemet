@@ -1026,7 +1026,7 @@ class TicketRecord(models.Model):
         # Count ticket sales for event instance, to determine if the ticket being created should be put on stand-by
         ticket_sales_count = ticket.event_instance.get_issued_ticket_records().count()
 
-        if ticket_sales_count <= ticket.get_stand_by_limit():
+        if ticket_sales_count < ticket.get_stand_by_limit():
             is_stand_by = False
         else:
             is_stand_by = True
@@ -1075,7 +1075,7 @@ class TicketRecord(models.Model):
         # Check if there are now fewer sales than the stand-by limit, and if so, issue the ticket
         ticket_sales_count = standby_ticket_record.ticket.event_instance.get_issued_ticket_records().count()
 
-        if ticket_sales_count <= self.ticket.get_stand_by_limit():
+        if ticket_sales_count < self.ticket.get_stand_by_limit():
             standby_ticket_record.is_stand_by = False
             standby_ticket_record.save()
 
