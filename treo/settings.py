@@ -108,6 +108,8 @@ INSTALLED_APPS = [
     'debug_toolbar',
 ]
 
+OAUTH2_PROVIDER_USER_MODEL = "sso.MemberSSO"
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'stregsystem.middleware.CorsMiddleware',
@@ -257,3 +259,16 @@ AUTHENTICATION_BACKENDS = [
     'sso.auth_backends.PasswordlessMemberBackend',
     'django.contrib.auth.backends.ModelBackend',  # keep for admin/superusers
 ]
+
+# openssl genrsa -out oidc.key 4096
+with open('oidc.key', 'r') as f:
+    OIDC_RSA_PRIVATE_KEY = f.read()
+
+OAUTH2_PROVIDER = {
+    "OIDC_ENABLED": True,
+    "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
+    "SCOPES": {
+        "balance": "Access member balance",
+    },
+    "LOGIN_URL": "/sso/login",
+}
