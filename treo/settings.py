@@ -252,3 +252,8 @@ LOGGING = {
         }
     }
 }
+
+AUTHENTICATION_BACKENDS = [
+    'sso.auth_backends.PasswordlessMemberBackend',
+    'django.contrib.auth.backends.ModelBackend',  # keep for admin/superusers
+]
