@@ -27,6 +27,7 @@ urlpatterns = [
     re_path(r'^kiosk/', include("kiosk.urls")),
     re_path(r'^admin/', admin.site.urls),
     re_path(r'^o/', include(oauth2_urls)),
+    re_path(r'^sso/', include("sso.urls")),
     re_path(r'^select2/', include('django_select2.urls')),
 ]
 
