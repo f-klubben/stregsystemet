@@ -891,14 +891,12 @@ class SaleTests(TestCase):
         )
 
     def test_sale_process_refund(self):
-        admin = User.objects.create_superuser(
-            "admin", "admin@example.com", "adminpassword"
-        )
+        admin = User.objects.create_superuser("admin", "admin@example.com", "adminpassword")
         sale_1 = Sale.objects.create(member=self.member, product=self.product, price=self.product.price)
         sale_2 = Sale.objects.create(member=self.member, product=self.product, price=self.product.price)
 
         self.assertEqual(self.member.balance, 100)
-        
+
         now = timezone.now()
         sale_1.process_refund(admin)
         self.member.refresh_from_db()
@@ -913,7 +911,7 @@ class SaleTests(TestCase):
         now = timezone.now()
         sale_2.process_refund(None)
         self.member.refresh_from_db()
-        self.assertEqual(self.member.balance, 102) 
+        self.assertEqual(self.member.balance, 102)
         self.assertIsNone(sale_2.refunded_by)
         self.assertIsNotNone(sale_2.refunded_at)
         assert sale_2.refunded_at is not None
@@ -921,9 +919,7 @@ class SaleTests(TestCase):
         self.assertAlmostEqual(sale_2.refunded_at.minute, now.minute)
         self.assertAlmostEqual(sale_2.refunded_at.second, now.second)
 
-        non_admin = User.objects.create_user(
-            "nonadmin", "nonadmin@example.com", "nonadminpassword"
-        )
+        non_admin = User.objects.create_user("nonadmin", "nonadmin@example.com", "nonadminpassword")
         sale_3 = Sale.objects.create(member=self.member, product=self.product, price=self.product.price)
 
         with self.assertRaises(PermissionError):
@@ -934,7 +930,6 @@ class SaleTests(TestCase):
 
         with self.assertRaises(RuntimeError):
             sale_2.process_refund(None)
-
 
     def test_sale_save_not_saved(self):
         sale = Sale(member=self.member, product=self.product, price=100)
