@@ -33,7 +33,8 @@ from stregsystem.utils import (
 @admin.action(description="Refunder valgte sales")
 def refund_sales(modeladmin, request, queryset):
     for sale in queryset:
-        assert isinstance(sale, Sale)
+        if not isinstance(sale, Sale):
+            raise ValueError("queryset must be of Sale")
         sale.process_refund(request.user)
 
 
@@ -70,7 +71,8 @@ class SaleAdmin(admin.ModelAdmin):
     get_fullname.admin_order_field = "member__firstname"
 
     def get_refunded(self, obj):
-        assert isinstance(obj, Sale)
+        if not isinstance(obj, Sale):
+            raise ValueError("obj must be of Sale")
         return obj.is_refunded()
 
     def get_product_name(self, obj):
@@ -389,14 +391,16 @@ class EventAdmin(admin.ModelAdmin):
 @admin.action(description="Refunder valgte event instances")
 def refund_event_instances(modeladmin, request, queryset):
     for event_instance in queryset:
-        assert isinstance(event_instance, EventInstance)
+        if not isinstance(event_instance, EventInstance):
+            raise ValueError("queryset must be of EventInstance")
         event_instance.refund_all_tickets(request.user)
 
 
 @admin.action(description="Refunder KUN STAND-BY på valgte event instances")
 def refund_stand_by_event_instances(modeladmin, request, queryset):
     for event_instance in queryset:
-        assert isinstance(event_instance, EventInstance)
+        if not isinstance(event_instance, EventInstance):
+            raise ValueError("queryset must be of EventInstance")
         event_instance.refund_all_stand_by_tickets(request.user)
 
 
@@ -415,17 +419,20 @@ class EventInstanceAdmin(admin.ModelAdmin):
 
     @admin.display(description="Event name")
     def get_name(self, obj):
-        assert isinstance(obj, EventInstance)
+        if not isinstance(obj, EventInstance):
+            raise ValueError("obj must be an EventInstance")
         return obj.get_name()
 
     @admin.display(description="Issued tickets count")
     def get_issue_count(self, obj):
-        assert isinstance(obj, EventInstance)
+        if not isinstance(obj, EventInstance):
+            raise ValueError("obj must be an EventInstance")
         return obj.get_issued_ticket_records().count()
 
     @admin.display(description="Stand-by tickets count")
     def get_stand_by_count(self, obj):
-        assert isinstance(obj, EventInstance)
+        if not isinstance(obj, EventInstance):
+            raise ValueError("obj must be an EventInstance")
         return obj.get_stand_by_ticket_records().count()
 
 
@@ -436,7 +443,8 @@ class TicketAdmin(admin.ModelAdmin):
 @admin.action(description="Refunder valgte ticket records")
 def refund_tickets(modeladmin, request, queryset):
     for ticket_record in queryset:
-        assert isinstance(ticket_record, TicketRecord)
+        if not isinstance(ticket_record, TicketRecord):
+            raise ValueError("queryset must be of TicketRecord")
         ticket_record.process_refund(request.user)
 
 
