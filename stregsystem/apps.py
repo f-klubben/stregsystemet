@@ -12,4 +12,3 @@ class StregConfig(AppConfig):
 
         post_save.connect(after_member_save, sender=Member)
         post_save.connect(after_pending_signup_save, sender=PendingSignup)
-

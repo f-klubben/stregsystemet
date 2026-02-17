@@ -2296,6 +2296,7 @@ class MailTests(TestCase):
         signup_request.approve()
         mock_mail_method.assert_called_once()
 
+
 class EventAndTicketTests(TestCase):
     """
     setUpClass()
@@ -2310,10 +2311,13 @@ class EventAndTicketTests(TestCase):
 
     tearDownClass()
     """
+
     fixtures = ["initial_data"]
 
-    def helper_create_ticket_record(self, member: Member, product: Product, is_standby=False) -> tuple[TicketRecord, Sale]:
-        # Helper method to create a ticket record, since the sale implicitly does this, and this is done many times. 
+    def helper_create_ticket_record(
+        self, member: Member, product: Product, is_standby=False
+    ) -> tuple[TicketRecord, Sale]:
+        # Helper method to create a ticket record, since the sale implicitly does this, and this is done many times.
         sale = Sale.objects.create(member=member, product=product, price=product.price)
         ticket_record = TicketRecord.objects.filter(sale=sale).first()
         if ticket_record is None:
@@ -2321,7 +2325,7 @@ class EventAndTicketTests(TestCase):
         ticket_record.is_stand_by = is_standby
         ticket_record.save()
         return ticket_record, sale
-    
+
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
@@ -2334,19 +2338,37 @@ class EventAndTicketTests(TestCase):
 
         cls.event = Event.objects.create(name="Test Event", description="This is a test event.")
 
-        cls.event_instance = EventInstance.objects.create(event=cls.event, name_overwrite="Test Event Instance", description_overwrite="This is a test event instance.", capacity=5, start_time=timezone.now(), end_time=timezone.now() + datetime.timedelta(hours=2), location="Test Location")
+        cls.event_instance = EventInstance.objects.create(
+            event=cls.event,
+            name_overwrite="Test Event Instance",
+            description_overwrite="This is a test event instance.",
+            capacity=5,
+            start_time=timezone.now(),
+            end_time=timezone.now() + datetime.timedelta(hours=2),
+            location="Test Location",
+        )
 
-        cls.event_instance_2 = EventInstance.objects.create(event=cls.event, capacity=5, start_time=timezone.now() + datetime.timedelta(hours=3), end_time=timezone.now() + datetime.timedelta(hours=6), location="Test Location 2")
+        cls.event_instance_2 = EventInstance.objects.create(
+            event=cls.event,
+            capacity=5,
+            start_time=timezone.now() + datetime.timedelta(hours=3),
+            end_time=timezone.now() + datetime.timedelta(hours=6),
+            location="Test Location 2",
+        )
 
         cls.event_instance_product = Product.objects.create(name="Test Event Instance Product", price=100, active=True)
 
-        cls.event_instance_ticket = Ticket.objects.create(event_instance=cls.event_instance, quantity=1, product=cls.event_instance_product)
+        cls.event_instance_ticket = Ticket.objects.create(
+            event_instance=cls.event_instance, quantity=1, product=cls.event_instance_product
+        )
 
-        cls.event_instance_product_2 = Product.objects.create(name="Test Event Instance Product 2", price=150, active=True)
+        cls.event_instance_product_2 = Product.objects.create(
+            name="Test Event Instance Product 2", price=150, active=True
+        )
 
-        cls.event_instance_ticket_2 = Ticket.objects.create(event_instance=cls.event_instance, quantity=9, product=cls.event_instance_product_2)
-
-
+        cls.event_instance_ticket_2 = Ticket.objects.create(
+            event_instance=cls.event_instance, quantity=9, product=cls.event_instance_product_2
+        )
 
     def test_setup(self):
         self.assertEqual(self.member.username, "test")
@@ -2397,14 +2419,12 @@ class EventAndTicketTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            Sale.objects.filter(
-                member=self.member, product=self.event_instance_ticket.product
-            ).count(),
+            Sale.objects.filter(member=self.member, product=self.event_instance_ticket.product).count(),
             1,
         )
 
-        # Purchase the product for the first ticket the second time, which should put the ticket on standby, since quantity is 
-        
+        # Purchase the product for the first ticket the second time, which should put the ticket on standby, since quantity is
+
         response = self.client.post(
             reverse("quickbuy", args=(1,)),
             {"quickbuy": f"test {self.event_instance_ticket.product.pk}"},
@@ -2412,9 +2432,7 @@ class EventAndTicketTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            Sale.objects.filter(
-                member=self.member, product=self.event_instance_ticket.product
-            ).count(),
+            Sale.objects.filter(member=self.member, product=self.event_instance_ticket.product).count(),
             2,
         )
 
@@ -2453,15 +2471,11 @@ class EventAndTicketTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            Sale.objects.filter(
-                member=self.member, product=self.event_instance_ticket_2.product
-            ).count(),
+            Sale.objects.filter(member=self.member, product=self.event_instance_ticket_2.product).count(),
             1,
         )
         self.assertEqual(
-            Sale.objects.filter(
-                member=self.member
-            ).count(),
+            Sale.objects.filter(member=self.member).count(),
             3,
         )
 
@@ -2491,9 +2505,7 @@ class EventAndTicketTests(TestCase):
 
             self.assertEqual(response.status_code, 200)
             self.assertEqual(
-                Sale.objects.filter(
-                    member=self.member, product=self.event_instance_ticket_2.product
-                ).count(),
+                Sale.objects.filter(member=self.member, product=self.event_instance_ticket_2.product).count(),
                 i + 1,
             )
 
@@ -2535,13 +2547,15 @@ class EventAndTicketTests(TestCase):
 
             ticket_record.refresh_from_db()
             ticket_record.is_stand_by = True
-            ticket_record.save()            
-        
+            ticket_record.save()
+
         # Check that it is not thrown given either one or the other, since both are valid states for a ticket record
         try:
             ticket_record, _ = self.helper_create_ticket_record(self.member, self.event_instance_ticket.product)
         except InvalidTicketRecordError:
-            self.fail("InvalidTicketRecordError was raised when creating a TicketRecord with a sale and no admin issue, which is a valid state for a TicketRecord.")
+            self.fail(
+                "InvalidTicketRecordError was raised when creating a TicketRecord with a sale and no admin issue, which is a valid state for a TicketRecord."
+            )
 
         try:
             TicketRecord.objects.create(
@@ -2552,7 +2566,9 @@ class EventAndTicketTests(TestCase):
                 admin_issued_to=self.member,
             )
         except InvalidTicketRecordError:
-            self.fail("InvalidTicketRecordError was raised when creating a TicketRecord with no sale and an admin issue, which is a valid state for a TicketRecord.")
+            self.fail(
+                "InvalidTicketRecordError was raised when creating a TicketRecord with no sale and an admin issue, which is a valid state for a TicketRecord."
+            )
 
     def test_tr_get_ticket_owner(self):
         # Create a ticket record with a sale, and check that the owner is returned correctly
@@ -2614,7 +2630,7 @@ class EventAndTicketTests(TestCase):
         # Mark sale as refunded, which should make the ticket record not refundable
         assert ticket_record.sale is not None
         ticket_record.sale.refunded_at = timezone.now()
-        
+
         self.assertFalse(ticket_record.is_refundable())
 
         # Create a ticket record that is admin issued, which should not be refundable, since it is not connected to a sale
@@ -2630,7 +2646,9 @@ class EventAndTicketTests(TestCase):
 
     def test_tr_process_refund(self):
         # Create a ticket record that is stand by
-        ticket_record, _ = self.helper_create_ticket_record(self.member, self.event_instance_ticket.product, is_standby=True)
+        ticket_record, _ = self.helper_create_ticket_record(
+            self.member, self.event_instance_ticket.product, is_standby=True
+        )
 
         self.assertFalse(ticket_record.is_refunded())
         self.assertTrue(ticket_record.is_refundable())
@@ -2649,7 +2667,9 @@ class EventAndTicketTests(TestCase):
         # Create 5 ticket records that are stand by
         ticket_records: list[TicketRecord] = []
         for i in range(5):
-            ticket_record, _ = self.helper_create_ticket_record(self.member, self.event_instance_ticket.product, is_standby=True)
+            ticket_record, _ = self.helper_create_ticket_record(
+                self.member, self.event_instance_ticket.product, is_standby=True
+            )
             ticket_records.append(ticket_record)
 
         for i, ticket_record in enumerate(ticket_records):
@@ -2657,8 +2677,12 @@ class EventAndTicketTests(TestCase):
 
     def test_tr_ticket_record_issue_stand_by_ticket(self):
         # Create two ticket records that are stand by
-        ticket_record_1, _ = self.helper_create_ticket_record(self.member, self.event_instance_ticket.product, is_standby=True)
-        ticket_record_2, _ = self.helper_create_ticket_record(self.member, self.event_instance_ticket.product, is_standby=True)
+        ticket_record_1, _ = self.helper_create_ticket_record(
+            self.member, self.event_instance_ticket.product, is_standby=True
+        )
+        ticket_record_2, _ = self.helper_create_ticket_record(
+            self.member, self.event_instance_ticket.product, is_standby=True
+        )
 
         # Issue a stand by ticket, which should update the first ticket since it was purchased first.
         TicketRecord._issue_stand_by_ticket(ticket_record_1.ticket.event_instance)
@@ -2692,7 +2716,7 @@ class EventAndTicketTests(TestCase):
         self.assertIn(ticket_record_sale, member_purchases)
         self.assertIn(ticket_record_admin, member_purchases)
         self.assertEqual(member_purchases.count(), 2)
-                                   
+
     def test_t_is_product_a_ticket(self):
         is_ticket, ticket = Ticket.is_product_a_ticket(self.event_instance_ticket.product)
         self.assertTrue(is_ticket)
@@ -2707,12 +2731,15 @@ class EventAndTicketTests(TestCase):
         # Create 5 ticket records that are stand by and 5 that are not, and check that only the stand by ones are returned
         stand_by_records: list[TicketRecord] = []
         for i in range(5):
-            ticket_record, _ = self.helper_create_ticket_record(self.member, self.event_instance_ticket.product, is_standby=True)
+            ticket_record, _ = self.helper_create_ticket_record(
+                self.member, self.event_instance_ticket.product, is_standby=True
+            )
             stand_by_records.append(ticket_record)
 
         for i in range(5):
-            ticket_record, _ = self.helper_create_ticket_record(self.member, self.event_instance_ticket.product, is_standby=False)
-
+            ticket_record, _ = self.helper_create_ticket_record(
+                self.member, self.event_instance_ticket.product, is_standby=False
+            )
 
         retrieved_stand_by_records = self.event_instance_ticket.get_stand_by_records()
 
@@ -2739,8 +2766,10 @@ class EventAndTicketTests(TestCase):
             new_product = Product.objects.create(name="New Product", price=100, active=True)
             Ticket.objects.create(event_instance=self.event_instance, quantity=1, product=new_product)
         except InvalidTicketError:
-            self.fail("InvalidTicketError was raised when creating a Ticket with a product that is not associated with another ticket, which should be allowed.")
-    
+            self.fail(
+                "InvalidTicketError was raised when creating a Ticket with a product that is not associated with another ticket, which should be allowed."
+            )
+
     def test_ei_get_name(self):
         # If name overwrite is set, it should return that
         self.assertEqual(self.event_instance.get_name(), self.event_instance.name_overwrite)
@@ -2753,7 +2782,11 @@ class EventAndTicketTests(TestCase):
 
         self.assertEqual(tickets.count(), 2)
 
-        Ticket.objects.create(event_instance=self.event_instance, quantity=1, product=Product.objects.create(name="Another Product", price=100, active=True))
+        Ticket.objects.create(
+            event_instance=self.event_instance,
+            quantity=1,
+            product=Product.objects.create(name="Another Product", price=100, active=True),
+        )
 
         tickets = self.event_instance.get_tickets()
         self.assertEqual(tickets.count(), 3)
@@ -2762,12 +2795,16 @@ class EventAndTicketTests(TestCase):
         # Create 5 ticket records that are stand by and 5 that are not, and check that only the stand by ones are returned
         stand_by_records: list[TicketRecord] = []
         for i in range(5):
-            ticket_record, _ = self.helper_create_ticket_record(self.member, self.event_instance_ticket.product, is_standby=True)
+            ticket_record, _ = self.helper_create_ticket_record(
+                self.member, self.event_instance_ticket.product, is_standby=True
+            )
             stand_by_records.append(ticket_record)
 
         non_stand_by_records: list[TicketRecord] = []
         for i in range(5):
-            ticket_record, _ = self.helper_create_ticket_record(self.member, self.event_instance_ticket.product, is_standby=False)
+            ticket_record, _ = self.helper_create_ticket_record(
+                self.member, self.event_instance_ticket.product, is_standby=False
+            )
             non_stand_by_records.append(ticket_record)
 
         retrieved_stand_by_records = self.event_instance.get_stand_by_ticket_records()
@@ -2823,13 +2860,19 @@ class EventAndTicketTests(TestCase):
         # Create 5 ticket records that are stand by, call the method and check that they are all refunded, and 1 that is not stand by, which should not be refunded
         stand_by_records: list[TicketRecord] = []
         for i in range(5):
-            ticket_record, _ = self.helper_create_ticket_record(self.member, self.event_instance_ticket.product, is_standby=True)
+            ticket_record, _ = self.helper_create_ticket_record(
+                self.member, self.event_instance_ticket.product, is_standby=True
+            )
             stand_by_records.append(ticket_record)
 
         sale = Sale.objects.create(
-            member=self.member, product=self.event_instance_ticket.product, price=self.event_instance_ticket.product.price
+            member=self.member,
+            product=self.event_instance_ticket.product,
+            price=self.event_instance_ticket.product.price,
         )
-        non_stand_by_record, _ = self.helper_create_ticket_record(self.member, self.event_instance_ticket.product, is_standby=False)
+        non_stand_by_record, _ = self.helper_create_ticket_record(
+            self.member, self.event_instance_ticket.product, is_standby=False
+        )
 
         self.event_instance.refund_all_stand_by_tickets(self.admin)
 
@@ -2838,11 +2881,3 @@ class EventAndTicketTests(TestCase):
             self.assertTrue(ticket_record.is_refunded())
 
         self.assertFalse(non_stand_by_record.is_refunded())
-
-    
-        
-            
-
-        
-
-

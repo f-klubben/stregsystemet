@@ -29,11 +29,13 @@ from stregsystem.utils import (
     make_inactive_productlist_query,
 )
 
+
 @admin.action(description="Refunder valgte sales")
 def refund_sales(modeladmin, request, queryset):
     for sale in queryset:
         assert isinstance(sale, Sale)
         sale.process_refund(request.user)
+
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')
@@ -383,11 +385,13 @@ class ProductNoteAdmin(admin.ModelAdmin):
 class EventAdmin(admin.ModelAdmin):
     pass
 
+
 @admin.action(description="Refunder valgte event instances")
 def refund_event_instances(modeladmin, request, queryset):
     for event_instance in queryset:
         assert isinstance(event_instance, EventInstance)
         event_instance.refund_all_tickets(request.user)
+
 
 @admin.action(description="Refunder KUN STAND-BY på valgte event instances")
 def refund_stand_by_event_instances(modeladmin, request, queryset):
@@ -395,9 +399,17 @@ def refund_stand_by_event_instances(modeladmin, request, queryset):
         assert isinstance(event_instance, EventInstance)
         event_instance.refund_all_stand_by_tickets(request.user)
 
+
 class EventInstanceAdmin(admin.ModelAdmin):
-    list_display = ('get_name','get_issue_count', 'get_stand_by_count',)
-    readonly_fields = ('get_issue_count', 'get_stand_by_count',)
+    list_display = (
+        'get_name',
+        'get_issue_count',
+        'get_stand_by_count',
+    )
+    readonly_fields = (
+        'get_issue_count',
+        'get_stand_by_count',
+    )
 
     actions = [refund_event_instances, refund_stand_by_event_instances]
 
@@ -417,9 +429,9 @@ class EventInstanceAdmin(admin.ModelAdmin):
         return obj.get_stand_by_ticket_records().count()
 
 
-
 class TicketAdmin(admin.ModelAdmin):
     pass
+
 
 @admin.action(description="Refunder valgte ticket records")
 def refund_tickets(modeladmin, request, queryset):
@@ -427,11 +439,11 @@ def refund_tickets(modeladmin, request, queryset):
         assert isinstance(ticket_record, TicketRecord)
         ticket_record.process_refund(request.user)
 
+
 class TicketRecordAdmin(admin.ModelAdmin):
     readonly_fields = ("sale",)
 
     actions = [refund_tickets]
-
 
 
 admin.site.register(LogEntry, LogEntryAdmin)

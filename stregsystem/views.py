@@ -430,7 +430,9 @@ def menu_user_tickets(request, room_id, member_id):
     room = Room.objects.get(pk=room_id)
     member = Member.objects.get(pk=member_id, active=True)
 
-    all_ticket_purchases_current_member = TicketRecord.get_member_purchases(member).order_by("ticket__event_instance__start_time", "sale__timestamp")
+    all_ticket_purchases_current_member = TicketRecord.get_member_purchases(member).order_by(
+        "ticket__event_instance__start_time", "sale__timestamp"
+    )
 
     purchase_paginator = Paginator(all_ticket_purchases_current_member, 5)
     purchase_page_number = request.GET.get('purchase_table_index', 1)
@@ -439,16 +441,15 @@ def menu_user_tickets(request, room_id, member_id):
     tickets_with_stand_by_queue: List[tuple[TicketRecord, Optional[int]]] = []
     for ticket_purchase in purchase_page:
         assert isinstance(ticket_purchase, TicketRecord), "Expected ticket purchase to be of type TicketRecord"
-        tickets_with_stand_by_queue.append(
-            (ticket_purchase, ticket_purchase.get_stand_by_queue_position())
-        )
+        tickets_with_stand_by_queue.append((ticket_purchase, ticket_purchase.get_stand_by_queue_position()))
 
     return render(request, "stregsystem/menu_user_tickets.html", locals())
+
 
 def refund_ticket(request, room_id, ticket_purchase_id):
     room = Room.objects.get(pk=room_id)
     ticket_purchase = get_object_or_404(TicketRecord, pk=ticket_purchase_id)
-    
+
     assert ticket_purchase.sale is not None, "Only sold tickets can be refunded"
     member = ticket_purchase.sale.member
 
@@ -456,6 +457,7 @@ def refund_ticket(request, room_id, ticket_purchase_id):
         ticket_purchase.process_refund(None)
 
     return redirect("user_tickets", room_id=room_id, member_id=member.pk)
+
 
 def menu_sale(request, room_id, member_id, product_id=None):
     room = Room.objects.get(pk=room_id)
