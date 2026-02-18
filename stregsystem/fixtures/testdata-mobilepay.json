@@ -1,5 +1,339 @@
 [
     {
+        "model": "stregsystem.member",
+        "pk": 1,
+        "fields": {
+            "active": true,
+            "username": "tester",
+            "year": "2017",
+            "firstname": "Test",
+            "lastname": "Testsen",
+            "gender": "U",
+            "email": "plznospam@fklub.dk",
+            "want_spam": true,
+            "balance": 13366037,
+            "undo_count": 0,
+            "notes": "This is a test user.",
+            "signup_due_paid": true
+        }
+    },
+    {
+        "model": "stregsystem.member",
+        "pk": 2,
+        "fields": {
+            "active": true,
+            "username": "mlarsen",
+            "year": "2020",
+            "firstname": "Martin",
+            "lastname": "Larsen",
+            "gender": "M",
+            "email": "mlarsen@nsa.gov",
+            "want_spam": true,
+            "balance": 10000,
+            "undo_count": 0,
+            "notes": "",
+            "signup_due_paid": true
+        }
+    },
+    {
+        "model": "stregsystem.member",
+        "pk": 3,
+        "fields": {
+            "active": true,
+            "username": "tables",
+            "year": "2020",
+            "firstname": "Bobby",
+            "lastname": "Tables",
+            "gender": "M",
+            "email": "tables@nsa.gov",
+            "want_spam": true,
+            "balance": 12500,
+            "undo_count": 0,
+            "notes": "",
+            "signup_due_paid": true
+        }
+    },
+    {
+        "model": "stregsystem.member",
+        "pk": 4,
+        "fields": {
+            "active": true,
+            "username": "marx",
+            "year": "2020",
+            "firstname": "Karl",
+            "lastname": "Marx",
+            "gender": "M",
+            "email": "kmarx@nsa.gov",
+            "want_spam": true,
+            "balance": 6900,
+            "undo_count": 0,
+            "notes": "",
+            "signup_due_paid": true
+        }
+    },
+    {
+        "model": "stregsystem.member",
+        "pk": 5,
+        "fields": {
+            "active": true,
+            "username": "jdoe",
+            "year": "2020",
+            "firstname": "John",
+            "lastname": "Doe",
+            "gender": "M",
+            "email": "jdoe@nsa.gov",
+            "want_spam": true,
+            "balance": 42000,
+            "undo_count": 0,
+            "notes": "",
+            "signup_due_paid": true
+        }
+    },
+    {
+        "model": "stregsystem.mobilepayment",
+        "pk": 1,
+        "fields": {
+            "status": "U",
+            "member": null,
+            "payment": null,
+            "customer_name": "Martin Larsen",
+            "timestamp": "2019-11-29T12:51:08.857Z",
+            "amount": 6969,
+            "transaction_id": "156E027485173228",
+            "comment": "mlarsen indbetalt "
+        }
+    },
+    {
+        "model": "stregsystem.mobilepayment",
+        "pk": 2,
+        "fields": {
+            "status": "U",
+            "member": null,
+            "payment": null,
+            "customer_name": "Bobby Tables",
+            "timestamp": "2019-11-28T16:40:55.719Z",
+            "amount": 50000,
+            "transaction_id": "232E027452733666",
+            "comment": "tables eksdee"
+        }
+    },
+    {
+        "model": "stregsystem.mobilepayment",
+        "pk": 3,
+        "fields": {
+            "status": "U",
+            "member": 4,
+            "payment": null,
+            "customer_name": "Karl Marx",
+            "timestamp": "2019-11-28T14:30:58.357Z",
+            "amount": 20000,
+            "transaction_id": "241E027449465355",
+            "comment": "marx"
+        }
+    },
+    {
+        "model": "stregsystem.mobilepayment",
+        "pk": 4,
+        "fields": {
+            "status": "U",
+            "member": null,
+            "payment": null,
+            "customer_name": "Bobby Tables",
+            "timestamp": "2019-11-28T16:40:55.719Z",
+            "amount": 50000,
+            "transaction_id": "232E027452733676",
+            "comment": "tables eksdee"
+        }
+    },
+    {
+        "model": "stregsystem.mobilepayment",
+        "pk": 5,
+        "fields": {
+            "status": "U",
+            "member": 5,
+            "payment": null,
+            "customer_name": "John Doe",
+            "timestamp": "2019-11-27T11:15:38.529Z",
+            "amount": 15000,
+            "transaction_id": "016E027417049990",
+            "comment": "jdoe"
+        }
+    },
+    {
+        "model": "stregsystem.mobilepayment",
+        "pk": 6,
+        "fields": {
+            "status": "U",
+            "member": 1,
+            "payment": null,
+            "customer_name": "Tester Testsen",
+            "timestamp": "2019-11-26T11:54:37.521Z",
+            "amount": 20000,
+            "transaction_id": "207E027395896809",
+            "comment": "tester"
+        }
+    },
+    {
+        "model": "stregsystem.room",
+        "pk": 1,
+        "fields": {
+            "name": "testrummet",
+            "description": "127.0.0.1",
+            "notes": ""
+        }
+    },
+    {
+        "model": "stregsystem.room",
+        "pk": 2,
+        "fields": {
+            "name": "maymayrummet",
+            "description": "svedigt",
+            "notes": ""
+        }
+    },
+    {
+        "model": "stregsystem.product",
+        "pk": 1,
+        "fields": {
+            "name": "Test \u00d8L",
+            "price": 100,
+            "active": true,
+            "start_date": null,
+            "quantity": 0,
+            "deactivate_date": null,
+            "alcohol_content_ml": 0.0,
+            "caffeine_content_mg": 0,
+            "categories": [],
+            "rooms": []
+        }
+    },
+    {
+        "model": "stregsystem.product",
+        "pk": 2,
+        "fields": {
+            "name": "Kold Kaffe",
+            "price": 200,
+            "active": true,
+            "start_date": null,
+            "quantity": 0,
+            "deactivate_date": null,
+            "alcohol_content_ml": 0.0,
+            "caffeine_content_mg": 0,
+            "categories": [],
+            "rooms": []
+        }
+    },
+    {
+        "model": "stregsystem.product",
+        "pk": 3,
+        "fields": {
+            "name": "Fad\u00f8l",
+            "price": 1500,
+            "active": true,
+            "start_date": null,
+            "quantity": 0,
+            "deactivate_date": null,
+            "alcohol_content_ml": 0.0,
+            "caffeine_content_mg": 0,
+            "categories": [],
+            "rooms": [
+                1
+            ]
+        }
+    },
+    {
+        "model": "stregsystem.product",
+        "pk": 13,
+        "fields": {
+            "name": "Fake \u00d8L",
+            "price": 300,
+            "active": true,
+            "start_date": null,
+            "quantity": 0,
+            "deactivate_date": null,
+            "alcohol_content_ml": 0.0,
+            "caffeine_content_mg": 0,
+            "categories": [],
+            "rooms": []
+        }
+    },
+    {
+        "model": "stregsystem.oldprice",
+        "pk": 1,
+        "fields": {
+            "product": 1,
+            "price": 100,
+            "changed_on": "2017-03-13T12:43:28.044Z"
+        }
+    },
+    {
+        "model": "stregsystem.oldprice",
+        "pk": 2,
+        "fields": {
+            "product": 2,
+            "price": 200,
+            "changed_on": "2017-03-13T12:43:40.784Z"
+        }
+    },
+    {
+        "model": "stregsystem.oldprice",
+        "pk": 3,
+        "fields": {
+            "product": 2,
+            "price": 200,
+            "changed_on": "2017-03-13T12:43:42.151Z"
+        }
+    },
+    {
+        "model": "stregsystem.sale",
+        "pk": 1,
+        "fields": {
+            "member": 1,
+            "product": 1,
+            "room": 1,
+            "timestamp": "2017-03-13T12:52:52.142Z",
+            "price": 100,
+            "refunded_at": null,
+            "refunded_by": null
+        }
+    },
+    {
+        "model": "stregsystem.sale",
+        "pk": 2,
+        "fields": {
+            "member": 1,
+            "product": 2,
+            "room": 1,
+            "timestamp": "2017-03-13T12:54:12.423Z",
+            "price": 200,
+            "refunded_at": null,
+            "refunded_by": null
+        }
+    },
+    {
+        "model": "stregsystem.sale",
+        "pk": 3,
+        "fields": {
+            "member": 1,
+            "product": 13,
+            "room": 1,
+            "timestamp": "2017-03-13T13:38:10.573Z",
+            "price": 300,
+            "refunded_at": null,
+            "refunded_by": null
+        }
+    },
+    {
+        "model": "stregsystem.news",
+        "pk": 1,
+        "fields": {
+            "title": "Varm kaffe udg\u00e5r",
+            "text": "Det er med stor forn\u00f8jelse, at vi annoncerer sortimentsudskiftningen af \"varm kaffe\" med vores nye og forbedrede produkt, \"kold kaffe\". Dette valg er truffet efter at have modtaget flere klager fra \u00e6rede fembers, der desv\u00e6rre har oplevet at br\u00e6nde sig p\u00e5 javaen.",
+            "pub_date": "2023-08-07T21:46:04Z",
+            "stop_date": "2043-08-07T11:00:00Z"
+        }
+    },
+    {
         "model": "auth.permission",
         "pk": 1,
         "fields": {
@@ -625,7 +959,7 @@
         "pk": 70,
         "fields": {
             "name": "Can add razzia",
-            "content_type": 21,
+            "content_type": 17,
             "codename": "add_razzia"
         }
     },
@@ -634,7 +968,7 @@
         "pk": 71,
         "fields": {
             "name": "Can change razzia",
-            "content_type": 21,
+            "content_type": 17,
             "codename": "change_razzia"
         }
     },
@@ -643,7 +977,7 @@
         "pk": 72,
         "fields": {
             "name": "Can delete razzia",
-            "content_type": 21,
+            "content_type": 17,
             "codename": "delete_razzia"
         }
     },
@@ -652,7 +986,7 @@
         "pk": 73,
         "fields": {
             "name": "Can view razzia",
-            "content_type": 21,
+            "content_type": 17,
             "codename": "view_razzia"
         }
     },
@@ -661,7 +995,7 @@
         "pk": 74,
         "fields": {
             "name": "Can browse razzias",
-            "content_type": 21,
+            "content_type": 17,
             "codename": "browse_razzia"
         }
     },
@@ -670,7 +1004,7 @@
         "pk": 75,
         "fields": {
             "name": "Can add razzia entry",
-            "content_type": 22,
+            "content_type": 18,
             "codename": "add_razziaentry"
         }
     },
@@ -679,7 +1013,7 @@
         "pk": 76,
         "fields": {
             "name": "Can change razzia entry",
-            "content_type": 22,
+            "content_type": 18,
             "codename": "change_razziaentry"
         }
     },
@@ -688,7 +1022,7 @@
         "pk": 77,
         "fields": {
             "name": "Can delete razzia entry",
-            "content_type": 22,
+            "content_type": 18,
             "codename": "delete_razziaentry"
         }
     },
@@ -697,7 +1031,7 @@
         "pk": 78,
         "fields": {
             "name": "Can view razzia entry",
-            "content_type": 22,
+            "content_type": 18,
             "codename": "view_razziaentry"
         }
     },
@@ -706,7 +1040,7 @@
         "pk": 79,
         "fields": {
             "name": "Can add log entry",
-            "content_type": 23,
+            "content_type": 19,
             "codename": "add_logentry"
         }
     },
@@ -715,7 +1049,7 @@
         "pk": 80,
         "fields": {
             "name": "Can change log entry",
-            "content_type": 23,
+            "content_type": 19,
             "codename": "change_logentry"
         }
     },
@@ -724,7 +1058,7 @@
         "pk": 81,
         "fields": {
             "name": "Can delete log entry",
-            "content_type": 23,
+            "content_type": 19,
             "codename": "delete_logentry"
         }
     },
@@ -733,7 +1067,7 @@
         "pk": 82,
         "fields": {
             "name": "Can view log entry",
-            "content_type": 23,
+            "content_type": 19,
             "codename": "view_logentry"
         }
     },
@@ -742,7 +1076,7 @@
         "pk": 83,
         "fields": {
             "name": "Can add permission",
-            "content_type": 24,
+            "content_type": 20,
             "codename": "add_permission"
         }
     },
@@ -751,7 +1085,7 @@
         "pk": 84,
         "fields": {
             "name": "Can change permission",
-            "content_type": 24,
+            "content_type": 20,
             "codename": "change_permission"
         }
     },
@@ -760,7 +1094,7 @@
         "pk": 85,
         "fields": {
             "name": "Can delete permission",
-            "content_type": 24,
+            "content_type": 20,
             "codename": "delete_permission"
         }
     },
@@ -769,7 +1103,7 @@
         "pk": 86,
         "fields": {
             "name": "Can view permission",
-            "content_type": 24,
+            "content_type": 20,
             "codename": "view_permission"
         }
     },
@@ -778,7 +1112,7 @@
         "pk": 87,
         "fields": {
             "name": "Can add group",
-            "content_type": 25,
+            "content_type": 21,
             "codename": "add_group"
         }
     },
@@ -787,7 +1121,7 @@
         "pk": 88,
         "fields": {
             "name": "Can change group",
-            "content_type": 25,
+            "content_type": 21,
             "codename": "change_group"
         }
     },
@@ -796,7 +1130,7 @@
         "pk": 89,
         "fields": {
             "name": "Can delete group",
-            "content_type": 25,
+            "content_type": 21,
             "codename": "delete_group"
         }
     },
@@ -805,7 +1139,7 @@
         "pk": 90,
         "fields": {
             "name": "Can view group",
-            "content_type": 25,
+            "content_type": 21,
             "codename": "view_group"
         }
     },
@@ -814,7 +1148,7 @@
         "pk": 91,
         "fields": {
             "name": "Can add user",
-            "content_type": 26,
+            "content_type": 22,
             "codename": "add_user"
         }
     },
@@ -823,7 +1157,7 @@
         "pk": 92,
         "fields": {
             "name": "Can change user",
-            "content_type": 26,
+            "content_type": 22,
             "codename": "change_user"
         }
     },
@@ -832,7 +1166,7 @@
         "pk": 93,
         "fields": {
             "name": "Can delete user",
-            "content_type": 26,
+            "content_type": 22,
             "codename": "delete_user"
         }
     },
@@ -841,7 +1175,7 @@
         "pk": 94,
         "fields": {
             "name": "Can view user",
-            "content_type": 26,
+            "content_type": 22,
             "codename": "view_user"
         }
     },
@@ -850,7 +1184,7 @@
         "pk": 95,
         "fields": {
             "name": "Can add content type",
-            "content_type": 27,
+            "content_type": 23,
             "codename": "add_contenttype"
         }
     },
@@ -859,7 +1193,7 @@
         "pk": 96,
         "fields": {
             "name": "Can change content type",
-            "content_type": 27,
+            "content_type": 23,
             "codename": "change_contenttype"
         }
     },
@@ -868,7 +1202,7 @@
         "pk": 97,
         "fields": {
             "name": "Can delete content type",
-            "content_type": 27,
+            "content_type": 23,
             "codename": "delete_contenttype"
         }
     },
@@ -877,7 +1211,7 @@
         "pk": 98,
         "fields": {
             "name": "Can view content type",
-            "content_type": 27,
+            "content_type": 23,
             "codename": "view_contenttype"
         }
     },
@@ -886,7 +1220,7 @@
         "pk": 99,
         "fields": {
             "name": "Can add session",
-            "content_type": 28,
+            "content_type": 24,
             "codename": "add_session"
         }
     },
@@ -895,7 +1229,7 @@
         "pk": 100,
         "fields": {
             "name": "Can change session",
-            "content_type": 28,
+            "content_type": 24,
             "codename": "change_session"
         }
     },
@@ -904,7 +1238,7 @@
         "pk": 101,
         "fields": {
             "name": "Can delete session",
-            "content_type": 28,
+            "content_type": 24,
             "codename": "delete_session"
         }
     },
@@ -913,7 +1247,7 @@
         "pk": 102,
         "fields": {
             "name": "Can view session",
-            "content_type": 28,
+            "content_type": 24,
             "codename": "view_session"
         }
     },
@@ -922,7 +1256,7 @@
         "pk": 103,
         "fields": {
             "name": "Can add event",
-            "content_type": 17,
+            "content_type": 25,
             "codename": "add_event"
         }
     },
@@ -931,7 +1265,7 @@
         "pk": 104,
         "fields": {
             "name": "Can change event",
-            "content_type": 17,
+            "content_type": 25,
             "codename": "change_event"
         }
     },
@@ -940,7 +1274,7 @@
         "pk": 105,
         "fields": {
             "name": "Can delete event",
-            "content_type": 17,
+            "content_type": 25,
             "codename": "delete_event"
         }
     },
@@ -949,7 +1283,7 @@
         "pk": 106,
         "fields": {
             "name": "Can view event",
-            "content_type": 17,
+            "content_type": 25,
             "codename": "view_event"
         }
     },
@@ -958,7 +1292,7 @@
         "pk": 107,
         "fields": {
             "name": "Can add event instance",
-            "content_type": 18,
+            "content_type": 26,
             "codename": "add_eventinstance"
         }
     },
@@ -967,7 +1301,7 @@
         "pk": 108,
         "fields": {
             "name": "Can change event instance",
-            "content_type": 18,
+            "content_type": 26,
             "codename": "change_eventinstance"
         }
     },
@@ -976,7 +1310,7 @@
         "pk": 109,
         "fields": {
             "name": "Can delete event instance",
-            "content_type": 18,
+            "content_type": 26,
             "codename": "delete_eventinstance"
         }
     },
@@ -985,7 +1319,7 @@
         "pk": 110,
         "fields": {
             "name": "Can view event instance",
-            "content_type": 18,
+            "content_type": 26,
             "codename": "view_eventinstance"
         }
     },
@@ -994,7 +1328,7 @@
         "pk": 111,
         "fields": {
             "name": "Can add ticket",
-            "content_type": 19,
+            "content_type": 27,
             "codename": "add_ticket"
         }
     },
@@ -1003,7 +1337,7 @@
         "pk": 112,
         "fields": {
             "name": "Can change ticket",
-            "content_type": 19,
+            "content_type": 27,
             "codename": "change_ticket"
         }
     },
@@ -1012,7 +1346,7 @@
         "pk": 113,
         "fields": {
             "name": "Can delete ticket",
-            "content_type": 19,
+            "content_type": 27,
             "codename": "delete_ticket"
         }
     },
@@ -1021,7 +1355,7 @@
         "pk": 114,
         "fields": {
             "name": "Can view ticket",
-            "content_type": 19,
+            "content_type": 27,
             "codename": "view_ticket"
         }
     },
@@ -1030,7 +1364,7 @@
         "pk": 115,
         "fields": {
             "name": "Can add ticket record",
-            "content_type": 20,
+            "content_type": 28,
             "codename": "add_ticketrecord"
         }
     },
@@ -1039,7 +1373,7 @@
         "pk": 116,
         "fields": {
             "name": "Can change ticket record",
-            "content_type": 20,
+            "content_type": 28,
             "codename": "change_ticketrecord"
         }
     },
@@ -1048,7 +1382,7 @@
         "pk": 117,
         "fields": {
             "name": "Can delete ticket record",
-            "content_type": 20,
+            "content_type": 28,
             "codename": "delete_ticketrecord"
         }
     },
@@ -1057,8 +1391,44 @@
         "pk": 118,
         "fields": {
             "name": "Can view ticket record",
-            "content_type": 20,
+            "content_type": 28,
             "codename": "view_ticketrecord"
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 1,
+        "fields": {
+            "password": "pbkdf2_sha256$150000$fUAN4hBdKvOp$+1qkLByq1ae/ybzfplIUZnLQvQzHh2NrYLHvzg028Hc=",
+            "last_login": "2023-08-26T21:41:15.174Z",
+            "is_superuser": true,
+            "username": "tester",
+            "first_name": "test",
+            "last_name": "testsen",
+            "email": "",
+            "is_staff": true,
+            "is_active": true,
+            "date_joined": "2017-03-06T10:53:54Z",
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 2,
+        "fields": {
+            "password": "pbkdf2_sha256$150000$iTYq6tgl0wkZ$sayKG1202U4C7vm6zdtogsSP+OxVoQZtoxtO1cXFWdg=",
+            "last_login": null,
+            "is_superuser": true,
+            "username": "autopayment",
+            "first_name": "auto",
+            "last_name": "payment",
+            "email": "",
+            "is_staff": true,
+            "is_active": true,
+            "date_joined": "2021-09-13T13:43:22Z",
+            "groups": [],
+            "user_permissions": []
         }
     },
     {
@@ -1193,45 +1563,13 @@
         "model": "contenttypes.contenttype",
         "pk": 17,
         "fields": {
-            "app_label": "stregsystem",
-            "model": "event"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 18,
-        "fields": {
-            "app_label": "stregsystem",
-            "model": "eventinstance"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 19,
-        "fields": {
-            "app_label": "stregsystem",
-            "model": "ticket"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 20,
-        "fields": {
-            "app_label": "stregsystem",
-            "model": "ticketrecord"
-        }
-    },
-    {
-        "model": "contenttypes.contenttype",
-        "pk": 21,
-        "fields": {
             "app_label": "razzia",
             "model": "razzia"
         }
     },
     {
         "model": "contenttypes.contenttype",
-        "pk": 22,
+        "pk": 18,
         "fields": {
             "app_label": "razzia",
             "model": "razziaentry"
@@ -1239,7 +1577,7 @@
     },
     {
         "model": "contenttypes.contenttype",
-        "pk": 23,
+        "pk": 19,
         "fields": {
             "app_label": "admin",
             "model": "logentry"
@@ -1247,7 +1585,7 @@
     },
     {
         "model": "contenttypes.contenttype",
-        "pk": 24,
+        "pk": 20,
         "fields": {
             "app_label": "auth",
             "model": "permission"
@@ -1255,7 +1593,7 @@
     },
     {
         "model": "contenttypes.contenttype",
-        "pk": 25,
+        "pk": 21,
         "fields": {
             "app_label": "auth",
             "model": "group"
@@ -1263,7 +1601,7 @@
     },
     {
         "model": "contenttypes.contenttype",
-        "pk": 26,
+        "pk": 22,
         "fields": {
             "app_label": "auth",
             "model": "user"
@@ -1271,7 +1609,7 @@
     },
     {
         "model": "contenttypes.contenttype",
-        "pk": 27,
+        "pk": 23,
         "fields": {
             "app_label": "contenttypes",
             "model": "contenttype"
@@ -1279,10 +1617,42 @@
     },
     {
         "model": "contenttypes.contenttype",
-        "pk": 28,
+        "pk": 24,
         "fields": {
             "app_label": "sessions",
             "model": "session"
+        }
+    },
+    {
+        "model": "contenttypes.contenttype",
+        "pk": 25,
+        "fields": {
+            "app_label": "stregsystem",
+            "model": "event"
+        }
+    },
+    {
+        "model": "contenttypes.contenttype",
+        "pk": 26,
+        "fields": {
+            "app_label": "stregsystem",
+            "model": "eventinstance"
+        }
+    },
+    {
+        "model": "contenttypes.contenttype",
+        "pk": 27,
+        "fields": {
+            "app_label": "stregsystem",
+            "model": "ticket"
+        }
+    },
+    {
+        "model": "contenttypes.contenttype",
+        "pk": 28,
+        "fields": {
+            "app_label": "stregsystem",
+            "model": "ticketrecord"
         }
     }
 ]
