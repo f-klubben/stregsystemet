@@ -1,0 +1,219 @@
+{% load static %}
+<div class="fclub-sso-stack">
+  <button onclick="loginWithOIDC()" class="fclub-sso-button member">
+    <img class="fclub-sso-logo" src={% static "/stregsystem/logo/logo.svg" %}>
+    <span>Continue as Fember</span>
+  </button>
+
+  <button onclick="loginWithOIDC()" class="fclub-sso-button volunteer">
+    <img class="fclub-sso-logo" src={% static "/stregsystem/logo/logo.svg" %}>
+    <span>Continue as F-rivillig</span>
+  </button>
+</div>
+
+<style>
+:root {
+    --flå: #202A45;
+    --frå: #202332;
+    --f: #ffffff;
+}
+
+.member {
+    --btn-bg: var(--flå);
+    --btn-border: var(--frå);
+    --btn-color: var(--f);
+}
+
+.volunteer {
+    --btn-bg: var(--f);
+    --btn-border: var(--frå);
+    --btn-color: var(--flå);
+}
+
+.fclub-sso-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.fclub-sso-button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 44px;
+    padding: 0 16px;
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--btn-border);
+    background-color: var(--btn-bg);
+    color: var(--btn-color);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont,
+               "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    text-decoration: none;
+    transition: background-color 0.25s ease, color 0.25s ease,
+              border 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+
+.fclub-sso-button.member:hover {
+    background-color: var(--f);
+    color: #000;
+}
+
+.fclub-sso-button.member:hover .fclub-sso-logo {
+    filter: invert(0);
+}
+
+.fclub-sso-button.volunteer:hover {
+}
+
+.fclub-sso-logo {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.member > .fclub-sso-logo {
+    filter: invert(1);
+}
+</style>
+
+<!--
+<style>
+.fember-sso-button {
+  --bg: #202A45;
+  --bg-hover: #fff;
+  --color: #fff;
+  --border: #000;
+  --logo-bg: #000;
+  --logo-color: #000;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  padding: 0 16px;
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background-color: var(--bg);
+  color: var(--color);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont,
+               "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease,
+              border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fember-sso-button.volunteer {
+  --bg: #000;
+  --bg-hover: #111;
+  --color: #fff;
+  --border: #000;
+  --logo-bg: #fff;
+  --logo-color: #000;
+}
+
+.fember-sso-button:hover { background-color: var(--bg-hover); }
+.fember-sso-button:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.25); }
+
+.fember-sso-logo {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background-color: var(--logo-bg);
+  color: var(--logo-color);
+}
+
+.fember-sso-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fember-sso-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+</style>-->
+
+<script>
+async function loginWithOIDC() {
+  const clientId = "demo";
+  const redirectUri = "http://127.0.0.1:8001";
+  const issuerAuthEndpoint = "http://127.0.0.1:8000/o/authorize";
+
+  // CSRF protection
+  const state = crypto.randomUUID();
+
+  // PKCE
+  const verifier = crypto.randomUUID() + crypto.randomUUID();
+  const encoder = new TextEncoder();
+  const data = encoder.encode(verifier);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  const challenge = btoa(String.fromCharCode(...new Uint8Array(hash)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+
+  sessionStorage.setItem("oidc_state", state);
+  sessionStorage.setItem("pkce_verifier", verifier);
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: "code",
+    scope: "balance",
+    state,
+    code_challenge: challenge,
+    code_challenge_method: "S256"
+  });
+
+  window.location.href = `${issuerAuthEndpoint}?${params.toString()}`;
+}
+</script>
+<!--
+<script>
+async function handleCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
+  const returnedState = params.get("state");
+
+  const expectedState = sessionStorage.getItem("oidc_state");
+  const verifier = sessionStorage.getItem("pkce_verifier");
+
+  if (!code || returnedState !== expectedState) {
+    alert("Invalid authentication response");
+    return;
+  }
+
+  sessionStorage.removeItem("oidc_state");
+
+  // Exchange code for tokens (via backend — recommended)
+  await fetch("/o/callback", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code, verifier })
+  });
+  //window.location.href = "/dashboard";
+}
+
+handleCallback();
+</script>-->
