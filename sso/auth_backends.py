@@ -1,11 +1,14 @@
-from sso.models import MemberSSO
+from django.contrib.auth.models import User
+
+from stregsystem.models import Member
+
 
 class PasswordlessMemberBackend:
     """
     Minimal passwordless authentication backend.
     """
 
-    def authenticate(self, request, username=None, password=None, **kwargs):
+    def authenticate(self, request, username=None, password=None, otp=None, **kwargs):
         if username is None:
             return None
 
@@ -14,12 +17,26 @@ class PasswordlessMemberBackend:
             return None
 
         try:
-            return MemberSSO.objects.get(username=username)
-        except MemberSSO.DoesNotExist:
+            member = Member.objects.get(username=username)
+        except Member.DoesNotExist:
             return None
+
+        if member.paired_user is None:
+            user, created = User.objects.get_or_create(
+                defaults={
+                    "username": f"sso_{member.pk}",
+                    "is_staff": False,
+                    "is_superuser": False,
+                    "is_active": True,
+                },
+            )
+            member.paired_user = user
+            member.save()
+
+        return member.paired_user
 
     def get_user(self, user_id):
         try:
-            return MemberSSO.objects.get(pk=user_id)
-        except MemberSSO.DoesNotExist:
+            return User.objects.get(pk=user_id)
+        except User.DoesNotExist:
             return None

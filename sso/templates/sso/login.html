@@ -16,17 +16,42 @@
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ next }}">
 
-        <div>
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" value="{{ username }}" required>
-        </div>
+        <!-- STAGE 1: REQUEST OTP -->
+        {% if not otp_sent %}
+            <div>
+                <label for="username">Username:</label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    value="{{ username }}"
+                    required
+                >
+            </div>
 
-        <div>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-        </div>
+            <!-- Empty OTP field submitted implicitly -->
+            <input type="hidden" name="otp" value="">
 
-        <button type="submit">Login</button>
+            <button type="submit">Send OTP</button>
+
+        <!-- STAGE 2: VERIFY OTP -->
+        {% else %}
+            <input type="hidden" name="username" value="{{ username }}">
+
+            <div>
+                <label for="otp">OTP Code:</label>
+                <input
+                    type="text"
+                    id="otp"
+                    name="otp"
+                    inputmode="numeric"
+                    autocomplete="one-time-code"
+                    required
+                >
+            </div>
+
+            <button type="submit">Verify OTP</button>
+        {% endif %}
     </form>
 </body>
 </html>
