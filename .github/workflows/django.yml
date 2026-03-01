@@ -28,6 +28,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install coverage  # Explicitly install coverage
+    - name: Generate OIDC RSA key for OpenID Connect
+      run: |
+        echo "OIDC_RSA_PRIVATE_KEY<<EOF" >> $GITHUB_ENV
+        openssl genrsa 4096 >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
     - name: Run Tests
       run: |
         coverage run ./manage.py test

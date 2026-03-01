@@ -259,8 +259,10 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # openssl genrsa -out oidc.key 4096
-with open('oidc.key', 'r') as f:
-    OIDC_RSA_PRIVATE_KEY = f.read()
+OIDC_RSA_PRIVATE_KEY = os.environ.get("OIDC_RSA_PRIVATE_KEY", None)
+if OIDC_RSA_PRIVATE_KEY is None:
+    with open('oidc.key', 'r') as f:
+        OIDC_RSA_PRIVATE_KEY = f.read()
 
 OAUTH2_PROVIDER = {
     "OIDC_ENABLED": True,
