@@ -108,8 +108,6 @@ INSTALLED_APPS = [
     'debug_toolbar',
 ]
 
-OAUTH2_PROVIDER_USER_MODEL = "sso.MemberSSO"
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'stregsystem.middleware.CorsMiddleware',
