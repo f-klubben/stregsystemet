@@ -1,0 +1,54 @@
+<html>
+    <h1>FFO - Callback demo</h1>
+</html>
+
+<!-- This is an example of how public PKCE client callback would look like -->
+<script>
+const clientId = "demo-client-name";
+const tokenAuthEndpoint = "http://127.0.0.1:8000/o/token/"
+
+async function handleCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
+  const returnedState = params.get("state");
+
+  if (!code || !returnedState){
+    console.log("No code or state");
+    return;
+  }
+
+  const expectedState = sessionStorage.getItem("oidc_state");
+  const verifier = sessionStorage.getItem("pkce_verifier");
+
+  if (returnedState !== expectedState) {
+    throw new Error("Invalid authentication response");
+  }
+
+  sessionStorage.removeItem("oidc_state");
+
+  // Exchange code for tokens
+  const response = await fetch(tokenAuthEndpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: new URLSearchParams({
+      client_id: clientId,
+      code_verifier: verifier,
+      grant_type: "authorization_code",
+      redirect_uri: location.origin + location.pathname,
+      code
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Token request failed: ${response.status}`);
+  }
+
+  // Bearer token, scopes etc.
+  const tokenResponse = await response.json();
+  console.log(tokenResponse);
+}
+
+handleCallback();
+</script>
