@@ -276,5 +276,4 @@ OAUTH2_PROVIDER = {
         "member:year": "Retrieve enrollment year",
         "member:gender": "Retrieve gender",
     },
-    "LOGIN_URL": "/sso/login",
 }
