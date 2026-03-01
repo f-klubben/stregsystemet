@@ -4,6 +4,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from oauth2_provider import urls as oauth2_urls
 
+from sso.views.custom_oauth2_login import CustomOAuth2ProviderLoginView
+
 """stregsystem URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
@@ -26,6 +28,8 @@ urlpatterns = [
     re_path(r'^', include("razzia.urls")),
     re_path(r'^kiosk/', include("kiosk.urls")),
     re_path(r'^admin/', admin.site.urls),
+    # Override login_url
+    re_path(r"^o/authorize/", CustomOAuth2ProviderLoginView.as_view(), name="authorize"),
     re_path(r'^o/', include(oauth2_urls)),
     re_path(r'^sso/', include("sso.urls")),
     re_path(r'^select2/', include('django_select2.urls')),
