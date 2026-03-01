@@ -1,11 +1,11 @@
 <link rel="stylesheet" href="https://raw.githubusercontent.com/f-klubben/stregsystemet/refs/heads/master/sso/misc/sso-buttons/buttons-style.css">
 <div class="fclub-sso-stack">
-  <button onclick="loginWithOIDC(['balance'])" class="fclub-sso-button member">
+  <button onclick="loginWithOIDC(['member:balance'])" class="fclub-sso-button member">
     <img class="fclub-sso-logo" src="flogo.svg">
     <span>Continue as Fember</span>
   </button>
 
-  <button onclick="loginWithOIDC(['balance'])" class="fclub-sso-button volunteer">
+  <button onclick="loginWithOIDC(['staff', 'member:balance'])" class="fclub-sso-button volunteer">
     <img class="fclub-sso-logo" src="flogo.svg">
     <span>Continue as F-rivillig</span>
   </button>

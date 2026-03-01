@@ -266,7 +266,15 @@ OAUTH2_PROVIDER = {
     "OIDC_ENABLED": True,
     "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
     "SCOPES": {
-        "balance": "Access member balance",
+        "staff": "Tests whether the member is a volunteer",
+        "member:balance": "Retrieve balance",
+        "member:active": "Retrieve active-status",
+        "member:sales": "Retrieve all sales made",
+        "member:id": "Retrieve ID",
+        "member:email": "Retrieve email",
+        "member:name": "Retrieve first- and last name",
+        "member:year": "Retrieve enrollment year",
+        "member:gender": "Retrieve gender",
     },
     "LOGIN_URL": "/sso/login",
 }
