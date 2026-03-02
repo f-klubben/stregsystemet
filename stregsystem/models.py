@@ -181,7 +181,7 @@ class Member(models.Model):  # id automatisk...
     undo_count = models.IntegerField(default=0)  # for 'undos' i alt
     notes = models.TextField(blank=True)
     signup_due_paid = models.BooleanField(default=True)
-    paired_user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    paired_user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
 
     stregforbud_override = False
 
