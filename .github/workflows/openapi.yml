@@ -28,6 +28,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r openapi/requirements.txt
+    - name: Generate RSA key for OpenID Connect
+      run: |
+        echo "OIDC_RSA_PRIVATE_KEY<<EOF" >> $GITHUB_ENV
+        openssl genrsa 4096 >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
     - uses: actions/setup-node@v4
       with:
         node-version: 18
