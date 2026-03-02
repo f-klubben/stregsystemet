@@ -25,11 +25,13 @@ from stregsystem.utils import (
     make_inactive_productlist_query,
 )
 
+
 @admin.action(description="Refunder valgte sales")
 def refund_sales(modeladmin, request, queryset):
     for sale in queryset:
         assert isinstance(sale, Sale)
         sale.process_refund(request.user)
+
 
 class SaleAdmin(admin.ModelAdmin):
     list_filter = ('room', 'timestamp')

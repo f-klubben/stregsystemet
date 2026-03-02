@@ -711,7 +711,15 @@ class Sale(models.Model):
         return self.__str__()
 
     def __str__(self):
-        return self.member.username + (" [REFUNDED]" if self.is_refunded() else " ") + self.product.name + " (" + money(self.price) + ") " + str(self.timestamp)
+        return (
+            self.member.username
+            + (" [REFUNDED]" if self.is_refunded() else " ")
+            + self.product.name
+            + " ("
+            + money(self.price)
+            + ") "
+            + str(self.timestamp)
+        )
 
     def process_refund(self, admin_user: Optional[User]) -> None:
         if self.is_refunded():
@@ -758,7 +766,6 @@ class Sale(models.Model):
 
     def exists_in_database(self):
         return self.pk is not None and Sale.objects.filter(pk=self.pk).exists()
-
 
     def delete(self, *args, **kwargs):
         if self.id:
