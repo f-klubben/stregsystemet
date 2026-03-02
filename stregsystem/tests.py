@@ -1107,7 +1107,9 @@ class MemberAdminTests(TestCase):
         self.client.login(username="superuser", password="very_secure")
         self.jeff2.username = "jeff"
         response = self.client.post(
-            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}), model_to_dict(self.jeff2, exclude=['paired_user']), follow=False
+            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}),
+            model_to_dict(self.jeff2, exclude=['paired_user']),
+            follow=False,
         )
 
         messages = list(get_messages(response.wsgi_request))
@@ -1121,7 +1123,9 @@ class MemberAdminTests(TestCase):
         self.client.login(username="superuser", password="very_secure")
         self.jeff2.username = "mr_jefferson"
         response = self.client.post(
-            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}), model_to_dict(self.jeff2, exclude=['paired_user']), follow=False
+            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}),
+            model_to_dict(self.jeff2, exclude=['paired_user']),
+            follow=False,
         )
 
         messages = list(get_messages(response.wsgi_request))
