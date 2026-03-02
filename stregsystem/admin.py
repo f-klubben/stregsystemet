@@ -29,7 +29,8 @@ from stregsystem.utils import (
 @admin.action(description="Refunder valgte sales")
 def refund_sales(modeladmin, request, queryset):
     for sale in queryset:
-        assert isinstance(sale, Sale)
+        if not isinstance(sale, Sale):
+            raise ValueError("queryset must be of Sale")
         sale.process_refund(request.user)
 
 
@@ -66,7 +67,8 @@ class SaleAdmin(admin.ModelAdmin):
     get_fullname.admin_order_field = "member__firstname"
 
     def get_refunded(self, obj):
-        assert isinstance(obj, Sale)
+        if not isinstance(obj, Sale):
+            raise ValueError("obj must be of Sale")
         return obj.is_refunded()
 
     def get_product_name(self, obj):
