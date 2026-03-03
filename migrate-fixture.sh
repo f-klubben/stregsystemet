@@ -5,7 +5,12 @@
 # This will load the specified fixture on current `next` branch,
 # then it switches to the specified branch, and migrates the database,
 # then it dumps the database to the same file.
-### 
+### To migrate all at once
+# BRANCH=refactor/date-attribute
+#
+# for f in stregsystem/fixtures/*.json; do
+#   sh migrate-fixture2.sh "$BRANCH" "$f"
+# done
 
 set -euo pipefail
 
