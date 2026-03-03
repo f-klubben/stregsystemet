@@ -1,171 +1,209 @@
 [
-    {
-        "fields": {
-            "description": "Kaffestuen, KMD",
-            "name": "CS Kaffestuen"
-        },
-        "model": "stregsystem.room",
-        "pk": "1"
-    },
-    {
-        "fields": {
-            "description": "Fytteturens Grill",
-            "name": "Fyttetur"
-        },
-        "model": "stregsystem.room",
-        "pk": "2"
-    },
-    {
-        "fields": {
-            "active": 1,
-            "name": "Limfjordsporter",
-            "price": 900
-        },
-        "model": "stregsystem.product",
-        "pk": "1"
-    },
-    {
-        "fields": {
-            "active": 1,
-            "name": "Flan",
-            "price": 900,
-            "start_date": "2017-03-06",
-            "quantity": 3
-        },
-        "model": "stregsystem.product",
-        "pk": "2"
-    },
-    {
-        "fields": {
-            "active": 1,
-            "name": "Flan but sold out",
-            "price": 900,
-            "start_date": "2017-03-06",
-            "quantity": 3
-        },
-        "model": "stregsystem.product",
-        "pk": "3"
-    },
-    {
-        "model": "stregsystem.sale",
-        "pk": 1,
-        "fields": {
-            "member": 1,
-            "product": 2,
-            "room": 1,
-            "timestamp": "2017-03-13T12:52+00:00",
-            "price": 100
-        }
-    },
-    {
-        "model": "stregsystem.sale",
-        "pk": 2,
-        "fields": {
-            "member": 1,
-            "product": 3,
-            "room": 1,
-            "timestamp": "2017-03-13T12:52:52+00:00",
-            "price": 100
-        }
-    },
-    {
-        "model": "stregsystem.sale",
-        "pk": 3,
-        "fields": {
-            "member": 1,
-            "product": 3,
-            "room": 1,
-            "timestamp": "2017-03-13T12:52:52+00:00",
-            "price": 100
-        }
-    },
-    {
-        "model": "stregsystem.sale",
-        "pk": 4,
-        "fields": {
-            "member": 1,
-            "product": 3,
-            "room": 1,
-            "timestamp": "2017-03-13T12:52:52+00:00",
-            "price": 100
-        }
-    },
-    {
-        "fields": {
-            "active": 1,
-            "name": "Smoker",
-            "price": 100,
-            "rooms": [
-                2
-            ]
-        },
-        "model": "stregsystem.product",
-        "pk": "4"
-    },
-    {
-        "fields": {
-            "changed_on": "2007-07-11 22:21:02+00:00",
-            "price": 900,
-            "product": 1
-        },
-        "model": "stregsystem.oldprice",
-        "pk": "1"
-    },
-    {
-        "fields": {
-            "changed_on": "2007-07-11 22:32:06+00:00",
-            "price": 900,
-            "product": 1
-        },
-        "model": "stregsystem.oldprice",
-        "pk": "2"
-    },
-    {
-        "fields": {
-            "active": 1,
-            "balance": 1800,
-            "email": "treo@cs.aau.dk",
-            "firstname": "Joakim",
-            "lastname": "Byg",
-            "undo_count": 0,
-            "username": "jokke",
-            "want_spam": 1,
-            "year": "2007"
-        },
-        "model": "stregsystem.member",
-        "pk": "1"
-    },
-    {
-        "fields": {
-            "active": 1,
-            "balance": 0,
-            "email": "treo2@cs.aau.dk",
-            "firstname": "Jan",
-            "lastname": "Byg",
-            "undo_count": 0,
-            "username": "jan",
-            "want_spam": 1,
-            "year": "2017"
-        },
-        "model": "stregsystem.member",
-        "pk": "2"
-    },
-    {
-        "model": "auth.user",
-        "pk": 1,
-        "fields": {
-            "password": "pbkdf2_sha256$30000$ivRA8qABWClG$pxi2R4uyotlGpwa66RQuDOXFaO9JElQutMFJqXmnOdI=",
-            "last_login": "2017-09-22T09:26:03+00:00",
-            "is_superuser": true,
-            "username": "tester",
-            "first_name": "test",
-            "last_name": "testsen",
-            "email": "test@satai.dk",
-            "is_staff": true,
-            "is_active": true,
-            "date_joined": "2017-03-06T10:53:54+00:00",
-            "groups": [],
-            "user_permissions": []
-        }
-    }
+{
+  "model": "stregsystem.member",
+  "pk": 1,
+  "fields": {
+    "active": true,
+    "username": "jokke",
+    "year": "2007",
+    "firstname": "Joakim",
+    "lastname": "Byg",
+    "gender": "",
+    "email": "treo@cs.aau.dk",
+    "want_spam": true,
+    "balance": 1800,
+    "undo_count": 0,
+    "notes": "",
+    "signup_due_paid": true
+  }
+},
+{
+  "model": "stregsystem.member",
+  "pk": 2,
+  "fields": {
+    "active": true,
+    "username": "jan",
+    "year": "2017",
+    "firstname": "Jan",
+    "lastname": "Byg",
+    "gender": "",
+    "email": "treo2@cs.aau.dk",
+    "want_spam": true,
+    "balance": 0,
+    "undo_count": 0,
+    "notes": "",
+    "signup_due_paid": true
+  }
+},
+{
+  "model": "stregsystem.room",
+  "pk": 1,
+  "fields": {
+    "name": "CS Kaffestuen",
+    "description": "Kaffestuen, KMD",
+    "notes": ""
+  }
+},
+{
+  "model": "stregsystem.room",
+  "pk": 2,
+  "fields": {
+    "name": "Fyttetur",
+    "description": "Fytteturens Grill",
+    "notes": ""
+  }
+},
+{
+  "model": "stregsystem.product",
+  "pk": 1,
+  "fields": {
+    "name": "Limfjordsporter",
+    "price": 900,
+    "active": true,
+    "start_date": null,
+    "quantity": 0,
+    "deactivate_date": null,
+    "alcohol_content_ml": 0.0,
+    "caffeine_content_mg": 0,
+    "categories": [],
+    "rooms": []
+  }
+},
+{
+  "model": "stregsystem.product",
+  "pk": 2,
+  "fields": {
+    "name": "Flan",
+    "price": 900,
+    "active": true,
+    "start_date": "2017-03-06",
+    "quantity": 3,
+    "deactivate_date": null,
+    "alcohol_content_ml": 0.0,
+    "caffeine_content_mg": 0,
+    "categories": [],
+    "rooms": []
+  }
+},
+{
+  "model": "stregsystem.product",
+  "pk": 3,
+  "fields": {
+    "name": "Flan but sold out",
+    "price": 900,
+    "active": true,
+    "start_date": "2017-03-06",
+    "quantity": 3,
+    "deactivate_date": null,
+    "alcohol_content_ml": 0.0,
+    "caffeine_content_mg": 0,
+    "categories": [],
+    "rooms": []
+  }
+},
+{
+  "model": "stregsystem.product",
+  "pk": 4,
+  "fields": {
+    "name": "Smoker",
+    "price": 100,
+    "active": true,
+    "start_date": null,
+    "quantity": 0,
+    "deactivate_date": null,
+    "alcohol_content_ml": 0.0,
+    "caffeine_content_mg": 0,
+    "categories": [],
+    "rooms": [
+      2
+    ]
+  }
+},
+{
+  "model": "stregsystem.oldprice",
+  "pk": 1,
+  "fields": {
+    "product": 1,
+    "price": 900,
+    "changed_on": "2007-07-11T22:21:02Z"
+  }
+},
+{
+  "model": "stregsystem.oldprice",
+  "pk": 2,
+  "fields": {
+    "product": 1,
+    "price": 900,
+    "changed_on": "2007-07-11T22:32:06Z"
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$30000$ivRA8qABWClG$pxi2R4uyotlGpwa66RQuDOXFaO9JElQutMFJqXmnOdI=",
+    "last_login": "2017-09-22T09:26:03Z",
+    "is_superuser": true,
+    "username": "tester",
+    "first_name": "test",
+    "last_name": "testsen",
+    "email": "test@satai.dk",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2017-03-06T10:53:54Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 1,
+  "fields": {
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2017-03-13T12:52:00Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 2,
+  "fields": {
+    "member": 1,
+    "product": 3,
+    "room": 1,
+    "timestamp": "2017-03-13T12:52:52Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 3,
+  "fields": {
+    "member": 1,
+    "product": 3,
+    "room": 1,
+    "timestamp": "2017-03-13T12:52:52Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 4,
+  "fields": {
+    "member": 1,
+    "product": 3,
+    "room": 1,
+    "timestamp": "2017-03-13T12:52:52Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+}
 ]
