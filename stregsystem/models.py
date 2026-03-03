@@ -340,6 +340,25 @@ class Member(models.Model):  # id automatisk...
 
         return user_with_most_coffees_bought == self
 
+    def generate_companion_user(self):
+        """
+        Used for authenticating with OIDC. A companion user is created on first login attempt.
+        """
+        username = f"auth_{self.pk}"
+        i = 0
+        while len(User.objects.filter(username=username)) != 0:
+            i += 1
+            username = f"auth_{self.pk}_{i}"
+
+        user = User.objects.create(
+            username=username,
+            is_staff=False,
+            is_superuser=False,
+            is_active=True,
+        )
+        self.paired_user = user
+        self.save()
+
 
 class Payment(models.Model):  # id automatisk...
     class Meta:

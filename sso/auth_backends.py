@@ -22,14 +22,7 @@ class PasswordlessMemberBackend:
             return None
 
         if member.paired_user is None:
-            user = User.objects.create(
-                username=f"sso_{member.username}",
-                is_staff=False,
-                is_superuser=False,
-                is_active=True,
-            )
-            member.paired_user = user
-            member.save()
+            member.generate_companion_user()
 
         return member.paired_user
 
