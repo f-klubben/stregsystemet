@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
       active.isContentEditable
     );
 
-    if ((event.key === "Enter" || event.key === "Escape") && !typing) {
+    if ( event.key === "Escape" && !typing) {
       event.preventDefault(); 
       restartBtn?.click(); 
     }
