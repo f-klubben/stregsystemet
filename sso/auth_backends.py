@@ -39,7 +39,7 @@ class PasswordlessMemberBackend:
         most_recent_otp = previous_otp_requests.first()
 
         # Too many tries for this OTP
-        if previous_otp_requests.filter(code=most_recent_otp.code).count() >= self.MAX_RETRIES_SAME_OTP:
+        if previous_otp_requests.filter(code=most_recent_otp.code).count() > self.MAX_RETRIES_SAME_OTP:
             self.request_otp(member)
             return None
 

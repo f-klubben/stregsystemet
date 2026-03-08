@@ -35,13 +35,13 @@ class MemberLoginTests(TestCase):
         MemberOTPRequest.objects.create(member=self.jeff, code="123456")
 
         # Try logging in multiple times with same OTP
-        for _ in range(PasswordlessMemberBackend.MAX_RETRIES_SAME_OTP - 1):  # replace with your max tries constant
+        for _ in range(PasswordlessMemberBackend.MAX_RETRIES_SAME_OTP):
             result = self.client.login(username="jeff", otp="654321")
             self.assertFalse(result)
 
         # Attempt with correct should fail
-        success = self.client.login(username="jeff", otp="123456")
-        self.assertFalse(success)
+        fail = self.client.login(username="jeff", otp="123456")
+        self.assertFalse(fail)
 
     def test_repeated_attempt_accept(self):
         # Should allow more than 1 wrong attempt for test to be valid
@@ -49,8 +49,10 @@ class MemberLoginTests(TestCase):
 
         MemberOTPRequest.objects.create(member=self.jeff, code="123456")
 
-        # One wrong attempt
-        self.client.login(username="jeff", otp="654321")
+        # Try logging in multiple times with same OTP, but less than limit
+        for _ in range(PasswordlessMemberBackend.MAX_RETRIES_SAME_OTP - 1):
+            result = self.client.login(username="jeff", otp="654321")
+            self.assertFalse(result)
 
         success = self.client.login(username="jeff", otp="123456")
         self.assertTrue(success)
