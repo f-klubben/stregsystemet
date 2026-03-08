@@ -9,4 +9,6 @@ from stregsystem.models import Member
 class MemberOTPRequest(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     code = models.CharField(max_length=6)
+    failed_attempts = models.PositiveSmallIntegerField(default=0)
+    is_valid = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -1,34 +1,162 @@
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
-from django.views import View
+import random
+import string
+
+from django.contrib.auth import login, authenticate
 from django.contrib import messages
+from django.core.mail import send_mail
+from django.shortcuts import redirect, render
+from django.views import View
+
+from sso.auth_backends import PasswordlessMemberBackend
+from sso.models import MemberOTPRequest
+from stregsystem.models import Member
+
+OTP_TTL_SECONDS = 600
+OTP_DIGITS = 5
+
+
+def _mask_email(email: str) -> str:
+    local, domain = email.split("@", 1)
+    masked = local[0] + "***" if len(local) > 1 else "***"
+    return f"{masked}@{domain}"
+
+
+def _generate_otp() -> str:
+    return "".join(random.choices(string.digits, k=OTP_DIGITS))
+
+
+def _issue_otp(member: Member) -> str:
+    MemberOTPRequest.objects.filter(member=member).update(is_valid=False)
+    otp = _generate_otp()
+    MemberOTPRequest.objects.create(member=member, code=otp)
+    return otp
+
+
+def _send_otp_email(member: Member, otp: str) -> None:
+    full_code = f"F-{otp}"
+    print(f"Send F-code: {full_code}")
 
 
 class CustomLoginView(View):
-    template_name = 'sso/login.html'
+    template_name = "sso/login.html"
+
+    def _base_context(self, request) -> dict:
+        return {
+            "next": request.GET.get("next") or request.POST.get("next", "/"),
+            "service_name": request.session.get("sso_service_name", ""),
+        }
 
     def get(self, request):
-        # Get the 'next' parameter from the URL
-        next_url = request.GET.get('next', '/')
-
-        context = {
-            'next': next_url,
-        }
-        return render(request, self.template_name, context)
+        ctx = self._base_context(request)
+        ctx["stage"] = 1
+        return render(request, self.template_name, ctx)
 
     def post(self, request):
-        username = request.POST.get('username')
-        next_url = request.POST.get('next', '/')
+        stage = request.POST.get("stage", "1")
+        if stage == "1":
+            return self._handle_stage_1(request)
+        if stage == "2":
+            return self._handle_stage_2(request)
+        # Something has gone wrong, restart
+        return redirect("sso_login")
 
-        user = authenticate(request, username=username)
+    def _handle_stage_1(self, request):
+        ctx = self._base_context(request)
+        username = request.POST.get("username", "").strip()
+        ctx.update(stage=1, username=username)
 
-        if user is not None:
-            login(request, user)
-            return redirect(next_url)
-        else:
-            messages.error(request, 'Invalid username or password')
-            context = {
-                'next': next_url,
-                'username': username,  # Preserve username on error
-            }
-            return render(request, self.template_name, context)
+        if not username:
+            messages.error(request, "Please enter your username.")
+            return render(request, self.template_name, ctx)
+
+        try:
+            member = Member.objects.get(username=username)
+        except Member.DoesNotExist:
+            messages.error(request, "No account found with that username.")
+            return render(request, self.template_name, ctx)
+
+        if not member.email:
+            messages.error(request, "Your account has no email address. Contact support.")
+            return render(request, self.template_name, ctx)
+
+        otp = _issue_otp(member)
+        # _send_otp_email(member, otp)
+
+        ctx.update(
+            stage=2,
+            masked_email=_mask_email(member.email),
+        )
+        messages.info(request, "A code has been sent to your email address.")
+        return render(request, self.template_name, ctx)
+
+    def _handle_stage_2(self, request):
+        ctx = self._base_context(request)
+        username = request.POST.get("username", "").strip()
+        next_url = ctx["next"]
+        ctx.update(stage=2, username=username)
+
+        try:
+            member = Member.objects.get(username=username)
+            ctx["masked_email"] = _mask_email(member.email)
+        except Member.DoesNotExist:
+            # Something has gone wrong, restart
+            return redirect("sso_login")
+
+        otp = self._extract_otp_digits(request)
+
+        user = authenticate(request, username=username, otp=otp)
+
+        if user is None:
+            otp_request = MemberOTPRequest.objects.filter(member=member, is_valid=True).order_by("-created_at").first()
+
+            if otp_request is None or otp_request.failed_attempts >= PasswordlessMemberBackend.MAX_OTP_ATTEMPTS:
+                fresh_otp = _issue_otp(member)
+                _send_otp_email(member, fresh_otp)
+                messages.error(
+                    request,
+                    "Too many incorrect attempts. A new code has been sent to your email.",
+                )
+            else:
+                messages.error(request, "Incorrect code. Please check your email and try again.")
+            return render(request, self.template_name, ctx)
+
+        login(request, user, backend="sso.backends.PasswordlessMemberBackend")
+        return redirect(next_url or "index")
+
+    @staticmethod
+    def _extract_otp_digits(request) -> str:
+        """
+        Prefer the hidden combined field ('F' + 5 digits).
+        Fall back to reading the five individual cell fields otp_1 … otp_5.
+        Returns the 5 numeric digits only (without the leading 'F').
+        """
+        combined = request.POST.get("otp_combined", "")
+        if combined.startswith("F") and len(combined) == 6:
+            return combined[1:]
+        return "".join(request.POST.get(f"otp_{i}", "") for i in range(1, 6))
+
+
+class ResendOTPView(View):
+    template_name = "sso/login.html"
+
+    def post(self, request):
+        username = request.POST.get("username", "").strip()
+        next_url = request.POST.get("next", "/")
+
+        try:
+            member = Member.objects.get(username=username)
+        except Member.DoesNotExist:
+            return redirect("sso_login")
+
+        otp = _issue_otp(member)
+        _send_otp_email(member, otp)
+
+        messages.info(request, "A new code has been sent to your email.")
+        ctx = {
+            "stage": 2,
+            "username": username,
+            "next": next_url,
+            "masked_email": _mask_email(member.email),
+            "service_name": request.session.get("sso_service_name", ""),
+        }
+        return render(request, self.template_name, ctx)

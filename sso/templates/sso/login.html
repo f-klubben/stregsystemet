@@ -1,57 +1,314 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Login</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign in{% if service_name %} — {{ service_name }}{% endif %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f5f5f5;
+      font-family: system-ui, sans-serif;
+      font-size: 15px;
+      color: #111;
+      padding: 1rem;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .brand {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1.75rem;
+      color: #111;
+    }
+
+    h1 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: .35rem;
+    }
+
+    .subtitle {
+      font-size: .9rem;
+      color: #666;
+      margin-bottom: 1.5rem;
+    }
+
+    /* SSO banner */
+    .sso-banner {
+      font-size: .85rem;
+      color: #555;
+      background: #f0f4ff;
+      border: 1px solid #c7d7ff;
+      border-radius: 6px;
+      padding: .6rem .85rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Messages */
+    .messages { list-style: none; margin-bottom: 1rem; }
+    .messages li {
+      font-size: .875rem;
+      padding: .6rem .85rem;
+      border-radius: 6px;
+      margin-bottom: .4rem;
+    }
+    .messages .error { background: #fff0f0; color: #c0392b; border: 1px solid #fcc; }
+    .messages .info  { background: #f0faf5; color: #1a7f4b; border: 1px solid #b2e5cc; }
+
+    /* Fields */
+    label {
+      display: block;
+      font-size: .8rem;
+      font-weight: 500;
+      color: #444;
+      margin-bottom: .35rem;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: .65rem .8rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: .95rem;
+      outline: none;
+      transition: border-color .15s;
+      margin-bottom: 1rem;
+    }
+    input[type="text"]:focus { border-color: #4a7cf7; }
+
+    /* OTP grid */
+    .otp-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 1rem;
+    }
+
+    .otp-row input {
+      width: 100%;
+      aspect-ratio: 1;
+      text-align: center;
+      font-size: 1.2rem;
+      font-family: monospace;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color .15s;
+      padding: 0;
+      margin: 0;
+    }
+    .otp-row input:focus { border-color: #4a7cf7; }
+
+    .otp-row .f-cell {
+      background: #fffbe6;
+      border-color: #e0c050;
+      color: #8a6200;
+      pointer-events: none;
+    }
+
+    /* Submit */
+    button[type="submit"] {
+      width: 100%;
+      padding: .7rem;
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: .95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    button[type="submit"]:hover { background: #333; }
+
+    /* Utility row below form */
+    .form-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: .85rem;
+      font-size: .85rem;
+      color: #666;
+    }
+
+    .form-footer a,
+    .form-footer button {
+      background: none;
+      border: none;
+      padding: 0;
+      color: #4a7cf7;
+      cursor: pointer;
+      font-size: .85rem;
+      text-decoration: none;
+    }
+    .form-footer button:disabled { color: #aaa; cursor: default; }
+
+    /* Stage dots */
+    .stage-dots { display: flex; gap: 5px; margin-bottom: 1.5rem; }
+    .stage-dots span {
+      height: 3px;
+      border-radius: 2px;
+      background: #ddd;
+      width: 20px;
+      transition: background .2s, width .2s;
+    }
+    .stage-dots .active  { background: #4a7cf7; width: 28px; }
+    .stage-dots .done    { background: #2ecc71; }
+  </style>
 </head>
 <body>
-    <h2>Login</h2>
+<div class="card">
 
-    {% if messages %}
-        {% for message in messages %}
-            <div style="color: red;">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
+  <div class="brand">TREOENs STREGSYSTEM</div>
 
-    <form method="post">
+  {% if service_name or next %}
+  <div class="sso-banner">
+    Signing in to continue to <strong>{{ service_name|default:"the connected service" }}</strong>
+  </div>
+  {% endif %}
+
+  {% if messages %}
+  <ul class="messages">
+    {% for message in messages %}
+    <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if stage == 1 or not stage %}
+
+  <div class="stage-dots"><span class="active"></span><span></span></div>
+  <h1>Welcome back</h1>
+  <p class="subtitle">Enter your username to continue.</p>
+
+  <form method="POST" action="{% url 'sso_login' %}" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="stage" value="1"/>
+    {% if next %}<input type="hidden" name="next" value="{{ next }}"/>{% endif %}
+
+    <label for="username">Username</label>
+    <input
+      type="text" id="username" name="username"
+      value="{{ username|default:'' }}"
+      autocomplete="username" autofocus spellcheck="false" autocapitalize="none"
+    />
+
+    <button type="submit">Continue →</button>
+  </form>
+
+  {% elif stage == 2 %}
+
+  <div class="stage-dots"><span class="done"></span><span class="active"></span></div>
+  <h1>Check your email</h1>
+  <p class="subtitle">Enter the F&#8209;code sent to <strong>{{ masked_email }}</strong></p>
+
+  <form method="POST" action="{% url 'sso_login' %}" id="otp-form" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="stage" value="2"/>
+    <input type="hidden" name="username" value="{{ username }}"/>
+    {% if next %}<input type="hidden" name="next" value="{{ next }}"/>{% endif %}
+    <input type="hidden" name="otp_combined" id="otp-combined"/>
+
+    <label>F‑Code</label>
+    <div class="otp-row" id="otp-grid">
+      <input type="text" value="F" readonly tabindex="-1" class="f-cell" aria-label="F prefix"/>
+      {% for i in "12345" %}
+      <input
+        type="text" inputmode="numeric" pattern="[0-9]"
+        name="otp_{{ i }}" maxlength="1" class="digit-cell"
+        autocomplete="one-time-code" aria-label="Digit {{ i }}"
+        {% if i == "1" %}autofocus{% endif %}
+      />
+      {% endfor %}
+    </div>
+
+    <button type="submit">Verify &amp; Sign In →</button>
+
+    <div class="form-footer">
+      <span>Expires in <strong id="countdown">05:00</strong></span>
+      <form method="POST" action="{% url 'sso_resend_otp' %}" style="display:contents">
         {% csrf_token %}
-        <input type="hidden" name="next" value="{{ next }}">
+        <input type="hidden" name="username" value="{{ username }}"/>
+        {% if next %}<input type="hidden" name="next" value="{{ next }}"/>{% endif %}
+        <button type="submit" id="resend-btn" disabled>Resend code</button>
+      </form>
+    </div>
+  </form>
 
-        <!-- STAGE 1: REQUEST OTP -->
-        {% if not otp_sent %}
-            <div>
-                <label for="username">Username:</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    value="{{ username }}"
-                    required
-                >
-            </div>
+  <div class="form-footer" style="margin-top:.75rem">
+    <a href="{% url 'sso_login' %}{% if next %}?next={{ next }}{% endif %}">← Use a different username</a>
+  </div>
 
-            <!-- Empty OTP field submitted implicitly -->
-            <input type="hidden" name="otp" value="">
+  {% endif %}
 
-            <button type="submit">Send OTP</button>
+</div>
 
-        <!-- STAGE 2: VERIFY OTP -->
-        {% else %}
-            <input type="hidden" name="username" value="{{ username }}">
+<script>
+(function () {
+  const grid = document.getElementById('otp-grid');
+  if (!grid) return;
 
-            <div>
-                <label for="otp">OTP Code:</label>
-                <input
-                    type="text"
-                    id="otp"
-                    name="otp"
-                    inputmode="numeric"
-                    autocomplete="one-time-code"
-                    required
-                >
-            </div>
+  const cells    = Array.from(grid.querySelectorAll('.digit-cell'));
+  const combined = document.getElementById('otp-combined');
+  const form     = document.getElementById('otp-form');
 
-            <button type="submit">Verify OTP</button>
-        {% endif %}
-    </form>
+  const sync = () => combined.value = 'F' + cells.map(c => c.value).join('');
+
+  cells.forEach((cell, i) => {
+    cell.addEventListener('input', () => {
+      cell.value = cell.value.replace(/\D/g, '').slice(-1);
+      sync();
+      if (cell.value && i < cells.length - 1) cells[i + 1].focus();
+      if (cells.every(c => c.value)) (form.requestSubmit ?? form.submit).call(form);
+    });
+
+    cell.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !cell.value && i > 0) {
+        cells[i - 1].value = '';
+        cells[i - 1].focus();
+        sync();
+      }
+      if (e.key === 'ArrowLeft'  && i > 0)               cells[i - 1].focus();
+      if (e.key === 'ArrowRight' && i < cells.length - 1) cells[i + 1].focus();
+    });
+
+    cell.addEventListener('paste', e => {
+      e.preventDefault();
+      const digits = (e.clipboardData.getData('text')).replace(/\D/g, '').slice(0, 5);
+      digits.split('').forEach((d, j) => cells[j] && (cells[j].value = d));
+      cells[Math.min(digits.length, cells.length - 1)].focus();
+      sync();
+      if (digits.length === 5) (form.requestSubmit ?? form.submit).call(form);
+    });
+  });
+
+  const el  = document.getElementById('countdown');
+  const btn = document.getElementById('resend-btn');
+  let s = 300;
+
+  const timer = setInterval(() => {
+    s--;
+    el.textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+    if (s <= 0) { clearInterval(timer); el.textContent = 'Expired'; btn.disabled = false; }
+  }, 1000);
+})();
+</script>
 </body>
 </html>
