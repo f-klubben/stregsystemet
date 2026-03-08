@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 from django.contrib.auth.models import User
 from django.test import TestCase
+from freezegun import freeze_time
 
 from sso.auth_backends import PasswordlessMemberBackend
 from sso.models import MemberOTPRequest
@@ -68,3 +71,25 @@ class MemberLoginTests(TestCase):
 
         success = self.client.login(username="jeff", otp="123456")
         self.assertTrue(success)
+
+    def test_outdated_correct_otp_deny(self):
+        with freeze_time() as ft:
+            MemberOTPRequest.objects.create(member=self.jeff, code="123456")
+            ft.tick(delta=timedelta(minutes=PasswordlessMemberBackend.OTP_DURATION_MIN, seconds=1))
+            fail = self.client.login(username="jeff", otp="123456")
+            self.assertFalse(fail)
+
+    def test_outdated_wrong_otp_deny(self):
+        with freeze_time() as ft:
+            MemberOTPRequest.objects.create(member=self.jeff, code="123456")
+            ft.tick(delta=timedelta(minutes=PasswordlessMemberBackend.OTP_DURATION_MIN, seconds=1))
+            fail = self.client.login(username="jeff", otp="654321")
+            self.assertFalse(fail)
+
+    def test_almost_outdated_correct_otp_accept(self):
+        self.assertTrue(PasswordlessMemberBackend.OTP_DURATION_MIN > 0)
+        with freeze_time() as ft:
+            MemberOTPRequest.objects.create(member=self.jeff, code="123456")
+            ft.tick(delta=timedelta(minutes=PasswordlessMemberBackend.OTP_DURATION_MIN - 1))
+            success = self.client.login(username="jeff", otp="123456")
+            self.assertTrue(success)
