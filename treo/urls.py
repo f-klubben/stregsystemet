@@ -33,7 +33,7 @@ urlpatterns = [
     re_path(r"^o/authorize/", CustomOAuth2ProviderLoginView.as_view(), name="authorize"),
     re_path(r"^.well-known/openid-configuration", ConnectDiscoveryInfoView.as_view(), name="oidc-connect-discovery-info",),
     re_path(r'^o/', include(oauth2_urls)),
-    re_path(r'^sso/', include("sso.urls")),
+    re_path(r'^ffo/', include("sso.urls")),
     re_path(r'^select2/', include('django_select2.urls')),
 ]
 

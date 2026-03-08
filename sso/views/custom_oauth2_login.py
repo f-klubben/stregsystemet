@@ -6,4 +6,5 @@ class CustomOAuth2ProviderLoginView(AuthorizationView, LoginRequiredMixin):
     """
     Override login_url as used in authorization view.
     """
-    login_url = "/sso/login/"
+
+    login_url = "/ffo/login/"
