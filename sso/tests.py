@@ -31,6 +31,18 @@ class MemberLoginTests(TestCase):
         # Check that the newly generated user actually is new.
         self.assertNotEquals(self.jeff.paired_user, new_user)
 
+    def test_correct_otp_accept(self):
+        MemberOTPRequest.objects.create(member=self.jeff, code="123456")
+
+        success = self.client.login(username="jeff", otp="123456")
+        self.assertTrue(success)
+
+    def test_wrong_otp_deny(self):
+        MemberOTPRequest.objects.create(member=self.jeff, code="123456")
+
+        fail = self.client.login(username="jeff", otp="654321")
+        self.assertFalse(fail)
+
     def test_max_tries_same_otp_deny(self):
         MemberOTPRequest.objects.create(member=self.jeff, code="123456")
 
