@@ -46,12 +46,14 @@ class NoMoreInventoryError(Exception):
 
 # Create your models here.
 
+
 class BaseModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         abstract = True
+
 
 # So we have two "basic" operations to do with money
 # we can take money from a user and we can give them money
@@ -688,6 +690,7 @@ class Sale(BaseModel):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     price = models.IntegerField()
+
     class Meta(BaseModel.Meta):
         index_together = [
             ["product", "timestamp"],

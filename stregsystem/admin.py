@@ -42,6 +42,7 @@ class BaseAdmin(admin.ModelAdmin):
     Base admin class to add common attributes.
     Such as created_at and updated_at fields.
     """
+
     def _get_fields_to_display(self) -> list[str]:
         return self._get_fields_to_display_as_readonly()
 
@@ -51,13 +52,8 @@ class BaseAdmin(admin.ModelAdmin):
             "updated_at",
         ]
 
-    def get_readonly_fields(
-        self, request: HttpRequest, obj: Any | None = ...
-    ) -> list[str] | tuple[Any, ...]:
-        return (
-            list(super().get_readonly_fields(request, obj))
-            + list(self._get_fields_to_display_as_readonly())
-        )
+    def get_readonly_fields(self, request: HttpRequest, obj: Any | None = ...) -> list[str] | tuple[Any, ...]:
+        return list(super().get_readonly_fields(request, obj)) + list(self._get_fields_to_display_as_readonly())
 
     def get_list_display(self, request) -> list[str]:
         return self._get_fields_to_display() + list(super().get_list_display(request))
@@ -171,7 +167,7 @@ class ProductAdmin(BaseAdmin):
             "name",
             "get_price_display",
         ] + super()._get_fields_to_display()
-    
+
     fields = (
         "name",
         "price",
@@ -220,7 +216,7 @@ class NamedProductAdmin(BaseAdmin):
             "name",
             "product",
         ] + super()._get_fields_to_display()
-    
+
     fields = (
         'name',
         'product',
@@ -319,7 +315,7 @@ class PaymentAdmin(BaseAdmin):
             "get_amount_display",
             "is_mobilepayment",
         ] + super()._get_fields_to_display()
-    
+
     valid_lookups = "member"
     search_fields = ["member__username"]
     autocomplete_fields = ["member"]
@@ -426,7 +422,7 @@ class ThemeAdmin(BaseAdmin):
             "end_month",
             "end_day",
         ] + super()._get_fields_to_display()
-    
+
     search_fields = ["name"]
 
     @admin.action(description="Do not force chosen themes")
