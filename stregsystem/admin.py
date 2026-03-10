@@ -51,8 +51,8 @@ class BaseAdmin(admin.ModelAdmin):
 
     def _get_fields_to_display_as_readonly(self) -> list[str]:
         return [
-            "created_at",
-            "updated_at",
+            'created_at',
+            'updated_at',
         ]
 
     def get_readonly_fields(self, request: HttpRequest, obj: Any | None = ...) -> list[str] | tuple[Any, ...]:
@@ -63,22 +63,22 @@ class BaseAdmin(admin.ModelAdmin):
 
 
 class SaleAdmin(BaseAdmin):
-    list_filter = ("room", "timestamp")
+    list_filter = ('room', 'timestamp')
 
     def _get_fields_to_display(self):
         return [
-            "get_username",
-            "get_fullname",
-            "get_product_name",
-            "get_room_name",
-            "timestamp",
-            "get_price_display",
+            'get_username',
+            'get_fullname',
+            'get_product_name',
+            'get_room_name',
+            'timestamp',
+            'get_price_display',
         ] + super()._get_fields_to_display()
 
     actions = [refund]
-    search_fields = ["^member__username", "=product__id", "product__name"]
-    valid_lookups = "member"
-    autocomplete_fields = ["member", "product"]
+    search_fields = ['^member__username', '=product__id', 'product__name']
+    valid_lookups = 'member'
+    autocomplete_fields = ['member', 'product']
 
     class Media:
         css = {'all': ('stregsystem/select2-stregsystem.css',)}
@@ -160,15 +160,15 @@ class ProductActivatedListFilter(admin.SimpleListFilter):
 
 
 class ProductAdmin(BaseAdmin):
-    search_fields = ("name", "price", "id")
-    list_filter = (ProductActivatedListFilter, "deactivate_date", "price")
+    search_fields = ('name', 'price', 'id')
+    list_filter = (ProductActivatedListFilter, 'deactivate_date', 'price')
 
     def _get_fields_to_display(self):
         return [
-            "activated",
-            "id",
-            "name",
-            "get_price_display",
+            'activated',
+            'id',
+            'name',
+            'get_price_display',
         ] + super()._get_fields_to_display()
 
     fields = (
@@ -210,14 +210,14 @@ class ProductAdmin(BaseAdmin):
 
 class NamedProductAdmin(BaseAdmin):
     search_fields = (
-        "name",
-        "product",
+        'name',
+        'product',
     )
 
     def _get_fields_to_display(self):
         return [
-            "name",
-            "product",
+            'name',
+            'product',
         ] + super()._get_fields_to_display()
 
     fields = (
@@ -232,8 +232,8 @@ class NamedProductAdmin(BaseAdmin):
 class CategoryAdmin(BaseAdmin):
     def _get_fields_to_display(self):
         return [
-            "name",
-            "items_in_category",
+            'name',
+            'items_in_category',
         ] + super()._get_fields_to_display()
 
     def items_in_category(self, obj):
@@ -255,17 +255,17 @@ class MemberForm(forms.ModelForm):
 
 class MemberAdmin(BaseAdmin):
     form = MemberForm
-    list_filter = ("want_spam",)
-    search_fields = ("username", "firstname", "lastname", "email")
+    list_filter = ('want_spam',)
+    search_fields = ('username', 'firstname', 'lastname', 'email')
 
     def _get_fields_to_display(self):
         return [
-            "username",
-            "firstname",
-            "lastname",
-            "balance",
-            "email",
-            "notes",
+            'username',
+            'firstname',
+            'lastname',
+            'balance',
+            'email',
+            'notes',
         ] + super()._get_fields_to_display()
 
     # fieldsets is like fields, except that they are grouped and with descriptions
@@ -313,15 +313,15 @@ class MemberAdmin(BaseAdmin):
 class PaymentAdmin(BaseAdmin):
     def _get_fields_to_display(self):
         return [
-            "get_username",
-            "timestamp",
-            "get_amount_display",
-            "is_mobilepayment",
+            'get_username',
+            'timestamp',
+            'get_amount_display',
+            'is_mobilepayment',
         ] + super()._get_fields_to_display()
 
-    valid_lookups = "member"
-    search_fields = ["member__username"]
-    autocomplete_fields = ["member"]
+    valid_lookups = 'member'
+    search_fields = ['member__username']
+    autocomplete_fields = ['member']
 
     class Media:
         css = {'all': ('stregsystem/select2-stregsystem.css',)}
@@ -349,18 +349,18 @@ class PaymentAdmin(BaseAdmin):
 class MobilePaymentAdmin(BaseAdmin):
     def _get_fields_to_display(self):
         return [
-            "payment",
-            "customer_name",
-            "comment",
-            "timestamp",
-            "transaction_id",
-            "get_amount_display",
-            "status",
+            'payment',
+            'customer_name',
+            'comment',
+            'timestamp',
+            'transaction_id',
+            'get_amount_display',
+            'status',
         ] + super()._get_fields_to_display()
 
-    valid_lookups = "member"
-    search_fields = ["member__username"]
-    autocomplete_fields = ["member", "payment"]
+    valid_lookups = 'member'
+    search_fields = ['member__username']
+    autocomplete_fields = ['member', 'payment']
 
     class Media:
         css = {'all': ('stregsystem/select2-stregsystem.css',)}
@@ -387,19 +387,19 @@ class MobilePaymentAdmin(BaseAdmin):
 
 
 class LogEntryAdmin(BaseAdmin):
-    date_hierarchy = "action_time"
-    list_filter = ["content_type", "action_flag"]
-    search_fields = ["object_repr", "change_message", "user__username"]
+    date_hierarchy = 'action_time'
+    list_filter = ['content_type', 'action_flag']
+    search_fields = ['object_repr', 'change_message', 'user__username']
 
     def _get_fields_to_display(self):
         return [
-            "action_time",
-            "user",
-            "content_type",
-            "object_id",
-            "action_flag",
-            "change_message",
-            "object_repr",
+            'action_time',
+            'user',
+            'content_type',
+            'object_id',
+            'action_flag',
+            'change_message',
+            'object_repr',
         ] + super()._get_fields_to_display()
 
     def has_view_permission(self, request, obj=None):
@@ -418,12 +418,12 @@ class LogEntryAdmin(BaseAdmin):
 class ThemeAdmin(BaseAdmin):
     def _get_fields_to_display(self):
         return [
-            "name",
-            "override",
-            "begin_month",
-            "begin_day",
-            "end_month",
-            "end_day",
+            'name',
+            'override',
+            'begin_month',
+            'begin_day',
+            'end_month',
+            'end_day',
         ] + super()._get_fields_to_display()
 
     search_fields = ["name"]
@@ -444,12 +444,12 @@ class ThemeAdmin(BaseAdmin):
 
 
 class ProductNoteAdmin(BaseAdmin):
-    search_fields = ("active", "text")
+    search_fields = ('active', 'text')
 
     def _get_fields_to_display(self):
         return [
-            "active",
-            "text",
+            'active',
+            'text',
         ] + super()._get_fields_to_display()
 
     actions = [toggle_active_selected_products]
