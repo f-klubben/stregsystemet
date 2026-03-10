@@ -3,7 +3,6 @@ import urllib.parse
 from abc import abstractmethod
 from collections import Counter
 from email.utils import parseaddr
-from datetime import datetime
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
