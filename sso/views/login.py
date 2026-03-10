@@ -3,13 +3,13 @@ import string
 
 from django.contrib.auth import login, authenticate
 from django.contrib import messages
-from django.core.mail import send_mail
 from django.shortcuts import redirect, render
 from django.views import View
 
 from sso.auth_backends import PasswordlessMemberBackend
 from sso.models import MemberOTPRequest
 from stregsystem.models import Member
+from stregsystem.mail import send_fcode_mail
 
 OTP_TTL_SECONDS = 600
 OTP_DIGITS = 5
@@ -35,6 +35,7 @@ def _issue_otp(member: Member) -> str:
 def _send_otp_email(member: Member, otp: str) -> None:
     full_code = f"F-{otp}"
     print(f"Send F-code: {full_code}")
+    send_fcode_mail(member, full_code, f"hffps://{otp}", "linky")
 
 
 class CustomLoginView(View):
@@ -80,7 +81,7 @@ class CustomLoginView(View):
             return render(request, self.template_name, ctx)
 
         otp = _issue_otp(member)
-        # _send_otp_email(member, otp)
+        _send_otp_email(member, otp)
 
         ctx.update(
             stage=2,
