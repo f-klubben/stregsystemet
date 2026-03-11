@@ -263,7 +263,7 @@ class SaleViewTests(TestCase):
 
         self.assertContains(
             response,
-            "",
+            "<b><span class=\"username\">jokke</span> har lige købt 1 Limfjordsporter for tilsammen " "9.00 kr.</b>",
             html=True,
         )
 
