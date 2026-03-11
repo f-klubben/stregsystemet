@@ -2288,7 +2288,7 @@ class MailTests(TestCase):
         signup_request.complete(payment)
 
         signup_request.approve()
-        mock_mail_method.assert_caleed_once()
+        mock_mail_method.assert_called_once()
 
 
 class DateAttributeTestCase(TestCase):
