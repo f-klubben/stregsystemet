@@ -883,7 +883,7 @@ class SaleTests(TestCase):
             price=1.0,
             active=True,
         )
-    
+
     def test_sale_process_refund(self):
         admin = User.objects.create_superuser("admin", "admin@example.com", "adminpassword")
         sale_1 = Sale.objects.create(member=self.member, product=self.product, price=self.product.price)
