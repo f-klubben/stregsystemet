@@ -142,10 +142,6 @@ class Order(object):
         # Save all the sales
         Sale.objects.bulk_create(sales)
 
-        # Notify sale of creation
-        for sale in sales:
-            sale.on_bulk_created()
-
         # We changed the user balance, so save that
         self.member.save()
 
@@ -740,14 +736,9 @@ class Sale(models.Model):
     def is_refunded(self):
         return self.refunded_at is not None
 
-    def on_bulk_created(self):
-        self.on_new_sale()
-
     def save(self, *args, **kwargs):
         if not self._is_save_allowed():
             raise RuntimeError("Updates of sales are not allowed")
-
-        already_exists = self.exists_in_database()
 
         print(f"Saving Sale: member={self.member}, product={self.product}, room={self.room}, price={self.price}")
         super(Sale, self).save(*args, **kwargs)
