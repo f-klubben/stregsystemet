@@ -11,11 +11,11 @@
 rm db.sqlite3.bak
 mv db.sqlite3 db.sqlite3.bak
 git switch next
-uv run manage.py migrate
-uv run manage.py loaddata $2
+python manage.py migrate
+python manage.py loaddata $2
 
 # Migrate test data
 git switch $1
-uv run manage.py migrate
-uv run manage.py dumpdata | tail -n +2 | uv run -m json.tool > $2
+python manage.py migrate
+python manage.py dumpdata | tail -n +2 | python -m json.tool > $2
 
