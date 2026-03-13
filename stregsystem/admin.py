@@ -73,6 +73,7 @@ class SaleAdmin(BaseAdmin):
             'get_price_display',
         ] + super()._get_fields_to_display()
 
+    actions = [refund_sales]
     search_fields = ['^member__username', '=product__id', 'product__name']
     valid_lookups = 'member'
     autocomplete_fields = ['member', 'product']
