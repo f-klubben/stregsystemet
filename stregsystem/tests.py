@@ -892,26 +892,24 @@ class SaleTests(TestCase):
         self.assertEqual(self.member.balance, 100)
 
         now = timezone.now()
-        sale_1.process_refund(admin)
-        self.member.refresh_from_db()
-        self.assertEqual(self.member.balance, 101)
-        self.assertEqual(sale_1.refunded_by, admin)
-        self.assertIsNotNone(sale_1.refunded_at)
-        assert sale_1.refunded_at is not None
-        self.assertAlmostEqual(sale_1.refunded_at.hour, now.hour)
-        self.assertAlmostEqual(sale_1.refunded_at.minute, now.minute)
-        self.assertAlmostEqual(sale_1.refunded_at.second, now.second)
+        with freeze_time(now):
+            sale_1.process_refund(admin)
+            self.member.refresh_from_db()
+            self.assertEqual(self.member.balance, 101)
+            self.assertEqual(sale_1.refunded_by, admin)
+            self.assertIsNotNone(sale_1.refunded_at)
+            assert sale_1.refunded_at is not None
+            self.assertEqual(sale_1.refunded_at, now)
 
         now = timezone.now()
-        sale_2.process_refund(None)
-        self.member.refresh_from_db()
-        self.assertEqual(self.member.balance, 102)
-        self.assertIsNone(sale_2.refunded_by)
-        self.assertIsNotNone(sale_2.refunded_at)
-        assert sale_2.refunded_at is not None
-        self.assertAlmostEqual(sale_2.refunded_at.hour, now.hour)
-        self.assertAlmostEqual(sale_2.refunded_at.minute, now.minute)
-        self.assertAlmostEqual(sale_2.refunded_at.second, now.second)
+        with freeze_time(now): 
+            sale_2.process_refund(None)
+            self.member.refresh_from_db()
+            self.assertEqual(self.member.balance, 102)
+            self.assertIsNone(sale_2.refunded_by)
+            self.assertIsNotNone(sale_2.refunded_at)
+            assert sale_2.refunded_at is not None
+            self.assertEqual(sale_2.refunded_at, now)
 
         non_admin = User.objects.create_user("nonadmin", "nonadmin@example.com", "nonadminpassword")
         sale_3 = Sale.objects.create(member=self.member, product=self.product, price=self.product.price)
