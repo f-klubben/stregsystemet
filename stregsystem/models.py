@@ -730,7 +730,7 @@ class Sale(BaseModel):
             raise RuntimeError("Sale has already been refunded")
 
         if admin_user is not None and not admin_user.is_staff:
-            raise RuntimeError("Only staff users can refund tickets")
+            raise RuntimeError("Only staff users can refund sales")
 
         self.refunded_at = timezone.now()
         self.refunded_by = admin_user
