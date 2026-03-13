@@ -902,7 +902,7 @@ class SaleTests(TestCase):
             self.assertEqual(sale_1.refunded_at, now)
 
         now = timezone.now()
-        with freeze_time(now): 
+        with freeze_time(now):
             sale_2.process_refund(None)
             self.member.refresh_from_db()
             self.assertEqual(self.member.balance, 102)
