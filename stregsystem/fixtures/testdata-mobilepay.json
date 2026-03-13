@@ -3,6 +3,8 @@
   "model": "stregsystem.member",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.770Z",
     "active": true,
     "username": "tester",
     "year": "2017",
@@ -21,6 +23,8 @@
   "model": "stregsystem.member",
   "pk": 2,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.770Z",
     "active": true,
     "username": "mlarsen",
     "year": "2020",
@@ -39,6 +43,8 @@
   "model": "stregsystem.member",
   "pk": 3,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.770Z",
     "active": true,
     "username": "tables",
     "year": "2020",
@@ -57,6 +63,8 @@
   "model": "stregsystem.member",
   "pk": 4,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.770Z",
     "active": true,
     "username": "marx",
     "year": "2020",
@@ -75,6 +83,8 @@
   "model": "stregsystem.member",
   "pk": 5,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.770Z",
     "active": true,
     "username": "jdoe",
     "year": "2020",
@@ -93,6 +103,8 @@
   "model": "stregsystem.mobilepayment",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.794Z",
     "status": "U",
     "member": null,
     "payment": null,
@@ -107,6 +119,8 @@
   "model": "stregsystem.mobilepayment",
   "pk": 2,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.794Z",
     "status": "U",
     "member": null,
     "payment": null,
@@ -121,6 +135,8 @@
   "model": "stregsystem.mobilepayment",
   "pk": 3,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.794Z",
     "status": "U",
     "member": 4,
     "payment": null,
@@ -135,6 +151,8 @@
   "model": "stregsystem.mobilepayment",
   "pk": 4,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.794Z",
     "status": "U",
     "member": null,
     "payment": null,
@@ -149,6 +167,8 @@
   "model": "stregsystem.mobilepayment",
   "pk": 5,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.794Z",
     "status": "U",
     "member": 5,
     "payment": null,
@@ -163,6 +183,8 @@
   "model": "stregsystem.mobilepayment",
   "pk": 6,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.794Z",
     "status": "U",
     "member": 1,
     "payment": null,
@@ -177,6 +199,8 @@
   "model": "stregsystem.room",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.976Z",
     "name": "testrummet",
     "description": "127.0.0.1",
     "notes": ""
@@ -186,6 +210,8 @@
   "model": "stregsystem.room",
   "pk": 2,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.976Z",
     "name": "maymayrummet",
     "description": "svedigt",
     "notes": ""
@@ -195,6 +221,8 @@
   "model": "stregsystem.product",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.932Z",
     "name": "Test ØL",
     "price": 100,
     "active": true,
@@ -211,6 +239,8 @@
   "model": "stregsystem.product",
   "pk": 2,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.932Z",
     "name": "Kold Kaffe",
     "price": 200,
     "active": true,
@@ -227,6 +257,8 @@
   "model": "stregsystem.product",
   "pk": 3,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.932Z",
     "name": "Fadøl",
     "price": 1500,
     "active": true,
@@ -245,6 +277,8 @@
   "model": "stregsystem.product",
   "pk": 13,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.932Z",
     "name": "Fake ØL",
     "price": 300,
     "active": true,
@@ -261,6 +295,8 @@
   "model": "stregsystem.oldprice",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.858Z",
     "product": 1,
     "price": 100,
     "changed_on": "2017-03-13T12:43:28.044Z"
@@ -270,6 +306,8 @@
   "model": "stregsystem.oldprice",
   "pk": 2,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.858Z",
     "product": 2,
     "price": 200,
     "changed_on": "2017-03-13T12:43:40.784Z"
@@ -279,15 +317,58 @@
   "model": "stregsystem.oldprice",
   "pk": 3,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.858Z",
     "product": 2,
     "price": 200,
     "changed_on": "2017-03-13T12:43:42.151Z"
   }
 },
 {
+  "model": "stregsystem.sale",
+  "pk": 1,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:08.015Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2017-03-13T12:52:52.142Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 2,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:08.015Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2017-03-13T12:54:12.423Z",
+    "price": 200
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 3,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:08.015Z",
+    "member": 1,
+    "product": 13,
+    "room": 1,
+    "timestamp": "2017-03-13T13:38:10.573Z",
+    "price": 300
+  }
+},
+{
   "model": "stregsystem.news",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.835Z",
     "title": "Varm kaffe udgår",
     "text": "Det er med stor fornøjelse, at vi annoncerer sortimentsudskiftningen af \"varm kaffe\" med vores nye og forbedrede produkt, \"kold kaffe\". Dette valg er truffet efter at have modtaget flere klager fra ærede fembers, der desværre har oplevet at brænde sig på javaen.",
     "pub_date": "2023-08-07T21:46:04Z",
@@ -326,45 +407,6 @@
     "date_joined": "2021-09-13T13:43:22Z",
     "groups": [],
     "user_permissions": []
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 1,
-  "fields": {
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2017-03-13T12:52:52.142Z",
-    "price": 100,
-    "refunded_at": null,
-    "refunded_by": null
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 2,
-  "fields": {
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2017-03-13T12:54:12.423Z",
-    "price": 200,
-    "refunded_at": null,
-    "refunded_by": null
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 3,
-  "fields": {
-    "member": 1,
-    "product": 13,
-    "room": 1,
-    "timestamp": "2017-03-13T13:38:10.573Z",
-    "price": 300,
-    "refunded_at": null,
-    "refunded_by": null
   }
 }
 ]

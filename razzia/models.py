@@ -17,6 +17,8 @@ class Razzia(models.Model):
 
     members = models.ManyToManyField(Member, through='RazziaEntry')
     start_date = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class RazziaEntry(models.Model):
