@@ -198,7 +198,7 @@
   <h1>Welcome back</h1>
   <p class="subtitle">Enter your username to continue.</p>
 
-  <form method="POST" action="{% url 'sso_login' %}" novalidate>
+  <form method="POST" action="{% url 'sso_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" novalidate>
     {% csrf_token %}
     <input type="hidden" name="stage" value="1"/>
     {% if next %}<input type="hidden" name="next" value="{{ next }}"/>{% endif %}
@@ -219,7 +219,7 @@
   <h1>Check your email</h1>
   <p class="subtitle">Enter the F&#8209;code sent to <strong>{{ masked_email }}</strong></p>
 
-  <form method="POST" action="{% url 'sso_login' %}" id="otp-form" novalidate>
+  <form method="POST" action="{% url 'sso_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" id="otp-form" novalidate>
     {% csrf_token %}
     <input type="hidden" name="stage" value="2"/>
     <input type="hidden" name="username" value="{{ username }}"/>
