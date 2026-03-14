@@ -121,7 +121,7 @@ class CustomLoginView(View):
                 messages.error(request, "Incorrect code. Please check your email and try again.")
             return render(request, self.template_name, ctx)
 
-        login(request, user, backend="sso.backends.PasswordlessMemberBackend")
+        login(request, user, backend="sso.auth_backends.PasswordlessMemberBackend")
         return redirect(next_url or "index")
 
     @staticmethod
