@@ -2293,3 +2293,20 @@ class MailTests(TestCase):
 
         signup_request.approve()
         mock_mail_method.assert_called_once()
+
+
+class DateAttributeTestCase(TestCase):
+
+    def test_created_at_field(self):
+        now = timezone.now()
+        with freeze_time(now):
+            member = Member.objects.create(username="DateAtrtributeTest")
+            self.assertEqual(member.created_at, now)
+            self.assertEqual(member.updated_at, now)
+
+        now2 = timezone.now()
+        with freeze_time(now2):
+            member.balance = 20
+            member.save()
+            self.assertEqual(member.created_at, now)
+            self.assertEqual(member.updated_at, now2)

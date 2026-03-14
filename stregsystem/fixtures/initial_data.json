@@ -3,6 +3,8 @@
   "model": "stregsystem.room",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:36.025Z",
     "name": "CS Kaffestuen",
     "description": "Kaffestuen, KMD",
     "notes": ""
@@ -12,6 +14,8 @@
   "model": "stregsystem.room",
   "pk": 2,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:36.025Z",
     "name": "Fyttetur",
     "description": "Fytteturens Grill",
     "notes": ""
@@ -21,6 +25,8 @@
   "model": "stregsystem.product",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:35.978Z",
     "name": "Limfjordsporter",
     "price": 900,
     "active": true,
@@ -37,6 +43,8 @@
   "model": "stregsystem.product",
   "pk": 2,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:35.978Z",
     "name": "Flan",
     "price": 900,
     "active": true,
@@ -53,6 +61,8 @@
   "model": "stregsystem.product",
   "pk": 3,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:35.978Z",
     "name": "Flan but sold out",
     "price": 900,
     "active": true,
@@ -69,6 +79,8 @@
   "model": "stregsystem.product",
   "pk": 4,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:35.978Z",
     "name": "Smoker",
     "price": 100,
     "active": true,
@@ -87,6 +99,8 @@
   "model": "stregsystem.oldprice",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:35.903Z",
     "product": 1,
     "price": 900,
     "changed_on": "2007-07-11T22:21:02Z"
@@ -96,6 +110,8 @@
   "model": "stregsystem.oldprice",
   "pk": 2,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:35.903Z",
     "product": 1,
     "price": 900,
     "changed_on": "2007-07-11T22:32:06Z"
@@ -105,6 +121,8 @@
   "model": "stregsystem.sale",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:36.066Z",
     "member": 1,
     "product": 2,
     "room": 1,
@@ -116,6 +134,8 @@
   "model": "stregsystem.sale",
   "pk": 2,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:36.066Z",
     "member": 1,
     "product": 3,
     "room": 1,
@@ -127,6 +147,8 @@
   "model": "stregsystem.sale",
   "pk": 3,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:36.066Z",
     "member": 1,
     "product": 3,
     "room": 1,
@@ -138,6 +160,8 @@
   "model": "stregsystem.sale",
   "pk": 4,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:36.066Z",
     "member": 1,
     "product": 3,
     "room": 1,
@@ -166,6 +190,8 @@
   "model": "stregsystem.member",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:35.812Z",
     "active": true,
     "username": "jokke",
     "year": "2007",
@@ -185,6 +211,8 @@
   "model": "stregsystem.member",
   "pk": 2,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:35.812Z",
     "active": true,
     "username": "jan",
     "year": "2017",

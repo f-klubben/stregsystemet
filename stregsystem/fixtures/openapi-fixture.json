@@ -3,6 +3,8 @@
   "model": "stregsystem.category",
   "pk": 11,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:41.748Z",
     "name": "Alcohol"
   }
 },
@@ -10,6 +12,8 @@
   "model": "stregsystem.room",
   "pk": 10,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:41.972Z",
     "name": "Jægerstuen",
     "description": "Rummet i Jægerstuen",
     "notes": ""
@@ -19,6 +23,8 @@
   "model": "stregsystem.product",
   "pk": 123,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:41.925Z",
     "name": "Beer",
     "price": 600,
     "active": true,
@@ -37,6 +43,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:41.819Z",
     "name": "beer",
     "product": 123
   }
@@ -62,6 +70,8 @@
   "model": "stregsystem.member",
   "pk": 321,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:41.771Z",
     "active": true,
     "username": "kresten",
     "year": "2025",
