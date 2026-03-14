@@ -1,8 +1,11 @@
+from typing import Any, Literal, Sequence
+from typing_extensions import override
 from django.contrib import admin
 from django import forms
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
+from django.http import HttpRequest
 
 from stregsystem.models import (
     Category,
@@ -38,17 +41,42 @@ def refund_sales(modeladmin, request, queryset):
         sale.process_refund(request.user)
 
 
-class SaleAdmin(admin.ModelAdmin):
+class BaseAdmin(admin.ModelAdmin):
+    """
+    Base admin class to add common attributes.
+    Such as created_at and updated_at fields.
+    """
+
+    def _get_fields_to_display(self) -> list[str]:
+        return self._get_fields_to_display_as_readonly()
+
+    def _get_fields_to_display_as_readonly(self) -> list[str]:
+        return [
+            'created_at',
+            'updated_at',
+        ]
+
+    def get_readonly_fields(self, request: HttpRequest, obj: Any | None = ...) -> list[str] | tuple[Any, ...]:
+        return list(super().get_readonly_fields(request, obj)) + list(self._get_fields_to_display_as_readonly())
+
+    def get_list_display(self, request) -> list[str]:
+        return self._get_fields_to_display() + list(super().get_list_display(request))
+
+
+class SaleAdmin(BaseAdmin):
     list_filter = ('room', 'timestamp')
-    list_display = (
-        'get_username',
-        'get_fullname',
-        'get_refunded',
-        'get_product_name',
-        'get_room_name',
-        'timestamp',
-        'get_price_display',
-    )
+
+    def _get_fields_to_display(self):
+        return [
+            'get_username',
+            'get_fullname',
+            'get_refunded',
+            'get_product_name',
+            'get_room_name',
+            'timestamp',
+            'get_price_display',
+        ] + super()._get_fields_to_display()
+
     readonly_fields = ("refunded_at", "refunded_by")
     actions = [refund_sales]
     search_fields = ['^member__username', '=product__id', 'product__name']
@@ -139,15 +167,18 @@ class ProductActivatedListFilter(admin.SimpleListFilter):
             return queryset
 
 
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(BaseAdmin):
     search_fields = ('name', 'price', 'id')
     list_filter = (ProductActivatedListFilter, 'deactivate_date', 'price')
-    list_display = (
-        'activated',
-        'id',
-        'name',
-        'get_price_display',
-    )
+
+    def _get_fields_to_display(self):
+        return [
+            'activated',
+            'id',
+            'name',
+            'get_price_display',
+        ] + super()._get_fields_to_display()
+
     fields = (
         "name",
         "price",
@@ -158,7 +189,9 @@ class ProductAdmin(admin.ModelAdmin):
         "alcohol_content_ml",
         "caffeine_content_mg",
     )
-    readonly_fields = ("get_bought",)
+
+    def _get_fields_to_display_as_readonly(self) -> list[str]:
+        return ["get_bought"] + super()._get_fields_to_display_as_readonly()
 
     actions = [toggle_active_selected_products]
     filter_horizontal = ('categories', 'rooms')
@@ -183,15 +216,18 @@ class ProductAdmin(admin.ModelAdmin):
     activated.boolean = True
 
 
-class NamedProductAdmin(admin.ModelAdmin):
+class NamedProductAdmin(BaseAdmin):
     search_fields = (
         'name',
         'product',
     )
-    list_display = (
-        'name',
-        'product',
-    )
+
+    def _get_fields_to_display(self):
+        return [
+            'name',
+            'product',
+        ] + super()._get_fields_to_display()
+
     fields = (
         'name',
         'product',
@@ -201,8 +237,12 @@ class NamedProductAdmin(admin.ModelAdmin):
     ]
 
 
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'items_in_category')
+class CategoryAdmin(BaseAdmin):
+    def _get_fields_to_display(self):
+        return [
+            'name',
+            'items_in_category',
+        ] + super()._get_fields_to_display()
 
     def items_in_category(self, obj):
         return obj.product_set.count()
@@ -221,11 +261,20 @@ class MemberForm(forms.ModelForm):
         return username
 
 
-class MemberAdmin(admin.ModelAdmin):
+class MemberAdmin(BaseAdmin):
     form = MemberForm
     list_filter = ('want_spam',)
     search_fields = ('username', 'firstname', 'lastname', 'email')
-    list_display = ('username', 'firstname', 'lastname', 'balance', 'email', 'notes')
+
+    def _get_fields_to_display(self):
+        return [
+            'username',
+            'firstname',
+            'lastname',
+            'balance',
+            'email',
+            'notes',
+        ] + super()._get_fields_to_display()
 
     # fieldsets is like fields, except that they are grouped and with descriptions
     fieldsets = (
@@ -269,8 +318,15 @@ class MemberAdmin(admin.ModelAdmin):
             return qs.filter(active=True).order_by('username')
 
 
-class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('get_username', 'timestamp', 'get_amount_display', 'is_mobilepayment')
+class PaymentAdmin(BaseAdmin):
+    def _get_fields_to_display(self):
+        return [
+            'get_username',
+            'timestamp',
+            'get_amount_display',
+            'is_mobilepayment',
+        ] + super()._get_fields_to_display()
+
     valid_lookups = 'member'
     search_fields = ['member__username']
     autocomplete_fields = ['member']
@@ -298,16 +354,18 @@ class PaymentAdmin(admin.ModelAdmin):
     is_mobilepayment.boolean = True
 
 
-class MobilePaymentAdmin(admin.ModelAdmin):
-    list_display = (
-        'payment',
-        'customer_name',
-        'comment',
-        'timestamp',
-        'transaction_id',
-        'get_amount_display',
-        'status',
-    )
+class MobilePaymentAdmin(BaseAdmin):
+    def _get_fields_to_display(self):
+        return [
+            'payment',
+            'customer_name',
+            'comment',
+            'timestamp',
+            'transaction_id',
+            'get_amount_display',
+            'status',
+        ] + super()._get_fields_to_display()
+
     valid_lookups = 'member'
     search_fields = ['member__username']
     autocomplete_fields = ['member', 'payment']
@@ -336,11 +394,21 @@ class MobilePaymentAdmin(admin.ModelAdmin):
     really_delete_selected.short_description = "Delete and refund selected entries"
 
 
-class LogEntryAdmin(admin.ModelAdmin):
+class LogEntryAdmin(BaseAdmin):
     date_hierarchy = 'action_time'
     list_filter = ['content_type', 'action_flag']
     search_fields = ['object_repr', 'change_message', 'user__username']
-    list_display = ['action_time', 'user', 'content_type', 'object_id', 'action_flag', 'change_message', 'object_repr']
+
+    def _get_fields_to_display(self):
+        return [
+            'action_time',
+            'user',
+            'content_type',
+            'object_id',
+            'action_flag',
+            'change_message',
+            'object_repr',
+        ] + super()._get_fields_to_display()
 
     def has_view_permission(self, request, obj=None):
         return request.user.is_superuser
@@ -355,8 +423,17 @@ class LogEntryAdmin(admin.ModelAdmin):
         return False
 
 
-class ThemeAdmin(admin.ModelAdmin):
-    list_display = ["name", "override", "begin_month", "begin_day", "end_month", "end_day"]
+class ThemeAdmin(BaseAdmin):
+    def _get_fields_to_display(self):
+        return [
+            'name',
+            'override',
+            'begin_month',
+            'begin_day',
+            'end_month',
+            'end_day',
+        ] + super()._get_fields_to_display()
+
     search_fields = ["name"]
 
     @admin.action(description="Do not force chosen themes")
@@ -374,12 +451,14 @@ class ThemeAdmin(admin.ModelAdmin):
     actions = [force_unset, force_show, force_hide]
 
 
-class ProductNoteAdmin(admin.ModelAdmin):
+class ProductNoteAdmin(BaseAdmin):
     search_fields = ('active', 'text')
-    list_display = (
-        'active',
-        'text',
-    )
+
+    def _get_fields_to_display(self):
+        return [
+            'active',
+            'text',
+        ] + super()._get_fields_to_display()
 
     actions = [toggle_active_selected_products]
 

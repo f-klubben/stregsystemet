@@ -3,6 +3,8 @@
   "model": "stregsystem.member",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.727Z",
     "active": true,
     "username": "tester",
     "year": "2026",
@@ -21,6 +23,8 @@
   "model": "stregsystem.member",
   "pk": 2,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.727Z",
     "active": true,
     "username": "q",
     "year": "2026",
@@ -39,6 +43,8 @@
   "model": "stregsystem.member",
   "pk": 3,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.727Z",
     "active": true,
     "username": "nodough",
     "year": "2026",
@@ -57,6 +63,8 @@
   "model": "stregsystem.member",
   "pk": 4,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.727Z",
     "active": true,
     "username": "lowdough",
     "year": "2026",
@@ -75,6 +83,8 @@
   "model": "stregsystem.category",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "Sodavand"
   }
 },
@@ -82,6 +92,8 @@
   "model": "stregsystem.category",
   "pk": 2,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "Vitamin Vand"
   }
 },
@@ -89,6 +101,8 @@
   "model": "stregsystem.category",
   "pk": 3,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "Øl"
   }
 },
@@ -96,6 +110,8 @@
   "model": "stregsystem.category",
   "pk": 4,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "Speciel Øl"
   }
 },
@@ -103,6 +119,8 @@
   "model": "stregsystem.category",
   "pk": 5,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "Events"
   }
 },
@@ -110,6 +128,8 @@
   "model": "stregsystem.category",
   "pk": 6,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "Kaffe"
   }
 },
@@ -117,6 +137,8 @@
   "model": "stregsystem.category",
   "pk": 7,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "Musik for ørerne"
   }
 },
@@ -124,6 +146,8 @@
   "model": "stregsystem.category",
   "pk": 8,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "Spiritus"
   }
 },
@@ -131,6 +155,8 @@
   "model": "stregsystem.category",
   "pk": 9,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "Alkoholdige varer"
   }
 },
@@ -138,6 +164,8 @@
   "model": "stregsystem.category",
   "pk": 10,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "Militært materiel"
   }
 },
@@ -145,6 +173,8 @@
   "model": "stregsystem.category",
   "pk": 11,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "Energidrik"
   }
 },
@@ -152,6 +182,8 @@
   "model": "stregsystem.category",
   "pk": 12,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "Kakao"
   }
 },
@@ -159,6 +191,8 @@
   "model": "stregsystem.category",
   "pk": 13,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "F-ragelse"
   }
 },
@@ -166,6 +200,8 @@
   "model": "stregsystem.category",
   "pk": 14,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "Levende specimenter"
   }
 },
@@ -173,6 +209,8 @@
   "model": "stregsystem.category",
   "pk": 15,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "Mælk"
   }
 },
@@ -180,6 +218,8 @@
   "model": "stregsystem.category",
   "pk": 16,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "Juice"
   }
 },
@@ -187,6 +227,8 @@
   "model": "stregsystem.category",
   "pk": 17,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "Cider"
   }
 },
@@ -194,6 +236,8 @@
   "model": "stregsystem.category",
   "pk": 18,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.635Z",
     "name": "Te"
   }
 },
@@ -201,6 +245,8 @@
   "model": "stregsystem.room",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.242Z",
     "name": "testrummet",
     "description": "127.0.0.1",
     "notes": ""
@@ -210,6 +256,8 @@
   "model": "stregsystem.room",
   "pk": 2,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.242Z",
     "name": "maymayrummet",
     "description": "svedigt",
     "notes": ""
@@ -219,6 +267,8 @@
   "model": "stregsystem.product",
   "pk": 11,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Stregdollar",
     "price": 100,
     "active": true,
@@ -239,6 +289,8 @@
   "model": "stregsystem.product",
   "pk": 14,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Øl(Grøn, Classic, <b>Gulddamer</b>) (excl. pant)",
     "price": 750,
     "active": true,
@@ -259,6 +311,8 @@
   "model": "stregsystem.product",
   "pk": 16,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Cocio <b>(Mellem)</b>",
     "price": 1818,
     "active": true,
@@ -279,6 +333,8 @@
   "model": "stregsystem.product",
   "pk": 31,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Pant B (plastflasker under 1 liter)",
     "price": 150,
     "active": true,
@@ -297,6 +353,8 @@
   "model": "stregsystem.product",
   "pk": 32,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Voksenvand (1 kop)",
     "price": 150,
     "active": true,
@@ -317,6 +375,8 @@
   "model": "stregsystem.product",
   "pk": 42,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Limfjordsporter (excl. pant)",
     "price": 1000,
     "active": true,
@@ -335,6 +395,8 @@
   "model": "stregsystem.product",
   "pk": 44,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Søm",
     "price": 300,
     "active": true,
@@ -355,6 +417,8 @@
   "model": "stregsystem.product",
   "pk": 51,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "<h1>Futtetyr</h1>",
     "price": 33300,
     "active": true,
@@ -375,6 +439,8 @@
   "model": "stregsystem.product",
   "pk": 54,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Mambo No. 8",
     "price": 800,
     "active": true,
@@ -395,6 +461,8 @@
   "model": "stregsystem.product",
   "pk": 1836,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "<h1>FLAN billet</h1>",
     "price": 4269,
     "active": true,
@@ -415,6 +483,8 @@
   "model": "stregsystem.product",
   "pk": 1837,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Life potion (excl. pant)",
     "price": 1316,
     "active": true,
@@ -435,6 +505,8 @@
   "model": "stregsystem.product",
   "pk": 1839,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Kildevæld uden pant (excl. brus)\"",
     "price": 706,
     "active": true,
@@ -455,6 +527,8 @@
   "model": "stregsystem.product",
   "pk": 1848,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Pant A (glasflasker og metaldåser under 1 liter)",
     "price": 100,
     "active": true,
@@ -473,6 +547,8 @@
   "model": "stregsystem.product",
   "pk": 1858,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Grimbergen (excl. pant)",
     "price": 1900,
     "active": true,
@@ -493,6 +569,8 @@
   "model": "stregsystem.product",
   "pk": 1877,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Somersby (incl. pant)",
     "price": 1540,
     "active": true,
@@ -513,6 +591,8 @@
   "model": "stregsystem.product",
   "pk": 1879,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Apache attack helicopter",
     "price": 1280,
     "active": true,
@@ -533,6 +613,8 @@
   "model": "stregsystem.product",
   "pk": 1882,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Kakao (0,46 kop)",
     "price": 69,
     "active": true,
@@ -553,6 +635,8 @@
   "model": "stregsystem.product",
   "pk": 1891,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Sportycola (excl. pant)",
     "price": 600,
     "active": true,
@@ -573,6 +657,8 @@
   "model": "stregsystem.product",
   "pk": 1893,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Kinley (excl. pant)",
     "price": 680,
     "active": true,
@@ -593,6 +679,8 @@
   "model": "stregsystem.product",
   "pk": 1901,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Bober Øl (excl. pant x2)",
     "price": 650,
     "active": true,
@@ -613,6 +701,8 @@
   "model": "stregsystem.product",
   "pk": 1903,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "<h3>Månedens Øl</h3><br>September: Bonk Beer",
     "price": 1460,
     "active": true,
@@ -633,6 +723,8 @@
   "model": "stregsystem.product",
   "pk": 1904,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Tebrev (Partibestemt smag)",
     "price": 90,
     "active": true,
@@ -653,6 +745,8 @@
   "model": "stregsystem.product",
   "pk": 1905,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Ramløse/ vand med brus (excl. pant)",
     "price": 808,
     "active": true,
@@ -673,6 +767,8 @@
   "model": "stregsystem.product",
   "pk": 1912,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Juice (Solita, Rynkeby)",
     "price": 1131,
     "active": true,
@@ -693,6 +789,8 @@
   "model": "stregsystem.product",
   "pk": 1915,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.136Z",
     "name": "Faxe Kondi Pro",
     "price": 1600,
     "active": true,
@@ -713,6 +811,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 111,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "d",
     "product": 11
   }
@@ -721,6 +821,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 112,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "dollar",
     "product": 11
   }
@@ -729,6 +831,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 113,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "streg",
     "product": 11
   }
@@ -737,6 +841,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 141,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "guld",
     "product": 14
   }
@@ -745,6 +851,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 142,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "classic",
     "product": 14
   }
@@ -753,6 +861,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 143,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "øl",
     "product": 14
   }
@@ -761,6 +871,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 144,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "loremipsumdolorsitamet",
     "product": 14
   }
@@ -769,6 +881,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 161,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "cocio",
     "product": 16
   }
@@ -777,6 +891,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 311,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "pantb",
     "product": 31
   }
@@ -785,6 +901,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 321,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "kaffe",
     "product": 32
   }
@@ -793,6 +911,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 322,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "vand",
     "product": 32
   }
@@ -801,6 +921,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 421,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "porter",
     "product": 42
   }
@@ -809,6 +931,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 441,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "søm",
     "product": 44
   }
@@ -817,6 +941,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 511,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "futte",
     "product": 51
   }
@@ -825,6 +951,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 541,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "mambo",
     "product": 54
   }
@@ -833,6 +961,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 542,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "mz",
     "product": 54
   }
@@ -841,6 +971,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 18361,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "flan",
     "product": 1836
   }
@@ -849,6 +981,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 18371,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "monner",
     "product": 1837
   }
@@ -857,6 +991,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 18372,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "potion",
     "product": 1837
   }
@@ -865,6 +1001,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 18373,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "pp",
     "product": 1837
   }
@@ -873,6 +1011,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 18391,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "kildevæld",
     "product": 1839
   }
@@ -881,6 +1021,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 18392,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "!kaf",
     "product": 1839
   }
@@ -889,6 +1031,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 18481,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "panda",
     "product": 1848
   }
@@ -897,6 +1041,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 18581,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "berg",
     "product": 1858
   }
@@ -905,6 +1051,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 18771,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "somersby",
     "product": 1877
   }
@@ -913,6 +1061,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 18791,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "iste",
     "product": 1879
   }
@@ -921,6 +1071,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 18821,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "kakao",
     "product": 1882
   }
@@ -929,6 +1081,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 18911,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "sporty",
     "product": 1891
   }
@@ -937,6 +1091,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 18912,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "sc",
     "product": 1891
   }
@@ -945,6 +1101,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 18931,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "kinley",
     "product": 1893
   }
@@ -953,6 +1111,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 19011,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "bober",
     "product": 1901
   }
@@ -961,6 +1121,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 19012,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "bo",
     "product": 1901
   }
@@ -969,6 +1131,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 19031,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "månedens",
     "product": 1903
   }
@@ -977,6 +1141,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 19032,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "møl",
     "product": 1903
   }
@@ -985,6 +1151,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 19041,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "te",
     "product": 1904
   }
@@ -993,6 +1161,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 19042,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "telegram",
     "product": 1904
   }
@@ -1001,6 +1171,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 19051,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "vandbrus",
     "product": 1905
   }
@@ -1009,6 +1181,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 19121,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "juice",
     "product": 1912
   }
@@ -1017,6 +1191,8 @@
   "model": "stregsystem.namedproduct",
   "pk": 19122,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.891Z",
     "name": "sol",
     "product": 1912
   }
@@ -1025,6 +1201,8 @@
   "model": "stregsystem.theme",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.347Z",
     "name": "easter",
     "html": "easter.html",
     "css": "easter.css",
@@ -1040,6 +1218,8 @@
   "model": "stregsystem.theme",
   "pk": 2,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.347Z",
     "name": "bober",
     "html": "bober.html",
     "css": "men.css",
@@ -1055,6 +1235,8 @@
   "model": "stregsystem.theme",
   "pk": 3,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.347Z",
     "name": "bat",
     "html": "bat.html",
     "css": "bat.css",
@@ -1070,6 +1252,8 @@
   "model": "stregsystem.theme",
   "pk": 4,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.347Z",
     "name": "adventcandle",
     "html": "adventcandle.html",
     "css": "adventcandle.css",
@@ -1085,6 +1269,8 @@
   "model": "stregsystem.theme",
   "pk": 5,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.347Z",
     "name": "snow",
     "html": "snow.html",
     "css": "snow.css",
@@ -1100,6 +1286,8 @@
   "model": "stregsystem.theme",
   "pk": 6,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.347Z",
     "name": "fireworks",
     "html": "fireworks.html",
     "css": "fireworks.css",
@@ -1115,6 +1303,8 @@
   "model": "stregsystem.theme",
   "pk": 7,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.347Z",
     "name": "activatefklub",
     "html": "activatefklub.html",
     "css": "activatefklub.css",
@@ -1138,7 +1328,7 @@
     "email": "",
     "is_staff": true,
     "is_active": true,
-    "date_joined": "2026-03-03T19:37:06.525Z",
+    "date_joined": "2026-03-10T10:15:12.978Z",
     "groups": [],
     "user_permissions": []
   }
@@ -1155,7 +1345,7 @@
     "email": "",
     "is_staff": true,
     "is_active": true,
-    "date_joined": "2026-03-03T19:37:06.528Z",
+    "date_joined": "2026-03-10T10:15:12.982Z",
     "groups": [],
     "user_permissions": []
   }
@@ -1172,7 +1362,7 @@
     "email": "",
     "is_staff": false,
     "is_active": true,
-    "date_joined": "2026-03-03T19:37:06.528Z",
+    "date_joined": "2026-03-10T10:15:12.983Z",
     "groups": [],
     "user_permissions": []
   }
@@ -1189,7 +1379,7 @@
     "email": "",
     "is_staff": false,
     "is_active": true,
-    "date_joined": "2026-03-03T19:37:06.529Z",
+    "date_joined": "2026-03-10T10:15:12.983Z",
     "groups": [],
     "user_permissions": []
   }
@@ -1198,6 +1388,8 @@
   "model": "stregsystem.sale",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.321Z",
     "member": 1,
     "product": 11,
     "room": 1,
@@ -1211,6 +1403,8 @@
   "model": "stregsystem.sale",
   "pk": 2,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.321Z",
     "member": 1,
     "product": 32,
     "room": 1,
@@ -1224,6 +1418,8 @@
   "model": "stregsystem.sale",
   "pk": 3,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.321Z",
     "member": 1,
     "product": 42,
     "room": 1,

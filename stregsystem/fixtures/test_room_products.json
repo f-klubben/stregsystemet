@@ -3,6 +3,8 @@
   "model": "stregsystem.room",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:20.898Z",
     "name": "default_room",
     "description": "No special items",
     "notes": ""
@@ -12,6 +14,8 @@
   "model": "stregsystem.room",
   "pk": 2,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:20.898Z",
     "name": "room_special_drinks",
     "description": "Room that have special items",
     "notes": ""
@@ -21,6 +25,8 @@
   "model": "stregsystem.room",
   "pk": 3,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:20.898Z",
     "name": "room_special_drinks_2",
     "description": "Another room with special drinks",
     "notes": ""
@@ -30,6 +36,8 @@
   "model": "stregsystem.product",
   "pk": 1,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:20.851Z",
     "name": "general_drink_1",
     "price": 1,
     "active": true,
@@ -46,6 +54,8 @@
   "model": "stregsystem.product",
   "pk": 2,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:20.851Z",
     "name": "general_drink_2",
     "price": 2,
     "active": true,
@@ -62,6 +72,8 @@
   "model": "stregsystem.product",
   "pk": 3,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:20.851Z",
     "name": "special_drink",
     "price": 3,
     "active": true,
@@ -80,6 +92,8 @@
   "model": "stregsystem.product",
   "pk": 4,
   "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:20.851Z",
     "name": "special_drink_multiple_rooms",
     "price": 3,
     "active": true,
