@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sign in{% if service_name %} — {{ service_name }}{% endif %}</title>
+  <title>Log ind{% if service_name %} — {{ service_name }}{% endif %}</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -180,7 +180,7 @@
 
   {% if service_name or next %}
   <div class="sso-banner">
-    Signing in to continue to <strong>{{ service_name|default:"the connected service" }}</strong>
+    Log ind for at fortsætte til <strong>{{ service_name|default:"the connected service" }}</strong>
   </div>
   {% endif %}
 
@@ -195,29 +195,29 @@
   {% if stage == 1 or not stage %}
 
   <div class="stage-dots"><span class="active"></span><span></span></div>
-  <h1>Welcome back</h1>
-  <p class="subtitle">Enter your username to continue.</p>
+  <h1>Kære Fember</h1>
+  <p class="subtitle">Indtast din stregbruger for at fortsætte.</p>
 
   <form method="POST" action="{% url 'sso_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" novalidate>
     {% csrf_token %}
     <input type="hidden" name="stage" value="1"/>
     {% if next %}<input type="hidden" name="next" value="{{ next }}"/>{% endif %}
 
-    <label for="username">Username</label>
+    <label for="username">Brugernavn</label>
     <input
       type="text" id="username" name="username"
       value="{{ username|default:'' }}"
       autocomplete="username" autofocus spellcheck="false" autocapitalize="none"
     />
 
-    <button type="submit">Continue →</button>
+    <button type="submit">Fortsæt →</button>
   </form>
 
   {% elif stage == 2 %}
 
   <div class="stage-dots"><span class="done"></span><span class="active"></span></div>
-  <h1>Check your email</h1>
-  <p class="subtitle">Enter the F&#8209;code sent to <strong>{{ masked_email }}</strong></p>
+  <h1>Tjek din indbakke</h1>
+  <p class="subtitle">Indtast F&#8209;koden, der blev sendt til <strong>{{ masked_email }}</strong></p>
 
   <form method="POST" action="{% url 'sso_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" id="otp-form" novalidate>
     {% csrf_token %}
@@ -239,21 +239,21 @@
       {% endfor %}
     </div>
 
-    <button type="submit">Verify &amp; Sign In →</button>
+    <button type="submit">Log ind →</button>
 
     <div class="form-footer">
-      <span>Expires in <strong id="countdown">05:00</strong></span>
+      <span>Udløber om <strong id="countdown">05:00</strong></span>
       <form method="POST" action="{% url 'sso_resend_otp' %}" style="display:contents">
         {% csrf_token %}
         <input type="hidden" name="username" value="{{ username }}"/>
         {% if next %}<input type="hidden" name="next" value="{{ next }}"/>{% endif %}
-        <button type="submit" id="resend-btn" disabled>Resend code</button>
+        <button type="submit" id="resend-btn" disabled>Gensend F-kode</button>
       </form>
     </div>
   </form>
 
   <div class="form-footer" style="margin-top:.75rem">
-    <a href="{% url 'sso_login' %}{% if next %}?next={{ next }}{% endif %}">← Use a different username</a>
+    <a href="{% url 'sso_login' %}{% if next %}?next={{ next }}{% endif %}">← Indtast et andet brugernavn</a>
   </div>
 
   {% endif %}
@@ -306,7 +306,7 @@
   const timer = setInterval(() => {
     s--;
     el.textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
-    if (s <= 0) { clearInterval(timer); el.textContent = 'Expired'; btn.disabled = false; }
+    if (s <= 0) { clearInterval(timer); el.textContent = 'Udløbet'; btn.disabled = false; }
   }, 1000);
 })();
 </script>

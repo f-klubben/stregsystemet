@@ -67,17 +67,17 @@ class CustomLoginView(View):
         ctx.update(stage=1, username=username)
 
         if not username:
-            messages.error(request, "Please enter your username.")
+            messages.error(request, "Indtast dit brugernavn")
             return render(request, self.template_name, ctx)
 
         try:
             member = Member.objects.get(username=username)
         except Member.DoesNotExist:
-            messages.error(request, "No account found with that username.")
+            messages.error(request, "Der findes ingen stregbruger med det navn")
             return render(request, self.template_name, ctx)
 
         if not member.email:
-            messages.error(request, "Your account has no email address. Contact support.")
+            messages.error(request, "Din stregbruger har ingen mailadresse. Kontakt TREO'en på treo@fklub.dk for hjælp")
             return render(request, self.template_name, ctx)
 
         otp = _issue_otp(member)
@@ -87,7 +87,7 @@ class CustomLoginView(View):
             stage=2,
             masked_email=_mask_email(member.email),
         )
-        messages.info(request, "A code has been sent to your email address.")
+        messages.info(request, "En F-kode er blevet sendt til din mailadresse")
         return render(request, self.template_name, ctx)
 
     def _handle_stage_2(self, request):
@@ -115,10 +115,10 @@ class CustomLoginView(View):
                 _send_otp_email(member, fresh_otp)
                 messages.error(
                     request,
-                    "Too many incorrect attempts. A new code has been sent to your email.",
+                    "For mange for forkerte forsøg. Vi har sendt en ny F-kode",
                 )
             else:
-                messages.error(request, "Incorrect code. Please check your email and try again.")
+                messages.error(request, "Forkert F-kode. Dobbelttjek mailen og forsøg igen")
             return render(request, self.template_name, ctx)
 
         login(request, user, backend="sso.auth_backends.PasswordlessMemberBackend")
@@ -152,7 +152,7 @@ class ResendOTPView(View):
         otp = _issue_otp(member)
         _send_otp_email(member, otp)
 
-        messages.info(request, "A new code has been sent to your email.")
+        messages.info(request, "Vi har sendt en ny F-kode til din mailadresse")
         ctx = {
             "stage": 2,
             "username": username,
