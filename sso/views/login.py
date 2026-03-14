@@ -1,5 +1,8 @@
 import random
 import string
+from typing import Optional
+from urllib.parse import urlparse, parse_qs
+from oauth2_provider.models import Application
 
 from django.contrib.auth import login, authenticate
 from django.contrib import messages
@@ -38,13 +41,30 @@ def _send_otp_email(member: Member, otp: str) -> None:
     send_fcode_mail(member, full_code, f"hffps://{otp}", "linky")
 
 
+def _get_client_from_next(next_url: str) -> Optional[Application]:
+    parsed = urlparse(next_url)
+    params = parse_qs(parsed.query)
+    client_id = params.get("client_id", [None])[0]
+
+    if not client_id:
+        return None
+
+    try:
+        return Application.objects.get(client_id=client_id)
+    except Application.DoesNotExist:
+        return None
+
+
 class CustomLoginView(View):
     template_name = "sso/login.html"
 
     def _base_context(self, request) -> dict:
+        next_url = request.GET.get("next") or request.POST.get("next", "/")
+        service_name = _get_client_from_next(next_url).name
+
         return {
-            "next": request.GET.get("next") or request.POST.get("next", "/"),
-            "service_name": request.session.get("sso_service_name", ""),
+            "next": next_url,
+            "service_name": service_name,
         }
 
     def get(self, request):
