@@ -2692,13 +2692,15 @@ class EventAndTicketTests(TestCase):
     def test_tr_is_refundable(self):
         ticket_record, _ = self.helper_create_ticket_record(self.member, self.event_instance_ticket.product)
 
-        self.assertTrue(ticket_record.is_refundable())
-
+        self.assertTrue(ticket_record.is_refundable_by_self())
+        self.assertTrue(ticket_record.is_refundable_by_admin())
+        
         # Mark sale as refunded, which should make the ticket record not refundable
         assert ticket_record.sale is not None
         ticket_record.sale.refunded_at = timezone.now()
 
-        self.assertFalse(ticket_record.is_refundable())
+        self.assertFalse(ticket_record.is_refundable_by_self())
+        self.assertFalse(ticket_record.is_refundable_by_admin())
 
         # Create a ticket record that is admin issued, which should not be refundable, since it is not connected to a sale
         ticket_record_admin = TicketRecord.objects.create(
@@ -2709,7 +2711,8 @@ class EventAndTicketTests(TestCase):
             admin_issued_to=self.member,
         )
 
-        self.assertFalse(ticket_record_admin.is_refundable())
+        self.assertFalse(ticket_record_admin.is_refundable_by_self())
+        self.assertFalse(ticket_record_admin.is_refundable_by_admin())
 
     def test_tr_process_refund(self):
         # Create a ticket record that is stand by
@@ -2718,13 +2721,15 @@ class EventAndTicketTests(TestCase):
         )
 
         self.assertFalse(ticket_record.is_refunded())
-        self.assertTrue(ticket_record.is_refundable())
+        self.assertTrue(ticket_record.is_refundable_by_self())
+        self.assertTrue(ticket_record.is_refundable_by_admin())
         self.assertTrue(ticket_record.is_stand_by)
 
         ticket_record.process_refund(self.admin)
 
         self.assertTrue(ticket_record.is_refunded())
-        self.assertFalse(ticket_record.is_refundable())
+        self.assertFalse(ticket_record.is_refundable_by_self())
+        self.assertFalse(ticket_record.is_refundable_by_admin())
         self.assertFalse(ticket_record.is_stand_by)
 
         # A sale which is not refundable should raise an exception
