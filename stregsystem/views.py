@@ -469,6 +469,31 @@ def menu_sale(request, room_id, member_id, product_id=None):
     return usermenu(request, room, member, product, from_sale=True)
 
 
+def intent_confirm(request, intent_id):
+    context = {
+        "intent_id": intent_id,
+        "lines": [
+            {"name": "Product A", "qty": 2, "price": 50, "total": 100},
+        ],
+        "total": 150,
+        "balance": 80,
+        "has_funds": False,
+        "qr_code_url": "https://image.com/",  # only if not enough funds
+        "expires_at": datetime.datetime.now(),  # datetime
+        "member_name": "testuser",
+    }
+
+    return render(request, "stregsystem/pay/checkout.html", context)
+
+
+def intent_accept(request, intent_id):
+    return render(request, "stregsystem/pay/confirmation.html", locals())
+
+
+def intent_cancel(request, intent_id):
+    return render(request, "stregsystem/pay/abort.html", locals())
+
+
 @staff_member_required()
 @permission_required("stregsystem.import_batch_payments")
 def batch_payment(request):

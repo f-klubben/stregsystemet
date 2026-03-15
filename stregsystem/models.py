@@ -1,5 +1,6 @@
 import datetime
 import urllib.parse
+import uuid
 from abc import abstractmethod
 from collections import Counter
 from email.utils import parseaddr
@@ -722,6 +723,33 @@ class Sale(BaseModel):
             super(Sale, self).delete(*args, **kwargs)
         else:
             raise RuntimeError("You can't delete a sale that hasn't happened")
+
+
+class Intent(BaseModel):
+    intent_id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
+    intent_secret = models.UUIDField(default=uuid.uuid4, editable=False)
+    webhook_url = models.URLField(blank=True)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, null=True)
+    pending_expire_duration = models.IntegerField()
+    buystring = models.TextField()
+
+    PENDING = 'P'
+    CONFIRMED = 'C'
+    ABORTED = 'A'
+    FINALIZED = 'F'
+    REMOVED = 'R'
+    EXPIRED = 'E'
+
+    INTENT_CHOICES = (
+        (PENDING, 'Pending'),
+        (CONFIRMED, 'Confirmed'),
+        (ABORTED, 'Aborted'),
+        (FINALIZED, 'Finalized'),
+        (REMOVED, 'Removed'),
+        (EXPIRED, 'Expired'),
+    )
+
+    status = models.CharField(max_length=1, choices=INTENT_CHOICES, default=PENDING)
 
 
 # XXX
