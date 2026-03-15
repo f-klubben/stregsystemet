@@ -970,6 +970,7 @@ class EventInstance(models.Model):
     capacity = models.IntegerField(null=False, blank=False)
     start_time = models.DateTimeField(null=False, blank=False)
     end_time = models.DateTimeField(null=False, blank=False)
+    final_refund_time = models.DateTimeField(null=False, blank=False)
     location = models.CharField(max_length=100, null=False, blank=False)
 
     def get_name(self):
