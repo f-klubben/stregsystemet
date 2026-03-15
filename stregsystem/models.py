@@ -1139,7 +1139,7 @@ class TicketRecord(models.Model):
     def get_stand_by_pretty(self) -> str:
         return get_bool_pretty(self.is_stand_by)
 
-    def get_ticket_owner(self) -> Member:
+    def get_ticket_owner(self) -> Optional[Member]:
         if self.sale is not None:
             return self.sale.member
         elif self.admin_issued_to is not None:
@@ -1157,4 +1157,5 @@ class TicketRecord(models.Model):
         super(TicketRecord, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.get_ticket_owner().username}'s billet: {self.ticket.name} (Stand-by: {self.get_stand_by_pretty()}, Refunded: {self.get_refunded_pretty()})"
+        ticket_owner = self.get_ticket_owner()
+        return f"{ticket_owner.username if ticket_owner else "No Owner?"}'s billet: {self.ticket.name} (Stand-by: {self.get_stand_by_pretty()}, Refunded: {self.get_refunded_pretty()})"
