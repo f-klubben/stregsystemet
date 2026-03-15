@@ -1158,4 +1158,4 @@ class TicketRecord(models.Model):
 
     def __str__(self):
         ticket_owner = self.get_ticket_owner()
-        return f"{ticket_owner.username if ticket_owner else "No Owner?"}'s billet: {self.ticket.name} (Stand-by: {self.get_stand_by_pretty()}, Refunded: {self.get_refunded_pretty()})"
+        return f"{ticket_owner.username if ticket_owner else 'No Owner?'}'s billet: {self.ticket.name} (Stand-by: {self.get_stand_by_pretty()}, Refunded: {self.get_refunded_pretty()})"

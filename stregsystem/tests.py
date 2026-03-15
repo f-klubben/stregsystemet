@@ -2632,7 +2632,11 @@ class EventAndTicketTests(TestCase):
         # Create a ticket record with a sale, and check that the owner is returned correctly
         ticket_record, _ = self.helper_create_ticket_record(self.member, self.event_instance_ticket.product)
 
-        self.assertEqual(ticket_record.get_ticket_owner(), self.member)
+        ticket_owner = ticket_record.get_ticket_owner()
+        self.assertIsNotNone(ticket_owner)
+        assert ticket_owner is not None
+
+        self.assertEqual(ticket_owner, self.member)
 
         # Create a ticket record with an admin issue, and check that the owner is returned correctly
         ticket_record_admin = TicketRecord.objects.create(
@@ -2643,7 +2647,12 @@ class EventAndTicketTests(TestCase):
             admin_issued_to=self.member,
         )
 
-        self.assertEqual(ticket_record_admin.get_ticket_owner(), self.member)
+        ticket_owner_admin = ticket_record_admin.get_ticket_owner()
+
+        self.assertIsNotNone(ticket_owner_admin)
+        assert ticket_owner_admin is not None
+
+        self.assertEqual(ticket_owner_admin, self.member)
 
     def test_tr_get_stand_by_pretty(self):
         # Create a ticket record that is stand by
