@@ -2412,8 +2412,19 @@ class EventAndTicketTests(TestCase):
             capacity=5,
             start_time=timezone.now() + datetime.timedelta(hours=3),
             end_time=timezone.now() + datetime.timedelta(hours=6),
-            final_refund_time=timezone.now() + datetime.timedelta(hours=10),    
+            final_refund_time=timezone.now() + datetime.timedelta(hours=10),
             location="Test Location 2",
+        )
+
+        cls.event_instance_not_refundable_by_user = EventInstance.objects.create(
+            event=cls.event,
+            name_overwrite="Test Event Instance Not Refundable By User",
+            description_overwrite="This is a test event instance that is not refundable by user.",
+            capacity=5,
+            start_time=timezone.now() + datetime.timedelta(hours=3),
+            end_time=timezone.now() + datetime.timedelta(hours=6),
+            final_refund_time=timezone.now(),
+            location="Test Location 3",
         )
 
         cls.event_instance_product = Product.objects.create(name="Test Event Instance Product", price=100, active=True)
@@ -2696,7 +2707,7 @@ class EventAndTicketTests(TestCase):
 
         self.assertTrue(ticket_record.is_refundable_by_self())
         self.assertTrue(ticket_record.is_refundable_by_admin())
-        
+
         # Mark sale as refunded, which should make the ticket record not refundable
         assert ticket_record.sale is not None
         ticket_record.sale.refunded_at = timezone.now()

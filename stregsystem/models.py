@@ -1117,9 +1117,7 @@ class TicketRecord(models.Model):
 
     def process_refund(self, adminUser: Optional[User]) -> None:
         if adminUser is not None and not self.is_refundable_by_admin() or not self.is_refundable_by_self():
-            raise InvalidTicketRecordError(
-                "You can't refund this ticket"
-            )
+            raise InvalidTicketRecordError("You can't refund this ticket")
         if self.sale is None:
             raise InvalidTicketRecordError("Sale is none, this should have been caught by the is_refundable checks")
 
