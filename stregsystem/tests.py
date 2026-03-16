@@ -2403,6 +2403,7 @@ class EventAndTicketTests(TestCase):
             capacity=5,
             start_time=timezone.now(),
             end_time=timezone.now() + datetime.timedelta(hours=2),
+            final_refund_time=timezone.now() + datetime.timedelta(hours=10),
             location="Test Location",
         )
 
@@ -2411,6 +2412,7 @@ class EventAndTicketTests(TestCase):
             capacity=5,
             start_time=timezone.now() + datetime.timedelta(hours=3),
             end_time=timezone.now() + datetime.timedelta(hours=6),
+            final_refund_time=timezone.now() + datetime.timedelta(hours=10),    
             location="Test Location 2",
         )
 
