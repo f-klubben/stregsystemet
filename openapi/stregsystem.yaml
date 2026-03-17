@@ -20,7 +20,12 @@ tags:
   - name: Products
     description: Related to the products.
   - name: Sale
-    description: Related to performing a sale.
+    description: Related to performing a sale directly.
+  - name: Sale Intent
+    description: |-
+      Consumer-initiated purchase flow. A consumer creates a sale intent and receives
+      a URL where the member can log in and confirm the purchase themselves.
+      Once confirmed (or rejected/expired), the consumer is notified via a webhook callback.
 paths:
   /api/member:
     get:
@@ -159,6 +164,31 @@ paths:
           $ref: '#/components/responses/SaleSuccess'
         '400':
           $ref: '#/components/responses/Member_RoomIdParameter_BadResponse'
+  /api/sale/intent:
+    post:
+      tags:
+        - Sale Intent
+      summary: Create a sale intent
+      description: |-
+        Creates a pending sale intent on behalf of a consumer. No money is transferred at
+        this point. The response contains a `confirmation_url` that should be presented to
+        the member (e.g. opened in a popup window, similar to PayPal's checkout flow).
+        The member logs in at that URL and either confirms or rejects the purchase.
+
+        Once the intent is resolved (confirmed, rejected, or expired), Stregsystem will
+        POST a webhook callback to the `webhook_url` supplied in the request body.
+      operationId: api_sale_intent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/sale_intent_input'
+      responses:
+        '201':
+          $ref: '#/components/responses/SaleIntentCreated'
+        '400':
+          $ref: '#/components/responses/RoomIdParameter_BadResponse'
 components:
   examples:
     MemberNotFoundExample:
@@ -217,6 +247,14 @@ components:
       examples:
         normalBalance:
           value: 20000
+    intent_id_param:
+      name: intent_id
+      in: path
+      description: Unique identifier of the sale intent.
+      required: true
+      schema:
+        $ref: '#/components/schemas/intent_id'
+      example: "a3f2c1d4-88b0-4e2a-9c3e-1f5b6d7e8a9b"
   schemas:
     memberNotFoundMessage:
       type: string
@@ -300,6 +338,9 @@ components:
     buystring:
       type: string
       example: "kresten beer:3"
+    productstring:
+      type: string
+      example: "beer:3"
     product_category_name:
       type: string
       example: "Alcohol"
@@ -429,6 +470,171 @@ components:
           $ref: '#/components/schemas/active'
         name:
           $ref: '#/components/schemas/name'
+    intent_id:
+      type: string
+      format: uuid
+      description: Universally unique identifier for a sale intent.
+      example: "a3f2c1d4-88b0-4e2a-9c3e-1f5b6d7e8a9b"
+    intent_secret:
+      type: string
+      format: uuid
+      description: Universally unique identifier for a sale intent. Provided as common secret for hashing.
+      example: "b9f2c1d4-88b0-4e2a-3d3e-1f5b6d7e8a9b"
+    intent_status:
+      type: string
+      description: |-
+        Lifecycle state of the sale intent.
+        - `pending`   – Created, awaiting member confirmation.
+        - `confirmed` – Member approved sale, waiting to be finalized.
+        - `aborted`   – Member declined at the confirmation page.
+        - `finalized` – Sale has been executed.
+        - `removed`   – Consumer cancelled via DELETE before confirmation.
+        - `expired`   – Member did not act within the TTL window.
+      enum:
+        - pending
+        - confirmed
+        - aborted
+        - finalized
+        - removed
+        - expired
+      example: pending
+    sale_intent_input:
+      type: object
+      required:
+        - productstring
+        - room_id
+      properties:
+        productstring:
+          $ref: '#/components/schemas/productstring'
+        room_id:
+          $ref: '#/components/schemas/room_id'
+        webhook_url:
+          type: string
+          format: uri
+          description: |-
+            HTTPS URL that Stregsystem will POST to when the intent is resolved.
+            The payload will be a `sale_intent_webhook_payload` object.
+          example: "https://consumer.example.com/webhooks/stregsystem"
+        max_expires_in_seconds:
+          type: integer
+          description: |-
+            How many seconds the intent at most can be valid at before the intent
+            automatically transitions to `expired`. Defaults to 300 (5 minutes)
+            if omitted.
+          default: 300
+          minimum: 30
+          maximum: 3600
+          example: 300
+      example:
+        productstring: "beer:3"
+        room_id: 10
+        webhook_url: "https://webshop.example.com/webhooks/stregsystem"
+        max_expires_in_seconds: 300
+    sale_intent_created_response:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/intent_id'
+        secret:
+          $ref: '#/components/schemas/intent_secret'
+        status:
+          $ref: '#/components/schemas/intent_status'
+        confirmation_url:
+          type: string
+          format: uri
+          description: |-
+            URL to present to the member. Opening this URL (e.g. in a popup window)
+            lets the member log in and confirm or abort the purchase. The URL is
+            single-use and expires after `expires_in_seconds` seconds.
+          example: "https://stregsystem.fklub.dk/sale/confirm/a3f2c1d4-88b0-4e2a-9c3e-1f5b6d7e8a9b"
+        expires_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp at which this intent will expire if unconfirmed.
+          example: "2024-05-12T18:31:09.508Z"
+        productstring:
+          $ref: '#/components/schemas/productstring'
+        room_id:
+          $ref: '#/components/schemas/room_id'
+    sale_intent_status_response:
+      type: object
+      properties:
+        intent_id:
+          $ref: '#/components/schemas/intent_id'
+        intent_secret:
+          $ref: '#/components/schemas/intent_secret'
+        status:
+          $ref: '#/components/schemas/intent_status'
+        confirmation_url:
+          type: string
+          format: uri
+          description: The confirmation URL (only present while status is `pending`).
+          example: "https://stregsystem.fklub.dk/sale/confirm/a3f2c1d4-88b0-4e2a-9c3e-1f5b6d7e8a9b"
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-05-12T18:31:09.508Z"
+        productstring:
+          $ref: '#/components/schemas/productstring'
+        room_id:
+          $ref: '#/components/schemas/room_id'
+        sale_result:
+          description: Populated only when `status` is `finalized`. Contains the same payload as a direct `/api/sale` success response.
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/sale_values_result_example'
+    sale_intent_webhook_payload:
+      type: object
+      description: |-
+        Payload POSTed to the consumer's `webhook_url` when a sale intent is resolved.
+        Consumers should respond with HTTP 2xx to acknowledge receipt. Stregsystem will
+        retry up to 3 times with exponential back-off if a non-2xx response is received.
+      properties:
+        intent_id:
+          $ref: '#/components/schemas/intent_id'
+        status:
+          $ref: '#/components/schemas/intent_status'
+        productstring:
+          $ref: '#/components/schemas/productstring'
+        room:
+          $ref: '#/components/schemas/room_id'
+        resolved_at:
+          type: string
+          format: date-time
+          description: Timestamp at which the intent transitioned to its final state.
+          example: "2024-05-12T18:29:44.123Z"
+        sale_result:
+          description: Present only when `status` is `finalized`.
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/sale_values_result_example'
+      example:
+        intent_id: "a3f2c1d4-88b0-4e2a-9c3e-1f5b6d7e8a9b"
+        status: "finalized"
+        productstring: "beer:3"
+        room_id: 10
+        resolved_at: "2024-05-12T18:29:44.123Z"
+        sale_result:
+          order:
+            room: 10
+            member: 321
+            created_on: "2024-05-12T18:29:44.123Z"
+            items: [123, 123, 123]
+          cost: 1800
+          member_balance: 178.00
+          member_has_low_balance: false
+          promille: 0.2
+          is_ballmer_peaking: false
+          bp_minutes: null
+          bp_seconds: null
+          caffeine: 0
+          cups: 0
+          product_contains_caffeine: false
+          is_coffee_master: false
+          give_multibuy_hint: false
+          sale_hints: ""
   responses:
     MemberFound:
       description: Member found.
@@ -594,3 +800,48 @@ components:
               $ref: '#/components/examples/InvalidRoomIdExample'
             missingRoomId:
               $ref: '#/components/examples/MissingRoomIdExample'
+    SaleIntentCreated:
+      description: Sale intent successfully created. Present the `confirmation_url` to the member.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/sale_intent_created_response'
+    SaleIntentStatus:
+      description: Current state of the sale intent.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/sale_intent_status_response'
+    SaleIntentCancelled:
+      description: Sale intent successfully cancelled. The webhook will be called.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              intent_id:
+                $ref: '#/components/schemas/intent_id'
+              status:
+                $ref: '#/components/schemas/intent_status'
+    SaleIntentNotFound:
+      description: No sale intent exists with the given `intent_id`.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Sale intent not found"
+    SaleIntentAlreadyResolved:
+      description: The sale intent has already been confirmed, rejected, or expired and cannot be cancelled.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Sale intent has already been resolved"
+              status:
+                $ref: '#/components/schemas/intent_status'

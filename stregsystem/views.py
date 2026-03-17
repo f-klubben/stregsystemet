@@ -21,6 +21,7 @@ from django.db.models import Q, Count, Sum
 from django.forms import modelformset_factory
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django_select2 import forms as s2forms
@@ -44,6 +45,7 @@ from stregsystem.models import (
     NamedProduct,
     ApprovalModel,
     ProductNote,
+    Intent,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -854,6 +856,77 @@ def api_sale(request):
         return JsonResponse(
             {'status': status, 'msg': msg, 'values': ret_obj}, json_dumps_params={'ensure_ascii': False}
         )
+
+
+@csrf_exempt
+def api_sale_intent(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest()
+
+    data = json.loads(request.body)
+    product_string = str(data['productstring']).strip()
+    room_id = str(data['room_id']) or None
+
+    if room_id is None:
+        return HttpResponseBadRequest("Parameter missing: room_id")
+    if not room_id.isdigit():
+        return HttpResponseBadRequest("Parameter invalid: room_id")
+    if product_string is None:
+        return HttpResponseBadRequest("Parameter missing: productstring")
+
+    max_expires_in_seconds = int(data['max_expires_in_seconds']) or None
+    webhook_url = str(data['webhook_url']) or None
+
+    _validate_buystring(product_string)
+
+    try:
+        room = Room.objects.get(pk=room_id)
+    except Room.DoesNotExist:
+        return HttpResponseBadRequest("Room not found")
+
+    intent = _create_intent(
+        product_string,
+        room,
+        webhook_url,
+        datetime.datetime.now() + datetime.timedelta(seconds=max_expires_in_seconds)
+    )
+    response = {
+        "id": intent.id,
+        "secret": intent.secret,
+        "status": intent.status,
+        "confirmation_url": _get_confirmation_url(request, intent.id),
+        "expires_at": intent.expires_at,
+        "productstring": product_string,
+        "room_id": room_id,
+    }
+    return JsonResponse(response, json_dumps_params={'ensure_ascii': False}, status=201)
+
+
+def _get_confirmation_url(request, intent_id) -> str:
+    return request.build_absolute_uri(reverse("pay_intent", kwargs={"intent_id": intent_id}))
+
+
+def _validate_buystring(buy_string) -> bool:
+    try:
+        username, bought_ids = parser.parse(_pre_process("dummy " + buy_string))
+        return True
+    except parser.QuickBuyError as err:
+        values = {
+            'correct': err.parsed_part,
+            'incorrect': err.failed_part,
+            'error_ptr': '~' * (len(err.parsed_part)) + '^',
+            'error_msg': ' ' * (len(err.parsed_part) - 4) + 'Fejl her',
+        }
+        return False
+
+
+def _create_intent(buystring, room, webhook_url, expires_at):
+    return Intent.objects.create(
+        webhook_url=webhook_url,
+        room=room,
+        expires_at=expires_at,
+        buystring=buystring,
+    )
 
 
 def api_quicksale(request, room, member: Member, bought_ids):

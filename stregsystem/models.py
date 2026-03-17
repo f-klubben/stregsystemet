@@ -726,11 +726,11 @@ class Sale(BaseModel):
 
 
 class Intent(BaseModel):
-    intent_id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
-    intent_secret = models.UUIDField(default=uuid.uuid4, editable=False)
+    id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
+    secret = models.UUIDField(default=uuid.uuid4, editable=False)
     webhook_url = models.URLField(blank=True)
     room = models.ForeignKey(Room, on_delete=models.CASCADE, null=True)
-    pending_expire_duration = models.IntegerField()
+    expires_at = models.DateTimeField()
     buystring = models.TextField()
 
     PENDING = 'P'
