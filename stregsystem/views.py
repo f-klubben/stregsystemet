@@ -885,10 +885,7 @@ def api_sale_intent(request):
         return HttpResponseBadRequest("Room not found")
 
     intent = _create_intent(
-        product_string,
-        room,
-        webhook_url,
-        datetime.datetime.now() + datetime.timedelta(seconds=max_expires_in_seconds)
+        product_string, room, webhook_url, datetime.datetime.now() + datetime.timedelta(seconds=max_expires_in_seconds)
     )
     response = {
         "id": intent.id,
