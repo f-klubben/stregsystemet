@@ -19,6 +19,18 @@ For windows using Anaconda and virtual environments:
 3. ???
 4. Profit
 
+For Arch Linux get this package `https://aur.archlinux.org/packages/python311`
+1. Install python311 using YAY if using a different AUR_helper reaplce yay with correct command
+ - `yay -S python311`
+2. Create virtual environment
+ - `python3.11 -m venv venv`
+3. Activate virtualenv
+ - `source venv/bin/activate`
+4. Install packages
+ - `pip3 install -r requirements.txt`
+5. ???
+6. Profit
+
 For Ubuntu with virtual envs:
 1. Install python3 with pip
  - `sudo apt install python3 python3-pip python3-venv`
