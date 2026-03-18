@@ -898,26 +898,24 @@ class SaleTests(TestCase):
         self.assertEqual(self.member.balance, 100)
 
         now = timezone.now()
-        sale_1.process_refund(admin)
-        self.member.refresh_from_db()
-        self.assertEqual(self.member.balance, 101)
-        self.assertEqual(sale_1.refunded_by, admin)
-        self.assertIsNotNone(sale_1.refunded_at)
-        assert sale_1.refunded_at is not None
-        self.assertAlmostEqual(sale_1.refunded_at.hour, now.hour)
-        self.assertAlmostEqual(sale_1.refunded_at.minute, now.minute)
-        self.assertAlmostEqual(sale_1.refunded_at.second, now.second)
+        with freeze_time(now):
+            sale_1.process_refund(admin)
+            self.member.refresh_from_db()
+            self.assertEqual(self.member.balance, 101)
+            self.assertEqual(sale_1.refunded_by, admin)
+            self.assertIsNotNone(sale_1.refunded_at)
+            assert sale_1.refunded_at is not None
+            self.assertEqual(sale_1.refunded_at, now)
 
         now = timezone.now()
-        sale_2.process_refund(None)
-        self.member.refresh_from_db()
-        self.assertEqual(self.member.balance, 102)
-        self.assertIsNone(sale_2.refunded_by)
-        self.assertIsNotNone(sale_2.refunded_at)
-        assert sale_2.refunded_at is not None
-        self.assertAlmostEqual(sale_2.refunded_at.hour, now.hour)
-        self.assertAlmostEqual(sale_2.refunded_at.minute, now.minute)
-        self.assertAlmostEqual(sale_2.refunded_at.second, now.second)
+        with freeze_time(now):
+            sale_2.process_refund(None)
+            self.member.refresh_from_db()
+            self.assertEqual(self.member.balance, 102)
+            self.assertIsNone(sale_2.refunded_by)
+            self.assertIsNotNone(sale_2.refunded_at)
+            assert sale_2.refunded_at is not None
+            self.assertEqual(sale_2.refunded_at, now)
 
         non_admin = User.objects.create_user("nonadmin", "nonadmin@example.com", "nonadminpassword")
         sale_3 = Sale.objects.create(member=self.member, product=self.product, price=self.product.price)
@@ -936,7 +934,7 @@ class SaleTests(TestCase):
 
         sale.save()
 
-        self.assertIsNotNone(sale.id)
+        self.assertIsNotNone(sale.pk)
 
     def test_sale_save_already_saved(self):
         sale = Sale(member=self.member, product=self.product, price=100)
@@ -2412,7 +2410,7 @@ class EventAndTicketTests(TestCase):
             capacity=5,
             start_time=timezone.now() + datetime.timedelta(hours=3),
             end_time=timezone.now() + datetime.timedelta(hours=6),
-            final_refund_time=timezone.now() + datetime.timedelta(hours=10),
+            final_refund_time=timezone.now() + datetime.timedelta(hours=10),    
             location="Test Location 2",
         )
 
@@ -2439,6 +2437,14 @@ class EventAndTicketTests(TestCase):
 
         cls.event_instance_ticket_2 = Ticket.objects.create(
             event_instance=cls.event_instance, quantity=9, product=cls.event_instance_product_2
+        )
+
+        cls.event_instance_not_refundable_by_user_product = Product.objects.create(
+            name="Test Event Instance Not Refundable By User Product", price=200, active=True
+        )
+
+        cls.event_instance_not_refundable_by_user_ticket = Ticket.objects.create(
+            event_instance=cls.event_instance_not_refundable_by_user, quantity=5, product=cls.event_instance_not_refundable_by_user_product
         )
 
     def test_setup(self):
@@ -2702,12 +2708,12 @@ class EventAndTicketTests(TestCase):
         self.assertTrue(ticket_record.is_refunded())
         self.assertEqual(ticket_record.get_refunded_pretty(), "Ja")
 
-    def test_tr_is_refundable(self):
+    def test_tr_is_refundable_by_both(self):
         ticket_record, _ = self.helper_create_ticket_record(self.member, self.event_instance_ticket.product)
 
         self.assertTrue(ticket_record.is_refundable_by_self())
         self.assertTrue(ticket_record.is_refundable_by_admin())
-
+        
         # Mark sale as refunded, which should make the ticket record not refundable
         assert ticket_record.sale is not None
         ticket_record.sale.refunded_at = timezone.now()
@@ -2747,6 +2753,29 @@ class EventAndTicketTests(TestCase):
 
         # A sale which is not refundable should raise an exception
         self.assertRaises(InvalidTicketRecordError, ticket_record.process_refund, None)
+
+        # Create a ticket record that is not refundable by self, and check that it can be refunded by admin, but not by self
+        ticket_record_not_refundable_by_user, _ = self.helper_create_ticket_record(
+            self.member, self.event_instance_not_refundable_by_user_product, is_standby=False
+        )
+        self.assertFalse(ticket_record_not_refundable_by_user.is_refundable_by_self())
+        self.assertTrue(ticket_record_not_refundable_by_user.is_refundable_by_admin())
+
+        with self.assertRaises(InvalidTicketRecordError):
+            ticket_record_not_refundable_by_user.process_refund(None)
+        
+        try:
+            ticket_record_not_refundable_by_user.process_refund(self.admin)
+        except InvalidTicketRecordError:
+            self.fail("Admin should be able to refund a ticket that is not refundable by self.")
+
+    # Self refunding has more constraints than admin refunding, due to final refund time
+    def test_tr_is_refundable_by_self(self):
+        ticket_record_not_refundable_by_user, _ = self.helper_create_ticket_record(
+            self.member, self.event_instance_not_refundable_by_user_product, is_standby=False
+        )
+        self.assertFalse(ticket_record_not_refundable_by_user.is_refundable_by_self())
+        self.assertTrue(ticket_record_not_refundable_by_user.is_refundable_by_admin())
 
     def test_tr_get_stand_by_queue_position(self):
         # Create 5 ticket records that are stand by

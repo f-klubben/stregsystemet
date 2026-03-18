@@ -1116,8 +1116,11 @@ class TicketRecord(models.Model):
             return None
 
     def process_refund(self, adminUser: Optional[User]) -> None:
-        if adminUser is not None and not self.is_refundable_by_admin() or not self.is_refundable_by_self():
-            raise InvalidTicketRecordError("You can't refund this ticket")
+        if adminUser is not None:
+            if not self.is_refundable_by_admin():
+                raise InvalidTicketRecordError("Admin can't refund this ticket")
+        elif not self.is_refundable_by_self():
+            raise InvalidTicketRecordError("User can't refund this ticket")
         if self.sale is None:
             raise InvalidTicketRecordError("Sale is none, this should have been caught by the is_refundable checks")
 
@@ -1128,7 +1131,8 @@ class TicketRecord(models.Model):
         TicketRecord._issue_stand_by_ticket(self.ticket.event_instance)
 
     def is_refundable_by_self(self) -> bool:
-        return self.is_refundable_by_admin()
+        refund_time_passed = self.ticket.event_instance.final_refund_time <= timezone.now()
+        return not refund_time_passed and self.is_refundable_by_admin()
 
     def is_refundable_by_admin(self) -> bool:
         return self.sale is not None and not self.sale.is_refunded()

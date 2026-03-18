@@ -39,9 +39,13 @@
                     {% else %}
                         Udstedt af TREOen ({{ ticket_record.admin_issued_by.get_full_name }})
                     {% endif %}
+                    <br/>
+                    {% if ticket_record.is_refundable_by_self %}
+                        Refunderbar indtil {{ ticket_record.ticket.event_instance.final_refund_time }}
+                    {% endif %}
                 </td>
                 <td>
-                    {% if ticket_record.sale and ticket_record.sale.refunded_at is None %}
+                    {% if ticket_record.is_refundable_by_self %}
                         <form method="post" action="/{{room.id}}/refund_ticket/{{ticket_record.pk}}/" onsubmit="return confirm('Er du sikker på, at du vil refundere billetten?');">              
                             {% csrf_token %}
                             <button type="submit">Refundér</button>
