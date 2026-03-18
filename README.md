@@ -19,7 +19,7 @@ For windows using Anaconda and virtual environments:
 3. ???
 4. Profit
 
-For Arch Linux get this package [AUR](`https://aur.archlinux.org/packages/python311`)
+For Arch Linux get this package [AUR](https://aur.archlinux.org/packages/python311)
 1. Install python311 using YAY if using a different AUR_helper reaplce yay with correct command
  - `yay -S python311`
 2. Create virtual environment
