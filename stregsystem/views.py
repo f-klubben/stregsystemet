@@ -485,15 +485,15 @@ def intent_confirm(request, intent_id):
         "member_name": "testuser",
     }
 
-    return render(request, "stregsystem/pay/checkout.html", context)
+    return render(request, "stregsystem/pay/confirm.html", context)
 
 
 def intent_accept(request, intent_id):
-    return render(request, "stregsystem/pay/confirmation.html", locals())
+    return redirect('pay_intent', intent_id=intent_id)
 
 
 def intent_cancel(request, intent_id):
-    return render(request, "stregsystem/pay/abort.html", locals())
+    return redirect('pay_intent', intent_id=intent_id)
 
 
 @staff_member_required()

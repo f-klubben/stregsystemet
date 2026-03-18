@@ -4,7 +4,6 @@
     <title>Checkout</title>
 
     <style>
-
         body {
             margin: 0;
             background: #f7f9fa;
@@ -18,12 +17,10 @@
         }
 
         .card {
-
-            background: white;
-            border-radius: 8px;
+            background: #fff;
             border: 1px solid #e6e6e6;
+            border-radius: 8px;
             padding: 24px;
-
         }
 
         .logo {
@@ -40,25 +37,20 @@
         }
 
         .total {
-
             font-size: 28px;
             font-weight: 600;
             margin-bottom: 20px;
-
         }
 
         .section-title {
             font-size: 14px;
             font-weight: 600;
-            margin-top: 16px;
-            margin-bottom: 8px;
+            margin: 16px 0 8px;
         }
 
         .lines {
-
             border-top: 1px solid #eee;
             border-bottom: 1px solid #eee;
-
         }
 
         .line {
@@ -68,266 +60,157 @@
             font-size: 14px;
         }
 
-        .line-name {
-            color: #2c2e2f;
-        }
-
-        .line-total {
-            color: #2c2e2f;
-        }
-
-
         .balance-box {
-
             border: 1px solid #dcdcdc;
             border-radius: 6px;
             padding: 12px;
             margin-top: 10px;
-
         }
 
-        .balance {
-            font-size: 14px;
-        }
-
-        .ok {
-            color: #2e7d32;
-            font-size: 13px;
-        }
-
-        .missing {
-            color: #c23934;
-            font-size: 13px;
-        }
-
+        .balance { font-size: 14px; }
+        .ok { color: #2e7d32; font-size: 13px; }
+        .missing { color: #c23934; font-size: 13px; }
 
         .qr {
-
             text-align: center;
             margin-top: 10px;
-
         }
 
-        .qr img {
-            width: 180px;
-        }
+        .qr img { width: 180px; }
 
         .timer {
-
             font-size: 13px;
             color: #c23934;
             margin-top: 4px;
-
         }
 
-
         .pay-btn {
-
             width: 100%;
             margin-top: 20px;
-
             background: #0070ba;
-            color: white;
-
+            color: #fff;
             border: none;
             border-radius: 24px;
-
             padding: 12px;
-
             font-size: 16px;
             font-weight: 600;
-
             cursor: pointer;
-
         }
 
         .pay-btn:hover {
             background: #005ea6;
         }
 
-
         .cancel {
-
             text-align: center;
             margin-top: 12px;
-
         }
 
         .cancel a {
-
             color: #0070ba;
             text-decoration: none;
             font-size: 13px;
-
         }
-
     </style>
-
 </head>
+
 <body>
 
-
-
 <div class="wrapper">
-
     <div class="card">
 
-        <div class="logo">
-            BonusPay
-        </div>
-
-
-        <div class="merchant">
-            Checkout
-        </div>
-
+        <div class="logo">BonusPay</div>
+        <div class="merchant">Checkout</div>
 
         <div class="total">
             {{ total }} points
         </div>
 
-
-
-        <div class="section-title">
-            Order summary
-        </div>
+        <div class="section-title">Order summary</div>Checkout
 
         <div class="lines">
-
             {% for line in lines %}
-
-                <div class="line">
-
-                    <div class="line-name">
-                        {{ line.name }} × {{ line.qty }}
-                    </div>
-
-                    <div class="line-total">
-                        {{ line.total }}
-                    </div>
-
-                </div>
-
+            <div class="line">
+                <div>{{ line.name }} × {{ line.qty }}</div>
+                <div>{{ line.total }}</div>
+            </div>
             {% endfor %}
-
         </div>
 
 
-
-        <div class="section-title">
-            Pay with Bonus account
-        </div>
-
+        <div class="section-title">Pay with Bonus account</div>
 
         <div class="balance-box">
-
             <div class="balance">
                 Balance: {{ balance }} points
             </div>
 
-
             {% if has_funds %}
-
-                <div class="ok">
-                    Sufficient balance
-                </div>
-
+                <div class="ok">Sufficient balance</div>
             {% else %}
-
                 <div class="missing">
                     Not enough points — top up to continue
                 </div>
-
             {% endif %}
-
         </div>
 
 
-
         {% if not has_funds %}
-
-            <div class="qr">
-
-                <p>Scan to top up</p>
-
-                <img src="{{ qr_code_url }}">
-
-                <div class="timer">
-                    Time left:
-                    <span id="timer"></span>
-                </div>
-
+        <div class="qr">
+            <p>Scan to top up</p>
+            <img src="{{ qr_code_url }}">
+            <div class="timer">
+                Time left: <span id="timer"></span>
             </div>
-
+        </div>
         {% endif %}
-
 
 
         <form method="post"
               action="{% url 'pay_intent_accept' intent_id %}">
-
             {% csrf_token %}
 
             <button class="pay-btn" type="submit">
-
                 Pay {{ total }} points
-
             </button>
-
         </form>
 
 
         <div class="cancel">
-
             <a href="{% url 'pay_intent_cancel' intent_id %}">
                 Cancel and return
             </a>
-
         </div>
 
     </div>
-
 </div>
 
 
-
 <script>
-
 {% if not has_funds %}
 
-const expiresAt = new Date(
-    "{{ expires_at|date:'c' }}"
-).getTime();
+const expiresAt = new Date("{{ expires_at|date:'c' }}").getTime();
 
 function updateTimer() {
-
-    const now = new Date().getTime();
-    const diff = expiresAt - now;
+    const diff = expiresAt - Date.now();
 
     if (diff <= 0) {
-
-        document.getElementById("timer").innerText =
-            "Expired";
-
+        timer.innerText = "Expired";
         return;
     }
 
     const m = Math.floor(diff / 60000);
     const s = Math.floor((diff % 60000) / 1000);
 
-    document.getElementById("timer").innerText =
-        m + "m " + s + "s";
-
+    timer.innerText = m + "m " + s + "s";
 }
 
+const timer = document.getElementById("timer");
 setInterval(updateTimer, 1000);
 updateTimer();
 
 {% endif %}
-
 </script>
-
-
 
 </body>
 </html>
