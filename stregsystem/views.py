@@ -1,7 +1,7 @@
 import datetime
 import io
 import json
-from typing import List, Type
+from typing import List, Optional, Type
 
 import pytz
 import qrcode
@@ -44,6 +44,7 @@ from stregsystem.models import (
     NamedProduct,
     ApprovalModel,
     ProductNote,
+    TicketRecord,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -423,6 +424,39 @@ def menu_userrank(request, room_id, member_id):
     }
 
     return render(request, 'stregsystem/menu_userrank.html', locals())
+
+
+def menu_user_tickets(request, room_id, member_id):
+    room = Room.objects.get(pk=room_id)
+    member = Member.objects.get(pk=member_id, active=True)
+
+    all_ticket_purchases_current_member = TicketRecord.get_member_purchases(member).order_by(
+        "ticket__event_instance__start_time", "sale__timestamp"
+    )
+
+    purchase_paginator = Paginator(all_ticket_purchases_current_member, 5)
+    purchase_page_number = request.GET.get('purchase_table_index', 1)
+    purchase_page = purchase_paginator.get_page(purchase_page_number)
+
+    tickets_with_stand_by_queue: List[tuple[TicketRecord, Optional[int]]] = []
+    for ticket_purchase in purchase_page:
+        assert isinstance(ticket_purchase, TicketRecord), "Expected ticket purchase to be of type TicketRecord"
+        tickets_with_stand_by_queue.append((ticket_purchase, ticket_purchase.get_stand_by_queue_position()))
+
+    return render(request, "stregsystem/menu_user_tickets.html", locals())
+
+
+def refund_ticket(request, room_id, ticket_purchase_id):
+    room = Room.objects.get(pk=room_id)
+    ticket_purchase = get_object_or_404(TicketRecord, pk=ticket_purchase_id)
+
+    assert ticket_purchase.sale is not None, "Only sold tickets can be refunded"
+    member = ticket_purchase.sale.member
+
+    if request.method == "POST":
+        ticket_purchase.process_refund(None)
+
+    return redirect("user_tickets", room_id=room_id, member_id=member.pk)
 
 
 def menu_sale(request, room_id, member_id, product_id=None):

@@ -210,3 +210,7 @@ def rows_to_csv(rows) -> str:
     # Converting elements in rows to strings to ensure it can be written to the file object
     csv.writer(file).writerows([[str(item) for item in row] for row in rows])
     return file.data
+
+
+def get_bool_pretty(value: bool) -> str:
+    return "Ja" if value else "Nej"

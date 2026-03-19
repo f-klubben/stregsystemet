@@ -1,0 +1,83 @@
+{% extends "stregsystem/base.html" %}
+
+{% load stregsystem_extras %}
+
+{% block title %}Treoens stregsystem : User Tickets {% endblock %}
+
+{% block content %}
+
+<main class="center">
+    <h3>{{member.firstname}} {{member.lastname}} ({{member.email}})</h3>
+
+    <h2><a href="/{{room.id}}/sale/{{member.id}}">Tilbage til produktmenu</a></h2>
+
+    <h4>Billetter relateret til dig</h4>
+
+    <table class="default">
+        <tr>
+            <th>Event</th>
+            <th>Billet</th>
+            <th>Beskrivelse</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+        {% autoescape off %}
+        {% for ticket_record, stand_by_position in tickets_with_stand_by_queue %}
+            <tr style="text-align:center;">
+                <td>{{ ticket_record.ticket.event_instance.get_name }}</td>
+                <td>{{ ticket_record.ticket.name }}</td>
+                <td>{{ ticket_record.ticket.description }}</td>
+                <td>
+                    {% if stand_by_position is not None %}
+                        Reseveret ({{ stand_by_position }}. i køen)
+                    {% elif ticket_record.sale %}
+                        {% if ticket_record.sale.refunded_at is not None %}
+                            Refunderet
+                        {% else %}
+                            Udstedt
+                        {% endif %}
+                    {% else %}
+                        Udstedt af TREOen ({{ ticket_record.admin_issued_by.get_full_name }})
+                    {% endif %}
+                </td>
+                <td>
+                    {% if ticket_record.sale and ticket_record.sale.refunded_at is None %}
+                        <form method="post" action="/{{room.id}}/refund_ticket/{{ticket_record.pk}}/" onsubmit="return confirm('Er du sikker på, at du vil refundere billetten?');">              
+                            {% csrf_token %}
+                            <button type="submit">Refundér</button>
+                        </form>
+                    {% else %}
+                        -
+                    {% endif %}                
+            </tr>
+        {% empty %}
+            <tr style="text-align:center;">
+                <td colspan="5">Du har ikke købt nogen billetter :(<br/>Livet er bedre med F-Klub begivenheder :)</td>
+            </tr>
+        {% endfor %}
+        {% endautoescape %}
+    </table>
+
+    <div class="pagination">
+        <div>
+        {% if purchase_page.has_previous %}
+            <a href="?purchase_table_index={{ purchase_page.previous_page_number }}">Forrige</a>
+        {% else %}
+            Ingen Forrige        
+        {% endif %}
+        -
+        {% if purchase_page.has_next %}
+            <a href="?purchase_table_index={{ purchase_page.next_page_number }}">Næste</a>
+        {% else %}
+            Ingen Næste
+        {% endif %}
+        </div>
+        <div>
+            Side {{ purchase_page.number }} af {{ purchase_page.paginator.num_pages }}
+        </div>        
+    </div>
+
+
+
+{% endblock %}
+

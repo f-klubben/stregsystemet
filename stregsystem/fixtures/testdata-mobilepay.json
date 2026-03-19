@@ -334,7 +334,9 @@
     "product": 1,
     "room": 1,
     "timestamp": "2017-03-13T12:52:52.142Z",
-    "price": 100
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
   }
 },
 {
@@ -347,7 +349,9 @@
     "product": 2,
     "room": 1,
     "timestamp": "2017-03-13T12:54:12.423Z",
-    "price": 200
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
   }
 },
 {
@@ -360,7 +364,9 @@
     "product": 13,
     "room": 1,
     "timestamp": "2017-03-13T13:38:10.573Z",
-    "price": 300
+    "price": 300,
+    "refunded_at": null,
+    "refunded_by": null
   }
 },
 {
@@ -377,6 +383,7 @@
 },
 {
   "model": "auth.user",
+  "pk": 1,
   "fields": {
     "password": "pbkdf2_sha256$150000$fUAN4hBdKvOp$+1qkLByq1ae/ybzfplIUZnLQvQzHh2NrYLHvzg028Hc=",
     "last_login": "2023-08-26T21:41:15.174Z",
@@ -394,6 +401,7 @@
 },
 {
   "model": "auth.user",
+  "pk": 2,
   "fields": {
     "password": "pbkdf2_sha256$150000$iTYq6tgl0wkZ$sayKG1202U4C7vm6zdtogsSP+OxVoQZtoxtO1cXFWdg=",
     "last_login": null,
