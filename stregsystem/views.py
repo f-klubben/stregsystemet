@@ -864,28 +864,47 @@ def api_sale_intent(request):
         return HttpResponseBadRequest()
 
     data = json.loads(request.body)
+
+    # Parse productstring parameter
     product_string = str(data['productstring']).strip()
+
+    if product_string is None:
+        return HttpResponseBadRequest("Parameter missing: productstring")
+
+    _validate_buystring(product_string)
+
+    # Parse room_id parameter
     room_id = str(data['room_id']) or None
 
     if room_id is None:
         return HttpResponseBadRequest("Parameter missing: room_id")
     if not room_id.isdigit():
         return HttpResponseBadRequest("Parameter invalid: room_id")
-    if product_string is None:
-        return HttpResponseBadRequest("Parameter missing: productstring")
-
-    max_expires_in_seconds = int(data['max_expires_in_seconds']) or None
-    webhook_url = str(data['webhook_url']) or None
-
-    _validate_buystring(product_string)
 
     try:
         room = Room.objects.get(pk=room_id)
     except Room.DoesNotExist:
         return HttpResponseBadRequest("Room not found")
 
+    # Parse webhook_url parameter
+    webhook_url = str(data['webhook_url']) or None
+
+    if webhook_url == "":
+        webhook_url = None
+
+    # Parse max_expires_in_seconds parameter
+    max_expires_in_seconds = int(data['max_expires_in_seconds']) or -1
+
+    if max_expires_in_seconds == -1:
+        intent_life_span = datetime.timedelta(seconds=600)
+    else:
+        intent_life_span = datetime.timedelta(seconds=min(max_expires_in_seconds, 600))
+
     intent = _create_intent(
-        product_string, room, webhook_url, datetime.datetime.now() + datetime.timedelta(seconds=max_expires_in_seconds)
+        product_string,
+        room,
+        webhook_url,
+        datetime.datetime.now() + intent_life_span
     )
     response = {
         "id": intent.id,
