@@ -472,20 +472,18 @@ def menu_sale(request, room_id, member_id, product_id=None):
 
 
 def intent_confirm(request, intent_id):
-    context = {
-        "intent_id": intent_id,
-        "lines": [
-            {"name": "Product A", "qty": 2, "price": 50, "total": 100},
-        ],
-        "total": 150,
-        "balance": 80,
-        "has_funds": False,
-        "qr_code_url": "https://image.com/",  # only if not enough funds
-        "expires_at": datetime.datetime.now(),  # datetime
-        "member_name": "testuser",
-    }
+    lines = [{"name": "Product A", "qty": 2, "price": 50, "total": 100}]
 
-    return render(request, "modal/pay_confirm.html", context)
+    total = 150
+    balance = 80
+
+    has_funds = False
+    qr_code_url = "https://image.com/"  # only if not enough funds
+    expires_at = datetime.datetime.now()  # datetime
+    member_name = "testuser"
+    messages = []
+
+    return render(request, "modal/pay_confirm.html", locals())
 
 
 def intent_accept(request, intent_id):
