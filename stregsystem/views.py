@@ -481,8 +481,7 @@ def intent_confirm(request, intent_id):
     products = Product.objects.in_bulk(counts.keys())
 
     lines = [
-        {"name": p.name, "qty": counts[i], "price": p.price, "total": p.price * counts[i]}
-        for i, p in products.items()
+        {"name": p.name, "qty": counts[i], "price": p.price, "total": p.price * counts[i]} for i, p in products.items()
     ]
 
     checkout_total = sum(line["total"] for line in lines)
@@ -915,12 +914,7 @@ def api_sale_intent(request):
     else:
         intent_life_span = datetime.timedelta(seconds=min(max_expires_in_seconds, 600))
 
-    intent = _create_intent(
-        product_string,
-        room,
-        webhook_url,
-        datetime.datetime.now() + intent_life_span
-    )
+    intent = _create_intent(product_string, room, webhook_url, datetime.datetime.now() + intent_life_span)
     response = {
         "id": intent.id,
         "secret": intent.secret,
