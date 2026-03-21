@@ -1,43 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Checkout</title>
+{% extends "modal/modal_base.html" %}
 
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+{% block title %}Treoens stregsystem{% endblock %}
 
-        body {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: #f5f5f5;
-            font-family: system-ui, sans-serif;
-            font-size: 15px;
-            color: #111;
-            padding: 1rem;
-        }
-
-        .card {
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 2.5rem 2rem;
-            width: 100%;
-            max-width: 380px;
-        }
-
-        .title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-
-        .title > img {
-            width: 25px;
-        }
-
+{% block head %}
+        <style>
         .merchant {
             font-size: 14px;
             color: #6c7378;
@@ -120,16 +86,9 @@
             font-size: 13px;
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
-
-<div class="card">
-
-    <div class="title">
-        <img src="https://fklub.dk/_media/f-klubben.png"/>
-        TREOENs STREGSYSTEM
-    </div>
+{% block content %}
     <div class="merchant">Checkout</div>
 
     <div class="total">
@@ -193,33 +152,30 @@
         </a>
     </div>
 
-</div>
+    <script>
+    {% if not has_funds %}
 
-<script>
-{% if not has_funds %}
+    const expiresAt = new Date("{{ expires_at|date:'c' }}").getTime();
 
-const expiresAt = new Date("{{ expires_at|date:'c' }}").getTime();
+    function updateTimer() {
+        const diff = expiresAt - Date.now();
 
-function updateTimer() {
-    const diff = expiresAt - Date.now();
+        if (diff <= 0) {
+            timer.innerText = "Expired";
+            return;
+        }
 
-    if (diff <= 0) {
-        timer.innerText = "Expired";
-        return;
+        const m = Math.floor(diff / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+
+        timer.innerText = m + "m " + s + "s";
     }
 
-    const m = Math.floor(diff / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
+    const timer = document.getElementById("timer");
+    setInterval(updateTimer, 1000);
+    updateTimer();
 
-    timer.innerText = m + "m " + s + "s";
-}
+    {% endif %}
+    </script>
 
-const timer = document.getElementById("timer");
-setInterval(updateTimer, 1000);
-updateTimer();
-
-{% endif %}
-</script>
-
-</body>
-</html>
+{% endblock %}

@@ -485,7 +485,7 @@ def intent_confirm(request, intent_id):
         "member_name": "testuser",
     }
 
-    return render(request, "stregsystem/pay/confirm.html", context)
+    return render(request, "modal/pay_confirm.html", context)
 
 
 def intent_accept(request, intent_id):
