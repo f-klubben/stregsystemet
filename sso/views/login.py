@@ -60,7 +60,10 @@ class CustomLoginView(View):
 
     def _base_context(self, request) -> dict:
         next_url = request.GET.get("next") or request.POST.get("next", "/")
-        service_name = _get_client_from_next(next_url).name
+        if next_url == "":
+            service_name = _get_client_from_next(next_url).name
+        else:
+            service_name = None
 
         return {
             "next": next_url,
