@@ -4,30 +4,38 @@
     <title>Checkout</title>
 
     <style>
-        body {
-            margin: 0;
-            background: #f7f9fa;
-            font-family: Helvetica, Arial, sans-serif;
-            color: #2c2e2f;
-        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .wrapper {
-            width: 420px;
-            margin: 40px auto;
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f5;
+            font-family: system-ui, sans-serif;
+            font-size: 15px;
+            color: #111;
+            padding: 1rem;
         }
 
         .card {
             background: #fff;
-            border: 1px solid #e6e6e6;
-            border-radius: 8px;
-            padding: 24px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 2.5rem 2rem;
+            width: 100%;
+            max-width: 380px;
         }
 
-        .logo {
+        .title {
             font-size: 20px;
             font-weight: bold;
-            color: #003087;
             margin-bottom: 20px;
+        }
+
+        .title > img {
+            width: 25px;
         }
 
         .merchant {
@@ -116,75 +124,76 @@
 
 <body>
 
-<div class="wrapper">
-    <div class="card">
+<div class="card">
 
-        <div class="logo">BonusPay</div>
-        <div class="merchant">Checkout</div>
-
-        <div class="total">
-            {{ total }} points
-        </div>
-
-        <div class="section-title">Order summary</div>Checkout
-
-        <div class="lines">
-            {% for line in lines %}
-            <div class="line">
-                <div>{{ line.name }} × {{ line.qty }}</div>
-                <div>{{ line.total }}</div>
-            </div>
-            {% endfor %}
-        </div>
-
-
-        <div class="section-title">Pay with Bonus account</div>
-
-        <div class="balance-box">
-            <div class="balance">
-                Balance: {{ balance }} points
-            </div>
-
-            {% if has_funds %}
-                <div class="ok">Sufficient balance</div>
-            {% else %}
-                <div class="missing">
-                    Not enough points — top up to continue
-                </div>
-            {% endif %}
-        </div>
-
-
-        {% if not has_funds %}
-        <div class="qr">
-            <p>Scan to top up</p>
-            <img src="{{ qr_code_url }}">
-            <div class="timer">
-                Time left: <span id="timer"></span>
-            </div>
-        </div>
-        {% endif %}
-
-
-        <form method="post"
-              action="{% url 'pay_intent_accept' intent_id %}">
-            {% csrf_token %}
-
-            <button class="pay-btn" type="submit">
-                Pay {{ total }} points
-            </button>
-        </form>
-
-
-        <div class="cancel">
-            <a href="{% url 'pay_intent_cancel' intent_id %}">
-                Cancel and return
-            </a>
-        </div>
-
+    <div class="title">
+        <img src="https://fklub.dk/_media/f-klubben.png"/>
+        TREOENs STREGSYSTEM
     </div>
-</div>
+    <div class="merchant">Checkout</div>
 
+    <div class="total">
+        {{ total }} FS
+    </div>
+
+    <div class="section-title">Ordre</div>
+    Buystring: {{ buystring }}
+
+    <div class="lines">
+        {% for line in lines %}
+        <div class="line">
+            <div>{{ line.name }} × {{ line.qty }}</div>
+            <div>{{ line.total }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+
+    <div class="section-title">Betal med Stregbruger</div>
+
+    <div class="balance-box">
+        <div class="balance">
+            Saldo: {{ member.balance }} FS
+        </div>
+
+        {% if has_funds %}
+            <div class="ok"></div>
+        {% else %}
+            <div class="missing">
+                Ikke nok stregdollars - indbetal manglende dollars
+            </div>
+        {% endif %}
+    </div>
+
+
+    {% if not has_funds %}
+    <div class="qr">
+        <p>Scan to top up</p>
+        <img src="{{ qr_code_url }}">
+        <div class="timer">
+            Time left: <span id="timer"></span>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <form method="post"
+          action="{% url 'pay_intent_accept' intent_id %}">
+        {% csrf_token %}
+
+        <button class="pay-btn" type="submit">
+            Pay {{ total }} points
+        </button>
+    </form>
+
+
+    <div class="cancel">
+        <a href="{% url 'pay_intent_cancel' intent_id %}">
+            Cancel and return
+        </a>
+    </div>
+
+</div>
 
 <script>
 {% if not has_funds %}
