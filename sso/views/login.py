@@ -158,7 +158,7 @@ class CustomLoginView(View):
 
 
 class ResendOTPView(View):
-    template_name = "sso/login.html"
+    template_name = "modal/login.html"
 
     def post(self, request):
         username = request.POST.get("username", "").strip()
