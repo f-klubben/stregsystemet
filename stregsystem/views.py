@@ -14,6 +14,7 @@ from collections import (
 )
 
 from django.core.paginator import Paginator
+from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.core import management
@@ -472,16 +473,32 @@ def menu_sale(request, room_id, member_id, product_id=None):
 
 
 def intent_confirm(request, intent_id):
-    lines = [{"name": "Product A", "qty": 2, "price": 50, "total": 100}]
+    buystring = "lowdough 14:3 16 1904"
+    username, bought_ids = parser.parse(_pre_process(buystring))
+    member = Member.objects.get(username__iexact=username, active=True)
 
-    total = 150
-    balance = 80
+    counts = Counter(bought_ids)
+    products = Product.objects.in_bulk(counts.keys())
 
-    has_funds = False
-    qr_code_url = "https://image.com/"  # only if not enough funds
-    expires_at = datetime.datetime.now()  # datetime
-    member_name = "testuser"
-    messages = []
+    lines = [
+        {"name": p.name, "qty": counts[i], "price": p.price, "total": p.price * counts[i]}
+        for i, p in products.items()
+    ]
+
+    checkout_total = sum(line["total"] for line in lines)
+
+    expires_at = datetime.datetime.now() + datetime.timedelta(hours=1)
+
+    after_purchase_balance = member.balance - checkout_total
+    has_funds = after_purchase_balance > 0
+    suggested_topup = 0
+
+    if after_purchase_balance < 0:
+        suggested_topup = 50
+        messages.warning(request, "Ikke nok stregdollars - indbetal manglende stregdollars")
+    elif after_purchase_balance < 5000:
+        suggested_topup = 50
+        messages.info(request, "Du har ikke så mange stregdollars tilbage")
 
     return render(request, "modal/pay_confirm.html", locals())
 

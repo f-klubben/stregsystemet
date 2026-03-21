@@ -1,4 +1,5 @@
 {% extends "modal/modal_base.html" %}
+{% load stregsystem_extras mobilepay_qr %}
 
 {% block title %}Treoens stregsystem{% endblock %}
 
@@ -50,29 +51,27 @@
             margin-top: 10px;
         }
 
-        .qr img { width: 180px; }
+        .qr img { height: 180px; }
 
         .timer {
-            font-size: 13px;
             color: #c23934;
-            margin-top: 4px;
         }
 
         .pay-btn {
-            width: 100%;
-            margin-top: 20px;
-            background: #0070ba;
-            color: #fff;
-            border: none;
-            border-radius: 24px;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
+            width: 100% !important;
+            margin-top: 20px !important;
+            background: #0070ba !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 24px !important;
+            padding: 12px !important;
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
         }
 
         .pay-btn:hover {
-            background: #005ea6;
+            background: #005ea6 !important;
         }
 
         .cancel {
@@ -92,17 +91,17 @@
     <div class="merchant">Checkout</div>
 
     <div class="total">
-        {{ total }} FS
+        {{ checkout_total|money }} 𝓕$
     </div>
 
     <div class="section-title">Ordre</div>
-    Buystring: {{ buystring }}
+    <math>{{ buystring }}</math>
 
     <div class="lines">
         {% for line in lines %}
         <div class="line">
             <div>{{ line.name }} × {{ line.qty }}</div>
-            <div>{{ line.total }}</div>
+            <div>{{ line.total|money }} 𝓕$</div>
         </div>
         {% endfor %}
     </div>
@@ -111,26 +110,25 @@
     <div class="section-title">Betal med Stregbruger</div>
 
     <div class="balance-box">
-        <div class="balance">
-            Saldo: {{ member.balance }} FS
+        <div class="balance {{ has_funds|yesno:"ok,missing" }}">
+            Saldo før køb: {{ member.balance|money }} 𝓕$ <br />
+            Saldo efter køb: {{ after_purchase_balance|money }} 𝓕$
         </div>
-
-        {% if has_funds %}
-            <div class="ok"></div>
-        {% else %}
-            <div class="missing">
-                Ikke nok stregdollars - indbetal manglende dollars
-            </div>
-        {% endif %}
     </div>
 
 
-    {% if not has_funds %}
+    {% if suggested_topup != 0 %}
     <div class="qr">
-        <p>Scan to top up</p>
-        <img src="{{ qr_code_url }}">
+        <p>Scan for at indsætte penge</p>
+        <div>
+            <b>{{suggested_topup | floatformat:2}} kr.</b>
+            <br /><br />
+            <a href="mobilepay://send?phone=90601&comment={{ member.username }}&amount={{ suggested_topup }}">
+              {% mobilepay_qr member.username suggested_topup %}
+            </a>
+        </div>
         <div class="timer">
-            Time left: <span id="timer"></span>
+            Tid før anmodningen udløber: <span id="timer"></span>
         </div>
     </div>
     {% endif %}
@@ -141,14 +139,14 @@
         {% csrf_token %}
 
         <button class="pay-btn" type="submit">
-            Pay {{ total }} points
+            {{ has_funds|yesno:"Betal,Jeg har sendt" }} {{ checkout_total|money }} 𝓕$
         </button>
     </form>
 
 
     <div class="cancel">
         <a href="{% url 'pay_intent_cancel' intent_id %}">
-            Cancel and return
+            Annullér
         </a>
     </div>
 
