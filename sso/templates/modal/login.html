@@ -27,40 +27,6 @@
       margin-bottom: 1.25rem;
     }
 
-    /* Messages */
-    .messages { list-style: none; margin-bottom: 1rem; }
-    .messages li {
-      font-size: .875rem;
-      padding: .6rem .85rem;
-      border-radius: 6px;
-      margin-bottom: .4rem;
-    }
-    .messages .error { background: #fff0f0; color: #c0392b; border: 1px solid #fcc; }
-    .messages .info  { background: #f0faf5; color: #1a7f4b; border: 1px solid #b2e5cc; }
-
-    /* Fields */
-    label {
-      display: block;
-      font-size: .8rem;
-      font-weight: 500;
-      color: #444;
-      margin-bottom: .35rem;
-      letter-spacing: .03em;
-      text-transform: uppercase;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: .65rem .8rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: .95rem;
-      outline: none;
-      transition: border-color .15s;
-      margin-bottom: 1rem;
-    }
-    input[type="text"]:focus { border-color: #4a7cf7; }
-
     /* OTP grid */
     .otp-row {
       display: flex;
@@ -89,21 +55,6 @@
       color: #8a6200;
       pointer-events: none;
     }
-
-    /* Submit */
-    button[type="submit"] {
-      width: 100%;
-      padding: .7rem;
-      background: #1a1a1a;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      font-size: .95rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background .15s;
-    }
-    button[type="submit"]:hover { background: #333; }
 
     /* Utility row below form */
     .form-footer {
@@ -146,14 +97,6 @@
   <div class="sso-banner">
     Log ind for at fortsætte til <strong>{{ service_name|default:"the connected service" }}</strong>
   </div>
-  {% endif %}
-
-  {% if messages %}
-  <ul class="messages">
-    {% for message in messages %}
-    <li class="{{ message.tags }}">{{ message }}</li>
-    {% endfor %}
-  </ul>
   {% endif %}
 
   {% if stage == 1 or not stage %}
