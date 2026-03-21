@@ -1,42 +1,9 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Log ind{% if service_name %} — {{ service_name }}{% endif %}</title>
+{% extends "modal/modal_base.html" %}
+
+{% block title %}Log ind{% if service_name %} — {{ service_name }}{% endif %}{% endblock %}
+
+{% block head %}
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #f5f5f5;
-      font-family: system-ui, sans-serif;
-      font-size: 15px;
-      color: #111;
-      padding: 1rem;
-    }
-
-    .card {
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      padding: 2.5rem 2rem;
-      width: 100%;
-      max-width: 380px;
-    }
-
-    .title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 1.75rem;
-      color: #111;
-    }
-
     h1 {
       font-size: 1.3rem;
       font-weight: 600;
@@ -172,14 +139,9 @@
     .stage-dots .active  { background: #4a7cf7; width: 28px; }
     .stage-dots .done    { background: #2ecc71; }
   </style>
-</head>
-<body>
-<div class="card">
+{% endblock %}
 
-  <div class="title">
-    TREOENs STREGSYSTEM
-  </div>
-
+{% block content %}
   {% if service_name or next %}
   <div class="sso-banner">
     Log ind for at fortsætte til <strong>{{ service_name|default:"the connected service" }}</strong>
@@ -260,8 +222,6 @@
 
   {% endif %}
 
-</div>
-
 <script>
 (function () {
   const grid = document.getElementById('otp-grid');
@@ -312,5 +272,4 @@
   }, 1000);
 })();
 </script>
-</body>
-</html>
+{% endblock %}
