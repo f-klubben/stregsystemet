@@ -8,3 +8,9 @@ authors = [
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
 readme = "README.md"
+
+[tool.migratefixture.next]
+kiosk = "0011_rename_uploaded_date_kioskitem_created_at"
+razzia = "0003_razzia_created_at_razzia_updated_at"
+stregreport = "0009_rename_razziaentry_razziaentryold"
+stregsystem = "0024_alter_productnote_products"
