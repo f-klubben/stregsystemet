@@ -977,6 +977,14 @@ def api_quicksale(request, room, member: Member, bought_ids):
     if status != 200:
         return msg, status, result
 
+    return (
+        "OK",
+        200 if len(bought_ids) > 0 else 201,
+        __sale_details_as_dict(member, room, products, order, now, bought_ids),
+    )
+
+
+def __sale_details_as_dict(member, room, products, order, now, bought_ids):
     (
         promille,
         is_ballmer_peaking,
@@ -993,31 +1001,27 @@ def api_quicksale(request, room, member: Member, bought_ids):
         member_balance,
     ) = __set_local_values(member, room, products, order, now)
 
-    return (
-        "OK",
-        200 if len(bought_ids) > 0 else 201,
-        {
-            'order': {
-                'room': order.room.id,
-                'member': order.member.id,
-                'created_on': order.created_on,
-                'items': bought_ids,
-            },
-            'promille': promille,
-            'is_ballmer_peaking': is_ballmer_peaking,
-            'bp_minutes': bp_minutes,
-            'bp_seconds': bp_seconds,
-            'caffeine': caffeine,
-            'cups': cups,
-            'product_contains_caffeine': product_contains_caffeine,
-            'is_coffee_master': is_coffee_master,
-            'cost': cost(),
-            'give_multibuy_hint': give_multibuy_hint,
-            'sale_hints': sale_hints,
-            'member_has_low_balance': member_has_low_balance,
-            'member_balance': member_balance,
+    return {
+        'order': {
+            'room': order.room.id,
+            'member': order.member.id,
+            'created_on': order.created_on,
+            'items': bought_ids,
         },
-    )
+        'promille': promille,
+        'is_ballmer_peaking': is_ballmer_peaking,
+        'bp_minutes': bp_minutes,
+        'bp_seconds': bp_seconds,
+        'caffeine': caffeine,
+        'cups': cups,
+        'product_contains_caffeine': product_contains_caffeine,
+        'is_coffee_master': is_coffee_master,
+        'cost': cost(),
+        'give_multibuy_hint': give_multibuy_hint,
+        'sale_hints': sale_hints,
+        'member_has_low_balance': member_has_low_balance,
+        'member_balance': member_balance,
+    }
 
 
 def __append_bought_ids_to_product_list(products, bought_ids, time_now, room):
