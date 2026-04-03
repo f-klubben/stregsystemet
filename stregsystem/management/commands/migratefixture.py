@@ -45,4 +45,4 @@ class Command(BaseCommand):
         with open("pyproject.toml", "rb") as f:
             data = tomllib.load(f)
 
-        return data["tool"]["migratefixture"]["next"]
+        return data["tool"]["migratefixture"]["targets"]
