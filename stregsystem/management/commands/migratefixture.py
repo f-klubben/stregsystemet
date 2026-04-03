@@ -95,6 +95,7 @@ class Command(BaseCommand):
         data["tool"]["migratefixture"]["targets"] = new_targets
 
         import tomli_w
+
         with open("pyproject.toml", "wb") as f:
             tomli_w.dump(data, f)
 
