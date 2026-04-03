@@ -11,9 +11,18 @@ class Command(BaseCommand):
     help = "Migrate fixtures stored as /**/fixtures/*.json"
 
     def add_arguments(self, parser):
-        parser.add_argument("--fixture", required=True)
+        parser.add_argument("--fixture", required=False)
+        parser.add_argument("--update-targets", action="store_true", default=False)
 
     def handle(self, *args, **opts):
+        if opts["update_targets"]:
+            self.update_targets()
+            return
+
+        if not opts["fixture"]:
+            self.stderr.write("Error: --fixture is required, or --update-targets is required")
+            return
+
         tmp = tempfile.NamedTemporaryFile(suffix=".sqlite3", delete=False)
         tmp.close()
 
@@ -65,3 +74,28 @@ class Command(BaseCommand):
             data = tomllib.load(f)
 
         return data["tool"]["migratefixture"]["targets"]
+
+    def update_targets(self):
+        from django.db.migrations.loader import MigrationLoader
+        from django.db import connection
+
+        loader = MigrationLoader(connection)
+        targets = self.load_targets()
+
+        new_targets = {}
+        for app in targets:
+            leaves = [key for key in loader.graph.leaf_nodes() if key[0] == app]
+            if leaves:
+                new_targets[app] = leaves[0][1]
+                self.stdout.write(f"{app} -> {leaves[0][1]}")
+
+        with open("pyproject.toml", "rb") as f:
+            data = tomllib.load(f)
+
+        data["tool"]["migratefixture"]["targets"] = new_targets
+
+        import tomli_w
+        with open("pyproject.toml", "wb") as f:
+            tomli_w.dump(data, f)
+
+        self.stdout.write(self.style.SUCCESS("Updated pyproject.toml targets"))

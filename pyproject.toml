@@ -3,11 +3,13 @@ name = "stregsystemet"
 version = "2.6.5"
 description = "The Stregsystem is used at F-Klubben to pay for goods bought at Strandvejen and for signup to various events held by F-klubben."
 authors = [
-  { name = "FIT" }
+    { name = "FIT" },
 ]
-license = { file = "LICENSE" }
 requires-python = ">=3.10"
 readme = "README.md"
+
+[project.license]
+file = "LICENSE"
 
 [tool.migratefixture.targets]
 kiosk = "0011_rename_uploaded_date_kioskitem_created_at"
