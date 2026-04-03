@@ -62,7 +62,6 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS('Finished migrating fixtures'))
         finally:
             connections["default"].close()
-            del settings.DATABASES["_fixture_migration"]
             os.unlink(tmp.name)
 
     def load_targets(self):
