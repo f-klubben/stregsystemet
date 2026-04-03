@@ -16,6 +16,8 @@ import qrcode.image.svg
 
 import urllib.parse
 
+from oauth2_provider.models import AccessToken, RefreshToken, Application
+
 logger = logging.getLogger(__name__)
 
 
@@ -210,3 +212,41 @@ def rows_to_csv(rows) -> str:
     # Converting elements in rows to strings to ensure it can be written to the file object
     csv.writer(file).writerows([[str(item) for item in row] for row in rows])
     return file.data
+
+
+def get_user_oauth_sessions(user):
+    tokens = (
+        RefreshToken.objects
+        .filter(user=user) # , revoked__gt=timezone.now()
+        .select_related("application")
+    )
+
+    sessions = []
+
+    for t in tokens:
+        access_token = t.access_token
+        sessions.append({
+            "id": t.id,
+            "application": access_token.application.name if t.application else None,
+            "scope": access_token.scope if access_token else None,
+        })
+
+    return sessions
+
+
+def revoke_refresh_token(refresh_token):
+    try:
+        rt = RefreshToken.objects.select_related("access_token").get(
+            id=refresh_token.pk,
+        )
+
+        # mark refresh token revoked
+        rt.revoked = timezone.now()
+        rt.save(update_fields=["revoked"])
+
+        # remove access token if exists
+        if rt.access_token:
+            rt.access_token.delete()
+
+    except RefreshToken.DoesNotExist:
+        pass

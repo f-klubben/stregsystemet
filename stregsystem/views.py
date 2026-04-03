@@ -55,6 +55,7 @@ from stregsystem.utils import (
     parse_csv_and_create_mobile_payments,
     PaymentToolException,
     make_unprocessed_signups_query,
+    get_user_oauth_sessions,
 )
 
 from .booze import ballmer_peak
@@ -287,10 +288,26 @@ def menu_userinfo(request, room_id, member_id):
     except IndexError:
         last_payment = None
 
+    if member.paired_user:
+        session_list = get_user_oauth_sessions(member.paired_user)
+    else:
+        session_list = None
+
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()
 
     return render(request, 'stregsystem/menu_userinfo.html', locals())
+
+
+def menu_userinfo_revoke(request, room_id, member_id):
+    session_id = request.POST.get("session_id")
+
+    if session_id:
+        # do your backend action
+        print("Revoke", session_id)
+
+
+    return redirect(request.META.get("HTTP_REFERER", "/"))
 
 
 def send_userdata(request, room_id, member_id):
