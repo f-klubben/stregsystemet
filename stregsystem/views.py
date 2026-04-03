@@ -472,10 +472,17 @@ def menu_sale(request, room_id, member_id, product_id=None):
     return usermenu(request, room, member, product, from_sale=True)
 
 
-def intent_confirm(request, intent_id):
-    buystring = "lowdough 14:3 16 1904"
+def intent_confirmation(request, intent_id):
+    # Retrieve member from authentication
+    member = Member.objects.get(username__iexact="lowdough", active=True)
+
+    try:
+        intent = Intent.objects.get(id=intent_id)
+    except Intent.DoesNotExist:
+        raise
+
+    buystring = member.username + " " + intent.buystring
     username, bought_ids = parser.parse(_pre_process(buystring))
-    member = Member.objects.get(username__iexact=username, active=True)
 
     counts = Counter(bought_ids)
     products = Product.objects.in_bulk(counts.keys())
