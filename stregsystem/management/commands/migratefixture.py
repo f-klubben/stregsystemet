@@ -17,11 +17,7 @@ class Command(BaseCommand):
         tmp = tempfile.NamedTemporaryFile(suffix=".sqlite3", delete=False)
         tmp.close()
 
-        settings.DATABASES["default"] = {
-            **settings.DATABASES["default"],
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": tmp.name,
-        }
+        settings.DATABASES["default"]["NAME"] = tmp.name
 
         try:
             fixture = opts["fixture"]
