@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
+import json
+import uuid
 from collections import Counter
 from copy import deepcopy
 from unittest import mock
@@ -43,6 +45,7 @@ from stregsystem.models import (
     NamedProduct,
     ApprovalModel,
     ProductNote,
+    Intent,
 )
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
@@ -2306,3 +2309,74 @@ class DateAttributeTestCase(TestCase):
             member.save()
             self.assertEqual(member.created_at, now)
             self.assertEqual(member.updated_at, now2)
+
+
+class ApiSaleIntentTests(TestCase):
+    def setUp(self):
+        self.url = reverse("api_sale_intent")
+        self.room = Room.objects.create(name="Test Room")
+        self.valid_payload = {
+            "productstring": "product123",
+            "room_id": str(self.room.pk),
+            "webhook_url": "https://example.com/webhook",
+            "max_expires_in_seconds": 300,
+        }
+
+    def test_get_returns_400(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 400)
+
+    def test_put_returns_400(self):
+        response = self.client.put(self.url)
+        self.assertEqual(response.status_code, 400)
+
+    def test_delete_returns_400(self):
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, 400)
+
+    def _post(self, payload):
+        return self.client.post(
+            self.url,
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+
+    def test_valid_request_returns_201(self):
+        response = self._post(self.valid_payload)
+        self.assertEqual(response.status_code, 201)
+
+    def test_valid_request_creates_intent(self):
+        self._post(self.valid_payload)
+        self.assertEqual(Intent.objects.count(), 1)
+
+    def test_response_contains_expected_keys(self):
+        response = self._post(self.valid_payload)
+        body = response.json()
+        for key in ("id", "secret", "status", "confirmation_url", "expires_at", "productstring", "room_id"):
+            self.assertIn(key, body)
+
+    def test_response_productstring_matches_input(self):
+        response = self._post(self.valid_payload)
+        self.assertEqual(response.json()["productstring"], self.valid_payload["productstring"])
+
+    def test_response_room_id_matches_input(self):
+        response = self._post(self.valid_payload)
+        self.assertEqual(response.json()["room_id"], str(self.room.pk))
+
+    def test_response_status_is_pending(self):
+        response = self._post(self.valid_payload)
+        self.assertEqual(response.json()["status"], Intent.PENDING)
+
+    def test_response_id_is_valid_uuid(self):
+        response = self._post(self.valid_payload)
+        body = response.json()
+        uuid.UUID(body["id"])  # raises ValueError if invalid
+
+    def test_response_secret_is_valid_uuid(self):
+        response = self._post(self.valid_payload)
+        uuid.UUID(response.json()["secret"])
+
+    def test_confirmation_url_contains_intent_id(self):
+        response = self._post(self.valid_payload)
+        body = response.json()
+        self.assertIn(body["id"], body["confirmation_url"])
