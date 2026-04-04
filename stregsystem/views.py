@@ -943,7 +943,9 @@ def api_sale_intent(request):
     data = json.loads(request.body)
 
     # Parse productstring parameter
-    product_string = str(data['productstring']).strip()
+    product_string = None
+    if 'product_string' in data:
+        product_string = str(data['product_string']).strip()
 
     if product_string is None:
         return HttpResponseBadRequest("Parameter missing: productstring")
@@ -951,7 +953,9 @@ def api_sale_intent(request):
     _validate_buystring(product_string)
 
     # Parse room_id parameter
-    room_id = str(data['room_id']) or None
+    room_id = None
+    if 'room_id' in data:
+        room_id = str(data['room_id']) or None
 
     if room_id is None:
         return HttpResponseBadRequest("Parameter missing: room_id")
@@ -964,13 +968,17 @@ def api_sale_intent(request):
         return HttpResponseBadRequest("Room not found")
 
     # Parse webhook_url parameter
-    webhook_url = str(data['webhook_url']) or None
+    webhook_url = None
+    if 'webhook_url' in data:
+        webhook_url = str(data['webhook_url']).strip() or None
 
     if webhook_url == "":
         webhook_url = None
 
     # Parse return_url parameter
-    return_url = str(data['return_url']) or None
+    return_url = None
+    if 'return_url' in data:
+        return_url = str(data['return_url']).strip() or None
 
     if return_url == "":
         return_url = None
