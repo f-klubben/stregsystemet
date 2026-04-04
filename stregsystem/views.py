@@ -1032,6 +1032,40 @@ def _create_intent(product_string, room, webhook_url, return_url, expires_at):
     )
 
 
+def api_sale_intent_status(request, intent_id):
+    try:
+        intent = Intent.objects.get(id=intent_id)
+    except Intent.DoesNotExist:
+        raise Http404
+
+    details = {}
+    if intent.status == Intent.INITIATED:
+        pass
+    elif intent.status == Intent.PENDING:
+        pass
+    elif intent.status == Intent.ABORTED:
+        pass
+    elif intent.status == Intent.FINALIZED:
+        order = Order.from_buystring(intent.buy_string, intent.room, intent.created_at)
+        details = __sale_details_as_dict(
+            intent.member, intent.room, order.products, order, order.created_on, order.get_bought_ids()
+        )
+    elif intent.status == Intent.CANCELLED:
+        raise Http404
+    elif intent.status == Intent.EXPIRED:
+        pass
+
+    return JsonResponse(
+        {
+            "status": intent.status,  # or similar. But not "deleted", that will return 404
+            "expires_at": intent.expires_at,
+            "fulfilled_at": intent.fulfilled_at,
+            "details": details,
+        },
+        json_dumps_params={'ensure_ascii': False},
+    )
+
+
 def api_quicksale(request, room, member: Member, bought_ids):
     now = timezone.now()
 

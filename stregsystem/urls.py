@@ -47,4 +47,5 @@ urlpatterns = [
     re_path(r'^api/products/category_mappings$', views.get_product_category_mappings, name="api_product_mappings"),
     re_path(r'^api/sale$', views.api_sale, name="api_sale"),
     re_path(r'^api/sale/intent$', views.api_sale_intent, name="api_sale_intent"),
+    re_path(r'^api/sale/intent/<uuid:intent_id>$', views.api_sale_intent_status, name="api_sale_intent_status"),
 ]

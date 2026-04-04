@@ -189,6 +189,22 @@ paths:
           $ref: '#/components/responses/SaleIntentCreated'
         '400':
           $ref: '#/components/responses/RoomIdParameter_BadResponse'
+  /api/sale/intent/{intent_id}:
+    get:
+      tags:
+        - Sale Intent
+      summary: Get sale intent status
+      description: |-
+        Returns the current status of a sale intent. Consumers can poll this endpoint
+        as an alternative (or complement) to waiting for the webhook callback.
+      operationId: api_sale_intent_get
+      parameters:
+        - $ref: '#/components/parameters/intent_id_param'
+      responses:
+        '200':
+          $ref: '#/components/responses/SaleIntentStatus'
+        '404':
+          $ref: '#/components/responses/SaleIntentNotFound'
 components:
   examples:
     MemberNotFoundExample:
@@ -501,10 +517,10 @@ components:
     sale_intent_input:
       type: object
       required:
-        - productstring
+        - product_string
         - room_id
       properties:
-        productstring:
+        product_string:
           $ref: '#/components/schemas/productstring'
         room_id:
           $ref: '#/components/schemas/room_id'
@@ -566,10 +582,6 @@ components:
     sale_intent_status_response:
       type: object
       properties:
-        intent_id:
-          $ref: '#/components/schemas/intent_id'
-        intent_secret:
-          $ref: '#/components/schemas/intent_secret'
         status:
           $ref: '#/components/schemas/intent_status'
         expires_at:
@@ -577,37 +589,15 @@ components:
           format: date-time
           nullable: true
           example: "2024-05-12T18:31:09.508Z"
-        productstring:
-          $ref: '#/components/schemas/productstring'
-        room_id:
-          $ref: '#/components/schemas/room_id'
-        sale_result:
-          description: Populated only when `status` is `finalized`. Contains the same payload as a direct `/api/sale` success response.
-          nullable: true
-          allOf:
-            - $ref: '#/components/schemas/sale_values_result_example'
-    sale_intent_webhook_payload:
-      type: object
-      description: |-
-        Payload POSTed to the consumer's `webhook_url` when a sale intent is resolved.
-        Consumers should respond with HTTP 2xx to acknowledge receipt. Stregsystem will
-        retry up to 3 times with exponential back-off if a non-2xx response is received.
-      properties:
-        intent_id:
-          $ref: '#/components/schemas/intent_id'
-        status:
-          $ref: '#/components/schemas/intent_status'
-        productstring:
-          $ref: '#/components/schemas/productstring'
-        room:
-          $ref: '#/components/schemas/room_id'
-        resolved_at:
+        fulfilled_at:
           type: string
           format: date-time
-          description: Timestamp at which the intent transitioned to its final state.
-          example: "2024-05-12T18:29:44.123Z"
-        sale_result:
-          description: Present only when `status` is `finalized`.
+          nullable: true
+          example: "2024-05-12T18:31:09.508Z"
+        product_string:
+          $ref: '#/components/schemas/productstring'
+        details:
+          description: Populated only when `status` is `finalized`. Contains the same payload as a direct `/api/sale` success response.
           nullable: true
           allOf:
             - $ref: '#/components/schemas/sale_values_result_example'
