@@ -647,7 +647,7 @@ class ProductNote(BaseModel):
     Such as a note stating that the product is new for the first couple of weeks.
     """
 
-    products = models.ManyToManyField(Product)
+    products = models.ManyToManyField(Product, blank=True)
     rooms = models.ManyToManyField(Room, blank=True)
     text = models.TextField()
     active = models.BooleanField(default=True)
