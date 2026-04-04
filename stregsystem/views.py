@@ -483,7 +483,7 @@ def intent_confirmation(request, intent_id):
     except Intent.DoesNotExist:
         raise
 
-    buystring = member.username + " " + intent.buystring
+    buystring = member.username + " " + intent.product_string
     username, bought_ids = parser.parse(_pre_process(buystring))
 
     counts = Counter(bought_ids)
@@ -990,7 +990,7 @@ def api_sale_intent(request):
         "status": intent.status,
         "confirmation_url": _get_confirmation_url(request, intent.id),
         "expires_at": intent.expires_at,
-        "productstring": product_string,
+        "product_string": product_string,
         "room_id": room_id,
     }
     return JsonResponse(response, json_dumps_params={'ensure_ascii': False}, status=201)
@@ -1014,13 +1014,13 @@ def _validate_buystring(buy_string) -> bool:
         return False
 
 
-def _create_intent(buystring, room, webhook_url, return_url, expires_at):
+def _create_intent(product_string, room, webhook_url, return_url, expires_at):
     return Intent.objects.create(
         webhook_url=webhook_url,
         return_url=return_url,
         room=room,
         expires_at=expires_at,
-        buystring=buystring,
+        product_string=product_string,
     )
 
 

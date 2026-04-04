@@ -2365,7 +2365,7 @@ class ApiSaleIntentTests(TestCase):
 
     def test_response_status_is_pending(self):
         response = self._post(self.valid_payload)
-        self.assertEqual(response.json()["status"], Intent.PENDING)
+        self.assertEqual(response.json()["status"], Intent.INITIATED)
 
     def test_response_id_is_valid_uuid(self):
         response = self._post(self.valid_payload)

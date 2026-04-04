@@ -170,7 +170,7 @@ paths:
         - Sale Intent
       summary: Create a sale intent
       description: |-
-        Creates a pending sale intent on behalf of a consumer. No money is transferred at
+        Creates a sale intent on behalf of a consumer. No money is transferred at
         this point. The response contains a `confirmation_url` that should be presented to
         the member (e.g. opened in a popup window, similar to PayPal's checkout flow).
         The member logs in at that URL and either confirms or rejects the purchase.
@@ -484,20 +484,20 @@ components:
       type: string
       description: |-
         Lifecycle state of the sale intent.
-        - `pending`   – Created, awaiting member confirmation.
-        - `confirmed` – Member approved sale, waiting to be finalized.
+        - `initiated` – Created, awaiting member confirmation.
+        - `pending`   – Member approved sale, waiting to be finalized.
         - `aborted`   – Member declined at the confirmation page.
         - `finalized` – Sale has been executed.
-        - `removed`   – Consumer cancelled via DELETE before confirmation.
+        - `cancelled` – Consumer cancelled via DELETE before confirmation, or payment provider cancelled.
         - `expired`   – Member did not act within the TTL window.
       enum:
+        - initiated
         - pending
-        - confirmed
         - aborted
         - finalized
-        - removed
+        - cancelled
         - expired
-      example: pending
+      example: initiated
     sale_intent_input:
       type: object
       required:
@@ -572,12 +572,6 @@ components:
           $ref: '#/components/schemas/intent_secret'
         status:
           $ref: '#/components/schemas/intent_status'
-        confirmation_url:
-          type: string
-          format: uri
-          description: The confirmation URL (only present while status is `pending`).
-          example: "https://stregsystem.fklub.dk/sale/confirm/a3f2c1d4-88b0-4e2a-9c3e-1f5b6d7e8a9b"
-          nullable: true
         expires_at:
           type: string
           format: date-time

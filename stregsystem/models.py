@@ -766,29 +766,38 @@ class Sale(BaseModel):
 class Intent(BaseModel):
     id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
     secret = models.UUIDField(default=uuid.uuid4, editable=False)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    expires_at = models.DateTimeField()
+    product_string = models.TextField()
     webhook_url = models.URLField(blank=True, null=True)
     return_url = models.URLField(blank=True, null=True)
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, null=True)
-    expires_at = models.DateTimeField()
-    buystring = models.TextField()
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True)
+    fulfilled_at = models.DateTimeField(null=True, blank=True)
 
+    INITIATED = 'I'
     PENDING = 'P'
-    CONFIRMED = 'C'
-    ABORTED = 'A'
     FINALIZED = 'F'
-    REMOVED = 'R'
+    ABORTED = 'A'
+    CANCELLED = 'C'
     EXPIRED = 'E'
 
     INTENT_CHOICES = (
+        (INITIATED, 'Initiated'),
         (PENDING, 'Pending'),
-        (CONFIRMED, 'Confirmed'),
-        (ABORTED, 'Aborted'),
         (FINALIZED, 'Finalized'),
-        (REMOVED, 'Removed'),
+        (ABORTED, 'Aborted'),
+        (CANCELLED, 'Cancelled'),
         (EXPIRED, 'Expired'),
     )
 
     status = models.CharField(max_length=1, choices=INTENT_CHOICES, default=PENDING)
+
+    @property
+    def buy_string(self):
+        if not self.member:
+            raise Member.DoesNotExist
+
+        return f"{self.member.username} {self.product_string}"
 
 
 # XXX
