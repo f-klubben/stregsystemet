@@ -115,6 +115,7 @@ class Order(object):
     def from_buystring(cls, buy_string: str, room, initiated_time: datetime.datetime):
         from stregsystem import parser
         from stregsystem.views import _pre_process
+
         username, bought_ids = parser.parse(_pre_process(buy_string))
 
         member = Member.objects.get(username__iexect=username, active=True)
