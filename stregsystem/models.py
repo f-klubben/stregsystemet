@@ -4,13 +4,14 @@ import uuid
 from abc import abstractmethod
 from collections import Counter
 from email.utils import parseaddr
+from typing import List
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import RegexValidator
 from django.db import models, transaction
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 
 from stregsystem.caffeine import Intake, CAFFEINE_TIME_INTERVAL, current_caffeine_in_body_compound_interest
@@ -111,6 +112,37 @@ class Order(object):
         self.items = items or set()  # Set to none because we don't persist
 
     @classmethod
+    def from_buystring(cls, buy_string: str, room, initiated_time: datetime.datetime):
+        from stregsystem import parser
+        from stregsystem.views import _pre_process
+        username, bought_ids = parser.parse(_pre_process(buy_string))
+
+        member = Member.objects.get(username__iexect=username, active=True)
+
+        # Retrieve products and construct transaction
+        products: List[Product] = []
+
+        # Get the amount of unique items bought
+        unique_product_dict = {}
+        for unique_id in bought_ids:
+            if unique_id not in unique_product_dict:
+                unique_product_dict[unique_id] = 1
+            else:
+                unique_product_dict[unique_id] += 1
+
+        # Add the given amount of different products
+        for key, value in unique_product_dict.items():
+            product = Product.objects.get(
+                Q(pk=key),
+                Q(active=True),
+                Q(deactivate_date__gte=initiated_time) | Q(deactivate_date__isnull=True),
+                Q(rooms__id=room.id) | Q(rooms=None),
+            )
+            products.extend([product for _ in range(value)])
+
+        return Order.from_products(member=member, products=products, room=room)
+
+    @classmethod
     def from_products(cls, member, room, products):
         counts = Counter(products)
         order = cls(member, room)
@@ -118,6 +150,12 @@ class Order(object):
             item = OrderItem(product=product, order=order, count=count)
             order.items.add(item)
         return order
+
+    def get_bought_ids(self):
+        bought_ids = []
+        for item in self.items:
+            bought_ids.extend([item.product.id] * item.count)
+        return bought_ids
 
     # @HACK In reality calculating the total for old products is way harder and
     # more complicated than this. While it's not in the database this is
