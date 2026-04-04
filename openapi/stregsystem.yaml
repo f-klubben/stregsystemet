@@ -517,10 +517,10 @@ components:
     sale_intent_input:
       type: object
       required:
-        - product_string
+        - productstring
         - room_id
       properties:
-        product_string:
+        productstring:
           $ref: '#/components/schemas/productstring'
         room_id:
           $ref: '#/components/schemas/room_id'
@@ -594,7 +594,7 @@ components:
           format: date-time
           nullable: true
           example: "2024-05-12T18:31:09.508Z"
-        product_string:
+        productstring:
           $ref: '#/components/schemas/productstring'
         details:
           description: Populated only when `status` is `finalized`. Contains the same payload as a direct `/api/sale` success response.

@@ -944,8 +944,8 @@ def api_sale_intent(request):
 
     # Parse productstring parameter
     product_string = None
-    if 'product_string' in data:
-        product_string = str(data['product_string']).strip()
+    if 'productstring' in data:
+        product_string = str(data['productstring']).strip()
 
     if product_string is None:
         return HttpResponseBadRequest("Parameter missing: productstring")
@@ -998,7 +998,7 @@ def api_sale_intent(request):
         "status": intent.status,
         "confirmation_url": _get_confirmation_url(request, intent.id),
         "expires_at": intent.expires_at,
-        "product_string": product_string,
+        "productstring": product_string,
         "room_id": room_id,
     }
     return JsonResponse(response, json_dumps_params={'ensure_ascii': False}, status=201)
