@@ -2318,7 +2318,7 @@ class ApiSaleIntentTests(TestCase):
         self.valid_payload = {
             "productstring": "product123",
             "room_id": str(self.room.pk),
-            "webhook_url": "https://example.com/webhook",
+            "webhook_url": "https://127.0.0.69:6969/", # Just some URL
             "max_expires_in_seconds": 300,
         }
 
