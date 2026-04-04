@@ -515,6 +515,12 @@ components:
             HTTPS URL that Stregsystem will POST to when the intent is resolved.
             The payload will be a `sale_intent_webhook_payload` object.
           example: "https://consumer.example.com/webhooks/stregsystem"
+        return_url:
+          type: string
+          format: uri
+          description: |-
+            The return page for when the payment is succeeded.
+          example: "https://shop.example.com/order/12345"
         max_expires_in_seconds:
           type: integer
           description: |-
@@ -529,6 +535,7 @@ components:
         productstring: "beer:3"
         room_id: 10
         webhook_url: "https://webshop.example.com/webhooks/stregsystem"
+        return_url: "https://webshop.example.com/order/12345"
         max_expires_in_seconds: 300
     sale_intent_created_response:
       type: object

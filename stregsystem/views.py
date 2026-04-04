@@ -2,6 +2,7 @@ import datetime
 import io
 import json
 from typing import List, Type
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 import pytz
 import qrcode
@@ -20,11 +21,12 @@ from django.contrib.auth.decorators import permission_required
 from django.core import management
 from django.db.models import Q, Count, Sum
 from django.forms import modelformset_factory
-from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
+from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse, Http404
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django_select2 import forms as s2forms
 
 from stregreport.views import fjule_party
@@ -509,12 +511,66 @@ def intent_confirmation(request, intent_id):
     return render(request, "modal/pay_confirm.html", locals())
 
 
+def _redirect_to_intent_origin(request, intent, status: str):
+    """Append ?payment_status=<status> to the intent's return_url."""
+    if intent.return_url:
+        parsed = urlparse(intent.return_url)
+        # Preserve any existing query params the webshop may have included
+        params = parse_qs(parsed.query)
+        params["payment_status"] = [status]
+        new_query = urlencode(params, doseq=True)
+        return redirect(urlunparse(parsed._replace(query=new_query)))
+
+        # Popup mode: no return_url, talk to opener via postMessage then self-close
+    return render(request, "modal/pay_done.html", {"status": status})
+
+
+@require_POST
 def intent_accept(request, intent_id):
-    return redirect('pay_intent', intent_id=intent_id)
+    member = Member.objects.get(username__iexact="lowdough", active=True)
+
+    try:
+        intent = Intent.objects.get(id=intent_id, fulfilled_at__isnull=True)
+    except Intent.DoesNotExist:
+        raise Http404
+
+    if intent.expires_at < timezone.now():
+        messages.error(request, "Betalingsanmodningen er udløbet.")
+        return _redirect_to_intent_origin(request, intent, status="expired")
+
+    buystring = member.username + " " + intent.buystring
+    username, bought_ids = parser.parse(_pre_process(buystring))
+
+    # Execute the actual purchase the same way the rest of stregsystem does
+    now = timezone.now()
+
+    # Retrieve products and construct transaction
+    products: List[Product] = []
+
+    msg, status, result = __append_bought_ids_to_product_list(products, bought_ids, now, intent.room)
+    if status == 400:
+        return _redirect_to_intent_origin(request, intent, status=msg)
+
+    order = Order.from_products(member=member, products=products, room=intent.room)
+    msg, status, result = __execute_order(order)
+
+    # Mark intent as consumed so it can't be replayed
+    intent.fulfilled_at = timezone.now()
+    intent.save(update_fields=["fulfilled_at"])
+
+    # Post webhook
+
+    return _redirect_to_intent_origin(request, intent, status="success")
 
 
+@require_POST
 def intent_cancel(request, intent_id):
-    return redirect('pay_intent', intent_id=intent_id)
+    try:
+        intent = Intent.objects.get(id=intent_id)
+    except Intent.DoesNotExist:
+        raise Http404
+
+    return _redirect_to_intent_origin(request, intent, status="cancelled")
 
 
 @staff_member_required()
@@ -913,6 +969,12 @@ def api_sale_intent(request):
     if webhook_url == "":
         webhook_url = None
 
+    # Parse return_url parameter
+    return_url = str(data['return_url']) or None
+
+    if return_url == "":
+        return_url = None
+
     # Parse max_expires_in_seconds parameter
     max_expires_in_seconds = int(data['max_expires_in_seconds']) or -1
 
@@ -921,7 +983,7 @@ def api_sale_intent(request):
     else:
         intent_life_span = datetime.timedelta(seconds=min(max_expires_in_seconds, 600))
 
-    intent = _create_intent(product_string, room, webhook_url, datetime.datetime.now() + intent_life_span)
+    intent = _create_intent(product_string, room, webhook_url, return_url, datetime.datetime.now() + intent_life_span)
     response = {
         "id": intent.id,
         "secret": intent.secret,
@@ -952,9 +1014,10 @@ def _validate_buystring(buy_string) -> bool:
         return False
 
 
-def _create_intent(buystring, room, webhook_url, expires_at):
+def _create_intent(buystring, room, webhook_url, return_url, expires_at):
     return Intent.objects.create(
         webhook_url=webhook_url,
+        return_url=return_url,
         room=room,
         expires_at=expires_at,
         buystring=buystring,

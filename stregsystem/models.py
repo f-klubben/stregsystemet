@@ -729,6 +729,7 @@ class Intent(BaseModel):
     id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
     secret = models.UUIDField(default=uuid.uuid4, editable=False)
     webhook_url = models.URLField(blank=True, null=True)
+    return_url = models.URLField(blank=True, null=True)
     room = models.ForeignKey(Room, on_delete=models.CASCADE, null=True)
     expires_at = models.DateTimeField()
     buystring = models.TextField()
