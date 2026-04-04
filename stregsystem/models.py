@@ -791,7 +791,7 @@ class Intent(BaseModel):
         (EXPIRED, 'Expired'),
     )
 
-    status = models.CharField(max_length=1, choices=INTENT_CHOICES, default=PENDING)
+    status = models.CharField(max_length=1, choices=INTENT_CHOICES, default=INITIATED)
 
     @property
     def buy_string(self):
