@@ -538,37 +538,60 @@ def intent_accept(request, intent_id):
         messages.error(request, "Betalingsanmodningen er udløbet.")
         return _redirect_to_intent_origin(request, intent, status="expired")
 
-    buystring = member.username + " " + intent.buystring
-    username, bought_ids = parser.parse(_pre_process(buystring))
+    # Store accepting member as intent owner
+    intent.member = member
 
     # Execute the actual purchase the same way the rest of stregsystem does
-    now = timezone.now()
+    # NOTE: The buy string is valid at this point.
+    try:
+        order = Order.from_buystring(intent.buy_string, intent.room, intent.created_at)
+    except Product.DoesNotExist:
+        intent.status = Intent.CANCELLED
+        intent.save()
+        return _redirect_to_intent_origin(request, intent, status="webshop configured wrong")
 
-    # Retrieve products and construct transaction
-    products: List[Product] = []
-
-    msg, status, result = __append_bought_ids_to_product_list(products, bought_ids, now, intent.room)
-    if status == 400:
-        return _redirect_to_intent_origin(request, intent, status=msg)
-
-    order = Order.from_products(member=member, products=products, room=intent.room)
-    msg, status, result = __execute_order(order)
+    try:
+        order.execute()
+        intent.status = Intent.FINALIZED
+    except StregForbudError:
+        # Do nothing, since it's handled automatically by signals
+        intent.status = Intent.PENDING
+    except NoMoreInventoryError:
+        # TODO: Handle inventory ran out during purchase
+        intent.status = Intent.CANCELLED
+        intent.save()
+        return _redirect_to_intent_origin(request, intent, status="fail")
 
     # Mark intent as consumed so it can't be replayed
     intent.fulfilled_at = timezone.now()
-    intent.save(update_fields=["fulfilled_at"])
 
-    # Post webhook
-
+    # webhook call is triggered on save
+    intent.save()
     return _redirect_to_intent_origin(request, intent, status="success")
 
 
 @require_POST
 def intent_cancel(request, intent_id):
+    member = Member.objects.get(username__iexact="lowdough", active=True)
+
     try:
-        intent = Intent.objects.get(id=intent_id)
+        intent = Intent.objects.get(id=intent_id, fulfilled_at__isnull=True)
     except Intent.DoesNotExist:
         raise Http404
+
+    if intent.expires_at < timezone.now():
+        messages.error(request, "Betalingsanmodningen er udløbet.")
+        return _redirect_to_intent_origin(request, intent, status="expired")
+
+    # Store cancelling member as intent owner
+    intent.member = member
+    intent.status = Intent.ABORTED
+
+    # Mark intent as consumed so it can't be replayed
+    intent.fulfilled_at = timezone.now()
+
+    # webhook call is triggered on save
+    intent.save()
 
     return _redirect_to_intent_origin(request, intent, status="cancelled")
 
