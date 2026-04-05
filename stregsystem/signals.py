@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models.signals import post_save
 from django.db.models import F
 from django.dispatch import receiver
@@ -69,3 +70,38 @@ def after_intent_save(sender, instance, created, **kwargs):
 
     except Exception as e:
         print("Webhook critical failure: %s", e)
+
+
+def after_payment_save(sender, instance, created, **kwargs):
+    """
+    Check if queued payment can be performed.
+    """
+    if sender.__name__ != "Payment":
+        return
+
+    if not created:
+        return
+
+    from stregsystem.models import Product
+    from stregsystem.models import NoMoreInventoryError
+    from stregsystem.models import Intent
+
+    pending_intents = (
+        Intent.objects.filter(
+            member=instance.member,
+            status=Intent.PENDING,
+        )
+        .select_for_update()
+        .order_by('created_at')
+    )  # Lock rows to prevent concurrent retries
+
+    with transaction.atomic():
+        for intent in pending_intents:
+            if intent.check_intent_expired():
+                continue
+
+            try:
+                intent.finalize_intent()
+            except (Product.DoesNotExist, NoMoreInventoryError):
+                intent.status = Intent.CANCELLED
+                intent.save()
