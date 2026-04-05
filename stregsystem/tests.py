@@ -2380,3 +2380,81 @@ class ApiSaleIntentTests(TestCase):
         response = self._post(self.valid_payload)
         body = response.json()
         self.assertIn(body["id"], body["confirmation_url"])
+
+
+class IntentLifecycleTests(TestCase):
+    def setUp(self):
+        self.member = Member.objects.create(username="lowdough", active=True, balance=10000)
+        self.room = Room.objects.create(name="Test Room")
+        self.product = Product.objects.create(name="Club Mate", price=1000, active=True)
+
+        self.intent = Intent.objects.create(
+            room=self.room,
+            member=self.member,
+            product_string=f"{self.product.id}",
+            expires_at=timezone.now() + datetime.timedelta(hours=1),
+        )
+        self.accept_url = reverse("pay_intent_accept", args=[self.intent.id])
+
+    def test_accepting_intent_finalizes_and_deducts_balance(self):
+        self.client.post(self.accept_url)
+
+        self.intent.refresh_from_db()
+        self.member.refresh_from_db()
+        self.assertEqual(self.intent.status, Intent.FINALIZED)
+        self.assertEqual(self.member.balance, 9000)
+
+    def test_accepting_expired_intent_does_not_deduct_balance(self):
+        self.intent.expires_at = timezone.now() - datetime.timedelta(hours=1)
+        self.intent.save()
+
+        self.client.post(self.accept_url)
+
+        self.intent.refresh_from_db()
+        self.member.refresh_from_db()
+        self.assertEqual(self.intent.status, Intent.EXPIRED)
+        self.assertEqual(self.member.balance, 10000)
+
+    def test_accepting_intent_with_insufficient_funds_leaves_pending(self):
+        self.member.balance = 0
+        self.member.save()
+
+        self.client.post(self.accept_url)
+
+        self.intent.refresh_from_db()
+        self.assertEqual(self.intent.status, Intent.PENDING)
+
+    def test_topping_up_finalizes_pending_intent(self):
+        # Get the member into a pending state first
+        self.member.balance = 0
+        self.member.save()
+        self.client.post(self.accept_url)
+        self.intent.refresh_from_db()
+        self.assertEqual(self.intent.status, Intent.PENDING)
+
+        # Now top up, signal should finalize intent
+        Payment.objects.create(member=self.member, amount=10000, notes="Top-up")
+
+        self.intent.refresh_from_db()
+        self.member.refresh_from_db()
+        self.assertEqual(self.intent.status, Intent.FINALIZED)
+        self.assertEqual(self.member.balance, 9000)
+
+    def test_intent_cannot_be_accepted_twice(self):
+        self.client.post(self.accept_url)
+        self.client.post(self.accept_url)
+
+        # Only one product should have been deducted
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.balance, 9000)
+
+    def test_topping_up_does_not_finalize_another_members_intent(self):
+        other_member = Member.objects.create(username="other", active=True, balance=0)
+        self.member.balance = 0
+        self.member.save()
+        self.client.post(self.accept_url)
+
+        Payment.objects.create(member=other_member, amount=10000, notes="Top-up")
+
+        self.intent.refresh_from_db()
+        self.assertEqual(self.intent.status, Intent.PENDING)

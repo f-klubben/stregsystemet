@@ -7,10 +7,16 @@ from django.dispatch import receiver
 def after_member_save(sender, instance, created, **kwargs):
     if sender.__name__ != "Member":
         return
-    if not created:
+
+    # Welcome mail
+    if created:
+        instance.trigger_welcome_mail()
         return
 
-    instance.trigger_welcome_mail()
+    # If balance field is updated
+    if kwargs.get('update_fields') and 'balance' in kwargs['update_fields']:
+        _finalize_pending_intents(instance)
+        return
 
 
 def after_pending_signup_save(sender, instance, created, **kwargs):
@@ -72,23 +78,12 @@ def after_intent_save(sender, instance, created, **kwargs):
         print("Webhook critical failure: %s", e)
 
 
-def after_payment_save(sender, instance, created, **kwargs):
-    """
-    Check if queued payment can be performed.
-    """
-    if sender.__name__ != "Payment":
-        return
-
-    if not created:
-        return
-
-    from stregsystem.models import Product
-    from stregsystem.models import NoMoreInventoryError
-    from stregsystem.models import Intent
+def _finalize_pending_intents(member):
+    from stregsystem.models import Intent, NoMoreInventoryError, Product
 
     pending_intents = (
         Intent.objects.filter(
-            member=instance.member,
+            member=member,
             status=Intent.PENDING,
         )
         .select_for_update()
@@ -99,7 +94,6 @@ def after_payment_save(sender, instance, created, **kwargs):
         for intent in pending_intents:
             if intent.check_intent_expired():
                 continue
-
             try:
                 intent.finalize_intent()
             except (Product.DoesNotExist, NoMoreInventoryError):
