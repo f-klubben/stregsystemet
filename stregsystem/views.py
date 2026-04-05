@@ -540,6 +540,7 @@ def intent_accept(request, intent_id):
 
     # Store accepting member as intent owner
     intent.member = member
+    intent.status = Intent.PENDING
 
     # Execute the actual purchase the same way the rest of stregsystem does
     # NOTE: The buy string is valid at this point.
