@@ -121,7 +121,7 @@ class Order(object):
 
         username, bought_ids = parser.parse(_pre_process(buy_string))
 
-        member = Member.objects.get(username__iexect=username, active=True)
+        member = Member.objects.get(username__iexact=username, active=True)
 
         # Retrieve products and construct transaction
         products: List[Product] = []
