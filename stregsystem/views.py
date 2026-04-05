@@ -60,6 +60,7 @@ from stregsystem.utils import (
     parse_csv_and_create_mobile_payments,
     PaymentToolException,
     make_unprocessed_signups_query,
+    finalize_intent,
 )
 
 from .booze import ballmer_peak
@@ -544,22 +545,18 @@ def intent_accept(request, intent_id):
     # Execute the actual purchase the same way the rest of stregsystem does
     # NOTE: The buy string is valid at this point.
     try:
-        order = Order.from_buystring(intent.buy_string, intent.room, intent.created_at)
+        status = finalize_intent(intent)
     except Product.DoesNotExist:
         intent.status = Intent.CANCELLED
-        intent.save()
-        return _redirect_to_intent_origin(request, intent, status="webshop configured wrong")
-
-    try:
-        order.execute()
-        intent.status = Intent.FINALIZED
-    except StregForbudError:
-        # Do nothing, since it's handled automatically by signals
-        intent.status = Intent.PENDING
+        messages.error(request, "Produktet findes ikke længere.")
+        return _redirect_to_intent_origin(request, intent, status="fail")
     except NoMoreInventoryError:
-        # TODO: Handle inventory ran out during purchase
         intent.status = Intent.CANCELLED
-        intent.save()
+        messages.error(request, "Varen er desværre udsolgt.")
+        return _redirect_to_intent_origin(request, intent, status="fail")
+
+    # The only two states which should give a success
+    if not status in [Intent.FINALIZED, Intent.PENDING]:
         return _redirect_to_intent_origin(request, intent, status="fail")
 
     # webhook call is triggered on save

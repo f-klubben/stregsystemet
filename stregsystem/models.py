@@ -815,6 +815,28 @@ class Intent(BaseModel):
             return True
         return False
 
+    @transaction.atomic
+    def finalize_intent(self):
+        """
+        Attempts to execute the order for a pending intent.
+        Returns the resulting intent status.
+
+        :raises Product.DoesNotExist: if a product in the buystring has been removed in the meantime.
+        :raises NoMoreInventoryError: if a product has insufficient inventory.
+        :raises Member.DoesNotExist: if the intent is not owned.
+        """
+        order = Order.from_buystring(self.buy_string, self.room, self.created_at)
+
+        try:
+            order.execute()
+            self.status = Intent.FINALIZED
+        except StregForbudError:
+            # Still not enough funds, leave as PENDING without saving
+            return self.status
+
+        self.save()
+        return self.status
+
 
 # XXX
 class News(BaseModel):
