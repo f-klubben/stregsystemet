@@ -113,6 +113,9 @@ class Order(object):
 
     @classmethod
     def from_buystring(cls, buy_string: str, room, initiated_time: datetime.datetime):
+        """
+        :raises Product.DoesNotExist: if a product in the buystring doesn't exist.
+        """
         from stregsystem import parser
         from stregsystem.views import _pre_process
 
