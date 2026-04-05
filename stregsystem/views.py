@@ -60,7 +60,6 @@ from stregsystem.utils import (
     parse_csv_and_create_mobile_payments,
     PaymentToolException,
     make_unprocessed_signups_query,
-    finalize_intent,
 )
 
 from .booze import ballmer_peak
@@ -545,7 +544,7 @@ def intent_accept(request, intent_id):
     # Execute the actual purchase the same way the rest of stregsystem does
     # NOTE: The buy string is valid at this point.
     try:
-        status = finalize_intent(intent)
+        status = intent.finalize_intent()
     except Product.DoesNotExist:
         intent.status = Intent.CANCELLED
         messages.error(request, "Produktet findes ikke længere.")
