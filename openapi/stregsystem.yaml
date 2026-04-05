@@ -589,7 +589,7 @@ components:
           format: date-time
           nullable: true
           example: "2024-05-12T18:31:09.508Z"
-        fulfilled_at:
+        updated_at:
           type: string
           format: date-time
           nullable: true

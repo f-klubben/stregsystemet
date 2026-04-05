@@ -530,7 +530,7 @@ def intent_accept(request, intent_id):
     member = Member.objects.get(username__iexact="lowdough", active=True)
 
     try:
-        intent = Intent.objects.get(id=intent_id, fulfilled_at__isnull=True)
+        intent = Intent.objects.get(id=intent_id, status=Intent.INITIATED)
     except Intent.DoesNotExist:
         raise Http404
 
@@ -562,9 +562,6 @@ def intent_accept(request, intent_id):
         intent.save()
         return _redirect_to_intent_origin(request, intent, status="fail")
 
-    # Mark intent as consumed so it can't be replayed
-    intent.fulfilled_at = timezone.now()
-
     # webhook call is triggered on save
     intent.save()
     return _redirect_to_intent_origin(request, intent, status="success")
@@ -575,7 +572,7 @@ def intent_cancel(request, intent_id):
     member = Member.objects.get(username__iexact="lowdough", active=True)
 
     try:
-        intent = Intent.objects.get(id=intent_id, fulfilled_at__isnull=True)
+        intent = Intent.objects.get(id=intent_id, status=Intent.INITIATED)
     except Intent.DoesNotExist:
         raise Http404
 
@@ -586,9 +583,6 @@ def intent_cancel(request, intent_id):
     # Store cancelling member as intent owner
     intent.member = member
     intent.status = Intent.ABORTED
-
-    # Mark intent as consumed so it can't be replayed
-    intent.fulfilled_at = timezone.now()
 
     # webhook call is triggered on save
     intent.save()
@@ -1082,7 +1076,7 @@ def api_sale_intent_status(request, intent_id):
         {
             "status": intent.status,  # or similar. But not "deleted", that will return 404
             "expires_at": intent.expires_at,
-            "fulfilled_at": intent.fulfilled_at,
+            "updated_at": intent.updated_at,
             "details": details,
         },
         json_dumps_params={'ensure_ascii': False},

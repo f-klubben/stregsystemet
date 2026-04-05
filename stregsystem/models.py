@@ -773,7 +773,6 @@ class Intent(BaseModel):
     webhook_url = models.URLField(blank=True, null=True)
     return_url = models.URLField(blank=True, null=True)
     member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True)
-    fulfilled_at = models.DateTimeField(null=True, blank=True)
 
     INITIATED = 'I'
     PENDING = 'P'
