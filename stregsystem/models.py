@@ -802,6 +802,19 @@ class Intent(BaseModel):
 
         return f"{self.member.username} {self.product_string}"
 
+    def check_intent_expired(self) -> bool:
+        """
+        Checks if intent is expired, updates state to expired if it has.
+        """
+        if self.status == Intent.EXPIRED:
+            return True
+
+        if self.expires_at < timezone.now():
+            self.status = Intent.EXPIRED
+            self.save()
+            return True
+        return False
+
 
 # XXX
 class News(BaseModel):

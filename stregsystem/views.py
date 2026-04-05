@@ -534,7 +534,7 @@ def intent_accept(request, intent_id):
     except Intent.DoesNotExist:
         raise Http404
 
-    if intent.expires_at < timezone.now():
+    if intent.check_intent_expired():
         messages.error(request, "Betalingsanmodningen er udløbet.")
         return _redirect_to_intent_origin(request, intent, status="expired")
 
@@ -576,7 +576,7 @@ def intent_cancel(request, intent_id):
     except Intent.DoesNotExist:
         raise Http404
 
-    if intent.expires_at < timezone.now():
+    if intent.check_intent_expired():
         messages.error(request, "Betalingsanmodningen er udløbet.")
         return _redirect_to_intent_origin(request, intent, status="expired")
 
