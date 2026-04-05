@@ -27,6 +27,7 @@ def after_pending_signup_save(sender, instance, created, **kwargs):
 def after_intent_save(sender, instance, created, **kwargs):
     """
     Notify potential webhooks/callbacks about state change.
+    TODO: Make async
     """
     if sender.__name__ != "Intent":
         return
@@ -54,11 +55,17 @@ def after_intent_save(sender, instance, created, **kwargs):
         digestmod=hashlib.sha256,
     ).hexdigest()
 
-    requests.post(
-        instance.webhook_url,
-        data=response.content,
-        headers={
-            "Content-Type": "application/json",
-            "X-Webhook-Signature": f"sha256={signature}",
-        },
-    )
+    try:
+        requests.post(
+            instance.webhook_url,
+            data=response.content,
+            headers={
+                "Content-Type": "application/json",
+                "X-Webhook-Signature": f"sha256={signature}",
+            },
+        )
+    except requests.exceptions.RequestException as e:
+        print("Webhook request failure: %s", e)
+
+    except Exception as e:
+        print("Webhook critical failure: %s", e)
