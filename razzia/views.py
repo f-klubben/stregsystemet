@@ -27,7 +27,7 @@ def razzia_view_single(request, razzia_id, queryname, title=None):
     if queryname is None:
         return render(request, template, locals())
 
-    result = list(Member.objects.filter(username__iexact=queryname))
+    result = list(Member.objects.filter(username__iexact=queryname, active=True))
     if len(result) == 0:
         return render(request, template, locals())
 
