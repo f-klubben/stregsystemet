@@ -1,21 +1,31 @@
-{pkgs ? import <nixpkgs> {}, ...}: let
-    env = pkgs.python311.withPackages (import ./dependencies.nix { inherit pkgs; });
-in pkgs.stdenv.mkDerivation {
-    pname = "stregsystemet";
-    version = "latest";
+{ python3Packages, writeText, callPackage, mkShell, mailhog, black }:
+
+let
+    projectFile = builtins.fromTOML (builtins.readFile ../pyproject.toml);
+    pname = projectFile.project.name;
+    version = projectFile.project.version;
     src = ../.;
-
-    installPhase = ''
-        mkdir -p $out/bin
-        mkdir -p $out/share/stregsystemet
-
-        cp local.cfg.skel local.cfg
-        echo "${env.interpreter} $out/share/stregsystemet/manage.py \$@" > $out/bin/stregsystemet
-        sed -i '1 i #!${pkgs.bash}/bin/bash' $out/bin/stregsystemet
-        chmod +x $out/bin/stregsystemet
-
-        sed -i '1d' manage.py
-
-        cp ./* $out/share/stregsystemet -r
+    dependencies = callPackage ./dependencies.nix { };
+    pyprojectAddition = writeText "pyproject-addition.toml" ''
+        [project.scripts]
+        ${pname} = "treo.manage:main"
     '';
+in
+
+python3Packages.buildPythonApplication {
+    inherit pname version src;
+    propagatedBuildInputs = dependencies;
+    pyproject = true;
+    build-system = [ python3Packages.setuptools ];
+    # prepare
+    preBuild = ''
+        sed -i 's/^import setup_utils$/from . import setup_utils/' manage.py
+        cp manage.py treo
+        cp setup_utils.py treo
+        cat ${pyprojectAddition} >> pyproject.toml
+    '';
+
+    passthru.shell = mkShell {
+        packages = dependencies ++ [mailhog black];
+    };
 }
