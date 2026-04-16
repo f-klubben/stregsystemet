@@ -692,7 +692,7 @@ def get_member_id(request):
         return HttpResponseBadRequest("Parameter missing: username")
 
     try:
-        member = Member.objects.get(username=username)
+        member = Member.objects.get(username=username, active=True)
     except Member.DoesNotExist:
         return HttpResponseBadRequest("Member not found")
 
