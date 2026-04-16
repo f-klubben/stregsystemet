@@ -16,6 +16,7 @@ from configparser import ConfigParser
 from io import StringIO
 import json
 import sys
+import tomllib
 
 from django.conf.global_settings import DEFAULT_AUTO_FIELD
 
@@ -253,17 +254,6 @@ LOGGING = {
         }
     }
 }
-
-# Use tomllib for Python 3.11+ or tomli for Python 3.10
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    try:
-        import tomli as tomllib
-    except ImportError:
-        raise ImportError(
-            "tomli is required for Python < 3.11. Install it with: pip install tomli"
-        )
 
 global STREGSYSTEM_VERSION, STREGSYSTEM_API_VERSION
 
