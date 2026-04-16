@@ -80,11 +80,11 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
     if queryname is None:
         return render(request, templates[razzia_type], locals())
 
-    result = list(Member.objects.filter(username__iexact=queryname))
-    if len(result) == 0:
-        return render(request, templates[razzia_type], locals())
+    try:
+        member = Member.objects.get(username__iexact=queryname, active=True)
+    except Member.DoesNotExist:
+        return render(request, template, locals())
 
-    member = result[0]
 
     if razzia_type == BreadRazzia.FNUGFALD:
         username = queryname
@@ -177,7 +177,7 @@ def razzia_view(request):
         return render(request, 'admin/stregsystem/razzia/error_wizarderror.html', {})
 
     try:
-        user = Member.objects.get(username__iexact=username)
+        user = Member.objects.get(username__iexact=username, active=True)
     except (Member.DoesNotExist, Member.MultipleObjectsReturned):
         return render(
             request,
