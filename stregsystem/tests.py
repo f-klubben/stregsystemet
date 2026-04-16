@@ -1080,12 +1080,12 @@ class MemberModelFormTests(TestCase):
 
     def test_cant_create_duplicate_username(self):
         jeff = Member(username="jeff", firstname="jeffrey", lastname="jefferson", gender="M")
-        form = MemberForm(model_to_dict(jeff))
+        form = MemberForm(model_to_dict(jeff, exclude=['paired_user']))
         self.assertFalse(form.is_valid())
 
     def test_cant_create_duplicate_username_in_other_case(self):
         jeff = Member(username="JeFf", firstname="jeffrey", lastname="jefferson", gender="M")
-        form = MemberForm(model_to_dict(jeff))
+        form = MemberForm(model_to_dict(jeff, exclude=['paired_user']))
         self.assertFalse(form.is_valid())
 
     def test_can_create_non_duplicate_username(self):
@@ -1107,7 +1107,9 @@ class MemberAdminTests(TestCase):
         self.client.login(username="superuser", password="very_secure")
         self.jeff2.username = "jeff"
         response = self.client.post(
-            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}), model_to_dict(self.jeff2), follow=False
+            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}),
+            model_to_dict(self.jeff2, exclude=['paired_user']),
+            follow=False,
         )
 
         messages = list(get_messages(response.wsgi_request))
@@ -1121,7 +1123,9 @@ class MemberAdminTests(TestCase):
         self.client.login(username="superuser", password="very_secure")
         self.jeff2.username = "mr_jefferson"
         response = self.client.post(
-            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}), model_to_dict(self.jeff2), follow=False
+            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}),
+            model_to_dict(self.jeff2, exclude=['paired_user']),
+            follow=False,
         )
 
         messages = list(get_messages(response.wsgi_request))

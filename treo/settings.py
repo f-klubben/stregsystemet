@@ -103,6 +103,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'sso',
     'debug_toolbar',
 ]
 
@@ -250,3 +251,8 @@ LOGGING = {
         }
     }
 }
+
+AUTHENTICATION_BACKENDS = [
+    'sso.auth_backends.PasswordlessMemberBackend',
+    'django.contrib.auth.backends.ModelBackend',  # keep for admin/superusers
+]
