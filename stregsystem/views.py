@@ -2,6 +2,7 @@ import datetime
 import io
 import json
 from typing import List, Type
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 import pytz
 import qrcode
@@ -14,15 +15,18 @@ from collections import (
 )
 
 from django.core.paginator import Paginator
+from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.core import management
 from django.db.models import Q, Count, Sum
 from django.forms import modelformset_factory
-from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
+from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse, Http404
 from django.shortcuts import get_object_or_404, render, redirect
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django_select2 import forms as s2forms
 
 from stregreport.views import fjule_party
@@ -44,6 +48,7 @@ from stregsystem.models import (
     NamedProduct,
     ApprovalModel,
     ProductNote,
+    Intent,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -469,6 +474,119 @@ def menu_sale(request, room_id, member_id, product_id=None):
     return usermenu(request, room, member, product, from_sale=True)
 
 
+def intent_confirmation(request, intent_id):
+    # Retrieve member from authentication
+    member = Member.objects.get(username__iexact="lowdough", active=True)
+
+    try:
+        intent = Intent.objects.get(id=intent_id)
+    except Intent.DoesNotExist:
+        raise
+
+    buystring = member.username + " " + intent.product_string
+    username, bought_ids = parser.parse(_pre_process(buystring))
+
+    counts = Counter(bought_ids)
+    products = Product.objects.in_bulk(counts.keys())
+
+    lines = [
+        {"name": p.name, "qty": counts[i], "price": p.price, "total": p.price * counts[i]} for i, p in products.items()
+    ]
+
+    checkout_total = sum(line["total"] for line in lines)
+
+    expires_at = datetime.datetime.now() + datetime.timedelta(hours=1)
+
+    after_purchase_balance = member.balance - checkout_total
+    has_funds = after_purchase_balance > 0
+    suggested_topup = 0
+
+    if after_purchase_balance < 0:
+        suggested_topup = 50
+        messages.warning(request, "Ikke nok stregdollars - indbetal manglende stregdollars")
+    elif after_purchase_balance < 5000:
+        suggested_topup = 50
+        messages.info(request, "Du har ikke så mange stregdollars tilbage")
+
+    return render(request, "modal/pay_confirm.html", locals())
+
+
+def _redirect_to_intent_origin(request, intent, status: str):
+    """Append ?payment_status=<status> to the intent's return_url."""
+    if intent.return_url:
+        parsed = urlparse(intent.return_url)
+        # Preserve any existing query params the webshop may have included
+        params = parse_qs(parsed.query)
+        params["payment_status"] = [status]
+        new_query = urlencode(params, doseq=True)
+        return redirect(urlunparse(parsed._replace(query=new_query)))
+
+        # Popup mode: no return_url, talk to opener via postMessage then self-close
+    return render(request, "modal/pay_done.html", {"status": status})
+
+
+@require_POST
+def intent_accept(request, intent_id):
+    member = Member.objects.get(username__iexact="lowdough", active=True)
+
+    try:
+        intent = Intent.objects.get(id=intent_id, status=Intent.INITIATED)
+    except Intent.DoesNotExist:
+        raise Http404
+
+    if intent.check_intent_expired():
+        messages.error(request, "Betalingsanmodningen er udløbet.")
+        return _redirect_to_intent_origin(request, intent, status="expired")
+
+    # Store accepting member as intent owner
+    intent.member = member
+    intent.status = Intent.PENDING
+
+    # Execute the actual purchase the same way the rest of stregsystem does
+    # NOTE: The buy string is valid at this point.
+    try:
+        status = intent.finalize_intent()
+    except Product.DoesNotExist:
+        intent.status = Intent.CANCELLED
+        messages.error(request, "Produktet findes ikke længere.")
+        return _redirect_to_intent_origin(request, intent, status="fail")
+    except NoMoreInventoryError:
+        intent.status = Intent.CANCELLED
+        messages.error(request, "Varen er desværre udsolgt.")
+        return _redirect_to_intent_origin(request, intent, status="fail")
+
+    # The only two states which should give a success
+    if not status in [Intent.FINALIZED, Intent.PENDING]:
+        return _redirect_to_intent_origin(request, intent, status="fail")
+
+    # webhook call is triggered on save
+    intent.save()
+    return _redirect_to_intent_origin(request, intent, status="success")
+
+
+@require_POST
+def intent_cancel(request, intent_id):
+    member = Member.objects.get(username__iexact="lowdough", active=True)
+
+    try:
+        intent = Intent.objects.get(id=intent_id, status=Intent.INITIATED)
+    except Intent.DoesNotExist:
+        raise Http404
+
+    if intent.check_intent_expired():
+        messages.error(request, "Betalingsanmodningen er udløbet.")
+        return _redirect_to_intent_origin(request, intent, status="expired")
+
+    # Store cancelling member as intent owner
+    intent.member = member
+    intent.status = Intent.ABORTED
+
+    # webhook call is triggered on save
+    intent.save()
+
+    return _redirect_to_intent_origin(request, intent, status="cancelled")
+
+
 @staff_member_required()
 @permission_required("stregsystem.import_batch_payments")
 def batch_payment(request):
@@ -831,6 +949,137 @@ def api_sale(request):
         )
 
 
+@csrf_exempt
+def api_sale_intent(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest()
+
+    data = json.loads(request.body)
+
+    # Parse productstring parameter
+    product_string = None
+    if 'productstring' in data:
+        product_string = str(data['productstring']).strip()
+
+    if product_string is None:
+        return HttpResponseBadRequest("Parameter missing: productstring")
+
+    _validate_buystring(product_string)
+
+    # Parse room_id parameter
+    room_id = None
+    if 'room_id' in data:
+        room_id = str(data['room_id']) or None
+
+    if room_id is None:
+        return HttpResponseBadRequest("Parameter missing: room_id")
+    if not room_id.isdigit():
+        return HttpResponseBadRequest("Parameter invalid: room_id")
+
+    try:
+        room = Room.objects.get(pk=room_id)
+    except Room.DoesNotExist:
+        return HttpResponseBadRequest("Room not found")
+
+    # Parse webhook_url parameter
+    webhook_url = None
+    if 'webhook_url' in data:
+        webhook_url = str(data['webhook_url']).strip() or None
+
+    if webhook_url == "":
+        webhook_url = None
+
+    # Parse return_url parameter
+    return_url = None
+    if 'return_url' in data:
+        return_url = str(data['return_url']).strip() or None
+
+    if return_url == "":
+        return_url = None
+
+    # Parse max_expires_in_seconds parameter
+    max_expires_in_seconds = int(data['max_expires_in_seconds']) or -1
+
+    if max_expires_in_seconds == -1:
+        intent_life_span = datetime.timedelta(seconds=600)
+    else:
+        intent_life_span = datetime.timedelta(seconds=min(max_expires_in_seconds, 600))
+
+    intent = _create_intent(product_string, room, webhook_url, return_url, datetime.datetime.now() + intent_life_span)
+    response = {
+        "id": intent.id,
+        "secret": intent.secret,
+        "status": intent.status,
+        "confirmation_url": _get_confirmation_url(request, intent.id),
+        "expires_at": intent.expires_at,
+        "productstring": product_string,
+        "room_id": room_id,
+    }
+    return JsonResponse(response, json_dumps_params={'ensure_ascii': False}, status=201)
+
+
+def _get_confirmation_url(request, intent_id) -> str:
+    return request.build_absolute_uri(reverse("pay_intent", kwargs={"intent_id": intent_id}))
+
+
+def _validate_buystring(buy_string) -> bool:
+    try:
+        username, bought_ids = parser.parse(_pre_process("dummy " + buy_string))
+        return True
+    except parser.QuickBuyError as err:
+        values = {
+            'correct': err.parsed_part,
+            'incorrect': err.failed_part,
+            'error_ptr': '~' * (len(err.parsed_part)) + '^',
+            'error_msg': ' ' * (len(err.parsed_part) - 4) + 'Fejl her',
+        }
+        return False
+
+
+def _create_intent(product_string, room, webhook_url, return_url, expires_at):
+    return Intent.objects.create(
+        webhook_url=webhook_url,
+        return_url=return_url,
+        room=room,
+        expires_at=expires_at,
+        product_string=product_string,
+    )
+
+
+def api_sale_intent_status(request, intent_id):
+    try:
+        intent = Intent.objects.get(id=intent_id)
+    except Intent.DoesNotExist:
+        raise Http404
+
+    details = {}
+    if intent.status == Intent.INITIATED:
+        pass
+    elif intent.status == Intent.PENDING:
+        pass
+    elif intent.status == Intent.ABORTED:
+        pass
+    elif intent.status == Intent.FINALIZED:
+        order = Order.from_buystring(intent.buy_string, intent.room, intent.created_at)
+        details = __sale_details_as_dict(
+            intent.member, intent.room, order.products, order, order.created_on, order.get_bought_ids()
+        )
+    elif intent.status == Intent.CANCELLED:
+        raise Http404
+    elif intent.status == Intent.EXPIRED:
+        pass
+
+    return JsonResponse(
+        {
+            "status": intent.status,  # or similar. But not "deleted", that will return 404
+            "expires_at": intent.expires_at,
+            "updated_at": intent.updated_at,
+            "details": details,
+        },
+        json_dumps_params={'ensure_ascii': False},
+    )
+
+
 def api_quicksale(request, room, member: Member, bought_ids):
     now = timezone.now()
 
@@ -847,6 +1096,14 @@ def api_quicksale(request, room, member: Member, bought_ids):
     if status != 200:
         return msg, status, result
 
+    return (
+        "OK",
+        200 if len(bought_ids) > 0 else 201,
+        __sale_details_as_dict(member, room, products, order, now, bought_ids),
+    )
+
+
+def __sale_details_as_dict(member, room, products, order, now, bought_ids):
     (
         promille,
         is_ballmer_peaking,
@@ -863,31 +1120,27 @@ def api_quicksale(request, room, member: Member, bought_ids):
         member_balance,
     ) = __set_local_values(member, room, products, order, now)
 
-    return (
-        "OK",
-        200 if len(bought_ids) > 0 else 201,
-        {
-            'order': {
-                'room': order.room.id,
-                'member': order.member.id,
-                'created_on': order.created_on,
-                'items': bought_ids,
-            },
-            'promille': promille,
-            'is_ballmer_peaking': is_ballmer_peaking,
-            'bp_minutes': bp_minutes,
-            'bp_seconds': bp_seconds,
-            'caffeine': caffeine,
-            'cups': cups,
-            'product_contains_caffeine': product_contains_caffeine,
-            'is_coffee_master': is_coffee_master,
-            'cost': cost(),
-            'give_multibuy_hint': give_multibuy_hint,
-            'sale_hints': sale_hints,
-            'member_has_low_balance': member_has_low_balance,
-            'member_balance': member_balance,
+    return {
+        'order': {
+            'room': order.room.id,
+            'member': order.member.id,
+            'created_on': order.created_on,
+            'items': bought_ids,
         },
-    )
+        'promille': promille,
+        'is_ballmer_peaking': is_ballmer_peaking,
+        'bp_minutes': bp_minutes,
+        'bp_seconds': bp_seconds,
+        'caffeine': caffeine,
+        'cups': cups,
+        'product_contains_caffeine': product_contains_caffeine,
+        'is_coffee_master': is_coffee_master,
+        'cost': cost(),
+        'give_multibuy_hint': give_multibuy_hint,
+        'sale_hints': sale_hints,
+        'member_has_low_balance': member_has_low_balance,
+        'member_balance': member_balance,
+    }
 
 
 def __append_bought_ids_to_product_list(products, bought_ids, time_now, room):

@@ -1,0 +1,142 @@
+{% extends "modal/modal_base.html" %}
+
+{% block title %}Treoens stregsystem{% endblock %}
+
+{% block head %}
+    <style>
+        .merchant {
+            font-size: 14px;
+            color: #6c7378;
+            margin-bottom: 6px;
+        }
+
+        .status-icon {
+            font-size: 48px;
+            text-align: center;
+            margin: 16px 0 8px;
+        }
+
+        .total {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .total.ok   { color: #2e7d32; }
+        .total.missing { color: #c23934; }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 16px 0 8px;
+        }
+
+        .balance-box {
+            border: 1px solid #dcdcdc;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .balance { font-size: 14px; }
+        .ok      { color: #2e7d32; font-size: 13px; }
+        .missing { color: #c23934; font-size: 13px; }
+
+        .pay-btn {
+            width: 100% !important;
+            margin-top: 20px !important;
+            background: #0070ba !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 24px !important;
+            padding: 12px !important;
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+        }
+
+        .pay-btn:hover { background: #005ea6 !important; }
+
+        .cancel {
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        .cancel a {
+            color: #0070ba;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .no-close-note {
+            text-align: center;
+            font-size: 12px;
+            color: #6c7378;
+            margin-top: 10px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="merchant">Checkout</div>
+
+    {% if status == "success" %}
+        <div class="status-icon">✅</div>
+        <div class="total ok">Betaling gennemført</div>
+
+        <div class="section-title">Status</div>
+        <div class="balance-box">
+            <div class="balance ok">
+                Din betaling er registreret.<br />
+                Du kan nu lukke dette vindue.
+            </div>
+        </div>
+
+    {% else %}
+        <div class="status-icon">❌</div>
+        <div class="total missing">Betaling annulleret</div>
+
+        <div class="section-title">Status</div>
+        <div class="balance-box">
+            <div class="balance missing">
+                Betalingen blev ikke gennemført.<br />
+                Ingen stregdollars er blevet trukket.
+            </div>
+        </div>
+    {% endif %}
+
+    <button class="pay-btn" id="close-btn" type="button">
+        Luk vindue
+    </button>
+
+    <p class="no-close-note" id="no-close-note" style="display: none;">
+        Vinduet kan ikke lukkes automatisk — du kan lukke det selv.
+    </p>
+
+    <script>
+        const status = "{{ status }}";
+
+        if (window.opener && !window.opener.closed) {
+            window.opener.postMessage(
+                { type: "payment_result", status: status },
+                "*"  // tighten to your domain in production
+            );
+        }
+
+        function tryClose() {
+            window.close();
+            // If we're still here after a tick, the browser refused
+            setTimeout(() => {
+                document.getElementById("close-btn").style.display = "none";
+                document.getElementById("no-close-note").style.display = "block";
+            }, 300);
+        }
+
+        // Auto-close immediately if we have an opener (normal popup flow)
+        if (window.opener && !window.opener.closed) {
+            tryClose();
+        }
+
+        document.getElementById("close-btn").addEventListener("click", tryClose);
+    </script>
+{% endblock %}

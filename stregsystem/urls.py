@@ -1,5 +1,5 @@
 from django.shortcuts import redirect
-from django.urls import re_path
+from django.urls import re_path, path
 
 from . import views
 
@@ -25,6 +25,9 @@ urlpatterns = [
     re_path(r'^admin/signup_tool/$', views.signup_tool, name="signup_tool"),
     re_path(r'^signup/$', views.signup, name="signup"),
     re_path(r'^signup/(?P<signup_id>\d+)$', views.signup_status, name="signup_status"),
+    path('pay/<uuid:intent_id>/', views.intent_confirmation, name="pay_intent"),
+    path('pay/<uuid:intent_id>/accept', views.intent_accept, name="pay_intent_accept"),
+    path('pay/<uuid:intent_id>/cancel', views.intent_cancel, name="pay_intent_cancel"),
     re_path(r'^(?P<room_id>\d+)/$', views.index, name="menu_index"),
     re_path(r'^(?P<room_id>\d+)/sale/$', views.sale, name="quickbuy"),
     re_path(r'^(?P<room_id>\d+)/sale/(?P<member_id>\d+)/$', views.menu_sale, name="menu"),
@@ -43,4 +46,6 @@ urlpatterns = [
     re_path(r'^api/products/active_products$', views.get_active_items, name="api_active_products"),
     re_path(r'^api/products/category_mappings$', views.get_product_category_mappings, name="api_product_mappings"),
     re_path(r'^api/sale$', views.api_sale, name="api_sale"),
+    re_path(r'^api/sale/intent$', views.api_sale_intent, name="api_sale_intent"),
+    re_path(r'^api/sale/intent/<uuid:intent_id>$', views.api_sale_intent_status, name="api_sale_intent_status"),
 ]
