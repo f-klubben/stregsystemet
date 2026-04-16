@@ -46,7 +46,7 @@ from stregsystem.models import (
 )
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
-from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, PaymentToolException
+from stregsystem.utils import make_active_productlist_query, mobile_payment_exact_match_member, strip_emoji, PaymentToolException
 from stregsystem.mail import data_sent
 
 
@@ -722,6 +722,24 @@ class ProductTests(TestCase):
         )
 
         self.assertTrue(product.is_active())
+
+    def test_is_active_active_future_start_date(self):
+        product = Product.objects.create(
+            active=True,
+            price=100,
+            start_date=timezone.now().date() + datetime.timedelta(days=1),
+        )
+
+        self.assertFalse(product.is_active())
+
+    def test_make_active_productlist_query_excludes_future_start_date(self):
+        future_product = Product.objects.create(
+            active=True,
+            price=100,
+            start_date=timezone.now().date() + datetime.timedelta(days=1),
+        )
+
+        self.assertNotIn(future_product, list(make_active_productlist_query(Product.objects)))
 
     def test_is_active_active_expired(self):
         product = Product.objects.create(
