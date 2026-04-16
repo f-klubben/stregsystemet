@@ -1030,6 +1030,25 @@ class Ticket(models.Model):
             return True, ticket
         else:
             return False, None
+        
+    def mark_ticket_stand_by(self) -> None:
+        # Create a product note (if it doesn't already exist) and assign the associated product
+        product_note, created = ProductNote.objects.get_or_create(
+            text = "Udsolgt - Venteliste aktiveret",
+            defaults={
+                'active': True,
+                'background_color': 'red',
+                'text_color': 'white',
+                'rooms': Room.objects.all(),
+            }
+        )
+        product_note.products.add(self.product)        
+
+        def mark_ticket_not_stand_by(self) -> None:
+            # Remove the product note from the associated product
+            product_note = ProductNote.objects.filter(text="Udsolgt - Venteliste aktiveret").first()
+            if product_note is not None:
+                product_note.products.remove(self.product)
 
     def get_stand_by_records(self) -> models.QuerySet[TicketRecord]:
         return TicketRecord.objects.filter(
@@ -1069,10 +1088,14 @@ class TicketRecord(models.Model):
         # Count ticket sales for event instance, to determine if the ticket being created should be put on stand-by
         ticket_sales_count = ticket.event_instance.get_issued_ticket_records().count()
 
-        if ticket_sales_count < ticket.get_stand_by_limit():
+        stand_by_limit = ticket.get_stand_by_limit()
+        if ticket_sales_count < stand_by_limit:
             is_stand_by = False
         else:
             is_stand_by = True
+
+        # If sale count + 1 is not < stand by limit, then the product should be marked as if purchasing it would put the user on stand-by
+
 
         TicketRecord.objects.create(ticket=ticket, sale=sale, is_stand_by=is_stand_by)
 
