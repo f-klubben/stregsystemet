@@ -46,7 +46,12 @@ from stregsystem.models import (
 )
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
-from stregsystem.utils import make_active_productlist_query, mobile_payment_exact_match_member, strip_emoji, PaymentToolException
+from stregsystem.utils import (
+    make_active_productlist_query,
+    mobile_payment_exact_match_member,
+    strip_emoji,
+    PaymentToolException,
+)
 from stregsystem.mail import data_sent
 
 
