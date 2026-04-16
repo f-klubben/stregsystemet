@@ -31,7 +31,6 @@ def razzia_view_single(request, razzia_id, queryname, title=None):
         member = Member.objects.get(username__iexact=queryname, active=True)
     except Member.DoesNotExist:
         return render(request, template, locals())
-    
 
     entries = list(razzia.razziaentry_set.filter(member__pk=member.pk).order_by('-time'))
     turns_already = len(entries)
