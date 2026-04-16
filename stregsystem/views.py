@@ -705,7 +705,7 @@ def get_member_id(request):
         return HttpResponseBadRequest("Parameter missing: username")
 
     try:
-        member = Member.objects.get(username=username)
+        member = Member.objects.get(username=username, active=True)
     except Member.DoesNotExist:
         return HttpResponseBadRequest("Member not found")
 
@@ -1028,4 +1028,13 @@ def __set_local_values(member, room, products, order, now):
         sale_hints,
         member_has_low_balance,
         member_balance,
+    )
+
+
+def api_version(request):
+    return JsonResponse(
+        {
+            'version': settings.STREGSYSTEM_VERSION,
+            'api_version': settings.STREGSYSTEM_API_VERSION,
+        }
     )

@@ -8,3 +8,9 @@ authors = [
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
 readme = "README.md"
+
+[tool.stregsystemet]
+api-version = "1.1"
+
+[tool.setuptools.packages.find]
+include = ["stregsystem", "treo", "media", "kiosk", "razzia", "openapi", "stregreport"]
