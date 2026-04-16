@@ -130,7 +130,11 @@ class Order(object):
 
         # Check if we have enough inventory to fulfill the order
         for item in self.items:
-            if item.product.start_date is not None and (item.product.bought + item.count > item.product.quantity):
+            if (
+                item.product.start_date is not None
+                and (item.product.bought + item.count > item.product.quantity)
+                and item.product.quantity != 0
+            ):
                 raise NoMoreInventoryError()
 
         # Take update lock on member row
