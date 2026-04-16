@@ -716,7 +716,7 @@ def get_member_sales(request):
         return HttpResponseBadRequest("Parameter invalid: member_id")
 
     try:
-        member = Member.objects.get(pk=member_id)
+        member = Member.objects.get(pk=member_id, active=True)
     except Member.DoesNotExist:
         return HttpResponseBadRequest("Member not found")
 
@@ -735,7 +735,7 @@ def get_member_balance(request):
         return HttpResponseBadRequest("Parameter invalid: member_id")
 
     try:
-        member = Member.objects.get(pk=member_id)
+        member = Member.objects.get(pk=member_id, active=True)
     except Member.DoesNotExist:
         return HttpResponseBadRequest("Member not found")
 
@@ -750,7 +750,7 @@ def get_member_info(request):
         return HttpResponseBadRequest("Parameter invalid: member_id")
 
     try:
-        member = Member.objects.get(pk=member_id)
+        member = Member.objects.get(pk=member_id, active=True)
     except Member.DoesNotExist:
         return HttpResponseBadRequest("Member not found")
 
@@ -767,7 +767,7 @@ def get_member_info(request):
 
 def find_user_from_id(user_id: int):
     try:
-        return Member.objects.get(pk=user_id)
+        return Member.objects.get(pk=user_id, active=True)
     except Member.DoesNotExist:
         return None
 
@@ -805,7 +805,7 @@ def api_sale(request):
             return HttpResponseBadRequest("Parse error: {}".format(e))
 
         try:
-            member = Member.objects.get(pk=member_id)
+            member = Member.objects.get(pk=member_id, active=True)
         except Member.DoesNotExist:
             return HttpResponseBadRequest("Member not found")
 
@@ -938,7 +938,7 @@ def __set_local_values(member, room, products, order, now):
 
     give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
 
-    new_balance = Member.objects.get(pk=member.id).balance
+    new_balance = Member.objects.get(pk=member.id, active=True).balance
     member_has_low_balance = new_balance <= 5000
     member_balance = money(new_balance)
 
