@@ -1,68 +1,112 @@
 [
-    {
-        "fields": {
-            "description": "No special items",
-            "name": "default_room"
-        },
-        "model": "stregsystem.room",
-        "pk": "1"
-    },
-    {
-        "fields": {
-            "description": "Room that have special items",
-            "name": "room_special_drinks"
-        },
-        "model": "stregsystem.room",
-        "pk": "2"
-    },
-    {
-        "fields": {
-            "description": "Another room with special drinks",
-            "name": "room_special_drinks_2"
-        },
-        "model": "stregsystem.room",
-        "pk": "3"
-    },
-    {
-        "fields": {
-            "active": 1,
-            "name": "general_drink_1",
-            "price": 1
-        },
-        "model": "stregsystem.product",
-        "pk": "1"
-    },
-    {
-        "fields": {
-            "active": 1,
-            "name": "general_drink_2",
-            "price": 2
-        },
-        "model": "stregsystem.product",
-        "pk": "2"
-    },
-    {
-        "fields": {
-            "active": 1,
-            "name": "special_drink",
-            "price": 3,
-            "rooms": [
-                2
-            ]
-        },
-        "model": "stregsystem.product",
-        "pk": "3"
-    },
-    {
-        "fields": {
-            "active": 1,
-            "name": "special_drink_multiple_rooms",
-            "price": 3,
-            "rooms": [
-                2, 3
-            ]
-        },
-        "model": "stregsystem.product",
-        "pk": "4"
-    }
+{
+  "model": "stregsystem.room",
+  "pk": 1,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:20.898Z",
+    "name": "default_room",
+    "description": "No special items",
+    "notes": ""
+  }
+},
+{
+  "model": "stregsystem.room",
+  "pk": 2,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:20.898Z",
+    "name": "room_special_drinks",
+    "description": "Room that have special items",
+    "notes": ""
+  }
+},
+{
+  "model": "stregsystem.room",
+  "pk": 3,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:20.898Z",
+    "name": "room_special_drinks_2",
+    "description": "Another room with special drinks",
+    "notes": ""
+  }
+},
+{
+  "model": "stregsystem.product",
+  "pk": 1,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:20.851Z",
+    "name": "general_drink_1",
+    "price": 1,
+    "active": true,
+    "start_date": null,
+    "quantity": 0,
+    "deactivate_date": null,
+    "alcohol_content_ml": 0.0,
+    "caffeine_content_mg": 0,
+    "categories": [],
+    "rooms": []
+  }
+},
+{
+  "model": "stregsystem.product",
+  "pk": 2,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:20.851Z",
+    "name": "general_drink_2",
+    "price": 2,
+    "active": true,
+    "start_date": null,
+    "quantity": 0,
+    "deactivate_date": null,
+    "alcohol_content_ml": 0.0,
+    "caffeine_content_mg": 0,
+    "categories": [],
+    "rooms": []
+  }
+},
+{
+  "model": "stregsystem.product",
+  "pk": 3,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:20.851Z",
+    "name": "special_drink",
+    "price": 3,
+    "active": true,
+    "start_date": null,
+    "quantity": 0,
+    "deactivate_date": null,
+    "alcohol_content_ml": 0.0,
+    "caffeine_content_mg": 0,
+    "categories": [],
+    "rooms": [
+      2
+    ]
+  }
+},
+{
+  "model": "stregsystem.product",
+  "pk": 4,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:20.851Z",
+    "name": "special_drink_multiple_rooms",
+    "price": 3,
+    "active": true,
+    "start_date": null,
+    "quantity": 0,
+    "deactivate_date": null,
+    "alcohol_content_ml": 0.0,
+    "caffeine_content_mg": 0,
+    "categories": [],
+    "rooms": [
+      2,
+      3
+    ]
+  }
+}
 ]
