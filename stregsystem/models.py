@@ -632,6 +632,9 @@ class Product(BaseModel):  # id automatisk...
     def is_active(self):
         expired = self.deactivate_date is not None and self.deactivate_date <= timezone.now()
 
+        if self.start_date is not None and self.start_date > timezone.now().date():
+            return False
+
         if self.start_date is not None:
             out_of_stock = self.quantity <= self.bought
         else:
