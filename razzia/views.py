@@ -28,7 +28,7 @@ def razzia_view_single(request, razzia_id, queryname, title=None):
         return render(request, template, locals())
 
     try:
-        member = Member.objects.get(username__iexact=username, active=True)
+        member = Member.objects.get(username__iexact=queryname, active=True)
     except Member.DoesNotExist:
         return render(request, template, locals())
     
