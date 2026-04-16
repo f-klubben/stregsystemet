@@ -85,7 +85,6 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
     except Member.DoesNotExist:
         return render(request, template, locals())
 
-
     if razzia_type == BreadRazzia.FNUGFALD:
         username = queryname
         member_name = member.firstname + " " + member.lastname
