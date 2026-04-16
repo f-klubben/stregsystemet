@@ -1,0 +1,218 @@
+{% extends "modal/modal_base.html" %}
+
+{% block title %}Log ind{% if service_name %} — {{ service_name }}{% endif %}{% endblock %}
+
+{% block head %}
+  <style>
+    h1 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: .35rem;
+    }
+
+    .subtitle {
+      font-size: .9rem;
+      color: #666;
+      margin-bottom: 1.5rem;
+    }
+
+    /* SSO banner */
+    .sso-banner {
+      font-size: .85rem;
+      color: #555;
+      background: #f0f4ff;
+      border: 1px solid #c7d7ff;
+      border-radius: 6px;
+      padding: .6rem .85rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* OTP grid */
+    .otp-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 1rem;
+    }
+
+    .otp-row input {
+      width: 100%;
+      aspect-ratio: 1;
+      text-align: center;
+      font-size: 1.2rem;
+      font-family: monospace;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color .15s;
+      padding: 0;
+      margin: 0;
+    }
+    .otp-row input:focus { border-color: #4a7cf7; }
+
+    .otp-row .f-cell {
+      background: #fffbe6;
+      border-color: #e0c050;
+      color: #8a6200;
+      pointer-events: none;
+    }
+
+    /* Utility row below form */
+    .form-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: .85rem;
+      font-size: .85rem;
+      color: #666;
+    }
+
+    .form-footer a,
+    .form-footer button {
+      background: none;
+      border: none;
+      padding: 0;
+      color: #4a7cf7;
+      cursor: pointer;
+      font-size: .85rem;
+      text-decoration: none;
+    }
+    .form-footer button:disabled { color: #aaa; cursor: default; }
+
+    /* Stage dots */
+    .stage-dots { display: flex; gap: 5px; margin-bottom: 1.5rem; }
+    .stage-dots span {
+      height: 3px;
+      border-radius: 2px;
+      background: #ddd;
+      width: 20px;
+      transition: background .2s, width .2s;
+    }
+    .stage-dots .active  { background: #4a7cf7; width: 28px; }
+    .stage-dots .done    { background: #2ecc71; }
+  </style>
+{% endblock %}
+
+{% block content %}
+  {% if service_name or next %}
+  <div class="sso-banner">
+    Log ind for at fortsætte til <strong>{{ service_name|default:"the connected service" }}</strong>
+  </div>
+  {% endif %}
+
+  {% if stage == 1 or not stage %}
+
+  <div class="stage-dots"><span class="active"></span><span></span></div>
+  <h1>Kære Fember</h1>
+  <p class="subtitle">Indtast din stregbruger for at fortsætte.</p>
+
+  <form method="POST" action="{% url 'sso_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="stage" value="1"/>
+    {% if next %}<input type="hidden" name="next" value="{{ next }}"/>{% endif %}
+
+    <label for="username">Brugernavn</label>
+    <input
+      type="text" id="username" name="username"
+      value="{{ username|default:'' }}"
+      autocomplete="username" autofocus spellcheck="false" autocapitalize="none"
+    />
+
+    <button type="submit">Fortsæt →</button>
+  </form>
+
+  {% elif stage == 2 %}
+
+  <div class="stage-dots"><span class="done"></span><span class="active"></span></div>
+  <h1>Tjek din indbakke</h1>
+  <p class="subtitle">Indtast F&#8209;koden, der blev sendt til <strong>{{ masked_email }}</strong></p>
+
+  <form method="POST" action="{% url 'sso_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" id="otp-form" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="stage" value="2"/>
+    <input type="hidden" name="username" value="{{ username }}"/>
+    {% if next %}<input type="hidden" name="next" value="{{ next }}"/>{% endif %}
+    <input type="hidden" name="otp_combined" id="otp-combined"/>
+
+    <label>F‑Code</label>
+    <div class="otp-row" id="otp-grid">
+      <input type="text" value="F" readonly tabindex="-1" class="f-cell" aria-label="F prefix"/>
+      {% for i in "12345" %}
+      <input
+        type="text" inputmode="numeric" pattern="[0-9]"
+        name="otp_{{ i }}" maxlength="1" class="digit-cell"
+        autocomplete="one-time-code" aria-label="Digit {{ i }}"
+        {% if i == "1" %}autofocus{% endif %}
+      />
+      {% endfor %}
+    </div>
+
+    <button type="submit">Log ind →</button>
+
+    <div class="form-footer">
+      <span>Udløber om <strong id="countdown">05:00</strong></span>
+      <form method="POST" action="{% url 'sso_resend_otp' %}" style="display:contents">
+        {% csrf_token %}
+        <input type="hidden" name="username" value="{{ username }}"/>
+        {% if next %}<input type="hidden" name="next" value="{{ next }}"/>{% endif %}
+        <button type="submit" id="resend-btn" disabled>Gensend F-kode</button>
+      </form>
+    </div>
+  </form>
+
+  <div class="form-footer" style="margin-top:.75rem">
+    <a href="{% url 'sso_login' %}{% if next %}?next={{ next }}{% endif %}">← Indtast et andet brugernavn</a>
+  </div>
+
+  {% endif %}
+
+<script>
+(function () {
+  const grid = document.getElementById('otp-grid');
+  if (!grid) return;
+
+  const cells    = Array.from(grid.querySelectorAll('.digit-cell'));
+  const combined = document.getElementById('otp-combined');
+  const form     = document.getElementById('otp-form');
+
+  const sync = () => combined.value = 'F' + cells.map(c => c.value).join('');
+
+  cells.forEach((cell, i) => {
+    cell.addEventListener('input', () => {
+      cell.value = cell.value.replace(/\D/g, '').slice(-1);
+      sync();
+      if (cell.value && i < cells.length - 1) cells[i + 1].focus();
+      if (cells.every(c => c.value)) (form.requestSubmit ?? form.submit).call(form);
+    });
+
+    cell.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !cell.value && i > 0) {
+        cells[i - 1].value = '';
+        cells[i - 1].focus();
+        sync();
+      }
+      if (e.key === 'ArrowLeft'  && i > 0)               cells[i - 1].focus();
+      if (e.key === 'ArrowRight' && i < cells.length - 1) cells[i + 1].focus();
+    });
+
+    cell.addEventListener('paste', e => {
+      e.preventDefault();
+      const digits = (e.clipboardData.getData('text')).replace(/\D/g, '').slice(0, 5);
+      digits.split('').forEach((d, j) => cells[j] && (cells[j].value = d));
+      cells[Math.min(digits.length, cells.length - 1)].focus();
+      sync();
+      if (digits.length === 5) (form.requestSubmit ?? form.submit).call(form);
+    });
+  });
+
+  const el  = document.getElementById('countdown');
+  const btn = document.getElementById('resend-btn');
+  let s = 300;
+
+  const timer = setInterval(() => {
+    s--;
+    el.textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+    if (s <= 0) { clearInterval(timer); el.textContent = 'Udløbet'; btn.disabled = false; }
+  }, 1000);
+})();
+</script>
+{% endblock %}

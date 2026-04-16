@@ -160,6 +160,18 @@ paths:
         '400':
           $ref: '#/components/responses/Member_RoomIdParameter_BadResponse'
 components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://stregsystem.fklub.dk/o/authorize/
+          tokenUrl: https://stregsystem.fklub.dk/o/token/
+          refreshUrl: https://stregsystem.fklub.dk/o/token/
+          scopes: {}
+    openId:
+      type: openIdConnect
+      openIdConnectUrl: https://stregsystem.fklub.dk/.well-known/openid-configuration
   examples:
     MemberNotFoundExample:
       summary: Member does not exist

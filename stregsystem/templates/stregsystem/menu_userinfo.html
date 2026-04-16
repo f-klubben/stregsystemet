@@ -66,6 +66,40 @@
 
    <br />
 
+   <p><b>Aktive sessions:</b>
+      {% if session_list %}
+
+          <table class="default" style="table-layout: fixed;">
+      <tr>
+         <th>Applikation</th>
+         <th>Beføjelser</th>
+         <th></th>
+      </tr>
+      {% autoescape off %}
+      {% for session in session_list %}
+         <tr>
+            <td style="width: 157px;">{{ session.application }}</td>
+            <td style="width: 30px ;">{{ session.scope }}</td>
+            <td style="width: 30px ;">
+                <form method="post" action="{% url 'revoke_session' room_id=room_id member_id=member_id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="session_id" value="{{ session.id }}">
+                    <button type="submit">Tilbagekald</button>
+                </form>
+            </td>
+         </tr>
+      {% endfor %}
+      {% endautoescape %}
+   </table>
+
+         {% else %}
+         Du har ingen sessions!
+      {% endif %}
+
+   </p>
+
+   <br />
+
    <p><b>I databasen ligger desuden følgende informationer om dig</b></p>
    <table class="default">
       <tr>
