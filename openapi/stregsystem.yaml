@@ -22,6 +22,18 @@ tags:
   - name: Sale
     description: Related to performing a sale.
 paths:
+  /api/version:
+    get:
+      summary: Get version info
+      description: Gets Stregsystem version and API version.
+      operationId: api_version_info
+      responses:
+        '200':
+          description: Version info retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
   /api/member:
     get:
       tags:
@@ -251,6 +263,9 @@ components:
     name:
       type: string
       example: Kresten Laust
+    stregsystem_version:
+      type: string
+      example: v2.6.5
     member_id:
       type: integer
       example: 321
@@ -429,6 +444,14 @@ components:
           $ref: '#/components/schemas/active'
         name:
           $ref: '#/components/schemas/name'
+    VersionInfo:
+      type: object
+      properties:
+        version:
+          $ref: '#/components/schemas/stregsystem_version'
+        api_version:
+          type: string
+          example: 1.1
   responses:
     MemberFound:
       description: Member found.

@@ -958,3 +958,12 @@ def __set_local_values(member, room, products, order, now):
         member_has_low_balance,
         member_balance,
     )
+
+
+def api_version(request):
+    return JsonResponse(
+        {
+            'version': settings.STREGSYSTEM_VERSION,
+            'api_version': settings.STREGSYSTEM_API_VERSION,
+        }
+    )
