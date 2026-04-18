@@ -1,5 +1,4 @@
 from typing import Any, Literal, Sequence
-from typing_extensions import override
 from django.contrib import admin
 from django import forms
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
