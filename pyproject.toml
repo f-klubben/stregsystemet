@@ -3,11 +3,23 @@ name = "stregsystemet"
 version = "2.7.0"
 description = "The Stregsystem is used at F-Klubben to pay for goods bought at Strandvejen and for signup to various events held by F-klubben."
 authors = [
-  { name = "FIT" }
+    { name = "FIT" },
 ]
-license = { file = "LICENSE" }
 requires-python = ">=3.10"
 readme = "README.md"
+
+[project.license]
+file = "LICENSE"
+
+[tool.migratefixture.targets]
+kiosk = "0011_rename_uploaded_date_kioskitem_created_at"
+razzia = "0003_razzia_created_at_razzia_updated_at"
+stregreport = "0009_rename_razziaentry_razziaentryold"
+stregsystem = "0024_alter_productnote_products"
+sessions = "0001_initial"
+contenttypes = "0002_remove_content_type_name"
+auth = "0012_alter_user_first_name_max_length"
+admin = "0003_logentry_add_action_flag_choices"
 
 [tool.stregsystemet]
 api-version = "1.2"
