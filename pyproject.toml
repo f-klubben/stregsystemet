@@ -1,6 +1,6 @@
 [project]
 name = "stregsystemet"
-version = "2.6.5"
+version = "2.7.0"
 description = "The Stregsystem is used at F-Klubben to pay for goods bought at Strandvejen and for signup to various events held by F-klubben."
 authors = [
     { name = "FIT" },
@@ -20,3 +20,9 @@ sessions = "0001_initial"
 contenttypes = "0002_remove_content_type_name"
 auth = "0012_alter_user_first_name_max_length"
 admin = "0003_logentry_add_action_flag_choices"
+
+[tool.stregsystemet]
+api-version = "1.2"
+
+[tool.setuptools.packages.find]
+include = ["stregsystem", "treo", "media", "kiosk", "razzia", "openapi", "stregreport"]

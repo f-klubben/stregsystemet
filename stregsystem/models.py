@@ -130,7 +130,11 @@ class Order(object):
 
         # Check if we have enough inventory to fulfill the order
         for item in self.items:
-            if item.product.start_date is not None and (item.product.bought + item.count > item.product.quantity):
+            if (
+                item.product.start_date is not None
+                and (item.product.bought + item.count > item.product.quantity)
+                and item.product.quantity != 0
+            ):
                 raise NoMoreInventoryError()
 
         # Take update lock on member row
@@ -627,6 +631,9 @@ class Product(BaseModel):  # id automatisk...
 
     def is_active(self):
         expired = self.deactivate_date is not None and self.deactivate_date <= timezone.now()
+
+        if self.start_date is not None and self.start_date > timezone.now().date():
+            return False
 
         if self.start_date is not None:
             out_of_stock = self.quantity <= self.bought
