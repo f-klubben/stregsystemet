@@ -1198,45 +1198,6 @@
   }
 },
 {
-  "model": "stregsystem.sale",
-  "pk": 1,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:15:15.321Z",
-    "member": 1,
-    "product": 11,
-    "room": 1,
-    "timestamp": "2017-03-13T12:52:52.142Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 2,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:15:15.321Z",
-    "member": 1,
-    "product": 32,
-    "room": 1,
-    "timestamp": "2017-03-13T12:54:12.423Z",
-    "price": 200
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 3,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:15:15.321Z",
-    "member": 1,
-    "product": 42,
-    "room": 1,
-    "timestamp": "2017-03-13T13:38:10.573Z",
-    "price": 300
-  }
-},
-{
   "model": "stregsystem.theme",
   "pk": 1,
   "fields": {
@@ -1421,6 +1382,51 @@
     "date_joined": "2026-03-10T10:15:12.983Z",
     "groups": [],
     "user_permissions": []
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 1,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.321Z",
+    "member": 1,
+    "product": 11,
+    "room": 1,
+    "timestamp": "2017-03-13T12:52:52.142Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 2,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.321Z",
+    "member": 1,
+    "product": 32,
+    "room": 1,
+    "timestamp": "2017-03-13T12:54:12.423Z",
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 3,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.321Z",
+    "member": 1,
+    "product": 42,
+    "room": 1,
+    "timestamp": "2017-03-13T13:38:10.573Z",
+    "price": 300,
+    "refunded_at": null,
+    "refunded_by": null
   }
 }
 ]

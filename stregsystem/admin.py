@@ -29,15 +29,12 @@ from stregsystem.utils import (
 )
 
 
-def refund(modeladmin, request, queryset):
-    for obj in queryset:
-        transaction = PayTransaction(obj.price)
-        obj.member.rollback(transaction)
-        obj.member.save()
-    queryset.delete()
-
-
-refund.short_description = "Refund selected"
+@admin.action(description="Refund selected")
+def refund_sales(modeladmin, request, queryset):
+    for sale in queryset:
+        if not isinstance(sale, Sale):
+            raise ValueError("queryset must be of Sale")
+        sale.process_refund(request.user)
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -71,11 +68,12 @@ class SaleAdmin(BaseAdmin):
             'get_fullname',
             'get_product_name',
             'get_room_name',
+            'get_refunded',
             'timestamp',
             'get_price_display',
         ] + super()._get_fields_to_display()
 
-    actions = [refund]
+    actions = [refund_sales]
     search_fields = ['^member__username', '=product__id', 'product__name']
     valid_lookups = 'member'
     autocomplete_fields = ['member', 'product']
@@ -94,6 +92,11 @@ class SaleAdmin(BaseAdmin):
 
     get_fullname.short_description = "Full name"
     get_fullname.admin_order_field = "member__firstname"
+
+    def get_refunded(self, obj):
+        if not isinstance(obj, Sale):
+            raise ValueError("obj must be of Sale")
+        return obj.is_refunded()
 
     def get_product_name(self, obj):
         return obj.product.name

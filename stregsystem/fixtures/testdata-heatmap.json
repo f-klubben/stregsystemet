@@ -404,656 +404,6 @@
   }
 },
 {
-  "model": "stregsystem.sale",
-  "pk": 1,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2017-03-13T12:52:52.142Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 2,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2017-03-13T12:54:12.423Z",
-    "price": 200
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 3,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 13,
-    "room": 1,
-    "timestamp": "2017-03-13T13:38:10.573Z",
-    "price": 300
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 8,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-07-03T06:31:38.412Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 9,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-07-03T06:31:58.628Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 10,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-07-05T06:32:17.029Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 11,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2023-07-05T06:32:24.962Z",
-    "price": 200
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 12,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2023-07-08T06:32:33.665Z",
-    "price": 200
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 13,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2023-07-08T06:32:39.906Z",
-    "price": 200
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 14,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2023-07-11T06:32:50.954Z",
-    "price": 200
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 15,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-07-11T06:32:55.453Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 16,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-07-15T06:33:08.914Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 17,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 13,
-    "room": 1,
-    "timestamp": "2023-07-15T06:33:14.566Z",
-    "price": 300
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 18,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 13,
-    "room": 1,
-    "timestamp": "2023-07-18T06:33:30.689Z",
-    "price": 300
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 19,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 13,
-    "room": 1,
-    "timestamp": "2023-07-18T06:33:32.977Z",
-    "price": 300
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 20,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 13,
-    "room": 1,
-    "timestamp": "2023-07-18T06:33:35.945Z",
-    "price": 300
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 21,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 13,
-    "room": 1,
-    "timestamp": "2023-07-22T06:33:43.515Z",
-    "price": 300
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 22,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2023-07-22T06:33:46.335Z",
-    "price": 200
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 23,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2023-07-25T06:33:55.529Z",
-    "price": 200
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 24,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-07-25T06:33:58.663Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 25,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 3,
-    "room": 1,
-    "timestamp": "2023-07-30T06:34:35.145Z",
-    "price": 1500
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 27,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2023-08-03T06:34:48.584Z",
-    "price": 200
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 28,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2023-08-03T06:34:51.434Z",
-    "price": 200
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 29,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2023-08-06T06:37:45.688Z",
-    "price": 200
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 30,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-08-06T06:37:47.321Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 31,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-08-09T06:37:53.897Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 32,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-08-11T06:46:22.735Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 33,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-08-13T06:46:35.149Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 34,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-08-16T06:46:42.036Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 35,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-08-19T06:47:40.094Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 36,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-08-19T06:47:44.657Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 37,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-08-21T06:48:15.721Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 38,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-08-24T06:49:42.682Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 39,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-08-26T06:49:49.263Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 40,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-08-26T06:49:51.322Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 41,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-08-26T06:49:53.011Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 42,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-08-29T06:50:02.353Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 43,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-08-31T06:50:08.571Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 44,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-09-02T06:50:25.448Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 45,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-09-04T06:50:34.380Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 46,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-09-04T06:50:36.176Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 47,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-09-04T06:50:37.993Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 48,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2023-09-17T21:14:40.841Z",
-    "price": 200
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 49,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2023-09-17T21:14:41.863Z",
-    "price": 200
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 50,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2023-09-17T21:14:42.694Z",
-    "price": 200
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 51,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2023-09-17T21:14:43.594Z",
-    "price": 200
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 52,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2023-09-17T21:21:09.311Z",
-    "price": 200
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 56,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-09-19T16:36:26.044Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 57,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 1,
-    "room": 1,
-    "timestamp": "2023-09-19T16:45:11.349Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 58,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.930Z",
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2023-09-19T17:07:47.761Z",
-    "price": 200
-  }
-},
-{
   "model": "auth.user",
   "fields": {
     "password": "pbkdf2_sha256$150000$fUAN4hBdKvOp$+1qkLByq1ae/ybzfplIUZnLQvQzHh2NrYLHvzg028Hc=",
@@ -1085,6 +435,756 @@
     "date_joined": "2021-09-13T13:43:22Z",
     "groups": [],
     "user_permissions": []
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 1,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2017-03-13T12:52:52.142Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 2,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2017-03-13T12:54:12.423Z",
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 3,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 13,
+    "room": 1,
+    "timestamp": "2017-03-13T13:38:10.573Z",
+    "price": 300,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 8,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-07-03T06:31:38.412Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 9,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-07-03T06:31:58.628Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 10,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-07-05T06:32:17.029Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 11,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-07-05T06:32:24.962Z",
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 12,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-07-08T06:32:33.665Z",
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 13,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-07-08T06:32:39.906Z",
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 14,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-07-11T06:32:50.954Z",
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 15,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-07-11T06:32:55.453Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 16,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-07-15T06:33:08.914Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 17,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 13,
+    "room": 1,
+    "timestamp": "2023-07-15T06:33:14.566Z",
+    "price": 300,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 18,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 13,
+    "room": 1,
+    "timestamp": "2023-07-18T06:33:30.689Z",
+    "price": 300,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 19,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 13,
+    "room": 1,
+    "timestamp": "2023-07-18T06:33:32.977Z",
+    "price": 300,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 20,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 13,
+    "room": 1,
+    "timestamp": "2023-07-18T06:33:35.945Z",
+    "price": 300,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 21,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 13,
+    "room": 1,
+    "timestamp": "2023-07-22T06:33:43.515Z",
+    "price": 300,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 22,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-07-22T06:33:46.335Z",
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 23,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-07-25T06:33:55.529Z",
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 24,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-07-25T06:33:58.663Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 25,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 3,
+    "room": 1,
+    "timestamp": "2023-07-30T06:34:35.145Z",
+    "price": 1500,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 27,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-08-03T06:34:48.584Z",
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 28,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-08-03T06:34:51.434Z",
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 29,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-08-06T06:37:45.688Z",
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 30,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-06T06:37:47.321Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 31,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-09T06:37:53.897Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 32,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-11T06:46:22.735Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 33,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-13T06:46:35.149Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 34,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-16T06:46:42.036Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 35,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-19T06:47:40.094Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 36,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-19T06:47:44.657Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 37,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-21T06:48:15.721Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 38,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-24T06:49:42.682Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 39,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-26T06:49:49.263Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 40,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-26T06:49:51.322Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 41,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-26T06:49:53.011Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 42,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-29T06:50:02.353Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 43,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-31T06:50:08.571Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 44,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-09-02T06:50:25.448Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 45,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-09-04T06:50:34.380Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 46,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-09-04T06:50:36.176Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 47,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-09-04T06:50:37.993Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 48,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-09-17T21:14:40.841Z",
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 49,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-09-17T21:14:41.863Z",
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 50,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-09-17T21:14:42.694Z",
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 51,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-09-17T21:14:43.594Z",
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 52,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-09-17T21:21:09.311Z",
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 56,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-09-19T16:36:26.044Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 57,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-09-19T16:45:11.349Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 58,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-09-19T17:07:47.761Z",
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
   }
 }
 ]
