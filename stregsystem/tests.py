@@ -14,6 +14,7 @@ from django.contrib.auth.models import User
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages import get_messages
 from django.forms import model_to_dict
+from django.template import Context, Template
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -50,6 +51,7 @@ from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
 from stregsystem.utils import (
     make_active_productlist_query,
     mobile_payment_exact_match_member,
+    mobilepay_launch_uri,
     strip_emoji,
     PaymentToolException,
 )
@@ -64,6 +66,26 @@ def assertCountEqual(case, *args, **kwargs):
 
 
 class ModelMiscTests(TestCase):
+    def test_mobilepay_link_template_tag(self):
+        template = Template("{% load mobilepay_qr %}{% mobilepay_link 'jdoe' 100 %}")
+
+        self.assertEqual(
+            template.render(Context({})),
+            "https://mobilepay.dk/erhverv/betalingslink/betalingslink-svar?phone=90601&amp;comment=jdoe&amp;amount=100",
+        )
+
+    def test_mobilepay_launch_uri_uses_payment_link(self):
+        self.assertEqual(
+            mobilepay_launch_uri("jdoe", 50),
+            "https://mobilepay.dk/erhverv/betalingslink/betalingslink-svar?phone=90601&comment=jdoe&amount=50",
+        )
+
+    def test_mobilepay_launch_uri_without_amount(self):
+        self.assertEqual(
+            mobilepay_launch_uri("jdoe", None),
+            "https://mobilepay.dk/erhverv/betalingslink/betalingslink-svar?phone=90601&comment=jdoe",
+        )
+
     def test_price_display_none(self):
         v = price_display(None)
         self.assertEqual(v, "0.00 kr.")

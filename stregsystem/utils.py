@@ -181,7 +181,9 @@ def mobilepay_launch_uri(comment: str, amount: float) -> str:
     if amount is not None:
         query['amount'] = amount
 
-    return 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
+    return 'https://mobilepay.dk/erhverv/betalingslink/betalingslink-svar?{}'.format(
+        urllib.parse.urlencode(query)
+    )
 
 
 class stregsystemTestRunner(DiscoverRunner):
