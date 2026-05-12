@@ -1602,6 +1602,27 @@ class MobilePaymentTests(TestCase):
             Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'] + mobile_payment.amount
         )
 
+    @mock.patch('stregsystem.models.send_payment_mail', autospec=True)
+    def test_exact_match_mobilepayment_sends_automatic_mail(self, mock_mail_method: MagicMock):
+        mobile_payment = MobilePayment.objects.get(transaction_id__exact="016E027417049990")
+        mobile_payment.status = MobilePayment.APPROVED
+        mobile_payment.save()
+
+        MobilePayment.submit_all_processed_mobile_payments(self.super_user)
+
+        mock_mail_method.assert_called_once_with(mobile_payment.member, mobile_payment.amount, None)
+
+    @mock.patch('stregsystem.models.send_payment_mail', autospec=True)
+    def test_manually_matched_mobilepayment_sends_comment_mail(self, mock_mail_method: MagicMock):
+        mobile_payment = MobilePayment.objects.get(transaction_id__exact="232E027452733666")
+        mobile_payment.member = Member.objects.get(username__exact="tables")
+        mobile_payment.status = MobilePayment.APPROVED
+        mobile_payment.save()
+
+        MobilePayment.submit_all_processed_mobile_payments(self.super_user)
+
+        mock_mail_method.assert_called_once_with(mobile_payment.member, mobile_payment.amount, mobile_payment.comment)
+
     def test_ignored_payment_balance(self):
         # member balance unchanged
         self.assertEqual(Member.objects.get(username__exact="tester").balance, self.members["tester"]['balance'])

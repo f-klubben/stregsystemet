@@ -386,7 +386,11 @@ class Payment(BaseModel):  # id automatisk...
             self.member.save()
             if self.member.email != "" and self.amount != 0:
                 if '@' in parseaddr(self.member.email)[1] and self.member.want_spam:
-                    send_payment_mail(self.member, self.amount, mbpayment.comment if mbpayment else None)
+                    send_payment_mail(
+                        self.member,
+                        self.amount,
+                        mbpayment.payment_mail_comment() if mbpayment else None,
+                    )
 
     def log_from_mobile_payment(self, processed_mobile_payment, admin_user: User):
         LogEntry.objects.log_action(
@@ -477,6 +481,12 @@ class MobilePayment(ApprovalModel):
             f"{self.member.username if self.member is not None else 'Not assigned'}, {self.customer_name}, "
             f"{self.timestamp}, {self.amount}, {self.transaction_id}, {self.comment}"
         )
+
+    def payment_mail_comment(self):
+        if self.member is not None and self.comment is not None:
+            if self.comment.strip().casefold() == self.member.username.casefold():
+                return None
+        return self.comment
 
     @transaction.atomic()
     def delete(self, *args, **kwargs):
