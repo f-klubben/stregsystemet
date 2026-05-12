@@ -36,7 +36,7 @@
       <div>
         <b>{{amount | floatformat:2}} kr.</b>
         <br /><br />
-        <a href="mobilepay://send?phone=90601&comment={{ member.username }}&amount={{ amount }}">
+        <a href="{% mobilepay_link member.username amount %}">
           {% mobilepay_qr member.username amount %}
         </a>
       </div>
@@ -45,7 +45,7 @@
     <div>
       <b>Valgfrit beløb</b>
       <br /><br />
-      <a href="mobilepay://send?phone=90601&comment={{ member.username }}">
+      <a href="{% mobilepay_link member.username %}">
         {% mobilepay_qr member.username %}
       </a>
       <br />
@@ -55,4 +55,3 @@
 </main>
 
 {% endblock %}
-
