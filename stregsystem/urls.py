@@ -48,4 +48,7 @@ urlpatterns = [
     re_path(r'^api/sale$', views.api_sale, name="api_sale"),
     re_path(r'^api/sale/intent$', views.api_sale_intent, name="api_sale_intent"),
     re_path(r'^api/sale/intent/<uuid:intent_id>$', views.api_sale_intent_status, name="api_sale_intent_status"),
+    re_path(r'^api/version$', views.api_version, name="api_version"),
+    re_path(r'^api/signup$', views.post_signup, name="api_signup"),
+    re_path(r'^api/signup/status', views.get_signup_status, name="api_signup_status"),
 ]
