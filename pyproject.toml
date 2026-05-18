@@ -9,6 +9,7 @@ license = { file = "LICENSE" }
 requires-python = ">=3.10"
 readme = "README.md"
 dependencies = [
+    "black>=26.5.0",
     "coverage==7.5.1",
     "debugpy==1.8.16",
     "django==4.1.13",

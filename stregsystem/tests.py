@@ -1303,18 +1303,18 @@ class ProductRoomFilterTests(TestCase):
     def test_general_room_dont_get_special_items(self):
         numberOfSpecialItems = 2
         response = self.client.get(reverse('menu_index', args=(1,)))
-        product_pairs = response.context['product_note_pair_list']
+        product_pairs = response.context['productDisplayItems']
         specialProduct = Product.objects.get(pk=3)
 
-        any(self.assertFalse(specialProduct == pair.product) for pair in product_pairs)
+        any(self.assertFalse(specialProduct == displayItem.product) for displayItem in product_pairs)
         self.assertEqual(len(product_pairs), len(Product.objects.all()) - numberOfSpecialItems)
 
     def test_special_room_get_special_items(self):
         response = self.client.get(reverse('menu_index', args=(2,)))
-        product_pairs = response.context['product_note_pair_list']
+        product_pairs = response.context['productDisplayItems']
         specialProduct = Product.objects.get(pk=3)
 
-        self.assertTrue(any(specialProduct == pair.product) for pair in product_pairs)
+        self.assertTrue(any(specialProduct == displayItem.product) for displayItem in product_pairs)
         self.assertEqual(len(product_pairs), len(Product.objects.all()))
 
 
@@ -2382,6 +2382,14 @@ class EventAndTicketTests(TestCase):
         ticket_record.save()
         return ticket_record, sale
 
+    def helper_emulate_sale(self, product_id: int):
+        response = self.client.post(
+            reverse("quickbuy", args=(1,)),
+            {"quickbuy": f"test {product_id}"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
@@ -2410,8 +2418,23 @@ class EventAndTicketTests(TestCase):
             capacity=5,
             start_time=timezone.now() + datetime.timedelta(hours=3),
             end_time=timezone.now() + datetime.timedelta(hours=6),
-            final_refund_time=timezone.now() + datetime.timedelta(hours=10),    
+            final_refund_time=timezone.now() + datetime.timedelta(hours=10),
             location="Test Location 2",
+        )
+
+        cls.event_instance_low_capacity = EventInstance.objects.create(
+            event=cls.event,
+            capacity=1,
+            start_time=timezone.now() + datetime.timedelta(hours=3),
+            end_time=timezone.now() + datetime.timedelta(hours=6),
+            final_refund_time=timezone.now() + datetime.timedelta(hours=10),
+            location="Test Location 2",
+        )
+
+        cls.low_capcity_ticket = Ticket.objects.create(
+            event_instance=cls.event_instance_low_capacity,
+            quantity=2,
+            product=Product.objects.create(name="Low Capacity Product", price=100, active=True),
         )
 
         cls.event_instance_not_refundable_by_user = EventInstance.objects.create(
@@ -2444,7 +2467,9 @@ class EventAndTicketTests(TestCase):
         )
 
         cls.event_instance_not_refundable_by_user_ticket = Ticket.objects.create(
-            event_instance=cls.event_instance_not_refundable_by_user, quantity=5, product=cls.event_instance_not_refundable_by_user_product
+            event_instance=cls.event_instance_not_refundable_by_user,
+            quantity=5,
+            product=cls.event_instance_not_refundable_by_user_product,
         )
 
     def test_setup(self):
@@ -2457,11 +2482,8 @@ class EventAndTicketTests(TestCase):
 
     def test_tr_ticket_purchase(self):
         # Purchase the product for the first ticket
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)), {"quickbuy": f"test {self.event_instance_ticket.product.pk}"}
-        )
+        self.helper_emulate_sale(self.event_instance_ticket.product.pk)
 
-        self.assertEqual(response.status_code, 200)
         self.assertTrue(Sale.objects.filter(member=self.member, product=self.event_instance_ticket.product).exists())
 
         ticket_records = TicketRecord.objects.filter(ticket=self.event_instance_ticket)
@@ -2489,12 +2511,8 @@ class EventAndTicketTests(TestCase):
 
     def test_tr_ticket_purchase_standby(self):
         # Purchase the product for the first ticket
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)),
-            {"quickbuy": f"test {self.event_instance_ticket.product.pk}"},
-        )
+        self.helper_emulate_sale(self.event_instance_ticket.product.pk)
 
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(
             Sale.objects.filter(member=self.member, product=self.event_instance_ticket.product).count(),
             1,
@@ -2502,12 +2520,8 @@ class EventAndTicketTests(TestCase):
 
         # Purchase the product for the first ticket the second time, which should put the ticket on standby, since quantity is
 
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)),
-            {"quickbuy": f"test {self.event_instance_ticket.product.pk}"},
-        )
+        self.helper_emulate_sale(self.event_instance_ticket.product.pk)
 
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(
             Sale.objects.filter(member=self.member, product=self.event_instance_ticket.product).count(),
             2,
@@ -2541,12 +2555,8 @@ class EventAndTicketTests(TestCase):
         self.assertIsNone(ticket_record_last.admin_issued_to)
 
         # Purchase the product for the second ticket, which should not be on standby, since quantity is 9, and only 2 has been sold so far
-        response = self.client.post(
-            reverse("quickbuy", args=(1,)),
-            {"quickbuy": f"test {self.event_instance_ticket_2.product.pk}"},
-        )
+        self.helper_emulate_sale(self.event_instance_ticket_2.product.pk)
 
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(
             Sale.objects.filter(member=self.member, product=self.event_instance_ticket_2.product).count(),
             1,
@@ -2575,12 +2585,8 @@ class EventAndTicketTests(TestCase):
         capacity = self.event_instance.capacity
 
         for i in range(capacity + 1):
-            response = self.client.post(
-                reverse("quickbuy", args=(1,)),
-                {"quickbuy": f"test {self.event_instance_ticket_2.product.pk}"},
-            )
+            self.helper_emulate_sale(self.event_instance_ticket_2.product.pk)
 
-            self.assertEqual(response.status_code, 200)
             self.assertEqual(
                 Sale.objects.filter(member=self.member, product=self.event_instance_ticket_2.product).count(),
                 i + 1,
@@ -2713,7 +2719,7 @@ class EventAndTicketTests(TestCase):
 
         self.assertTrue(ticket_record.is_refundable_by_self())
         self.assertTrue(ticket_record.is_refundable_by_admin())
-        
+
         # Mark sale as refunded, which should make the ticket record not refundable
         assert ticket_record.sale is not None
         ticket_record.sale.refunded_at = timezone.now()
@@ -2763,7 +2769,7 @@ class EventAndTicketTests(TestCase):
 
         with self.assertRaises(InvalidTicketRecordError):
             ticket_record_not_refundable_by_user.process_refund(None)
-        
+
         try:
             ticket_record_not_refundable_by_user.process_refund(self.admin)
         except InvalidTicketRecordError:
@@ -2832,13 +2838,12 @@ class EventAndTicketTests(TestCase):
         self.assertEqual(member_purchases.count(), 2)
 
     def test_t_is_product_a_ticket(self):
-        is_ticket, ticket = Ticket.is_product_a_ticket(self.event_instance_ticket.product)
-        self.assertTrue(is_ticket)
+        ticket = Ticket.is_product_a_ticket(self.event_instance_ticket.product)
+        self.assertIsNotNone(ticket)
         assert ticket is not None
         self.assertEqual(ticket.pk, self.event_instance_ticket.pk)
         other_product = Product.objects.create(name="Other Product", price=100, active=True)
-        is_ticket, ticket = Ticket.is_product_a_ticket(other_product)
-        self.assertFalse(is_ticket)
+        ticket = Ticket.is_product_a_ticket(other_product)
         self.assertIsNone(ticket)
 
     def test_t_get_stand_by_records(self):
@@ -2863,12 +2868,41 @@ class EventAndTicketTests(TestCase):
             self.assertTrue(record.is_stand_by)
             self.assertEqual(record.pk, stand_by_records[i].pk)
 
-    def test_t_get_stand_by_limit(self):
-        # The first event instance has a capacity of 5 and a ticket quantity of 1, which means that the stand by limit should be 1
-        self.assertEqual(self.event_instance_ticket.get_stand_by_limit(), self.event_instance_ticket.quantity)
+    def test_t_next_bought_should_be_stand_by_due_to_ticket_quantity(self):
+        # Create a ticket record with a sale, which should not be on standby, since quantity is 1 and this is the first purchase
+        next_should_be_standby = self.event_instance_ticket.next_bought_should_be_stand_by_due_to_ticket_quantity()
+        self.assertFalse(next_should_be_standby)
 
-        # The second event instance has a capacity of 5 and a ticket quantity of 9, which means that the stand by limit should be 5
-        self.assertEqual(self.event_instance_ticket_2.get_stand_by_limit(), self.event_instance_2.capacity)
+        ticket_record, _ = self.helper_create_ticket_record(self.member, self.event_instance_ticket.product)
+
+        # Create another ticket record with a sale, which should be on standby, since quantity is 1 and this is the second purchase
+        next_should_be_standby = self.event_instance_ticket.next_bought_should_be_stand_by_due_to_ticket_quantity()
+        self.assertTrue(next_should_be_standby)
+
+    def test_t_next_bought_should_be_stand_by(self):
+        # Test this is true when capacity is violated
+        # Create a ticket record with a sale, which should not be on standby, since quantity is 2 and capacity is 1, but this is the first purchase
+        next_should_be_standby = self.low_capcity_ticket.next_bought_should_be_stand_by()
+        self.assertFalse(next_should_be_standby)
+
+        ticket_record, _ = self.helper_create_ticket_record(self.member, self.low_capcity_ticket.product)
+        self.assertFalse(ticket_record.is_stand_by)
+
+        # Create another ticket record with a sale, which should be on standby, since quantity is 2 and capacity is 1, and this is the second purchase
+        next_should_be_standby = self.low_capcity_ticket.next_bought_should_be_stand_by()
+        self.assertTrue(next_should_be_standby)
+
+        # Test this is true when quantity is violated
+        # Create a ticket record with a sale, which should not be on standby, since quantity is 1 and this is the first purchase
+        next_should_be_standby = self.event_instance_ticket.next_bought_should_be_stand_by()
+        self.assertFalse(next_should_be_standby)
+
+        ticket_record_3, _ = self.helper_create_ticket_record(self.member, self.event_instance_ticket.product)
+        self.assertFalse(ticket_record_3.is_stand_by)
+
+        # Create another ticket record with a sale, which should be on standby, since quantity is 1 and this is the second purchase
+        next_should_be_standby = self.event_instance_ticket.next_bought_should_be_stand_by()
+        self.assertTrue(next_should_be_standby)
 
     def test_t_save(self):
         # Test that saving a ticket with a product that is already associated with another ticket throws an exception, since a product can only be associated with one ticket
@@ -2904,6 +2938,22 @@ class EventAndTicketTests(TestCase):
 
         tickets = self.event_instance.get_tickets()
         self.assertEqual(tickets.count(), 3)
+
+    def test_ei_next_bought_ticket_should_be_stand_by_due_to_capacity(self):
+        # Create a ticket record with a sale, which should not be on standby, since quantity is 2 and capacity is 1, but this is the first purchase
+        next_should_be_standby = (
+            self.event_instance_low_capacity.next_bought_ticket_should_be_stand_by_due_to_capacity()
+        )
+        self.assertFalse(next_should_be_standby)
+
+        ticket_record, _ = self.helper_create_ticket_record(self.member, self.low_capcity_ticket.product)
+        self.assertFalse(ticket_record.is_stand_by)
+
+        # Create another ticket record with a sale, which should be on standby, since quantity is 2 and capacity is 1, and this is the second purchase
+        next_should_be_standby = (
+            self.event_instance_low_capacity.next_bought_ticket_should_be_stand_by_due_to_capacity()
+        )
+        self.assertTrue(next_should_be_standby)
 
     def test_ei_get_stand_by_and_issued_ticket_records(self):
         # Create 5 ticket records that are stand by and 5 that are not, and check that only the stand by ones are returned
@@ -2979,11 +3029,6 @@ class EventAndTicketTests(TestCase):
             )
             stand_by_records.append(ticket_record)
 
-        sale = Sale.objects.create(
-            member=self.member,
-            product=self.event_instance_ticket.product,
-            price=self.event_instance_ticket.product.price,
-        )
         non_stand_by_record, _ = self.helper_create_ticket_record(
             self.member, self.event_instance_ticket.product, is_standby=False
         )
@@ -2995,3 +3040,50 @@ class EventAndTicketTests(TestCase):
             self.assertTrue(ticket_record.is_refunded())
 
         self.assertFalse(non_stand_by_record.is_refunded())
+
+
+class TicketFrontendTests(TestCase):
+    fixtures = ["initial_data"]
+
+    def test_standby_ticket_is_marked_as_standby_in_frontend(self):
+        # Create a ticket record that is stand by
+        member = Member.objects.create(username="test", email="test@example.com", balance=10000)
+        event = Event.objects.create(name="Test Event", description="This is a test event.")
+        event_instance = EventInstance.objects.create(
+            event=event,
+            name_overwrite="Test Event Instance",
+            description_overwrite="This is a test event instance.",
+            capacity=1,
+            start_time=timezone.now(),
+            end_time=timezone.now() + datetime.timedelta(hours=2),
+            final_refund_time=timezone.now() + datetime.timedelta(hours=10),
+            location="Test Location",
+        )
+        product = Product.objects.create(name="Test Product", price=100, active=True)
+        ticket = Ticket.objects.create(event_instance=event_instance, quantity=1, product=product)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+        # Test that the note is not in the menu
+        self.assertNotContains(response, "På standby")
+
+        self.assertFalse(ticket.next_bought_should_be_stand_by())
+        sale = Sale.objects.create(member=member, product=product, price=100)
+        ticket_record = TicketRecord.objects.filter(sale=sale).first()
+        self.assertIsNotNone(ticket_record)
+        assert ticket_record is not None
+        self.assertFalse(ticket_record.is_stand_by)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+
+        # Test that the note is in the menu
+        self.assertContains(response, "På standby")
+
+        self.assertTrue(ticket.next_bought_should_be_stand_by())
+        sale = Sale.objects.create(member=member, product=product, price=100)
+        ticket_record = TicketRecord.objects.filter(sale=sale).first()
+
+        self.assertIsNotNone(ticket_record)
+        assert ticket_record is not None
+        self.assertTrue(ticket_record.is_stand_by)

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import datetime
 import io
 import json
@@ -17,7 +18,8 @@ from django.core.paginator import Paginator
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.core import management
-from django.db.models import Q, Count, Sum
+from django.db.models import Q, Count, QuerySet, Sum
+from django.db.models.manager import BaseManager
 from django.forms import modelformset_factory
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
@@ -45,6 +47,7 @@ from stregsystem.models import (
     ApprovalModel,
     ProductNote,
     TicketRecord,
+    Ticket,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -79,7 +82,28 @@ def __get_productlist(room_id):
     return make_active_productlist_query(Product.objects).filter(make_room_specific_query(room_id))
 
 
-def __get_active_notes_for_product(product):
+@dataclass
+class ProductDisplayItem:
+    product: Product
+    notes: list[ProductNote]
+    on_stand_by: bool
+
+
+def build_product_display_items(room_id) -> list[ProductDisplayItem]:
+
+    products = __get_productlist(room_id)
+    product_display_items = []
+    for product in products:
+        notes = __get_active_notes_for_product(product)
+        ticket = Ticket.is_product_a_ticket(product)
+        on_stand_by = False
+        if ticket and ticket.next_bought_should_be_stand_by():
+            on_stand_by = True
+        product_display_items.append(ProductDisplayItem(product=product, notes=list(notes), on_stand_by=on_stand_by))
+    return product_display_items
+
+
+def __get_active_notes_for_product(product: Product) -> BaseManager[ProductNote]:
     return ProductNote.objects.filter(
         (Q(products=product))
         & (Q(active=True))
@@ -98,10 +122,9 @@ def roomindex(request):
 
 def index(request, room_id):
     room = get_object_or_404(Room, pk=int(room_id))
-    ProductNotePair = namedtuple('ProductNotePair', 'product note')
-    product_note_pair_list = [
-        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room_id)
-    ]
+
+    productDisplayItems = build_product_display_items(room_id)
+
     news = __get_news()
     return render(request, 'stregsystem/index.html', locals())
 
@@ -123,11 +146,7 @@ def _pre_process(buy_string):
 def sale(request, room_id):
     room = get_object_or_404(Room, pk=room_id)
     news = __get_news()
-    product_list = __get_productlist(room_id)
-    ProductNotePair = namedtuple('ProductNotePair', 'product note')
-    product_note_pair_list = [
-        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room_id)
-    ]
+    productDisplayItemsBeforeSale = build_product_display_items(room_id)
 
     buy_string = request.POST['quickbuy'].strip()
     # Handle empty line
@@ -158,7 +177,7 @@ def sale(request, room_id):
         return render(request, 'stregsystem/error_signup_not_approved.html', locals())
 
     if len(bought_ids):
-        return quicksale(request, room, member, bought_ids)
+        return quicksale(request, room, member, bought_ids, productDisplayItemsBeforeSale)
     else:
         return usermenu(request, room, member, None)
 
@@ -189,17 +208,13 @@ def _multibuy_hint(now, member):
     return (False, None)
 
 
-def quicksale(request, room, member: Member, bought_ids):
+def quicksale(request, room, member: Member, bought_ids, productDisplayItemsBeforeSale: list[ProductDisplayItem]):
     news = __get_news()
-    product_list = __get_productlist(room.id)
-    ProductNotePair = namedtuple('ProductNotePair', 'product note')
-    product_note_pair_list = [
-        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room.id)
-    ]
+
     now = timezone.now()
 
     # Retrieve products and construct transaction
-    products: List[Product] = []
+    products: List[tuple[Product, int]] = []
     msg, status, result = __append_bought_ids_to_product_list(products, bought_ids, now, room)
     if status == 400:
         return render(request, 'stregsystem/error_productdoesntexist.html', {'failedProduct': result, 'room': room})
@@ -207,6 +222,7 @@ def quicksale(request, room, member: Member, bought_ids):
     order = Order.from_products(member=member, products=products, room=room)
 
     msg, status, result = __execute_order(order)
+    productDisplayItems = build_product_display_items(room.id)
     if 'Out of stock' in msg:
         return render(request, 'stregsystem/error_stregforbud.html', locals())
     elif 'Stregforbud' in msg:
@@ -228,18 +244,13 @@ def quicksale(request, room, member: Member, bought_ids):
         member_balance,
     ) = __set_local_values(member, room, products, order, now)
 
-    products = Counter([str(product.name) for product in products]).most_common()
-
     return render(request, 'stregsystem/index_sale.html', locals())
 
 
 def usermenu(request, room, member, bought, from_sale=False):
     negative_balance = member.balance < 0
-    product_list = __get_productlist(room.id)
-    ProductNotePair = namedtuple('ProductNotePair', 'product note')
-    product_note_pair_list = [
-        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room.id)
-    ]
+
+    productDisplayItems = build_product_display_items(room.id)
     news = __get_news()
     promille = member.calculate_alcohol_promille()
     (
@@ -924,7 +935,7 @@ def api_quicksale(request, room, member: Member, bought_ids):
     )
 
 
-def __append_bought_ids_to_product_list(products, bought_ids, time_now, room):
+def __append_bought_ids_to_product_list(products: list[tuple[Product, int]], bought_ids, time_now, room):
     try:
         # Get the amount of unique items bought
         unique_product_dict = {}
@@ -942,7 +953,7 @@ def __append_bought_ids_to_product_list(products, bought_ids, time_now, room):
                 Q(deactivate_date__gte=time_now) | Q(deactivate_date__isnull=True),
                 Q(rooms__id=room.id) | Q(rooms=None),
             )
-            products.extend([product for _ in range(value)])
+            products.append((product, value))
     except Product.DoesNotExist:
         return "Invalid product id", 400, key
     return "OK", 200, None
@@ -965,7 +976,7 @@ def __set_local_values(member, room, products, order, now):
 
     caffeine = member.calculate_caffeine_in_body()
     cups = caffeine_mg_to_coffee_cups(caffeine)
-    product_contains_caffeine = any(product.caffeine_content_mg > 0 for product in products)
+    product_contains_caffeine = any(product.caffeine_content_mg > 0 for product, count in products)
     is_coffee_master = member.is_leading_coffee_addict()
 
     cost = order.total

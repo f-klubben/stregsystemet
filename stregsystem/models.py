@@ -122,9 +122,8 @@ class Order(object):
 
     @classmethod
     def from_products(cls, member, room, products):
-        counts = Counter(products)
         order = cls(member, room)
-        for product, count in counts.items():
+        for product, count in products:
             item = OrderItem(product=product, order=order, count=count)
             order.items.add(item)
         return order
@@ -776,9 +775,8 @@ class Sale(BaseModel):
             self.on_new_sale()
 
     def on_new_sale(self):
-        is_ticket, ticket = Ticket.is_product_a_ticket(self.product)
-        if is_ticket:
-            assert ticket is not None, "Ticket should not be None if is_ticket is True"
+        ticket = Ticket.is_product_a_ticket(self.product)
+        if ticket:
             TicketRecord.create_from_sale_and_ticket(self, ticket)
 
     def _is_save_allowed(self):
@@ -796,9 +794,9 @@ class Sale(BaseModel):
     def exists_in_database(self):
         return self.pk is not None and Sale.objects.filter(pk=self.pk).exists()
 
-    def delete(self, *args, **kwargs):
-        if self.id:
-            super(Sale, self).delete(*args, **kwargs)
+    def delete(self, using: str | None = None, keep_parents: bool = False) -> tuple[int, dict[str, int]]:
+        if self.pk:
+            return super(Sale, self).delete(using=using, keep_parents=keep_parents)
         else:
             raise RuntimeError("You can't delete a sale that hasn't happened")
 
@@ -982,6 +980,12 @@ class EventInstance(models.Model):
     def get_tickets(self):
         return Ticket.objects.filter(event_instance=self)
 
+    def next_bought_ticket_should_be_stand_by_due_to_capacity(self) -> bool:
+        # If the number of tickets sold for this event instance has reached the capacity for this event instance, the next bought ticket should be put on stand-by
+        ticket_sales_count = self.get_issued_ticket_records().count()
+        return ticket_sales_count >= self.capacity
+
+    # Gets all stand by ticket record for all ticket types of this event instance, ordered by sale timestamp (oldest first)
     def get_stand_by_ticket_records(self):
         return TicketRecord.objects.filter(
             ticket__event_instance=self,
@@ -1024,31 +1028,9 @@ class Ticket(models.Model):
     product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name="tickets")
 
     @staticmethod
-    def is_product_a_ticket(product: Product) -> tuple[bool, Optional[Ticket]]:
+    def is_product_a_ticket(product: Product) -> Optional[Ticket]:
         ticket = Ticket.objects.filter(product=product).first()
-        if ticket is not None:
-            return True, ticket
-        else:
-            return False, None
-        
-    def mark_ticket_stand_by(self) -> None:
-        # Create a product note (if it doesn't already exist) and assign the associated product
-        product_note, created = ProductNote.objects.get_or_create(
-            text = "Udsolgt - Venteliste aktiveret",
-            defaults={
-                'active': True,
-                'background_color': 'red',
-                'text_color': 'white',
-                'rooms': Room.objects.all(),
-            }
-        )
-        product_note.products.add(self.product)        
-
-        def mark_ticket_not_stand_by(self) -> None:
-            # Remove the product note from the associated product
-            product_note = ProductNote.objects.filter(text="Udsolgt - Venteliste aktiveret").first()
-            if product_note is not None:
-                product_note.products.remove(self.product)
+        return ticket
 
     def get_stand_by_records(self) -> models.QuerySet[TicketRecord]:
         return TicketRecord.objects.filter(
@@ -1056,13 +1038,20 @@ class Ticket(models.Model):
             is_stand_by=True,
         ).order_by('sale__timestamp')
 
-    def get_stand_by_limit(self) -> int:
-        event_capacity = self.event_instance.capacity
-        ticket_quantity = self.quantity
-        if ticket_quantity >= event_capacity:
-            return event_capacity
+    def next_bought_should_be_stand_by_due_to_ticket_quantity(self) -> bool:
+        # If the number of tickets sold for this ticket type has reached the quantity for this ticket, the next bought ticket of this type should be put on stand-by
+        ticket_sales_count = self.event_instance.get_issued_ticket_records().count()
+        return ticket_sales_count >= self.quantity
+
+    def next_bought_should_be_stand_by(self) -> bool:
+        # Count ticket sales for event instance, to determine if the ticket being created should be put on stand-by
+        if (
+            self.event_instance.next_bought_ticket_should_be_stand_by_due_to_capacity()
+            or self.next_bought_should_be_stand_by_due_to_ticket_quantity()
+        ):
+            return True
         else:
-            return ticket_quantity
+            return False
 
     def save(self, *args, **kwargs):
         if Ticket.objects.filter(product=self.product).exists():
@@ -1085,17 +1074,8 @@ class TicketRecord(models.Model):
 
     @staticmethod
     def create_from_sale_and_ticket(sale: Sale, ticket: Ticket) -> None:
-        # Count ticket sales for event instance, to determine if the ticket being created should be put on stand-by
-        ticket_sales_count = ticket.event_instance.get_issued_ticket_records().count()
 
-        stand_by_limit = ticket.get_stand_by_limit()
-        if ticket_sales_count < stand_by_limit:
-            is_stand_by = False
-        else:
-            is_stand_by = True
-
-        # If sale count + 1 is not < stand by limit, then the product should be marked as if purchasing it would put the user on stand-by
-
+        is_stand_by = ticket.next_bought_should_be_stand_by()
 
         TicketRecord.objects.create(ticket=ticket, sale=sale, is_stand_by=is_stand_by)
 
@@ -1108,23 +1088,22 @@ class TicketRecord(models.Model):
         # Get the one stand by ticket of each ticket type, then find the one that has been on stand-by the longest (i.e. has the earliest sale timestamp) and isssue it if possible
         tickets = event_instance.get_tickets()
 
+        # Get the first stand-by ticket record for each ticket type
         stand_by_ticket_records: list[TicketRecord] = []
         for ticket in tickets:
             stand_by_ticket_record = ticket.get_stand_by_records().first()
             if stand_by_ticket_record is not None:
                 stand_by_ticket_records.append(stand_by_ticket_record)
 
-        ticket_sales_count = TicketRecord.objects.filter(
-            ticket__event_instance=event_instance,
-            is_stand_by=False,
-            sale__refunded_at__isnull=True,
-        ).count()
+        stand_by_due_to_capacity = event_instance.next_bought_ticket_should_be_stand_by_due_to_capacity()
 
         for stand_by_ticket_record in stand_by_ticket_records:
-            if stand_by_ticket_record.sale is not None:
-                if ticket_sales_count < stand_by_ticket_record.ticket.get_stand_by_limit():
-                    stand_by_ticket_record.is_stand_by = False
-                    stand_by_ticket_record.save()
+            if (
+                not stand_by_due_to_capacity
+                and not stand_by_ticket_record.ticket.next_bought_should_be_stand_by_due_to_ticket_quantity()
+            ):
+                stand_by_ticket_record.is_stand_by = False
+                stand_by_ticket_record.save()
 
     def get_stand_by_queue_position(self) -> Optional[int]:
         if not self.is_stand_by:

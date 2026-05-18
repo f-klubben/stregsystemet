@@ -1,3 +1,4 @@
+from __future__ import annotations
 import logging
 import re
 import csv
@@ -8,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.test.runner import DiscoverRunner
 
+from django.db.models.manager import BaseManager
 from django.db.models import Count, F, Q, QuerySet
 from django.utils import timezone
 
@@ -16,10 +18,17 @@ import qrcode.image.svg
 
 import urllib.parse
 
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from django.db.models.manager import BaseManager
+    from stregsystem.models import Product
+
 logger = logging.getLogger(__name__)
 
 
-def make_active_productlist_query(queryset) -> QuerySet:
+def make_active_productlist_query(queryset: BaseManager[Product]) -> BaseManager[Product]:
     now = timezone.now()
     # Create a query for the set of products that MIGHT be active. Might
     # because they can be out of stock. Which we compute later
@@ -36,7 +45,7 @@ def make_active_productlist_query(queryset) -> QuerySet:
     return active_candidates.exclude(Q(start_date__isnull=False) & Q(id__in=candidates_out_of_stock))
 
 
-def make_inactive_productlist_query(queryset) -> QuerySet:
+def make_inactive_productlist_query(queryset: BaseManager[Product]) -> BaseManager[Product]:
     now = timezone.now()
     # Create a query of things which are definitively inactive. Some of the ones
     # filtered here might be out of stock, but we include that later.
