@@ -54,6 +54,7 @@ from stregsystem.models import (
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
 from stregsystem.utils import (
+    ProductAndAmount,
     make_active_productlist_query,
     mobile_payment_exact_match_member,
     strip_emoji,
@@ -98,6 +99,14 @@ class ModelMiscTests(TestCase):
 class SaleViewTests(TestCase):
     fixtures = ["initial_data"]
 
+    def _compare_product_and_amounts_to_buy(self, response, expected_productAndAmounts) -> list[ProductAndAmount]:
+        productAndAmounts = response.context["productAndAmounts"]
+        self.assertIsNotNone(productAndAmounts)
+        self.assertIsInstance(productAndAmounts, list)
+        self.assertCountEqual(productAndAmounts, expected_productAndAmounts)
+        self.assertListEqual(productAndAmounts, expected_productAndAmounts)
+        return productAndAmounts
+
     def test_make_sale_letter_quickbuy(self):
         response = self.client.post(reverse('quickbuy', args="1"), {"quickbuy": "jokke a"})
         self.assertEqual(response.status_code, 200)
@@ -115,7 +124,7 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        assertCountEqual(self, response.context["products"], [('Limfjordsporter', 2)])
+        self._compare_product_and_amounts_to_buy(response, [ProductAndAmount(Product.objects.get(id=1), 2)])
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(1800))
@@ -132,7 +141,7 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        assertCountEqual(self, response.context["products"], {('Limfjordsporter', 1)})
+        self._compare_product_and_amounts_to_buy(response, [ProductAndAmount(Product.objects.get(id=1), 1)])
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))
@@ -147,7 +156,7 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        assertCountEqual(self, response.context["products"], {('Limfjordsporter', 1)})
+        self._compare_product_and_amounts_to_buy(response, [ProductAndAmount(Product.objects.get(id=1), 1)])
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))
@@ -584,11 +593,12 @@ class OrderTest(TestCase):
 
     def test_order_fromproducts(self):
         products = [
-            self.product,
-            self.product,
+            ProductAndAmount(self.product, 2),
         ]
         order = Order.from_products(self.member, self.room, products)
-        self.assertEqual(list(Counter(products).items()), [(item.product, item.count) for item in order.items])
+        for item in order.items:
+            self.assertEqual(item.product, products[0].product)
+            self.assertEqual(item.count, products[0].amount)
 
     def test_order_total_single_item(self):
         order = Order(self.member, self.room)

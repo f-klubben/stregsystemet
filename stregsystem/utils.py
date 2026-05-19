@@ -1,4 +1,5 @@
 from __future__ import annotations
+from dataclasses import dataclass
 import logging
 import re
 import csv
@@ -23,7 +24,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from django.db.models.manager import BaseManager
-    from stregsystem.models import Product
+    from stregsystem.models import Product, ProductNote
 
 logger = logging.getLogger(__name__)
 
@@ -227,3 +228,15 @@ def rows_to_csv(rows) -> str:
 
 def get_bool_pretty(value: bool) -> str:
     return "Ja" if value else "Nej"
+
+@dataclass
+class ProductDisplayItem:
+    product: Product
+    notes: list[ProductNote]
+    on_stand_by: bool
+
+
+@dataclass
+class ProductAndAmount:
+    product: Product
+    amount: int

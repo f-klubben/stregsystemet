@@ -12,11 +12,11 @@
 <b>
 {% autoescape off %}
 <span class="username">{{member.username}}</span> har lige købt
-{% for productTuple in products %}
+{% for productAndAmount in productAndAmounts %}
     {% if forloop.last and not forloop.first %}
         og
     {% endif %}
-    {{ productTuple.1.name }} {{ productTuple.0 }}
+    {{ productAndAmount.amount }} {{ productAndAmount.product.name }}
 {% endfor %}
 
 for tilsammen {{cost|money}} kr.

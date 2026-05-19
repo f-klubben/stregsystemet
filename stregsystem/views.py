@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 import datetime
 import io
 import json
@@ -9,24 +8,19 @@ import qrcode
 import qrcode.image.svg
 from django import forms
 from django.conf import settings
-from collections import (
-    Counter,
-    namedtuple,
-)
 
 from django.core.paginator import Paginator
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.core import management
 from django.core.exceptions import ValidationError
-from django.db.models import Q, Count, QuerySet, Sum
+from django.db.models import Q, Count, Sum
 from django.db.models.manager import BaseManager
 from django.forms import modelformset_factory
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django_select2 import forms as s2forms
 
 from stregreport.views import fjule_party
 
@@ -60,6 +54,8 @@ from stregsystem.utils import (
     parse_csv_and_create_mobile_payments,
     PaymentToolException,
     make_unprocessed_signups_query,
+    ProductDisplayItem,
+    ProductAndAmount
 )
 
 from .booze import ballmer_peak
@@ -81,13 +77,6 @@ def __get_news():
 
 def __get_productlist(room_id):
     return make_active_productlist_query(Product.objects).filter(make_room_specific_query(room_id))
-
-
-@dataclass
-class ProductDisplayItem:
-    product: Product
-    notes: list[ProductNote]
-    on_stand_by: bool
 
 
 def build_product_display_items(room_id) -> list[ProductDisplayItem]:
@@ -215,12 +204,12 @@ def quicksale(request, room, member: Member, bought_ids, productDisplayItemsBefo
     now = timezone.now()
 
     # Retrieve products and construct transaction
-    products: List[tuple[Product, int]] = []
-    msg, status, result = __append_bought_ids_to_product_list(products, bought_ids, now, room)
+    productAndAmounts: List[ProductAndAmount] = []
+    msg, status, result = __append_bought_ids_to_product_list(productAndAmounts, bought_ids, now, room)
     if status == 400:
         return render(request, 'stregsystem/error_productdoesntexist.html', {'failedProduct': result, 'room': room})
 
-    order = Order.from_products(member=member, products=products, room=room)
+    order = Order.from_products(member=member, productAndAmounts=productAndAmounts, room=room)
 
     msg, status, result = __execute_order(order)
     productDisplayItems = build_product_display_items(room.id)
@@ -243,7 +232,7 @@ def quicksale(request, room, member: Member, bought_ids, productDisplayItemsBefo
         sale_hints,
         member_has_low_balance,
         member_balance,
-    ) = __set_local_values(member, room, products, order, now)
+    ) = __set_local_values(member, room, productAndAmounts, order, now)
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
@@ -498,7 +487,7 @@ def menu_sale(request, room_id, member_id, product_id=None):
                 Q(deactivate_date__gte=timezone.now()) | Q(deactivate_date__isnull=True),
             )
 
-            order = Order.from_products(member=member, room=room, products=(product,))
+            order = Order.from_products(member=member, room=room, productAndAmounts=[ProductAndAmount(product, 1)])
 
             order.execute()
 
@@ -1006,7 +995,7 @@ def api_quicksale(request, room, member: Member, bought_ids):
     )
 
 
-def __append_bought_ids_to_product_list(products: list[tuple[Product, int]], bought_ids, time_now, room):
+def __append_bought_ids_to_product_list(productAndAmounts: list[ProductAndAmount], bought_ids, time_now, room):
     try:
         # Get the amount of unique items bought
         unique_product_dict = {}
@@ -1024,7 +1013,7 @@ def __append_bought_ids_to_product_list(products: list[tuple[Product, int]], bou
                 Q(deactivate_date__gte=time_now) | Q(deactivate_date__isnull=True),
                 Q(rooms__id=room.id) | Q(rooms=None),
             )
-            products.append((product, value))
+            productAndAmounts.append(ProductAndAmount(product=product, amount=value))
     except Product.DoesNotExist:
         return "Invalid product id", 400, key
     return "OK", 200, None
@@ -1041,13 +1030,13 @@ def __execute_order(order):
     return "OK", 200, None
 
 
-def __set_local_values(member, room, products, order, now):
+def __set_local_values(member, room, productAndAmounts: list[ProductAndAmount], order, now):
     promille = member.calculate_alcohol_promille()
     is_ballmer_peaking, bp_minutes, bp_seconds = ballmer_peak(promille)
 
     caffeine = member.calculate_caffeine_in_body()
     cups = caffeine_mg_to_coffee_cups(caffeine)
-    product_contains_caffeine = any(product.caffeine_content_mg > 0 for product, count in products)
+    product_contains_caffeine = any(productAndAmount.product.caffeine_content_mg > 0 for productAndAmount in productAndAmounts)
     is_coffee_master = member.is_leading_coffee_addict()
 
     cost = order.total

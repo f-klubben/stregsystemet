@@ -2,7 +2,6 @@ from __future__ import annotations
 import datetime
 import urllib.parse
 from abc import abstractmethod
-from collections import Counter
 from email.utils import parseaddr
 from typing import Optional
 
@@ -24,8 +23,8 @@ from stregsystem.utils import (
     make_unprocessed_member_filled_mobilepayment_query,
     PaymentToolException,
     get_bool_pretty,
+    ProductAndAmount,
 )
-
 
 def price_display(value):
     return money(value) + " kr."
@@ -121,10 +120,10 @@ class Order(object):
         self.items = items or set()  # Set to none because we don't persist
 
     @classmethod
-    def from_products(cls, member, room, products):
+    def from_products(cls, member, room, productAndAmounts: list[ProductAndAmount]):
         order = cls(member, room)
-        for product, count in products:
-            item = OrderItem(product=product, order=order, count=count)
+        for productAndAmount in productAndAmounts:
+            item = OrderItem(product=productAndAmount.product, order=order, count=productAndAmount.amount)
             order.items.add(item)
         return order
 
