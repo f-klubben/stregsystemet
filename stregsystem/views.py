@@ -253,7 +253,6 @@ def usermenu(request, room, member, bought, from_sale=False):
         bp_minutes,
         bp_seconds,
     ) = ballmer_peak(promille)
-    MEDIA_ROOT = settings.MEDIA_ROOT
 
     caffeine = member.calculate_caffeine_in_body()
     cups = caffeine_mg_to_coffee_cups(caffeine)
