@@ -13,9 +13,11 @@ from collections import (
     namedtuple,
 )
 
+from django.core.paginator import Paginator
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.core import management
+from django.core.exceptions import ValidationError
 from django.db.models import Q, Count, Sum, QuerySet
 from django.forms import modelformset_factory
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
@@ -172,19 +174,17 @@ def sale(request, room_id):
 
 def _multibuy_hint(now, member):
     # Get a timestamp to fetch sales for the member for the last 60 sec
-    earliest_recent_purchase = now - datetime.timedelta(seconds=60)
+    earliest_recent_sale = now - datetime.timedelta(seconds=60)
     # get the sales with this timestamp
-    recent_purchases = Sale.objects.filter(member=member, timestamp__gt=earliest_recent_purchase)
-    number_of_recent_distinct_purchases = recent_purchases.values('timestamp').distinct().count()
+    recent_sales = Sale.objects.filter(member=member, timestamp__gt=earliest_recent_sale)
+    number_of_recent_distinct_sales = recent_sales.values('timestamp').distinct().count()
+    recent_unique_sales = recent_sales.values('product').distinct().annotate(total=Count('product'))
 
     # add hint for multibuy
-    if number_of_recent_distinct_purchases > 1:
+    if number_of_recent_distinct_sales > 1:
         sale_dict = {}
-        for sale in recent_purchases:
-            if not str(sale.product.id) in sale_dict:
-                sale_dict[str(sale.product.id)] = 1
-            else:
-                sale_dict[str(sale.product.id)] = sale_dict[str(sale.product.id)] + 1
+        for unique_sale in recent_unique_sales:
+            sale_dict[str(unique_sale['product'])] = unique_sale['total']
         sale_hints = ["<span class=\"username\">{}</span>".format(member.username)]
         if all(sale_count == 1 for sale_count in sale_dict.values()):
             return (False, None)
@@ -299,7 +299,11 @@ def menu_userinfo(request, room_id, member_id):
         total_amount=Sum('price'), total_purchases=Count('timestamp')
     )
 
-    last_sale_list = member.sale_set.order_by('-timestamp')[:10]
+    all_sales = member.sale_set.order_by('-timestamp')
+    paginator = Paginator(all_sales, 10)
+    list_number = request.GET.get('purchaselist', 1)
+    last_sale_list = paginator.get_page(list_number)
+
     try:
         last_payment = member.payment_set.order_by('-timestamp')[0]
     except IndexError:
@@ -657,6 +661,28 @@ def get_payment_qr(request):
     return qr_code(mobilepay_launch_uri(username, amount))
 
 
+def perform_signup(validated_form: SignupForm) -> PendingSignup:
+    if not validated_form.is_valid():
+        raise ValidationError("The provided form contains errors: %s" % validated_form.errors)
+
+    if Member.objects.filter(username=validated_form.cleaned_data.get('username')).all().count() > 0:
+        raise ValidationError("Username already taken")
+
+    member = Member.objects.create(
+        username=validated_form.cleaned_data.get('username'),
+        firstname=validated_form.cleaned_data.get('firstname'),
+        lastname=validated_form.cleaned_data.get('lastname'),
+        email=validated_form.cleaned_data.get('email'),
+        notes=validated_form.cleaned_data.get('notes'),
+        gender=validated_form.cleaned_data.get('gender'),
+        signup_due_paid=False,
+    )
+    signup_request = PendingSignup(member=member, due=200 * 100)
+    signup_request.save()
+
+    return signup_request
+
+
 def signup(request):
     is_post = request.method == "POST"
     form = SignupForm(request.POST) if is_post else SignupForm()
@@ -666,19 +692,9 @@ def signup(request):
             form.add_error("username", "Brugernavn allerede i brug")
             return render(request, "stregsystem/signup.html", locals())
 
-        member = Member.objects.create(
-            username=form.cleaned_data.get('username'),
-            firstname=form.cleaned_data.get('firstname'),
-            lastname=form.cleaned_data.get('lastname'),
-            email=form.cleaned_data.get('email'),
-            notes=form.cleaned_data.get('notes'),
-            gender=form.cleaned_data.get('gender'),
-            signup_due_paid=False,
-        )
-        signup_request = PendingSignup(member=member, due=200 * 100)
-        signup_request.save()
+        pending_signup = perform_signup(form)
 
-        return redirect('signup_status', signup_id=signup_request.id)
+        return redirect('signup_status', signup_id=pending_signup.id)
 
     return render(request, "stregsystem/signup.html", locals())
 
@@ -740,7 +756,7 @@ def get_member_id(request):
         return HttpResponseBadRequest("Parameter missing: username")
 
     try:
-        member = Member.objects.get(username=username)
+        member = Member.objects.get(username=username, active=True)
     except Member.DoesNotExist:
         return HttpResponseBadRequest("Member not found")
 
@@ -824,6 +840,64 @@ def get_named_products(request):
     items = NamedProduct.objects.all()
     items_dict = {item.name: item.product.id for item in items}
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
+
+
+def get_signup_status(request):
+    username = request.GET.get('username') or None
+    if username is None:
+        return HttpResponseBadRequest("Parameter missing: username")
+
+    try:
+        member = Member.objects.get(username=username)
+    except Member.DoesNotExist:
+        return HttpResponseBadRequest("Member not found")
+
+    try:
+        pending_signup = PendingSignup.objects.get(member=member)
+        return JsonResponse({'due': pending_signup.due, 'status': pending_signup.status})
+    except PendingSignup.DoesNotExist:
+        # Member exists but no signup object does, assume it was approved.
+        return JsonResponse({'due': 0, 'status': ApprovalModel.APPROVED})
+
+
+@csrf_exempt
+def post_signup(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest()
+    else:
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return HttpResponseBadRequest("Invalid JSON payload.")
+
+        # Convert 'education' to proper field 'notes'
+        try:
+            data['notes'] = data.pop('education')
+        except KeyError:
+            return HttpResponseBadRequest('Parameter invalid: education')
+
+        signup_form = SignupForm(data)
+
+        if not signup_form.is_valid():
+            return HttpResponseBadRequest(f"Parameter invalid: {', '.join(signup_form.errors.keys())}")
+
+        try:
+            pending_signup = perform_signup(signup_form)
+        except ValidationError as err:
+            return HttpResponseBadRequest(err.message)
+
+        msg, status, ret_obj = (
+            "OK",
+            200,
+            {
+                'due': pending_signup.due,
+                'username': pending_signup.member.username,
+            },
+        )
+
+        return JsonResponse(
+            {'status': status, 'msg': msg, 'values': ret_obj}, json_dumps_params={'ensure_ascii': False}
+        )
 
 
 @csrf_exempt
@@ -940,16 +1014,25 @@ def api_quicksale(request, room, member: Member, bought_ids):
 
 def __append_bought_ids_to_product_list(products, bought_ids, time_now, room):
     try:
-        for i in bought_ids:
+        # Get the amount of unique items bought
+        unique_product_dict = {}
+        for unique_id in bought_ids:
+            if unique_id not in unique_product_dict:
+                unique_product_dict[unique_id] = 1
+            else:
+                unique_product_dict[unique_id] += 1
+
+        # Add the given amount of different products
+        for key, value in unique_product_dict.items():
             product = Product.objects.get(
-                Q(pk=i),
+                Q(pk=key),
                 Q(active=True),
                 Q(deactivate_date__gte=time_now) | Q(deactivate_date__isnull=True),
                 Q(rooms__id=room.id) | Q(rooms=None),
             )
-            products.append(product)
+            products.extend([product for _ in range(value)])
     except Product.DoesNotExist:
-        return "Invalid product id", 400, i
+        return "Invalid product id", 400, key
     return "OK", 200, None
 
 
@@ -996,4 +1079,13 @@ def __set_local_values(member, room, products, order, now):
         sale_hints,
         member_has_low_balance,
         member_balance,
+    )
+
+
+def api_version(request):
+    return JsonResponse(
+        {
+            'version': settings.STREGSYSTEM_VERSION,
+            'api_version': settings.STREGSYSTEM_API_VERSION,
+        }
     )

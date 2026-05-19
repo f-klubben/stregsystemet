@@ -15,11 +15,15 @@ import os
 from configparser import ConfigParser
 from io import StringIO
 import json
+import sys
+import tomllib
 
 from django.conf.global_settings import DEFAULT_AUTO_FIELD
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+PYPROJECT_PATH = os.path.join(BASE_DIR, "pyproject.toml")
 
 # @UPGRADE remove the specific unicode "u" here when we finalize the upgrade to
 # python3. It's only required to satisfy python2 StringIO
@@ -250,3 +254,13 @@ LOGGING = {
         }
     }
 }
+
+global STREGSYSTEM_VERSION, STREGSYSTEM_API_VERSION
+
+with open(PYPROJECT_PATH, "rb") as f:
+    pyproject_data = tomllib.load(f)
+    STREGSYSTEM_VERSION = pyproject_data["project"]["version"]
+    STREGSYSTEM_API_VERSION = pyproject_data["tool"]["stregsystemet"]["api-version"]
+
+print(f"Stregsystem: {STREGSYSTEM_VERSION}")
+print(f"Stregsystem API: {STREGSYSTEM_API_VERSION}")
