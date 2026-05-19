@@ -6,7 +6,7 @@ from typing import List, Type, Tuple
 import pytz
 import qrcode
 import qrcode.image.svg
-from achievements.models import Achievement
+from achievements.models import Achievement, get_new_achievements
 from django import forms
 from django.conf import settings
 from collections import (
@@ -308,33 +308,6 @@ def menu_userinfo(request, room_id, member_id):
 
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()
-
-    acquired_achievements: List[Tuple[Achievement, float]] = get_acquired_achievements_with_rarity(member)
-    missing_achievements: QuerySet[Achievement] = get_missing_achievements(member)
-    achievement_progress_str: str = (
-        f"{len(acquired_achievements)}/{len(acquired_achievements)+len(missing_achievements)}"
-    )
-    achievement_top_percentage: float = get_user_leaderboard_position(member)
-    achievement_missing_icon: str = f"{settings.MEDIA_URL}stregsystem/achievement/achievement_missing.png"
-
-    def get_color_by_rarity(rarity):
-        if rarity <= 1:
-            color = (243, 175, 25)  # Fortnite Orange (Legendary)
-        elif rarity <= 5:
-            color = (157, 77, 187)  # Fortnite Purple (Epic)
-        elif rarity <= 10:
-            color = (76, 81, 247)  # Fortnite Blue (Rare)
-        elif rarity <= 25:
-            color = (49, 146, 54)  # Fortnite Green (Common)
-        else:
-            color = (140, 140, 140)  # Fortnite Green (Uncommon)
-        return f"rgb{color}"
-
-    # Convert the acquired achievements to a list of tuples with rounded rarity and color
-    acquired_achievements = [
-        (achievement, f"{round(rarity, 2)}%", get_color_by_rarity(rarity))
-        for achievement, rarity in acquired_achievements
-    ]
 
     return render(request, 'stregsystem/menu_userinfo.html', locals())
 
