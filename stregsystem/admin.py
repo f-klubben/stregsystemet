@@ -534,7 +534,7 @@ class AchievementAdmin(BaseAdmin):
             'title',
             'description',
             'get_icon',
-            'get_active_from_or_active_duration'
+            'get_active_from_or_active_duration',
         ] + super()._get_fields_to_display()
 
     fieldsets = (
@@ -608,7 +608,7 @@ class AchievementCompleteAdmin(BaseAdmin):
             'get_username',
             'get_achievement_title',
             'get_achievement_description',
-            'completed_at'
+            'completed_at',
         ] + super()._get_fields_to_display()
 
     def get_username(self, obj):
