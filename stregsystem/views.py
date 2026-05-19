@@ -6,6 +6,7 @@ from typing import List, Type, Tuple
 import pytz
 import qrcode
 import qrcode.image.svg
+from achievements.models import Achievement
 from django import forms
 from django.conf import settings
 from collections import (
@@ -24,7 +25,6 @@ from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, J
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django_select2 import forms as s2forms
 
 from stregreport.views import fjule_party
 
@@ -45,9 +45,6 @@ from stregsystem.models import (
     NamedProduct,
     ApprovalModel,
     ProductNote,
-    Achievement,
-    AchievementComplete,
-    AchievementTask,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -61,7 +58,7 @@ from stregsystem.utils import (
     make_unprocessed_signups_query,
 )
 
-from .achievements import (
+from achievements.models import (
     get_new_achievements,
     get_acquired_achievements_with_rarity,
     get_missing_achievements,
