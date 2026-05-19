@@ -884,7 +884,7 @@ class Theme(BaseModel):
         return self.name
 
 
-class Achievement(models.Model):
+class Achievement(BaseModel):
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=100)
     icon = models.ImageField(upload_to="stregsystem/achievement")
@@ -946,7 +946,7 @@ class Achievement(models.Model):
         return " | ".join(str_list)
 
 
-class AchievementConstraint(models.Model):
+class AchievementConstraint(BaseModel):
     notes = models.CharField(max_length=200, blank=True)
 
     MONTHS = [
@@ -1073,7 +1073,7 @@ class AchievementConstraint(models.Model):
         return ", ".join(str_list)
 
 
-class AchievementTask(models.Model):
+class AchievementTask(BaseModel):
     notes = models.CharField(max_length=200, blank=True)
 
     TASK_TYPES = [
@@ -1218,7 +1218,7 @@ class AchievementTask(models.Model):
         return " | ".join(str_list) + f" - Goal: {self.goal_value}"
 
 
-class AchievementComplete(models.Model):  # A members progress on a task
+class AchievementComplete(BaseModel):  # A members progress on a task
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
     completed_at = models.DateTimeField(auto_now_add=True)

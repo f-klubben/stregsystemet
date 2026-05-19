@@ -524,11 +524,18 @@ class AchievementForm(forms.ModelForm):
         return instance
 
 
-class AchievementAdmin(admin.ModelAdmin):
+class AchievementAdmin(BaseAdmin):
     form = AchievementForm
 
     search_fields = ['title', 'description']
-    list_display = ['title', 'description', 'get_icon', 'get_active_from_or_active_duration']
+
+    def _get_fields_to_display(self):
+        return [
+            'title',
+            'description',
+            'get_icon',
+            'get_active_from_or_active_duration'
+        ] + super()._get_fields_to_display()
 
     fieldsets = (
         (None, {'fields': ('title', 'description')}),
@@ -572,14 +579,15 @@ class AchievementAdmin(admin.ModelAdmin):
     actions = [set_active_from_to_now, set_active_from_to_null]
 
 
-class AchievementTaskAdmin(admin.ModelAdmin):
-    list_display = [
-        'notes',
-        'task_type',
-        'goal_value',
-        'get_product',
-        'category',
-    ]
+class AchievementTaskAdmin(BaseAdmin):
+    def _get_fields_to_display(self):
+        return [
+            'notes',
+            'task_type',
+            'goal_value',
+            'get_product',
+            'category',
+        ] + super()._get_fields_to_display()
 
     def get_product(self, obj):
         if obj.product:
@@ -590,11 +598,18 @@ class AchievementTaskAdmin(admin.ModelAdmin):
     get_product.short_description = "Product"
 
 
-class AchievementCompleteAdmin(admin.ModelAdmin):
+class AchievementCompleteAdmin(BaseAdmin):
 
     valid_lookups = ['member', 'achievement']
     search_fields = ['member__username', 'achievement__title', 'achievement__description', 'completed_at']
-    list_display = ['get_username', 'get_achievement_title', 'get_achievement_description', 'completed_at']
+
+    def _get_fields_to_display(self):
+        return [
+            'get_username',
+            'get_achievement_title',
+            'get_achievement_description',
+            'completed_at'
+        ] + super()._get_fields_to_display()
 
     def get_username(self, obj):
         return obj.member.username
@@ -610,17 +625,18 @@ class AchievementCompleteAdmin(admin.ModelAdmin):
     get_achievement_description.short_description = 'Achievement Description'
 
 
-class AchievementConstraintAdmin(admin.ModelAdmin):
-    list_display = [
-        'notes',
-        'month_start',
-        'month_end',
-        'day_start',
-        'day_end',
-        'time_start',
-        'time_end',
-        'weekday',
-    ]
+class AchievementConstraintAdmin(BaseAdmin):
+    def _get_fields_to_display(self):
+        return [
+            'notes',
+            'month_start',
+            'month_end',
+            'day_start',
+            'day_end',
+            'time_start',
+            'time_end',
+            'weekday',
+        ] + super()._get_fields_to_display()
 
     fieldsets = (
         (None, {'fields': ['notes']}),
