@@ -1,5 +1,5 @@
 import pytz
-from achievements.achievements import (
+from achievements.models import (
     get_new_achievements,
     get_acquired_achievements_with_rarity,
     get_missing_achievements,
