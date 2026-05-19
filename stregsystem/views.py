@@ -940,13 +940,13 @@ def api_quicksale(request, room, member: Member, bought_ids):
     now = timezone.now()
 
     # Retrieve products and construct transaction
-    products: List[Product] = []
+    products: List[ProductAndAmount] = []
 
     msg, status, result = __append_bought_ids_to_product_list(products, bought_ids, now, room)
     if status == 400:
         return msg, status, result
 
-    order = Order.from_products(member=member, products=products, room=room)
+    order = Order.from_products(member=member, productAndAmounts=products, room=room)
 
     msg, status, result = __execute_order(order)
     if status != 200:
