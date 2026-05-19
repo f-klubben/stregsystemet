@@ -1,3 +1,5 @@
+from datetime import datetime
+from random import randint, choice
 from django import template
 from django.template.loader import get_template
 from django.utils import timezone
@@ -24,11 +26,6 @@ def multiply(value, arg):
     return value * arg
 
 
-@register.inclusion_tag('stregsystem/adventcandle.html')
-def show_candle():
-    return {'date': timezone.now()}
-
-
 @register.filter
 def product_id_and_alias_string(product_id):
     from stregsystem.models import NamedProduct
@@ -50,3 +47,29 @@ def product_id_and_alias_string(product_id):
     else:
         #
         return str(product_id)
+
+
+@register.simple_tag
+def day_of_month():
+    return datetime.now().day
+
+
+@register.simple_tag
+def fractional_day_of_month():
+    now = datetime.now()
+    return now.day - 1 + (now.hour / 24) + (now.minute / 1440) + (now.second / 86400)
+
+
+@register.simple_tag
+def random(min, max):
+    return randint(min, max)
+
+
+@register.simple_tag
+def random_choice(str1, str2):
+    return choice([str1, str2])
+
+
+@register.filter
+def to_range(value):
+    return range(value)

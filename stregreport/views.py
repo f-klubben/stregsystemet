@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.utils import dateparse, timezone
 from stregreport.forms import CategoryReportForm
 from stregsystem.models import Category, Member, Product, Sale
-from stregreport.models import BreadRazzia, RazziaEntry
+from stregreport.models import BreadRazzia, RazziaEntryOld
 from stregsystem.templatetags.stregsystem_extras import money
 
 
@@ -80,11 +80,10 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
     if queryname is None:
         return render(request, templates[razzia_type], locals())
 
-    result = list(Member.objects.filter(username__iexact=queryname))
-    if len(result) == 0:
-        return render(request, templates[razzia_type], locals())
-
-    member = result[0]
+    try:
+        member = Member.objects.get(username__iexact=queryname, active=True)
+    except Member.DoesNotExist:
+        return render(request, template, locals())
 
     if razzia_type == BreadRazzia.FNUGFALD:
         username = queryname
@@ -103,7 +102,7 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
         except IndexError:
             return render(request, templates[razzia_type], locals())
 
-    entries = list(razzia.razziaentry_set.filter(member__pk=member.pk).order_by('-time'))
+    entries = list(razzia.razziaentryold_set.filter(member__pk=member.pk).order_by('-time'))
     already_checked_in = len(entries) > 0
     wait_time = datetime.timedelta(minutes=30)
     if already_checked_in:
@@ -122,7 +121,7 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
     if not already_checked_in or (
         (razzia_type == BreadRazzia.FOOBAR or razzia_type == BreadRazzia.FNUGFALD) and not within_wait
     ):
-        RazziaEntry(member=member, razzia=razzia).save()
+        RazziaEntryOld(member=member, razzia=razzia).save()
 
     return render(request, templates[razzia_type], locals())
 
@@ -177,7 +176,7 @@ def razzia_view(request):
         return render(request, 'admin/stregsystem/razzia/error_wizarderror.html', {})
 
     try:
-        user = Member.objects.get(username__iexact=username)
+        user = Member.objects.get(username__iexact=username, active=True)
     except (Member.DoesNotExist, Member.MultipleObjectsReturned):
         return render(
             request,
@@ -303,59 +302,24 @@ def sales_product(request, ids, from_time, to_time, error=None):
 # both at 10 o'clock
 @permission_required("stregsystem.access_sales_reports")
 def ranks_for_year(request, year):
-    if year <= 1900 or year > 9999:
-        return render(request, 'admin/stregsystem/report/error_ranksnotfound.html', locals())
-    milk = [2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 17, 18, 19, 20, 24, 25, 43, 44, 45, 1865]
-    caffeine = [11, 12, 30, 34, 37, 1787, 1790, 1791, 1795, 1799, 1800, 1803, 1804, 1837, 1864]
-    beer = [
-        13,
-        14,
-        29,
-        42,
-        47,
-        54,
-        65,
-        66,
-        1773,
-        1776,
-        1777,
-        1779,
-        1780,
-        1783,
-        1793,
-        1794,
-        1807,
-        1808,
-        1809,
-        1820,
-        1822,
-        1840,
-        1844,
-        1846,
-        1847,
-        1853,
-        1855,
-        1856,
-        1858,
-        1859,
-    ]
-    coffee = [32, 35, 36, 39]
-    vitamin = [1850, 1851, 1852, 1863, 1880]
-
     FORMAT = '%d/%m/%Y kl. %H:%M'
-    last_year = year - 1
     from_time = fjule_party(year - 1)
     to_time = fjule_party(year)
+
     kr_stat_list = sale_money_rank(from_time, to_time)
-    beer_stat_list = sale_product_rank(beer, from_time, to_time)
-    caffeine_stat_list = sale_product_rank(caffeine, from_time, to_time)
-    milk_stat_list = sale_product_rank(milk, from_time, to_time)
-    coffee_stat_list = sale_product_rank(coffee, from_time, to_time)
-    vitamin_stat_list = sale_product_rank(vitamin, from_time, to_time)
+
+    stat_lists = []
+    for cat in Category.objects.all():
+        stat_lists.append((cat.name, sale_product_rank(get_product_ids_from_category(cat), from_time, to_time)))
+
     from_time_string = from_time.strftime(FORMAT)
     to_time_string = to_time.strftime(FORMAT)
     current_date = timezone.now()
+    show_next_year = year < current_date.year
     is_ongoing = current_date > from_time and current_date <= to_time
+    last_year = year - 1
+    next_year = year + 1
+
     return render(request, 'admin/stregsystem/report/ranks.html', locals())
 
 
@@ -379,6 +343,10 @@ def sale_money_rank(from_time, to_time, rank_limit=10):
     for member in stat_list:
         member.sale__price__sum__formatted = money(member.sale__price__sum)
     return stat_list
+
+
+def get_product_ids_from_category(category):
+    return category.product_set.values_list('id', flat=True)
 
 
 # year of the last fjuleparty

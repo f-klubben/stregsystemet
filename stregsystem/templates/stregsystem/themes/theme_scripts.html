@@ -1,0 +1,5 @@
+{% load themes %}
+
+{% for path in paths %}
+    <script type="module" src="{% themes_static path %}"></script>
+{% endfor %}

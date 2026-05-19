@@ -1,5 +1,6 @@
 import logging
 import re
+import csv
 
 from django.utils.dateparse import parse_datetime
 from django.conf import settings
@@ -13,6 +14,8 @@ from django.utils import timezone
 import qrcode
 import qrcode.image.svg
 
+import urllib.parse
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,7 +23,11 @@ def make_active_productlist_query(queryset) -> QuerySet:
     now = timezone.now()
     # Create a query for the set of products that MIGHT be active. Might
     # because they can be out of stock. Which we compute later
-    active_candidates = queryset.filter(Q(active=True) & (Q(deactivate_date=None) | Q(deactivate_date__gte=now)))
+    active_candidates = queryset.filter(
+        Q(active=True)
+        & (Q(deactivate_date=None) | Q(deactivate_date__gte=now))
+        & (Q(start_date__isnull=True) | Q(start_date__lte=now.date()))
+    )
     # This query selects all the candidates that are out of stock.
     candidates_out_of_stock = (
         active_candidates.filter(sale__timestamp__gt=F("start_date"))
@@ -53,12 +60,22 @@ def make_room_specific_query(room) -> QuerySet:
     return Q(rooms__id=room) | Q(rooms=None)
 
 
+def make_unprocessed_signups_query() -> QuerySet:
+    from stregsystem.models import PendingSignup, ApprovalModel
+
+    return PendingSignup.objects.filter(status__exact=ApprovalModel.UNSET)
+
+
+def unprocessed_mobilepayments_filter() -> Q:
+    from stregsystem.models import ApprovalModel
+
+    return Q(payment__isnull=True) & Q(status__exact=ApprovalModel.UNSET)
+
+
 def make_unprocessed_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
 
-    return MobilePayment.objects.filter(Q(payment__isnull=True) & Q(status__exact=MobilePayment.UNSET)).order_by(
-        '-timestamp'
-    )
+    return MobilePayment.objects.filter(unprocessed_mobilepayments_filter()).order_by('-timestamp')
 
 
 def make_processed_mobilepayment_query() -> QuerySet:
@@ -75,7 +92,17 @@ def make_unprocessed_member_filled_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
 
     return MobilePayment.objects.filter(
-        Q(payment__isnull=True) & Q(status=MobilePayment.UNSET) & Q(amount__gte=5000) & Q(member__isnull=False)
+        unprocessed_mobilepayments_filter() & Q(amount__gte=5000) & Q(member__isnull=False)
+    )
+
+
+def make_unprocessed_membership_payment_query() -> QuerySet:
+    from stregsystem.models import MobilePayment
+
+    return MobilePayment.objects.filter(
+        unprocessed_mobilepayments_filter()
+        & Q(member__isnull=True)
+        & Q(comment__regex=r'^signup:[0-9a-fA-F-]{36}\+.{1,16}$')
     )
 
 
@@ -140,12 +167,21 @@ def strip_emoji(text):
     ).strip()
 
 
-def qr_code(data):
+def qr_code(data) -> HttpResponse:
     response = HttpResponse(content_type="image/svg+xml")
     qr = qrcode.make(data, image_factory=qrcode.image.svg.SvgPathFillImage)
     qr.save(response)
 
     return response
+
+
+def mobilepay_launch_uri(comment: str, amount: float) -> str:
+    query = {'phone': '90601', 'comment': comment}
+
+    if amount is not None:
+        query['amount'] = amount
+
+    return 'mobilepay://send?{}'.format(urllib.parse.urlencode(query))
 
 
 class stregsystemTestRunner(DiscoverRunner):
@@ -154,12 +190,27 @@ class stregsystemTestRunner(DiscoverRunner):
         super(stregsystemTestRunner, self).__init__(*args, **kwargs)
 
 
-class MobilePaytoolException(RuntimeError):
+class PaymentToolException(RuntimeError):
     """
-    Structured exception for runtime error due to race condition during submission of MobilePaytool form
+    Structured exception for runtime error due to race condition during submission of Paymenttool form
     """
 
     def __init__(self, racy_mbpayments: QuerySet):
         self.racy_mbpayments = racy_mbpayments
         self.inconsistent_mbpayments_count = self.racy_mbpayments.count()
         self.inconsistent_transaction_ids = [x.transaction_id for x in self.racy_mbpayments]
+
+
+class fakefile:
+    data = ""
+
+    def write(self, data):
+        self.data += data
+
+
+# little function to make sure the csv data always has the same format
+def rows_to_csv(rows) -> str:
+    file = fakefile()
+    # Converting elements in rows to strings to ensure it can be written to the file object
+    csv.writer(file).writerows([[str(item) for item in row] for row in rows])
+    return file.data

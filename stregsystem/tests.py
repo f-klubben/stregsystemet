@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import datetime
+import json
 from collections import Counter
 from copy import deepcopy
-from unittest.mock import patch
+from unittest import mock
+from unittest.mock import patch, MagicMock
 
 import pytz
 from django.utils.dateparse import parse_datetime
@@ -38,11 +40,20 @@ from stregsystem.models import (
     active_str,
     price_display,
     MobilePayment,
+    PendingSignup,
     NamedProduct,
+    ApprovalModel,
+    ProductNote,
 )
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
-from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, MobilePaytoolException
+from stregsystem.utils import (
+    make_active_productlist_query,
+    mobile_payment_exact_match_member,
+    strip_emoji,
+    PaymentToolException,
+)
+from stregsystem.mail import data_sent
 
 
 def assertCountEqual(case, *args, **kwargs):
@@ -98,7 +109,7 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        assertCountEqual(self, response.context["products"], [Product.objects.get(id=1), Product.objects.get(id=1)])
+        assertCountEqual(self, response.context["products"], [('Limfjordsporter', 2)])
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(1800))
@@ -115,7 +126,7 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        assertCountEqual(self, response.context["products"], {Product.objects.get(id=1)})
+        assertCountEqual(self, response.context["products"], {('Limfjordsporter', 1)})
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))
@@ -130,10 +141,21 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        assertCountEqual(self, response.context["products"], {Product.objects.get(id=1)})
+        assertCountEqual(self, response.context["products"], {('Limfjordsporter', 1)})
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))
+
+    def test_quickbuy_member_case_is_insensitive(self):
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/menu.html")
+
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "JOKKE"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/menu.html")
 
     def test_make_sale_quickbuy_wrong_product_for_named_product(self):
         item = Product.objects.get(id=1)
@@ -206,6 +228,12 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/error_productdoesntexist.html")
 
+    def test_products_show_when_quickbuying(self):
+        response = self.client.post(reverse('quickbuy', args="1"), {"quickbuy": "jokke 1"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Ingen produkter.")
+
     @patch('stregsystem.models.Member.can_fulfill')
     def test_make_sale_menusale_fail(self, can_fulfill):
         can_fulfill.return_value = False
@@ -241,7 +269,7 @@ class SaleViewTests(TestCase):
 
         self.assertContains(
             response,
-            "<b><span class=\"username\">jokke</span> har lige købt Limfjordsporter for tilsammen " "9.00 kr.</b>",
+            "<b><span class=\"username\">jokke</span> har lige købt 1 Limfjordsporter for tilsammen " "9.00 kr.</b>",
             html=True,
         )
 
@@ -269,7 +297,8 @@ class SaleViewTests(TestCase):
         # Assert that the index screen at least contains one of the products in
         # the database. Technically this doesn't check everything exhaustively,
         # but it's better than nothing -Jesper 18/09-2017
-        self.assertContains(response, "<td>Limfjordsporter</td>", html=True)
+        self.assertContains(response, "Limfjordsporter")
+        self.assertNotContains(response, "NonExistentProduct")
 
     def test_quickbuy_no_known_member(self):
         response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "notinthere"})
@@ -675,7 +704,7 @@ class PaymentTests(TestCase):
     def test_payment_delete_not_saved(self, make_payment):
         payment = Payment(member=self.member, amount=100)
 
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             payment.delete()
 
 
@@ -699,6 +728,24 @@ class ProductTests(TestCase):
         )
 
         self.assertTrue(product.is_active())
+
+    def test_is_active_active_future_start_date(self):
+        product = Product.objects.create(
+            active=True,
+            price=100,
+            start_date=timezone.now().date() + datetime.timedelta(days=1),
+        )
+
+        self.assertFalse(product.is_active())
+
+    def test_make_active_productlist_query_excludes_future_start_date(self):
+        future_product = Product.objects.create(
+            active=True,
+            price=100,
+            start_date=timezone.now().date() + datetime.timedelta(days=1),
+        )
+
+        self.assertNotIn(future_product, list(make_active_productlist_query(Product.objects)))
 
     def test_is_active_active_expired(self):
         product = Product.objects.create(
@@ -753,6 +800,103 @@ class ProductTests(TestCase):
         product.sale_set.create(price=100, member=self.jeff)
 
         self.assertFalse(product.is_active())
+
+
+class ProductNoteTest(TestCase):
+    fixtures = ["initial_data"]
+
+    def test_appearing(self):
+        # Make working product note
+        test_product = Product.objects.all().first()
+        self.test_product_note = ProductNote(
+            text="TEST-NOTE",
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+        # Make secondary product note, for same product
+        self.secondary_test_product_note = ProductNote(
+            text="SECONDARY-TEST-NOTE",
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+        )
+        self.secondary_test_product_note.save()
+        self.secondary_test_product_note.products.add(test_product)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+
+        # Test that the note is in the menu
+        self.assertContains(response, "TEST-NOTE")
+        self.assertContains(response, "SECONDARY-TEST-NOTE")
+
+    def test_chosen_color(self):
+        # Make working product note
+        test_product = Product.objects.all().first()
+        test_product.active = False
+
+        self.test_product_note = ProductNote(
+            text="COLORED-NOTE",
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+            background_color="Yellow",
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+
+        self.assertContains(
+            response,
+            "<div class=\"note-box\" style=\"background-color: Yellow; color: \">COLORED-NOTE</div>",
+            html=True,
+        )
+
+    def test_incorrect_dates(self):
+        # Make expired product note
+        test_product = Product.objects.all().first()
+        self.test_product_note = ProductNote(
+            text="EXPIRED-NOTE",
+            start_date=datetime.date.today() - datetime.timedelta(days=1),
+            end_date=datetime.date.today() - datetime.timedelta(days=1),
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+        # Make product note that is not yet active
+        self.test_product_note = ProductNote(
+            text="FUTURE-NOTE",
+            start_date=datetime.date.today() + datetime.timedelta(days=1),
+            end_date=datetime.date.today() + datetime.timedelta(days=1),
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+
+        # Test that the note is in the menu
+        self.assertNotContains(response, "EXPIRED-NOTE")
+        self.assertNotContains(response, "FUTURE-NOTE")
+
+    def test_inactive(self):
+        # Make inactive product note
+        test_product = Product.objects.all().first()
+        self.test_product_note = ProductNote(
+            text="INACTIVE-NOTE",
+            active=False,
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+
+        # Test that the inactive note doesn't show up
+        self.assertNotContains(response, "INACTIVE-NOTE")
 
 
 class SaleTests(TestCase):
@@ -907,6 +1051,16 @@ class MemberTests(TestCase):
         with freeze_time(timezone.datetime(year=2000, month=1, day=1, hour=0, minute=50)) as ft:
             self.assertAlmostEqual(1.15, user.calculate_alcohol_promille(), places=2)
 
+    def test_send_userdata(self):
+        user = Member.objects.create()
+        room = Room.objects.create()
+
+        t = timezone.datetime.fromtimestamp(0)
+
+        stregsystem_views.send_userdata(None, room.id, user.id)
+
+        self.assertNotEqual(data_sent[user.id], t)
+
 
 class BallmerPeakTests(TestCase):
     def test_close_to_maximum(self):
@@ -950,6 +1104,11 @@ class MemberModelFormTests(TestCase):
 
     def test_cant_create_duplicate_username(self):
         jeff = Member(username="jeff", firstname="jeffrey", lastname="jefferson", gender="M")
+        form = MemberForm(model_to_dict(jeff))
+        self.assertFalse(form.is_valid())
+
+    def test_cant_create_duplicate_username_in_other_case(self):
+        jeff = Member(username="JeFf", firstname="jeffrey", lastname="jefferson", gender="M")
         form = MemberForm(model_to_dict(jeff))
         self.assertFalse(form.is_valid())
 
@@ -1123,19 +1282,19 @@ class ProductRoomFilterTests(TestCase):
     def test_general_room_dont_get_special_items(self):
         numberOfSpecialItems = 2
         response = self.client.get(reverse('menu_index', args=(1,)))
-        products = response.context['product_list']
+        product_pairs = response.context['product_note_pair_list']
         specialProduct = Product.objects.get(pk=3)
 
-        self.assertFalse(specialProduct in products)
-        self.assertEqual(len(products), len(Product.objects.all()) - numberOfSpecialItems)
+        any(self.assertFalse(specialProduct == pair.product) for pair in product_pairs)
+        self.assertEqual(len(product_pairs), len(Product.objects.all()) - numberOfSpecialItems)
 
     def test_special_room_get_special_items(self):
         response = self.client.get(reverse('menu_index', args=(2,)))
-        products = response.context['product_list']
+        product_pairs = response.context['product_note_pair_list']
         specialProduct = Product.objects.get(pk=3)
 
-        self.assertTrue(specialProduct in products)
-        self.assertEqual(len(products), len(Product.objects.all()))
+        self.assertTrue(any(specialProduct == pair.product) for pair in product_pairs)
+        self.assertEqual(len(product_pairs), len(Product.objects.all()))
 
 
 class CategoryAdminTests(TestCase):
@@ -1437,7 +1596,7 @@ class MobilePaymentTests(TestCase):
         mobile_payment.status = MobilePayment.APPROVED
         mobile_payment.save()
 
-        MobilePayment.submit_processed_mobile_payments(self.super_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.super_user)
 
         self.assertEqual(
             Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'] + mobile_payment.amount
@@ -1454,7 +1613,7 @@ class MobilePaymentTests(TestCase):
         mobile_payment.status = MobilePayment.IGNORED
         mobile_payment.save()
 
-        MobilePayment.submit_processed_mobile_payments(self.super_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.super_user)
 
         self.assertEqual(Member.objects.get(username__exact="tester").balance, self.members["tester"]['balance'])
 
@@ -1480,7 +1639,7 @@ class MobilePaymentTests(TestCase):
         bobby_tables_mobile_payment1.status = MobilePayment.APPROVED
         bobby_tables_mobile_payment1.save()
 
-        MobilePayment.submit_processed_mobile_payments(self.super_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.super_user)
 
         # assert that each member who has an approved mobile payment has their balance updated by the amount given
         for approved_mobile_payment in MobilePayment.objects.filter(status__exact=MobilePayment.APPROVED):
@@ -1498,7 +1657,7 @@ class MobilePaymentTests(TestCase):
         mobile_payment.status = MobilePayment.APPROVED
         mobile_payment.save()
 
-        MobilePayment.submit_processed_mobile_payments(self.super_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.super_user)
 
         # ensure new balance is mobilepayment amount
         self.assertEqual(
@@ -1522,7 +1681,7 @@ class MobilePaymentTests(TestCase):
         mobile_payment.status = MobilePayment.IGNORED
         mobile_payment.save()
 
-        MobilePayment.submit_processed_mobile_payments(self.super_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.super_user)
 
         # ensure balance is still initial amount
         self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
@@ -1539,7 +1698,7 @@ class MobilePaymentTests(TestCase):
 
         # submit mobile payments
         self.client.login(username="superuser", password="hunter2")
-        MobilePayment.submit_processed_mobile_payments(self.super_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.super_user)
 
         # ensure balance is still initial amount
         self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
@@ -1582,22 +1741,20 @@ class MobilePaymentTests(TestCase):
     def test_mobilepaytool_race_no_error(self):
         # do autopayment
         MobilePayment.approve_member_filled_mobile_payments()
-        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
         # assert that no changes have been made, also that MobilePaytoolException is not thrown
-        self.assertEqual(
-            MobilePayment.process_submitted_mobile_payments(self.fixture_form_data_no_change, self.super_user), 0
-        )
+        self.assertEqual(MobilePayment.process_submitted(self.fixture_form_data_no_change, self.super_user), 0)
 
     def test_mobilepaytool_race_error_marx(self):
         # do autopayment
         MobilePayment.approve_member_filled_mobile_payments()
-        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
 
         # assert exception is thrown and values in exception are as expected
-        with self.assertRaises(MobilePaytoolException):
+        with self.assertRaises(PaymentToolException):
             try:
-                MobilePayment.process_submitted_mobile_payments(self.fixture_form_data_marx_approved, self.super_user)
-            except MobilePaytoolException as e:
+                MobilePayment.process_submitted(self.fixture_form_data_marx_approved, self.super_user)
+            except PaymentToolException as e:
                 self.assertEqual(e.inconsistent_mbpayments_count, 1)
                 self.assertEqual(e.inconsistent_transaction_ids, ["241E027449465355"])
                 raise e
@@ -1605,15 +1762,13 @@ class MobilePaymentTests(TestCase):
     def test_mobilepaytool_race_error_marx_jdoe(self):
         # do autopayment
         MobilePayment.approve_member_filled_mobile_payments()
-        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
 
         # assert exception is thrown and values in exception are as expected
-        with self.assertRaises(MobilePaytoolException):
+        with self.assertRaises(PaymentToolException):
             try:
-                MobilePayment.process_submitted_mobile_payments(
-                    self.fixture_form_data_marx_jdoe_approved, self.super_user
-                )
-            except MobilePaytoolException as e:
+                MobilePayment.process_submitted(self.fixture_form_data_marx_jdoe_approved, self.super_user)
+            except PaymentToolException as e:
                 self.assertEqual(e.inconsistent_mbpayments_count, 2)
                 self.assertEqual(e.inconsistent_transaction_ids, ["241E027449465355", "016E027417049990"])
                 raise e
@@ -1622,7 +1777,7 @@ class MobilePaymentTests(TestCase):
 class AutoPaymentTests(TestCase):
     def setUp(self):
         self.autopayment_user = User.objects.create_superuser('autopayment', 'foo@bar.com', 'hunter2')
-        Member.objects.create(
+        self.member = Member.objects.create(
             username='tester', firstname='Test', lastname='Testsen', email='tables@nsa.gov', balance=178
         )
 
@@ -1637,7 +1792,7 @@ class AutoPaymentTests(TestCase):
         )
 
         MobilePayment.approve_member_filled_mobile_payments()
-        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
 
         unset = MobilePayment.objects.get(transaction_id='156E027485173228')
         self.assertEqual(unset.status, MobilePayment.UNSET)
@@ -1653,7 +1808,7 @@ class AutoPaymentTests(TestCase):
         )
 
         MobilePayment.approve_member_filled_mobile_payments()
-        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
 
         unset = MobilePayment.objects.get(transaction_id='156E027485173228')
         self.assertEqual(unset.status, MobilePayment.UNSET)
@@ -1669,7 +1824,7 @@ class AutoPaymentTests(TestCase):
         )
 
         MobilePayment.approve_member_filled_mobile_payments()
-        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
 
         approved = MobilePayment.objects.get(transaction_id='156E027485173229')
         self.assertEqual(approved.status, MobilePayment.APPROVED)
@@ -1685,10 +1840,23 @@ class AutoPaymentTests(TestCase):
         )
 
         MobilePayment.approve_member_filled_mobile_payments()
-        MobilePayment.submit_processed_mobile_payments(self.autopayment_user)
+        MobilePayment.submit_all_processed_mobile_payments(self.autopayment_user)
 
         approved = MobilePayment.objects.get(transaction_id='156E027485173229')
         self.assertEqual(approved.status, MobilePayment.APPROVED)
+
+    @mock.patch('stregsystem.models.send_payment_mail', autospec=True)
+    def test_payment_mail_normal_mobile_payment(self, mock_mail_method: MagicMock):
+        from stregsystem.management.commands.autopayment import Command
+
+        mock_mail_method.return_value = None
+
+        MobilePayment.objects.create(amount=5000, timestamp=timezone.now(), member=self.member)
+
+        cmd = Command()
+        cmd.handle()
+
+        mock_mail_method.assert_called_once()
 
 
 class CaffeineCalculatorTest(TestCase):
@@ -1871,3 +2039,365 @@ class CaffeineCalculatorTest(TestCase):
 
             self.assertTrue(coffee_addict.is_leading_coffee_addict())
             self.assertFalse(average_developer.is_leading_coffee_addict())
+
+
+class SignupTest(TestCase):
+    def setUp(self):
+        self.autopayment_user = User.objects.create_superuser('autopayment', 'foo@bar.com', 'hunter2')
+        self.mock_mobile_payment = MobilePayment(timestamp=timezone.now(), amount=20000, transaction_id="1")
+
+    def test_signup_request_creation(self):
+        user_info = {
+            'username': 'john',
+            'firstname': 'John',
+            'lastname': 'doe',
+            'email': 'johndoe@example.com',
+            'gender': 'M',
+        }
+
+        self.client.post(reverse('signup'), user_info)
+
+        # assert that the member was created and that the due payment status is correctly set
+        member = Member.objects.get(username=user_info['username'])
+        self.assertIsNotNone(member)
+        self.assertFalse(member.signup_due_paid)
+
+        # assert that the PendingSignup for the new user was created
+        signup_request = PendingSignup.objects.get(member=member)
+        self.assertIsNotNone(signup_request)
+
+    def test_signup_completion(self):
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        signup = PendingSignup.objects.create(member=member, status=ApprovalModel.APPROVED)
+        signup.complete(self.mock_mobile_payment)
+
+        # Assert that the signup due payment status has been updated correctly
+        member = Member.objects.get(pk=member.pk)
+        self.assertTrue(member.signup_due_paid)
+
+        # Assert that the PendingSignup instance has been deleted
+        with self.assertRaises(PendingSignup.DoesNotExist):
+            _ = PendingSignup.objects.get(member=member)
+
+    def test_excess_payment_balance(self):
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        signup = PendingSignup.objects.create(member=member, due=-50000)
+        signup.complete(self.mock_mobile_payment)
+
+        # Assert that excess payment was added to the account balance
+        member = Member.objects.get(pk=member.pk)
+        self.assertEqual(member.balance, 50000)
+
+    def test_autopayment_command_single_payment(self):
+        from stregsystem.management.commands.autopayment import Command
+
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        PendingSignup.objects.create(member=member, status=ApprovalModel.APPROVED)
+
+        self.mock_mobile_payment.member = member
+        self.mock_mobile_payment.save()
+
+        cmd = Command()
+        cmd.handle()
+
+        # Assert that the signup due payment status has been updated correctly
+        member = Member.objects.get(pk=member.pk)
+        self.assertTrue(member.signup_due_paid)
+
+        # Assert that the payment status has been set correctly
+        payment = MobilePayment.objects.get(pk=self.mock_mobile_payment.pk)
+        self.assertEqual(payment.status, MobilePayment.APPROVED)
+
+        # Assert that the PendingSignup instance has been deleted
+        with self.assertRaises(PendingSignup.DoesNotExist):
+            _ = PendingSignup.objects.get(member=member)
+
+    def test_autopayment_command_split_payment(self):
+        """
+        tests that signup payments that are split over more than one
+        mobile payment work properly
+        """
+        from stregsystem.management.commands.autopayment import Command
+
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        PendingSignup.objects.create(
+            member=member, due=self.mock_mobile_payment.amount * 2, status=ApprovalModel.APPROVED
+        )
+
+        self.mock_mobile_payment.member = member
+        self.mock_mobile_payment.save()
+
+        second_payment = MobilePayment(timestamp=timezone.now(), amount=20000, transaction_id="2", member=member)
+
+        cmd = Command()
+        cmd.handle()
+
+        # Assert that the signup due payment status remains false
+        member = Member.objects.get(pk=member.pk)
+        self.assertFalse(member.signup_due_paid)
+
+        # Assert that the payment status has been set correctly
+        payment = MobilePayment.objects.get(pk=self.mock_mobile_payment.pk)
+        self.assertEqual(payment.status, MobilePayment.APPROVED)
+
+        # Register second payment and rerun command
+        second_payment.save()
+        cmd.handle()
+
+        # Assert that the signup due payment status has been updated correctly
+        member = Member.objects.get(pk=member.pk)
+        self.assertTrue(member.signup_due_paid)
+
+        # Assert that the payment status has been set correctly
+        payment = MobilePayment.objects.get(pk=second_payment.pk)
+        self.assertEqual(payment.status, MobilePayment.APPROVED)
+
+        # Assert that the PendingSignup instance has been deleted
+        with self.assertRaises(PendingSignup.DoesNotExist):
+            _ = PendingSignup.objects.get(member=member)
+
+    def test_autopayment_command_double_payment_unset_approval(self):
+        """
+        tests that signup payments that are split over more than one
+        mobile payment work properly, while not approved.
+        """
+        from stregsystem.management.commands.autopayment import Command
+
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        PendingSignup.objects.create(member=member, due=self.mock_mobile_payment.amount, status=ApprovalModel.UNSET)
+
+        self.mock_mobile_payment.member = member
+        self.mock_mobile_payment.save()
+
+        second_payment = MobilePayment(timestamp=timezone.now(), amount=20000, transaction_id="2", member=member)
+
+        cmd = Command()
+        cmd.handle()
+
+        # Assert that the signup due payment status is true
+        member = Member.objects.get(pk=member.pk)
+        self.assertTrue(member.signup_due_paid)
+
+        # Assert that the payment status has been set correctly
+        payment = MobilePayment.objects.get(pk=self.mock_mobile_payment.pk)
+        self.assertEqual(payment.status, MobilePayment.APPROVED)
+
+        # Register second payment and rerun command
+        second_payment.save()
+        cmd.handle()
+
+        # Assert that the payment status has been set correctly
+        payment = MobilePayment.objects.get(pk=second_payment.pk)
+        self.assertEqual(payment.status, MobilePayment.APPROVED)
+
+        # Assert that the payment has been added to the member account
+        member = Member.objects.get(pk=member.pk)
+        self.assertEqual(member.balance, second_payment.amount)
+
+        # Assert that the PendingSignup instance has not been deleted (since it isn't approved)
+        _ = PendingSignup.objects.get(member=member)
+
+    def test_signup_approval_after_due(self):
+        """
+        Tests that a signup is successful, when approved after due is paid.
+        """
+        member = Member.objects.create(username='john', signup_due_paid=True)
+        signup = PendingSignup.objects.create(member=member, status=ApprovalModel.UNSET)
+
+        # Approve signup after due has been paid.
+        signup.status = ApprovalModel.APPROVED
+        signup.save()
+
+        # Assert that the PendingSignup instance has been deleted
+        with self.assertRaises(PendingSignup.DoesNotExist):
+            _ = PendingSignup.objects.get(member=member)
+
+    @mock.patch('stregsystem.models.send_payment_mail', autospec=True)
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_only_welcome_mail_excess_balance(self, mock_welcome_mail: MagicMock, mock_payment_mail: MagicMock):
+        """
+        Test that only welcome mail is sent, when a member is signed up with excess payment.
+        """
+        from stregsystem.management.commands.autopayment import Command
+
+        mock_welcome_mail.return_value = None
+        mock_payment_mail.return_value = None
+
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        PendingSignup.objects.create(
+            member=member, due=self.mock_mobile_payment.amount / 2, status=ApprovalModel.APPROVED
+        )
+
+        self.mock_mobile_payment.member = member
+        self.mock_mobile_payment.save()
+
+        cmd = Command()
+        cmd.handle()
+
+        mock_payment_mail.assert_not_called()
+        mock_welcome_mail.assert_called_once()
+
+    @mock.patch('stregsystem.models.send_payment_mail', autospec=True)
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_only_welcome_mail_no_excess_balance(self, mock_welcome_mail: MagicMock, mock_payment_mail: MagicMock):
+        """
+        Test that only welcome mail is sent, when a member is signed up.
+        """
+        from stregsystem.management.commands.autopayment import Command
+
+        mock_welcome_mail.return_value = None
+        mock_payment_mail.return_value = None
+
+        member = Member.objects.create(username='john', signup_due_paid=False)
+        PendingSignup.objects.create(member=member, due=self.mock_mobile_payment.amount, status=ApprovalModel.APPROVED)
+
+        self.mock_mobile_payment.member = member
+        self.mock_mobile_payment.save()
+
+        cmd = Command()
+        cmd.handle()
+
+        mock_payment_mail.assert_not_called()
+        mock_welcome_mail.assert_called_once()
+
+
+class MailTests(TestCase):
+    def setUp(self):
+        pass
+
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_welcome_mail_manual_create_member(self, mock_mail_method: MagicMock):
+        mock_mail_method.return_value = None
+
+        member = Member.objects.create(username="jeff", email="test@example.com")
+
+        mock_mail_method.assert_called_once()
+
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_no_welcome_mail_no_paid_approved(self, mock_mail_method: MagicMock):
+        mock_mail_method.return_value = None
+
+        member = Member.objects.create(username="jeff", email="test@example.com", signup_due_paid=False)
+        signup_request = PendingSignup(member=member, due=200 * 100)
+        signup_request.save()
+
+        signup_request.approve()
+
+        mock_mail_method.assert_not_called()
+
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_no_welcome_mail_paid_unset(self, mock_mail_method: MagicMock):
+        mock_mail_method.return_value = None
+
+        # Create member with no due paid
+        member = Member.objects.create(username="jeff", email="test@example.com", signup_due_paid=False)
+        signup_request = PendingSignup(member=member, due=200)
+        signup_request.save()
+
+        # Add payment but still not approved
+        payment = MobilePayment.objects.create(amount=200, timestamp=timezone.now())
+        signup_request.complete(payment)
+        mock_mail_method.assert_not_called()
+
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_welcome_mail_paid_approved(self, mock_mail_method: MagicMock):
+        mock_mail_method.return_value = None
+
+        # Create member with no due paid, then attach pendingsignup, and then say they've paid.
+        member = Member.objects.create(username="jeff", email="test@example.com", signup_due_paid=False)
+        signup_request = PendingSignup(member=member, due=200)
+        signup_request.save()
+
+        payment = MobilePayment.objects.create(amount=200, timestamp=timezone.now())
+        signup_request.complete(payment)
+
+        signup_request.approve()
+        mock_mail_method.assert_called_once()
+
+
+class DateAttributeTestCase(TestCase):
+    def test_created_at_field(self):
+        now = timezone.now()
+        with freeze_time(now):
+            member = Member.objects.create(username="DateAtrtributeTest")
+            self.assertEqual(member.created_at, now)
+            self.assertEqual(member.updated_at, now)
+
+        now2 = timezone.now()
+        with freeze_time(now2):
+            member.balance = 20
+            member.save()
+            self.assertEqual(member.created_at, now)
+            self.assertEqual(member.updated_at, now2)
+
+
+class ApiTests(TestCase):
+    """
+    A lot of the API testing is done separately using Dredd and OpenAPI.
+    These are edge-cases which can't be expressed in OpenAPI.
+    """
+
+    def setUp(self):
+        member = Member.objects.create(username="martin_p", email="test@example.com", signup_due_paid=False)
+        member.save()
+
+    def test_signup_duplicate_username(self):
+        response = self.client.post(
+            reverse('api_signup'),
+            json.dumps(
+                {
+                    'education': "sw",
+                    'username': "martin_p",  # Note: Duplicate username
+                    'firstname': "Martin",
+                    'lastname': "P.",
+                    'email': "test2@example.com",
+                    'gender': "M",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertNotEquals(response.status_code, 200)
+
+    def test_signup_partial_form_no_name(self):
+        response = self.client.post(
+            reverse('api_signup'),
+            json.dumps({'education': "sw", 'username': "martin_p2", 'email': "test2@example.com", 'gender': "M"}),
+            content_type="application/json",
+        )
+
+        self.assertNotEquals(response.status_code, 200)
+
+    def test_signup_partial_form_no_username(self):
+        response = self.client.post(
+            reverse('api_signup'),
+            json.dumps(
+                {
+                    'education': "sw",
+                    'firstname': "Martin",
+                    'lastname': "P.",
+                    'email': "test2@example.com",
+                    'gender': "M",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertNotEquals(response.status_code, 200)
+
+    def test_signup_partial_form_no_education(self):
+        response = self.client.post(
+            reverse('api_signup'),
+            json.dumps(
+                {
+                    'username': "martin_p2",
+                    'firstname': "Martin",
+                    'lastname': "P.",
+                    'email': "test2@example.com",
+                    'gender': "M",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertNotEquals(response.status_code, 200)

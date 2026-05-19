@@ -14,5 +14,17 @@ htmlcov/
 
 # ignore mobilepay api token
 stregsystem/management/commands/tokens.json
+stregsystem/*-tokens.json
+stregsystem/*-tokens.json.bak
 
+# ignore default log file location
 stregsystem.log
+
+# nix
+.direnv
+.envrc
+result
+*.qcow2
+
+# vscode user and workspace settings
+.vscode/

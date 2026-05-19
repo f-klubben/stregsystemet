@@ -22,6 +22,7 @@ Including another URLconf
 urlpatterns = [
     re_path(r'^', include("stregsystem.urls")),
     re_path(r'^', include("stregreport.urls")),
+    re_path(r'^', include("razzia.urls")),
     re_path(r'^kiosk/', include("kiosk.urls")),
     re_path(r'^admin/', admin.site.urls),
 

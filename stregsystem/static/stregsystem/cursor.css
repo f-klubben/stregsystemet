@@ -1,28 +1,7 @@
 input:hover {
     
     cursor: url('cursor/frame0.png') 32 32, auto;
-    -webkit-animation: cursor 400ms infinite;
     animation: cursor 400ms infinite;
-}
-
-
-@-webkit-keyframes cursor {
-    0%  {cursor: url('cursor/frame0.png') 32 32,  auto;}
-    6%  {cursor: url('cursor/frame1.png') 32 32,  auto;}
-    13% {cursor: url('cursor/frame2.png') 32 32,  auto;}
-    20% {cursor: url('cursor/frame3.png') 32 32,  auto;}
-    26% {cursor: url('cursor/frame4.png') 32 32,  auto;}
-    33% {cursor: url('cursor/frame5.png') 32 32,  auto;}
-    40% {cursor: url('cursor/frame6.png') 32 32,  auto;}
-    46% {cursor: url('cursor/frame7.png') 32 32,  auto;}
-    53% {cursor: url('cursor/frame8.png') 32 32,  auto;}
-    60% {cursor: url('cursor/frame9.png') 32 32,  auto;}
-    66% {cursor: url('cursor/frame10.png') 32 32, auto;}
-    73% {cursor: url('cursor/frame11.png') 32 32, auto;}
-    80% {cursor: url('cursor/frame12.png') 32 32, auto;}
-    86% {cursor: url('cursor/frame13.png') 32 32, auto;}
-    93% {cursor: url('cursor/frame14.png') 32 32, auto;}
-    100% {cursor: url('cursor/frame0.png') 32 32,  auto;}
 }
 
 @keyframes cursor {

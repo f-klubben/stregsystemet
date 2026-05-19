@@ -1,0 +1,24 @@
+{
+	"name": "TROENs STREGSYSTEM",
+	"short_name": "STREGSYSTEM",
+	"icons": [
+		{
+			"src": "logo/logo.svg",
+			"type": "image/svg+xml",
+			"sizes": "any",
+			"purpose": "any"
+		},
+		{
+			"src": "logo/logo-monochrome.svg",
+			"type": "image/svg+xml",
+			"sizes": "any",
+			"purpose": "monochrome"
+		},
+		{
+			"src": "logo/logo-maskable.svg",
+			"type": "image/svg+xml",
+			"sizes": "any",
+			"purpose": "maskable"
+		}
+	]
+}

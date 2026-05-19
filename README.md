@@ -13,11 +13,23 @@ Python Environment
 For windows using Anaconda and virtual environments:
 1. Download and install Anaconda
 2. In a shell:
-  - `conda create -n stregsystem python=3.6`
+  - `conda create -n stregsystem python=3.11`
   - `activate stregsystem`
   - `pip install -r requirements.txt`
 3. ???
 4. Profit
+
+For Arch Linux get this package [AUR](https://aur.archlinux.org/packages/python311)
+1. Install python311 using YAY if using a different AUR_helper reaplce yay with correct command
+ - `yay -S python311`
+2. Create virtual environment
+ - `python3.11 -m venv venv`
+3. Activate virtualenv
+ - `source venv/bin/activate`
+4. Install packages
+ - `pip3 install -r requirements.txt`
+5. ???
+6. Profit
 
 For Ubuntu with virtual envs:
 1. Install python3 with pip
@@ -28,6 +40,28 @@ For Ubuntu with virtual envs:
  - `source venv/bin/activate`
 4. Install packages
  - `pip3 install -r requirements.txt`
+5. ???
+6. Profit
+
+For systems running the Nix package manager:
+1. Configure Nix to use nix-command and flakes
+ - `echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf`
+2. Start shell
+ - `nix develop`
+2. Or run the system
+ - `nix run . testserver stregsystem/fixtures/testdata.json`
+3. ???
+4. Profit
+
+For Mac users with virtual envs:
+1. Install python3.11 with pip
+ - `brew install python@3.11`
+2. Create virtual environment
+ - `python -m venv venv`
+3. Activate virtualenv
+ - `source venv/bin/activate`
+4. Install packages
+ - `pip install -r requirements.txt`
 5. ???
 6. Profit
 
@@ -45,7 +79,13 @@ Admin panel: <http://127.0.0.1:8000/admin/>
 Login: `tester:treotreo`
 
 Stregsystem: <http://127.0.0.1:8000/1/>  
-User: `tester`
+There are different members that help you test different things:
+| Member | Superpower |
+|---|---|
+| tester | Default test profile |
+| q | Has short name for maximum testing speed |
+| nodough | Has no stregdollars |
+| lowdough | Only has 15 stregdollars |
 
 Persistent Testdata
 -------
@@ -61,3 +101,20 @@ From then on
 1. `python manage.py runserver`
 2. ???
 3. Profit
+
+Testing Mailserver
+-------
+Using the debugging tool [MailHog](https://github.com/mailhog/MailHog) (Follow their README for install instructions) and test the mailserver like this:
+1. `MailHog --smtp-bind-addr 127.0.0.1:25`
+2. Go to [http://127.0.0.1:8025](http://127.0.0.1:8025) in your browser
+3. `python manage.py runserver`
+4. ???
+5. Profit
+
+Themes
+-------
+[Read more about themes here.](./themes.md)
+
+Attaching Debugger
+-------
+[Read about attaching a debugger here.](./debugger.md)

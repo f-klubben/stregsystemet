@@ -6,7 +6,7 @@
 {% block razzia_content %}
 	<p><a href="../{{razzia.pk}}">Back to razzia</a></p>
 	<h2>Registered members at razzia {{ razzia.start_date | date:"D d M Y" }} - {{ razzia.members.all | length }} fember(s)</h2>
-	{% for entry in razzia.razziaentry_set.all %}
+	{% for entry in razzia.razziaentryold_set.all %}
 	<ul>
 		<li>{{ entry.member.firstname }} {{ entry.member.lastname }} ({{ entry.member.username }}) at {{entry.time}}</li>
 	</ul>

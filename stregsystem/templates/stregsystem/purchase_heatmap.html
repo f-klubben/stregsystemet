@@ -67,8 +67,6 @@
     .heatmap-label {
         position: relative;
         padding: .125em .5em .125em 0;
-        color: black;
-        fill: black;
         font-size: 12.5pt;
     }
     .heatmap-label-first {
@@ -101,9 +99,12 @@
     .heatmap-cell:hover {
         border-radius: 5px;
     }
+    .heatmap-mode-button {
+        font-weight: normal;
+    }
     .heatmap-mode-button[data-active="yes"] {
         text-decoration: none;
-        color: black;
+        font-weight: bold;
         cursor: default;
     }
 
@@ -151,7 +152,7 @@
     }
 
     function updateAllProductNumbers(hide=false){
-        document.querySelectorAll("input[name='product_id']")
+        document.querySelectorAll("button[name='product_id']")
             .forEach(p => changeProductCountElement(p.parentElement, 0, hide))
     }
 
@@ -183,7 +184,7 @@
         }
 
         for (const [product_id, count] of Object.entries(product_counts)){
-            const productCountElement = document.querySelector(`input[name='product_id'][value='${product_id}']`)?.parentElement;
+            const productCountElement = document.querySelector(`button[name='product_id'][value='${product_id}']`)?.parentElement;
 
             if (productCountElement === undefined){
                 console.warn(`Product doesn't exist in tabel: ${product_id}`);
