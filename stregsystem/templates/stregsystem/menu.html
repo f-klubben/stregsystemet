@@ -1,6 +1,7 @@
 {% extends "stregsystem/base.html" %}
 
 {% load stregsystem_extras %}
+{% load achievement_templates %}
 {% load listutil %}
 
 {% block title %}Treoens stregsystem : Menu {% endblock %}
@@ -130,8 +131,6 @@
   <br />
     {% include "stregsystem/purchase_heatmap.html" %}
   </main>
-  {% block achievement %}
-    {% include "stregsystem/achievement_notification.html" %}
-  {% endblock %}
+  {% achievement_notifications products member %}
 {% endblock %}
 

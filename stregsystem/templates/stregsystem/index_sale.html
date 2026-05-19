@@ -1,6 +1,7 @@
 {% extends "stregsystem/index.html" %}
 
 {% load stregsystem_extras %}
+{% load achievement_templates %}
 
 {% block head %}
 {{ block.super }}
@@ -50,7 +51,5 @@ for tilsammen {{cost|money}} kr.
 {% endautoescape %}
 <br />
 <br />
-    {% block achievement %}
-        {% include "stregsystem/achievement_notification.html" %}
-    {% endblock %}
+    {% achievement_notifications products member %}
 {% endblock %}

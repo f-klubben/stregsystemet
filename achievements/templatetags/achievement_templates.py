@@ -15,6 +15,17 @@ from stregsystem.models import Product, Member
 register = template.Library()
 
 
+@register.inclusion_tag('achievements/achievement_notification.html')
+def achievement_notifications(products: List[Product], member: Member):
+    new_achievements: List[Achievement] = []
+    for p, count in Counter(products).most_common():
+        new_achievements.extend(get_new_achievements(member, p))
+
+    return {
+        "new_achievements": new_achievements,
+    }
+
+
 @register.inclusion_tag('achievements/achievement_ranking.html')
 def achievement_ranking(member: Member):
     acquired_achievements: List[Tuple[Achievement, float]] = get_acquired_achievements_with_rarity(member)
