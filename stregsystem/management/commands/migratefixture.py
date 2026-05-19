@@ -2,7 +2,6 @@ import tomllib
 from django.core.management import BaseCommand, call_command
 from django.db import connections
 from django.conf import settings
-from pathlib import Path
 import tempfile
 import os
 
@@ -12,6 +11,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--fixture", required=False)
+        parser.add_argument("--all", action="store_true", default=False)
         parser.add_argument("--update-targets", action="store_true", default=False)
 
     def handle(self, *args, **opts):
@@ -29,7 +29,6 @@ class Command(BaseCommand):
         settings.DATABASES["default"]["NAME"] = tmp.name
 
         try:
-            fixture = opts["fixture"]
             targets = self.load_targets()
 
             self.stdout.write("Migrate all apps to latest")
@@ -40,17 +39,35 @@ class Command(BaseCommand):
                 self.stdout.write(f"{app} -> {migration}")
                 call_command("migrate", app, migration)
 
-            self.stdout.write("Load fixture data")
-            call_command("loaddata", fixture)
+            if opts["all"]:
+                self.update_all_fixtures("stregsystem/fixtures", targets)
+            else:
+                fixture = opts["fixture"]
+                self.update_single_fixture(fixture, targets)
 
-            self.stdout.write("Re-migrate to targets on pyproject.toml")
-            for app, _ in targets.items():
-                self.stdout.write(f"{app}")
-                call_command("migrate", app)
+            self.stdout.write(self.style.SUCCESS('Finished migrating fixtures'))
+        finally:
+            connections["default"].close()
+            os.unlink(tmp.name)
 
-            self.stdout.write("Dumping fixtures")
-            with open(fixture, "w") as f:
-                call_command(
+    def update_all_fixtures(self, fixturesFolderPath, targets):
+        self.stdout.write(f"Updating all fixtures in {fixturesFolderPath}")
+        for fixture in os.listdir(fixturesFolderPath):
+            if fixture.endswith(".json"):
+                self.update_single_fixture(os.path.join(fixturesFolderPath, fixture), targets)
+
+    def update_single_fixture(self, fixture, targets):
+        self.stdout.write(f"Load fixture data for {fixture}")
+        call_command("loaddata", fixture)
+
+        self.stdout.write("Re-migrate to targets on pyproject.toml")
+        for app, _ in targets.items():
+            self.stdout.write(f"{app}")
+            call_command("migrate", app)
+
+        self.stdout.write("Dumping fixtures")
+        with open(fixture, "w") as f:
+            call_command(
                     "dumpdata",
                     exclude=[
                         "auth.permission",
@@ -63,11 +80,7 @@ class Command(BaseCommand):
                     indent=2,
                     stdout=f,
                 )
-
-            self.stdout.write(self.style.SUCCESS('Finished migrating fixtures'))
-        finally:
-            connections["default"].close()
-            os.unlink(tmp.name)
+        self.stdout.write(self.style.SUCCESS(f'Finished updating fixture {fixture}'))
 
     def load_targets(self):
         with open("pyproject.toml", "rb") as f:
