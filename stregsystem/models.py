@@ -26,6 +26,7 @@ from stregsystem.utils import (
     ProductAndAmount,
 )
 
+
 def price_display(value):
     return money(value) + " kr."
 

@@ -55,7 +55,7 @@ from stregsystem.utils import (
     PaymentToolException,
     make_unprocessed_signups_query,
     ProductDisplayItem,
-    ProductAndAmount
+    ProductAndAmount,
 )
 
 from .booze import ballmer_peak
@@ -1036,7 +1036,9 @@ def __set_local_values(member, room, productAndAmounts: list[ProductAndAmount], 
 
     caffeine = member.calculate_caffeine_in_body()
     cups = caffeine_mg_to_coffee_cups(caffeine)
-    product_contains_caffeine = any(productAndAmount.product.caffeine_content_mg > 0 for productAndAmount in productAndAmounts)
+    product_contains_caffeine = any(
+        productAndAmount.product.caffeine_content_mg > 0 for productAndAmount in productAndAmounts
+    )
     is_coffee_master = member.is_leading_coffee_addict()
 
     cost = order.total

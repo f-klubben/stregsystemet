@@ -229,6 +229,7 @@ def rows_to_csv(rows) -> str:
 def get_bool_pretty(value: bool) -> str:
     return "Ja" if value else "Nej"
 
+
 @dataclass
 class ProductDisplayItem:
     product: Product
