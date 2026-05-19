@@ -68,18 +68,18 @@ class Command(BaseCommand):
         self.stdout.write("Dumping fixtures")
         with open(fixture, "w") as f:
             call_command(
-                    "dumpdata",
-                    exclude=[
-                        "auth.permission",
-                        "contenttypes",
-                        "admin.logentry",
-                        "sessions",
-                    ],
-                    natural_foreign=True,
-                    natural_primary=True,
-                    indent=2,
-                    stdout=f,
-                )
+                "dumpdata",
+                exclude=[
+                    "auth.permission",
+                    "contenttypes",
+                    "admin.logentry",
+                    "sessions",
+                ],
+                natural_foreign=True,
+                natural_primary=True,
+                indent=2,
+                stdout=f,
+            )
         self.stdout.write(self.style.SUCCESS(f'Finished updating fixture {fixture}'))
 
     def load_targets(self):
