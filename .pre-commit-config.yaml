@@ -7,4 +7,4 @@ repos:
       - id: black
         args: [--target-version, py311, --line-length, "120", --skip-string-normalization]
         exclude: '(migrations|urls\.py)'
-        files: '^(stregsystem|stregreport|kiosk|razzia)/'
+        files: '^(stregsystem|stregreport|kiosk|razzia)/' 
