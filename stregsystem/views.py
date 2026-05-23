@@ -22,7 +22,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
-from events.models import TicketRecord
+from events.models import TicketRecord, Ticket
 from stregreport.views import fjule_party
 
 from stregsystem import parser

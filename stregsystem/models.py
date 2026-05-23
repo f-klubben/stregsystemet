@@ -781,10 +781,11 @@ class Sale(BaseModel):
             self.on_new_sale()
 
     def on_new_sale(self):
-        pass
-        # ticket = Ticket.is_product_a_ticket(self.product)
-        # if ticket:
-        #    TicketRecord.create_from_sale_and_ticket(self, ticket)
+        from events.models import Ticket, TicketRecord
+
+        ticket = Ticket.is_product_a_ticket(self.product)
+        if ticket:
+            TicketRecord.create_from_sale_and_ticket(self, ticket)
 
     def _is_save_allowed(self):
         # New sale, always allow save
