@@ -5,10 +5,8 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from events.models import TicketRecord, Event, EventInstance, Ticket
+from events.models import TicketRecord, Event, EventInstance, Ticket, InvalidTicketRecordError, InvalidTicketError
 from stregsystem.models import (
-    InvalidTicketRecordError,
-    InvalidTicketError,
     Member,
     Product,
     Sale,

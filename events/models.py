@@ -6,10 +6,18 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 
-from stregsystem.models import Product, Sale, InvalidTicketError, Member, InvalidTicketRecordError
+from stregsystem.models import Product, Sale, Member
 from stregsystem.utils import (
     get_bool_pretty,
 )
+
+
+class InvalidTicketRecordError(Exception):
+    pass
+
+
+class InvalidTicketError(Exception):
+    pass
 
 
 class Event(models.Model):

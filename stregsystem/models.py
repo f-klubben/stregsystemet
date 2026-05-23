@@ -46,14 +46,6 @@ class NoMoreInventoryError(Exception):
     pass
 
 
-class InvalidTicketRecordError(Exception):
-    pass
-
-
-class InvalidTicketError(Exception):
-    pass
-
-
 # Create your models here.
 
 
