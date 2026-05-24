@@ -156,13 +156,13 @@ class AchievementTask(BaseModel):
         elif self.task_type == "any_purchase":
             str_list.append("Any Purchase")
         elif self.task_type == "alcohol_content":
-            str_list.append(f"Alcohol Content ≤ {self.goal_value / 100:.2f} ml")
+            str_list.append(f"Alcohol Content ≥ {self.goal_value / 100:.2f} ml")
         elif self.task_type == "caffeine_content":
-            str_list.append(f"Caffeine Content ≤ {self.goal_value / 100:.2f} mg")
+            str_list.append(f"Caffeine Content ≥ {self.goal_value / 100:.2f} mg")
         elif self.task_type == "used_funds":
             str_list.append(f"Used Funds ≥ {self.goal_value / 100:.2f} kr")
         elif self.task_type == "remaining_funds":
-            str_list.append(f"Remaining Funds ≤ {self.goal_value / 100:.2f} kr")
+            str_list.append(f"Remaining Funds ≥ {self.goal_value / 100:.2f} kr")
 
         return " | ".join(str_list) + f" - Goal: {self.goal_value}"
 
