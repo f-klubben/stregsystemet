@@ -121,7 +121,7 @@ class AchievementTask(BaseModel):
                 raise ValidationError("Category must be set if task_type is 'category'.")
             if self.product:
                 raise ValidationError("Product must not be set when task_type is 'category'.")
-        elif self.task_type in ("alcohol", "caffeine"):
+        elif self.task_type in ("alcohol_content", "caffeine_content"):
             if self.product or self.category:
                 raise ValidationError("Product and Category must not be set when target is alcohol or caffeine.")
 
