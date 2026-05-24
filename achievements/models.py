@@ -492,10 +492,10 @@ def _find_completed_achievements(
 
 def _filter_relevant_sales(
     achievements: List[Achievement], member: Member, now: datetime
-) -> Dict[AchievementTask, QuerySet[Sale]]:
+) -> Dict[AchievementTask, QuerySet]:
     # Start with all sales for this member, select related to reduce hits
     member_sales = Sale.objects.filter(member=member).select_related('product').prefetch_related('product__categories')
-    task_to_sales: Dict[int, QuerySet[int]] = {}
+    task_to_sales: Dict[AchievementTask, QuerySet] = {}
 
     for achievement in achievements:
         # Determine global time window
