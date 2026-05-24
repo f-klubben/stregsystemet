@@ -6,6 +6,8 @@ from stregreport import views
 from stregreport.models import BreadRazzia
 from freezegun import freeze_time
 
+from stregsystem.models import Category
+
 
 class ParseIdStringTests(TestCase):
     def test_parse_id_string_success(self):
@@ -24,6 +26,36 @@ class ParseIdStringTests(TestCase):
         res = views.parse_id_string(id_string_unicode)
 
         self.assertSequenceEqual([11, 13], res)
+
+
+class CategoryRankReportTests(TestCase):
+    fixtures = ["initial_data"]
+
+    def setUp(self):
+        Category.objects.all().delete()
+
+    def test_no_categories(self):
+        self.client.login(username="tester", password="treotreo")
+        response = self.client.get(reverse("report_categoryranks"), {}, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed("admin/stregsystem/report/ranks.html")
+
+        self.assertEqual(len(response.context['stat_lists']), 0)
+
+    def test_single_category_shown(self):
+        self.client.login(username="tester", password="treotreo")
+        catA = Category.objects.create(name="Category A")
+        catA.save()
+
+        response = self.client.get(reverse("report_categoryranks"), {}, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed("admin/stregsystem/report/ranks.html")
+
+        stat_lists = response.context['stat_lists']
+
+        self.assertEqual(stat_lists[0][0], catA.name)
 
 
 class SalesReportTests(TestCase):

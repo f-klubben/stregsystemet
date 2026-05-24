@@ -19,6 +19,18 @@ For windows using Anaconda and virtual environments:
 3. ???
 4. Profit
 
+For Arch Linux get this package [AUR](https://aur.archlinux.org/packages/python311)
+1. Install python311 using YAY if using a different AUR_helper reaplce yay with correct command
+ - `yay -S python311`
+2. Create virtual environment
+ - `python3.11 -m venv venv`
+3. Activate virtualenv
+ - `source venv/bin/activate`
+4. Install packages
+ - `pip3 install -r requirements.txt`
+5. ???
+6. Profit
+
 For Ubuntu with virtual envs:
 1. Install python3 with pip
  - `sudo apt install python3 python3-pip python3-venv`
@@ -31,6 +43,16 @@ For Ubuntu with virtual envs:
 5. ???
 6. Profit
 
+For systems running the Nix package manager:
+1. Configure Nix to use nix-command and flakes
+ - `echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf`
+2. Start shell
+ - `nix develop`
+2. Or run the system
+ - `nix run . testserver stregsystem/fixtures/testdata.json`
+3. ???
+4. Profit
+
 For Mac users with virtual envs:
 1. Install python3.11 with pip
  - `brew install python@3.11`
@@ -42,7 +64,6 @@ For Mac users with virtual envs:
  - `pip install -r requirements.txt`
 5. ???
 6. Profit
-
 
 Using Testdata
 --------
@@ -93,3 +114,7 @@ Using the debugging tool [MailHog](https://github.com/mailhog/MailHog) (Follow t
 Themes
 -------
 [Read more about themes here.](./themes.md)
+
+Attaching Debugger
+-------
+[Read about attaching a debugger here.](./debugger.md)

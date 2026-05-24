@@ -1,16 +1,14 @@
-html, body {
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  color: white;
+:root {
+	color-scheme: dark;
+	background-color: black;
 }
 
-#rocket {
-  display: none;
-}
+#fireworks-container {
+	z-index: -100;
 
-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
+	& canvas,
+	& div {
+		position: absolute;
+		inset: 0;
+	}
 }

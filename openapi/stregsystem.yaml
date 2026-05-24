@@ -7,7 +7,7 @@ info:
     Existing client software utilizing the API include Stregsystem-CLI (STS) and Fappen (F-Club Web App).
     
     Disclaimer - The implementation is not generated using this specification, therefore they can get out of sync if changes are made directly to the codebase without updating the OpenAPI specification file accordingly.
-  version: "1.1"
+  version: "1.2"
 externalDocs:
   description: Find out more about Stregsystemet at GitHub.
   url: https://github.com/f-klubben/stregsystemet/
@@ -21,7 +21,21 @@ tags:
     description: Related to the products.
   - name: Sale
     description: Related to performing a sale.
+  - name: Signup
+    description: Related to registration of new members.
 paths:
+  /api/version:
+    get:
+      summary: Get version info
+      description: Gets Stregsystem version and API version.
+      operationId: api_version_info
+      responses:
+        '200':
+          description: Version info retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
   /api/member:
     get:
       tags:
@@ -159,6 +173,38 @@ paths:
           $ref: '#/components/responses/SaleSuccess'
         '400':
           $ref: '#/components/responses/Member_RoomIdParameter_BadResponse'
+  /api/signup/status:
+    get:
+      tags:
+        - Signup
+      summary: Gets status regarding a signup
+      description: Retrieves the signup status for a specific member by username.
+      operationId: api_signup_status
+      parameters:
+        - $ref: '#/components/parameters/username_param'
+      responses:
+        '200':
+          $ref: '#/components/responses/SignupStatus'
+        '400':
+          $ref: '#/components/responses/MemberUsernameParameter_BadResponse'
+  /api/signup:
+    post:
+      tags:
+        - Signup
+      summary: Posts a signup
+      description: Performs a signup using member info.
+      operationId: api_signup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/signup_input'
+      responses:
+        '200':
+          $ref: '#/components/responses/SignupSuccess'
+        '400':
+          $ref: '#/components/responses/Signup_BadResponse'
 components:
   examples:
     MemberNotFoundExample:
@@ -182,7 +228,20 @@ components:
     MissingMemberUsernameExample:
       summary: No username given
       value: "Parameter missing: username"
+    UsernameTakenExample:
+      summary: Member with that username already exist
+      value: "Username already taken"
+    MissingOrInvalidParameterExample:
+      summary: A parameter is invalid or missing
+      value: "Parameter invalid: <parameter>"
   parameters:
+    signup_id_param:
+      name: signup_id
+      in: query
+      description: Signup ID of the signup to retrieve.
+      required: true
+      schema:
+        $ref: '#/components/schemas/signup_id'
     member_id_param:
       name: member_id
       in: query
@@ -190,6 +249,7 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/member_id'
+      example: 321
     room_id_param:
       name: room_id
       in: query
@@ -197,6 +257,7 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/room_id'
+      example: 10
     username_param:
       name: username
       in: query
@@ -204,6 +265,7 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/username'
+      example: kresten
     amount_param:
       name: amount
       in: query
@@ -211,6 +273,9 @@ components:
       required: false
       schema:
         $ref: '#/components/schemas/stregoere_balance'
+      examples:
+        normalBalance:
+          value: 20000
   schemas:
     memberNotFoundMessage:
       type: string
@@ -230,9 +295,15 @@ components:
     missingRoomIdMessage:
       type: string
       example: "Parameter missing: room_id"
-    missingMemberUsername:
+    missingMemberUsernameMessage:
       type: string
       example: "Parameter missing: username"
+    usernameTakenMessage:
+      type: string
+      example: "Username already taken"
+    invalidParameterMessage:
+      type: string
+      example: "Parameter invalid: <parameter>"
     balance:
       type: integer
       example: 20000
@@ -245,12 +316,44 @@ components:
     name:
       type: string
       example: Kresten Laust
+    stregsystem_version:
+      type: string
+      example: v2.6.5
     member_id:
       type: integer
       example: 321
     room_id:
       type: integer
       example: 10
+    email:
+      type: string
+      format: email
+      example: kresten@example.org
+    firstname:
+      type: string
+      example: Kresten
+    lastname:
+      type: string
+      example: Laust
+    education:
+      type: string
+      description: Acknowledged shortening, e.g. sw/ixd/dad/dat
+      example: sw
+    gender:
+      type: string
+      enum:
+        - U
+        - M
+        - F
+      example: M
+    approval_status:
+      type: string
+      description: U = Unreviewed, A = Approved, I = Ignored, R = Rejected.
+      enum:
+        - U
+        - A
+        - I
+        - R
     timestamp:
       type: string
       format: date-time
@@ -264,9 +367,23 @@ components:
     stregoere_price:
       type: integer
       example: 600
+    stregoere_price_three_beers:
+      type: integer
+      example: 1800
     stregoere_balance:
       type: integer
+      example: 15000
+    stregoere_due:
+      type: integer
       example: 20000
+    stregkroner_balance:
+      description: Stregbalance in kroner, only used in API-Sale
+      type: number
+      format: float
+      example: 182.00
+    signup_id:
+      type: integer
+      example: 5
     named_products_example:
       type: object
       properties:
@@ -281,6 +398,21 @@ components:
           $ref: '#/components/schemas/buystring'
         room:
           $ref: '#/components/schemas/room_id'
+    signup_input:
+      type: object
+      properties:
+        education:
+          $ref: '#/components/schemas/education'
+        username:
+          $ref: '#/components/schemas/username'
+        email:
+          $ref: '#/components/schemas/email'
+        firstname:
+          $ref: '#/components/schemas/firstname'
+        lastname:
+          $ref: '#/components/schemas/lastname'
+        gender:
+          $ref: '#/components/schemas/gender'
     active_product:
       type: object
       properties:
@@ -288,36 +420,26 @@ components:
           $ref: '#/components/schemas/product_name'
         price:
           $ref: '#/components/schemas/stregoere_price'
-    active_products_example:
-      type: object
-      properties:
-        123:
-          $ref: '#/components/schemas/active_product'
     buystring:
       type: string
       example: "kresten beer:3"
-    category_name:
+    product_category_name:
       type: string
       example: "Alcohol"
-    category_id:
+    product_category_id:
       type: integer
       example: 11
-    category:
+    product_category:
       type: object
       properties:
         category_id:
-          $ref: '#/components/schemas/category_id'
+          $ref: '#/components/schemas/product_category_id'
         category_name:
-          $ref: '#/components/schemas/category_name'
-    category_mapping:
+          $ref: '#/components/schemas/product_category_name'
+    product_category_mapping:
       type: array
       items:
-        $ref: '#/components/schemas/category'
-    category_mappings_example:
-      type: object
-      properties:
-        123:
-          $ref: '#/components/schemas/category_mapping'
+        $ref: '#/components/schemas/product_category'
     created_on:
       type: string
       format: date
@@ -330,13 +452,15 @@ components:
       type: boolean
       example: false
     bp_minutes:
+      description: Ballmer Peak minutes
       type: integer
       nullable: true
-      example: 2
+      example: null
     bp_seconds:
+      description: Ballmer Peak seconds
       type: integer
       nullable: true
-      example: 30
+      example: null
     caffeine:
       type: integer
       example: 2
@@ -354,10 +478,17 @@ components:
       example: true
     sale_hints:
       type: string
-      example: "<span class=\"username\">kresten</span> beer:3"
+      example: "<span class=\"username\">kresten</span> 123:3"
     member_has_low_balance:
       type: boolean
       example: false
+    signup_values_result_example:
+      type: object
+      properties:
+        due:
+          $ref: '#/components/schemas/stregoere_due'
+        username:
+          $ref: '#/components/schemas/username'
     sale_values_result_example:
       type: object
       properties:
@@ -374,6 +505,10 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/product_id'
+              example:
+                - 123
+                - 123
+                - 123
         promille:
           $ref: '#/components/schemas/promille'
         is_ballmer_peaking:
@@ -391,7 +526,7 @@ components:
         is_coffee_master:
           $ref: '#/components/schemas/is_coffee_master'
         cost:
-          $ref: '#/components/schemas/stregoere_price'
+          $ref: '#/components/schemas/stregoere_price_three_beers'
         give_multibuy_hint:
           $ref: '#/components/schemas/give_multibuy_hint'
         sale_hints:
@@ -399,7 +534,7 @@ components:
         member_has_low_balance:
           $ref: '#/components/schemas/member_has_low_balance'
         member_balance:
-          $ref: '#/components/schemas/stregoere_balance'
+          $ref: '#/components/schemas/stregkroner_balance'
     sale:
       type: object
       properties:
@@ -424,6 +559,14 @@ components:
           $ref: '#/components/schemas/active'
         name:
           $ref: '#/components/schemas/name'
+    VersionInfo:
+      type: object
+      properties:
+        version:
+          $ref: '#/components/schemas/stregsystem_version'
+        api_version:
+          type: string
+          example: 1.1
   responses:
     MemberFound:
       description: Member found.
@@ -467,24 +610,41 @@ components:
             properties:
               sales:
                 $ref: '#/components/schemas/sales'
+    SignupStatus:
+      description: Signup information found.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              due:
+                $ref: '#/components/schemas/stregoere_due'
+              status:
+                $ref: '#/components/schemas/approval_status'
     NamedProducts:
       description: Dictionary of all named_product names.
       content:
         application/json:
           example:
-            $ref: '#/components/schemas/named_products_example'
+            beer: 123
     ActiveProducts:
       description: Dictionary of all activated products, with their name and price (in stregører).
       content:
         application/json:
           example:
-            $ref: '#/components/schemas/active_products_example'
+            123:
+              name: Beer
+              price: 600
     CategoryMappings:
       description: Dictionary of all activated products, with their mapped categories (both category name and ID).
       content:
         application/json:
           example:
-            $ref: '#/components/schemas/category_mappings_example'
+            123:
+              - category_id:
+                  11
+                category_name:
+                  "Alcohol"
     SaleSuccess:
       description: An object containing various statistics and info regarding the purchase.
       content:
@@ -500,6 +660,21 @@ components:
                 example: "OK"
               values:
                 $ref: '#/components/schemas/sale_values_result_example'
+    SignupSuccess:
+      description: An object containing info regarding the signup.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              msg:
+                type: string
+                example: "OK"
+              values:
+                $ref: '#/components/schemas/signup_values_result_example'
     QRCodeGenerated:
       description: QR code with link to open MobilePay with the provided information.
       content:
@@ -509,18 +684,18 @@ components:
     InvalidQRInputResponse:
       description: Invalid input has been provided.
       content:
-        text/html:
+        text/html; charset=utf-8:
           schema:
             type: string
             example: Invalid input for MobilePay QR code generation
     MemberUsernameParameter_BadResponse:
       description: Member does not exist, or missing parameter.
       content:
-        text/html:
+        text/html; charset=utf-8:
           schema:
             oneOf:
               - $ref: '#/components/schemas/memberNotFoundMessage'
-              - $ref: '#/components/schemas/missingMemberUsername'
+              - $ref: '#/components/schemas/missingMemberUsernameMessage'
           examples:
             memberNotFound:
               $ref: '#/components/examples/MemberNotFoundExample'
@@ -529,7 +704,7 @@ components:
     MemberIdParameter_BadResponse:
       description: Member does not exist, invalid member ID, or missing parameter.
       content:
-        text/html:
+        text/html; charset=utf-8:
           schema:
             oneOf:
               - $ref: '#/components/schemas/memberNotFoundMessage'
@@ -545,7 +720,7 @@ components:
     RoomIdParameter_BadResponse:
       description: Room does not exist, invalid room ID, or missing parameter.
       content:
-        text/html:
+        text/html; charset=utf-8:
           schema:
             oneOf:
               - $ref: '#/components/schemas/roomNotFoundMessage'
@@ -561,7 +736,7 @@ components:
     Member_RoomIdParameter_BadResponse:
       description: Room or member does not exist, invalid room or member ID, or missing parameter.
       content:
-        text/html:
+        text/html; charset=utf-8:
           schema:
             oneOf:
               - $ref: '#/components/schemas/memberNotFoundMessage'
@@ -583,3 +758,16 @@ components:
               $ref: '#/components/examples/InvalidRoomIdExample'
             missingRoomId:
               $ref: '#/components/examples/MissingRoomIdExample'
+    Signup_BadResponse:
+      description: Username is taken, missing parameter, or invalid parameter.
+      content:
+        text/html; charset=utf-8:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/usernameTakenMessage'
+              - $ref: '#/components/schemas/invalidParameterMessage'
+          examples:
+            usernameTaken:
+              $ref: '#/components/examples/UsernameTakenExample'
+            invalidParameter:
+              $ref: '#/components/examples/MissingOrInvalidParameterExample'

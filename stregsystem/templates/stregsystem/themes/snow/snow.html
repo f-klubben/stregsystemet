@@ -1,1 +1,19 @@
-<div class="snow-container"></div>
+{% load themes %}
+{% load stregsystem_extras %}
+{% day_of_month as day %}
+
+<div id="snow-container">
+	<div class="santa">
+		<img src="{% themes_static 'snow/santa-sled.gif' %}" />
+	</div>
+	{% for i in day|to_range %}
+	<div
+		class="snowflake"
+		style="
+				--snowflake-fall-delay: {% random 0 100 %};
+				--snowflake-shake-delay: {% random 0 100 %};
+			"
+	></div>
+	{% endfor %}
+</div>
+<img id="snow-bottom" src="{% themes_static 'snow/snow.png' %}" />

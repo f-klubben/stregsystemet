@@ -16,6 +16,7 @@
 	max-height: 75%;
 	max-width: 400px;
 	pointer-events: none;
+	z-index: 1;
 	animation: advent-candle-burn-down 2073600s linear
 		calc(var(--advent-candle-start-day) * -86400s) forwards;
 

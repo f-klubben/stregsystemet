@@ -1,183 +1,194 @@
-.santa{
-    position: fixed;
-    top: 72%;
-    right:-42%;
-    -webkit-user-select: none;
-    user-select: none;
-    animation-name: play;
-    animation-duration: 60s;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-    animation-play-state: running;
+:root {
+	color-scheme: dark;
+}
+button,
+input {
+	color-scheme: light;
 }
 
-@keyframes play {
-    0%,80% {right:-80%;}
-    100%{right:180%;}
+body {
+	background-color: #001679;
 }
-.snow-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
+
+:is(a, button.linkalike):not(:active) {
+	color: white;
+}
+
+#snow-bottom {
+	position: relative;
+	max-height: 7rem;
+	width: 100%;
+}
+
+#snow-container {
+	position: relative;
+	inset: 0;
+	pointer-events: none;
+
+	@media (prefers-reduced-motion) {
+		opacity: 0.7;
+
+		@media (prefers-contrast) or (prefers-reduced-transparency) {
+			display: none;
+		}
+	}
+
+	@media not screen {
+		display: none;
+	}
+
+	& .santa {
+		position: fixed;
+		top: 72%;
+		right: -42%;
+		animation: snow-santa-visit 60s linear infinite;
+	}
+
+	& .snowflake {
+		--snowflake-size: 1vw;
+		width: var(--snowflake-size);
+		height: var(--snowflake-size);
+		background: white;
+		border-radius: 50%;
+		position: fixed;
+		top: calc(-1 * var(--snowflake-size));
+		cursor: default;
+		animation-name: snowflakes-fall, snowflakes-shake;
+		animation-duration: 10s, 3s;
+		animation-delay: calc(-100ms * var(--snowflake-fall-delay)),
+			calc(-30ms * var(--snowflake-shake-delay));
+		animation-timing-function: linear, ease-in-out;
+		animation-iteration-count: infinite, infinite;
+
+		@media (prefers-reduced-motion) {
+			animation-play-state: paused !important;
+		}
+
+		&:nth-of-type(0) {
+			left: 1%;
+		}
+
+		&:nth-of-type(1) {
+			left: 10%;
+		}
+
+		&:nth-of-type(2) {
+			left: 20%;
+		}
+
+		&:nth-of-type(3) {
+			left: 30%;
+		}
+
+		&:nth-of-type(4) {
+			left: 40%;
+		}
+
+		&:nth-of-type(5) {
+			left: 50%;
+		}
+
+		&:nth-of-type(6) {
+			left: 60%;
+		}
+
+		&:nth-of-type(7) {
+			left: 70%;
+		}
+
+		&:nth-of-type(8) {
+			left: 80%;
+		}
+
+		&:nth-of-type(9) {
+			left: 90%;
+		}
+
+		&:nth-of-type(10) {
+			left: 5%;
+		}
+
+		&:nth-of-type(11) {
+			left: 15%;
+		}
+
+		&:nth-of-type(12) {
+			left: 25%;
+		}
+
+		&:nth-of-type(13) {
+			left: 35%;
+		}
+
+		&:nth-of-type(14) {
+			left: 45%;
+		}
+
+		&:nth-of-type(15) {
+			left: 55%;
+		}
+
+		&:nth-of-type(16) {
+			left: 65%;
+		}
+
+		&:nth-of-type(17) {
+			left: 75%;
+		}
+
+		&:nth-of-type(18) {
+			left: 85%;
+		}
+
+		&:nth-of-type(19) {
+			left: 95%;
+		}
+
+		&:nth-of-type(20) {
+			left: 3%;
+		}
+
+		&:nth-of-type(21) {
+			left: 13%;
+		}
+
+		&:nth-of-type(22) {
+			left: 42%;
+		}
+
+		&:nth-of-type(23) {
+			left: 69%;
+		}
+	}
+}
+
+@keyframes snow-santa-visit {
+	0%,
+	80% {
+		right: -80%;
+	}
+	100% {
+		right: 180%;
+	}
 }
 
 @keyframes snowflakes-fall {
-    0% {
-        top: -10%
-    }
-    100% {
-        top: 100%
-    }
+	0% {
+		top: calc(-1 * var(--snowflake-size));
+	}
+	100% {
+		top: 100%;
+	}
 }
 
 @keyframes snowflakes-shake {
-    0% {
-        transform: translateX(0px)
-    }
-    50% {
-        transform: translateX(80px)
-    }
-    100% {
-        transform: translateX(0px)
-    }
-}
-
-.snowflake {
-    --size: 1vw;
-    width: var(--size);
-    height: var(--size);
-    background: white;
-    border-radius: 50%;
-    position: fixed;
-    top: -10%;
-    z-index: 9999;
-    cursor: default;
-    animation-name: snowflakes-fall, snowflakes-shake;
-    animation-duration: 10s, 3s;
-    animation-timing-function: linear, ease-in-out;
-    animation-iteration-count: infinite, infinite;
-    animation-play-state: running, running
-}
-
-.snowflake:nth-of-type(0) {
-    left: 1%;
-    animation-delay: 0s, 0s
-}
-
-.snowflake:nth-of-type(1) {
-    left: 10%;
-    animation-delay: 1s, 1s
-}
-
-.snowflake:nth-of-type(2) {
-    left: 20%;
-    animation-delay: 6s, .5s
-}
-
-.snowflake:nth-of-type(3) {
-    left: 30%;
-    animation-delay: 4s, 2s
-}
-
-.snowflake:nth-of-type(4) {
-    left: 40%;
-    animation-delay: 2s, 2s
-}
-
-.snowflake:nth-of-type(5) {
-    left: 50%;
-    animation-delay: 8s, 3s
-}
-
-.snowflake:nth-of-type(6) {
-    left: 60%;
-    animation-delay: 6s, 2s
-}
-
-.snowflake:nth-of-type(7) {
-    left: 70%;
-    animation-delay: 2.5s, 1s
-}
-
-.snowflake:nth-of-type(8) {
-    left: 80%;
-    animation-delay: 1s, 0s
-}
-
-.snowflake:nth-of-type(9) {
-    left: 90%;
-    animation-delay: 2.5s, 5.77s
-}
-
-.snowflake:nth-of-type(10) {
-    left: 5%;
-    animation-delay: 7s, 5.77s
-}
-
-.snowflake:nth-of-type(11) {
-    left: 15%;
-    animation-delay: 17s, 7.5s
-}
-
-.snowflake:nth-of-type(12) {
-    left: 25%;
-    animation-delay: 2.5s, 4s
-}
-
-.snowflake:nth-of-type(13) {
-    left: 35%;
-    animation-delay: 7s, 8s
-}
-
-.snowflake:nth-of-type(14) {
-    left: 45%;
-    animation-delay: 5.69s, 7.5s
-}
-
-.snowflake:nth-of-type(15) {
-    left: 55%;
-    animation-delay: 7s, 4s
-}
-
-.snowflake:nth-of-type(16) {
-    left: 65%;
-    animation-delay: 2.5s, 3.2s
-}
-
-.snowflake:nth-of-type(17) {
-    left: 75%;
-    animation-delay: 2.5s, 7.5s
-}
-
-.snowflake:nth-of-type(18) {
-    left: 85%;
-    animation-delay: 5.69s, 4s
-}
-
-.snowflake:nth-of-type(19) {
-    left: 95%;
-    animation-delay: 4s, 12.9s
-}
-
-.snowflake:nth-of-type(20) {
-    left: 3%;
-    animation-delay: 13s, 4s
-}
-
-.snowflake:nth-of-type(21) {
-    left: 13%;
-    animation-delay: 2.5s, 4s
-}
-
-.snowflake:nth-of-type(22) {
-    left: 42%;
-    animation-delay: 5.69s, 7.5s
-}
-
-.snowflake:nth-of-type(23) {
-    left: 69%;
-    animation-delay: 42s, 12.9s
+	0% {
+		translate: 0px;
+	}
+	50% {
+		translate: 5rem;
+	}
+	100% {
+		translate: 0px;
+	}
 }

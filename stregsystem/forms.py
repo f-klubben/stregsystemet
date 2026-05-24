@@ -71,8 +71,8 @@ class SignupToolForm(ApprovalToolForm):
 
 
 class QRPaymentForm(forms.Form):
-    member = forms.CharField(max_length=16)
-    amount = forms.DecimalField(min_value=50, decimal_places=2, required=False)
+    username = forms.CharField(max_length=16)
+    amount = forms.DecimalField(min_value=0, decimal_places=2, required=False)
 
 
 class PurchaseForm(forms.Form):
