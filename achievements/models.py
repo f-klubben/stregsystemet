@@ -354,11 +354,11 @@ def get_new_achievements(member: Member, product: Product, amount: int = 1) -> L
     now = datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
 
     # Step 1: Get IDs of achievements already completed by the member
-    completed_achievements = AchievementComplete.objects.filter(member=member)
+    finished_achievements = AchievementComplete.objects.filter(member=member)
 
     # Step 2: Filter out achievements already completed
-    completed_achievement_ids = completed_achievements.values_list('achievement_id', flat=True)
-    in_progress_achievements = Achievement.objects.exclude(id__in=completed_achievement_ids)
+    finished_achievement_ids = finished_achievements.values_list('achievement_id', flat=True)
+    in_progress_achievements = Achievement.objects.exclude(id__in=finished_achievement_ids)
 
     # Step 3: Find achievements that are relevant to the purchase
     related_achievements: List[Achievement] = _filter_active_relevant_achievements(
