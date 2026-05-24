@@ -7,12 +7,12 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.db.models import Count, Sum, QuerySet
 from django.db.models import Prefetch
-from stregsystem.models import BaseModel, Product, Category, Sale, Member
 from stregsystem.models import (
     Product,
     Category,
     Sale,
     Member,
+    BaseModel,
 )
 
 
