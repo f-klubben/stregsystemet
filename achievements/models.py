@@ -22,195 +22,6 @@ from stregsystem.models import (
 )
 
 
-class Achievement(BaseModel):
-    title = models.CharField(max_length=50)
-    description = models.CharField(max_length=100)
-    icon = models.ImageField(upload_to="stregsystem/achievement")
-
-    active_from = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="Start datetime for tracking. Conflicts with 'Active Duration'. Leave both blank for all-time history.",
-    )
-
-    active_duration = models.DurationField(
-        null=True,
-        blank=True,
-        help_text="Time window for tracking. Conflicts with 'Active From'. Leave both blank for all-time history.",
-    )
-
-    constraints = models.ManyToManyField(
-        'AchievementConstraint',
-        blank=True,
-        related_name='achievements',
-        help_text="Optional time-based constraints for this achievement.",
-    )
-
-    tasks = models.ManyToManyField(
-        'AchievementTask',
-        related_name='achievements',
-        help_text="Tasks that must be completed to earn this achievement.",
-    )
-
-    def is_active(self, now: datetime) -> bool:
-        constraints = self.constraints.all()
-
-        if not constraints.exists():
-            return True
-
-        return all(c.is_active(now) for c in constraints)  # All constraints needs to be active
-
-    def is_relevant_for_purchase(self, product: Product) -> bool:
-        tasks = self.tasks.all()
-
-        return any(t.is_relevant_for_purchase(product) for t in tasks)  # Only one task needs to be relevant
-
-    def clean(self):
-        super().clean()
-        if self.active_from and self.active_duration:
-            raise ValidationError("Only one of 'Active From' or 'Active Duration' can be set, or neither.")
-
-        if not self.pk or not self.tasks.exists():
-            raise ValidationError("An achievement must have at least one task.")
-
-    def __str__(self):
-        str_list = [f"{self.title} - {self.description}"]
-
-        if self.active_from:
-            str_list.append(f"Starts: {self.active_from.strftime('%Y-%m-%d')}")
-        if self.active_duration:
-            str_list.append(f"Duration: {self.active_duration}")
-
-        return " | ".join(str_list)
-
-
-class AchievementConstraint(BaseModel):
-    notes = models.CharField(max_length=200, blank=True)
-
-    MONTHS = [
-        (1, "January"),
-        (2, "Feburary"),
-        (3, "March"),
-        (4, "April"),
-        (5, "May"),
-        (6, "June"),
-        (7, "July"),
-        (8, "August"),
-        (9, "September"),
-        (10, "October"),
-        (11, "November"),
-        (12, "December"),
-    ]
-
-    month_start = models.IntegerField(
-        choices=MONTHS,
-        null=True,
-        blank=True,
-        validators=[MinValueValidator(1), MaxValueValidator(12)],
-        help_text="If not set, other constraints to no specific months. (requires Month End).",
-    )
-
-    month_end = models.IntegerField(
-        choices=MONTHS,
-        null=True,
-        blank=True,
-        validators=[MinValueValidator(1), MaxValueValidator(12)],
-        help_text="If not set, other constraints to no specific months. (requires Month Start).",
-    )
-
-    day_start = models.IntegerField(
-        null=True,
-        blank=True,
-        validators=[MinValueValidator(1), MaxValueValidator(31)],
-        help_text="If not set, constraints apply to no specific days. (requires Day End).",
-    )
-
-    day_end = models.IntegerField(
-        null=True,
-        blank=True,
-        validators=[MinValueValidator(1), MaxValueValidator(31)],
-        help_text="If not set, other constraints apply no specfic days. (requires Day Start).",
-    )
-
-    time_start = models.TimeField(
-        null=True,
-        blank=True,
-        help_text="If not set, other constraints apply no specfic time range. (requires Time End).",
-    )
-
-    time_end = models.TimeField(
-        null=True,
-        blank=True,
-        help_text="If not set, other constraints apply no specfic time range. (requires Time Start).",
-    )
-
-    WEEK_DAYS = [
-        (0, "Monday"),
-        (1, "Tuesday"),
-        (2, "Wednesday"),
-        (3, "Thursday"),
-        (4, "Friday"),
-        (5, "Saturday"),
-        (6, "Sunday"),
-    ]
-
-    weekday = models.IntegerField(
-        choices=WEEK_DAYS, null=True, blank=True, help_text="If not set, other constraints apply no specfic weekday."
-    )
-
-    def is_active(self, now: datetime) -> bool:
-        return (
-            (not self.month_start or now.month >= self.month_start)
-            and (not self.month_end or now.month <= self.month_end)
-            and (not self.day_start or now.day >= self.day_start)
-            and (not self.day_end or now.day <= self.day_end)
-            and (not self.time_start or now.time() >= self.time_start)
-            and (not self.time_end or now.time() <= self.time_end)
-            and (self.weekday is None or now.weekday() == self.weekday)
-        )
-
-    def clean(self):
-        errors = {}
-
-        # Helper to validate pairs
-        def validate_pair(start, end, wrap_around=False):
-            start_val = getattr(self, start)
-            end_val = getattr(self, end)
-
-            if start_val is not None and end_val is None:
-                errors[end] = f"{start} must be set if {end} is set."
-            elif end_val is not None and start_val is None:
-                errors[start] = f"{start} must be set if {end} is set."
-            elif start_val is not None and end_val is not None and not wrap_around:
-                if start_val > end_val:
-                    errors[start] = f"{start} must be less than or equal to {end}."
-
-        validate_pair('month_start', 'month_end')
-        validate_pair('day_start', 'day_end')
-        validate_pair('time_start', 'time_end', wrap_around=True)
-
-        if errors:
-            raise ValidationError(errors)
-
-    def __str__(self):
-        str_list = []
-
-        if self.notes != "":
-            return self.notes
-
-        if self.month_start and self.month_end:
-            str_list.append(f"Months: {self.month_start}-{self.month_end}")
-        if self.day_start and self.day_end:
-            str_list.append(f"Days: {self.day_start}-{self.day_end}")
-        if self.time_start and self.time_end:
-            str_list.append(f"Time: {self.time_start.strftime('%H:%M')}–{self.time_end.strftime('%H:%M')}")
-        if self.weekday is not None:
-            weekday_dict = dict(self.WEEK_DAYS)
-            str_list.append(f"Weekday: {weekday_dict[int(self.weekday)]}")
-
-        return ", ".join(str_list)
-
-
 class AchievementTask(BaseModel):
     notes = models.CharField(max_length=200, blank=True)
 
@@ -354,6 +165,195 @@ class AchievementTask(BaseModel):
             str_list.append(f"Remaining Funds ≤ {self.goal_value / 100:.2f} kr")
 
         return " | ".join(str_list) + f" - Goal: {self.goal_value}"
+
+
+class AchievementConstraint(BaseModel):
+    notes = models.CharField(max_length=200, blank=True)
+
+    MONTHS = [
+        (1, "January"),
+        (2, "Feburary"),
+        (3, "March"),
+        (4, "April"),
+        (5, "May"),
+        (6, "June"),
+        (7, "July"),
+        (8, "August"),
+        (9, "September"),
+        (10, "October"),
+        (11, "November"),
+        (12, "December"),
+    ]
+
+    month_start = models.IntegerField(
+        choices=MONTHS,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        help_text="If not set, other constraints to no specific months. (requires Month End).",
+    )
+
+    month_end = models.IntegerField(
+        choices=MONTHS,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        help_text="If not set, other constraints to no specific months. (requires Month Start).",
+    )
+
+    day_start = models.IntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(31)],
+        help_text="If not set, constraints apply to no specific days. (requires Day End).",
+    )
+
+    day_end = models.IntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(31)],
+        help_text="If not set, other constraints apply no specfic days. (requires Day Start).",
+    )
+
+    time_start = models.TimeField(
+        null=True,
+        blank=True,
+        help_text="If not set, other constraints apply no specfic time range. (requires Time End).",
+    )
+
+    time_end = models.TimeField(
+        null=True,
+        blank=True,
+        help_text="If not set, other constraints apply no specfic time range. (requires Time Start).",
+    )
+
+    WEEK_DAYS = [
+        (0, "Monday"),
+        (1, "Tuesday"),
+        (2, "Wednesday"),
+        (3, "Thursday"),
+        (4, "Friday"),
+        (5, "Saturday"),
+        (6, "Sunday"),
+    ]
+
+    weekday = models.IntegerField(
+        choices=WEEK_DAYS, null=True, blank=True, help_text="If not set, other constraints apply no specfic weekday."
+    )
+
+    def is_active(self, now: datetime) -> bool:
+        return (
+            (not self.month_start or now.month >= self.month_start)
+            and (not self.month_end or now.month <= self.month_end)
+            and (not self.day_start or now.day >= self.day_start)
+            and (not self.day_end or now.day <= self.day_end)
+            and (not self.time_start or now.time() >= self.time_start)
+            and (not self.time_end or now.time() <= self.time_end)
+            and (self.weekday is None or now.weekday() == self.weekday)
+        )
+
+    def clean(self):
+        errors = {}
+
+        # Helper to validate pairs
+        def validate_pair(start, end, wrap_around=False):
+            start_val = getattr(self, start)
+            end_val = getattr(self, end)
+
+            if start_val is not None and end_val is None:
+                errors[end] = f"{start} must be set if {end} is set."
+            elif end_val is not None and start_val is None:
+                errors[start] = f"{start} must be set if {end} is set."
+            elif start_val is not None and end_val is not None and not wrap_around:
+                if start_val > end_val:
+                    errors[start] = f"{start} must be less than or equal to {end}."
+
+        validate_pair('month_start', 'month_end')
+        validate_pair('day_start', 'day_end')
+        validate_pair('time_start', 'time_end', wrap_around=True)
+
+        if errors:
+            raise ValidationError(errors)
+
+    def __str__(self):
+        str_list = []
+
+        if self.notes != "":
+            return self.notes
+
+        if self.month_start and self.month_end:
+            str_list.append(f"Months: {self.month_start}-{self.month_end}")
+        if self.day_start and self.day_end:
+            str_list.append(f"Days: {self.day_start}-{self.day_end}")
+        if self.time_start and self.time_end:
+            str_list.append(f"Time: {self.time_start.strftime('%H:%M')}–{self.time_end.strftime('%H:%M')}")
+        if self.weekday is not None:
+            weekday_dict = dict(self.WEEK_DAYS)
+            str_list.append(f"Weekday: {weekday_dict[int(self.weekday)]}")
+
+        return ", ".join(str_list)
+
+
+class Achievement(BaseModel):
+    title = models.CharField(max_length=50)
+    description = models.CharField(max_length=100)
+    icon = models.ImageField(upload_to="stregsystem/achievement")
+
+    active_from = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Start datetime for tracking. Conflicts with 'Active Duration'. Leave both blank for all-time history.",
+    )
+
+    active_duration = models.DurationField(
+        null=True,
+        blank=True,
+        help_text="Time window for tracking. Conflicts with 'Active From'. Leave both blank for all-time history.",
+    )
+
+    constraints = models.ManyToManyField(
+        AchievementConstraint,
+        blank=True,
+        related_name='achievements',
+        help_text="Optional time-based constraints for this achievement.",
+    )
+
+    tasks = models.ManyToManyField(
+        AchievementTask,
+        related_name='achievements',
+        help_text="Tasks that must be completed to earn this achievement.",
+    )
+
+    def is_active(self, now: datetime) -> bool:
+        constraints = self.constraints.all()
+
+        if not constraints.exists():
+            return True
+
+        return all(c.is_active(now) for c in constraints)  # All constraints needs to be active
+
+    def is_relevant_for_purchase(self, product: Product) -> bool:
+        tasks = self.tasks.all()
+
+        return any(t.is_relevant_for_purchase(product) for t in tasks)  # Only one task needs to be relevant
+
+    def clean(self):
+        super().clean()
+        if self.active_from and self.active_duration:
+            raise ValidationError("Only one of 'Active From' or 'Active Duration' can be set, or neither.")
+
+        if not self.pk or not self.tasks.exists():
+            raise ValidationError("An achievement must have at least one task.")
+
+    def __str__(self):
+        str_list = [f"{self.title} - {self.description}"]
+
+        if self.active_from:
+            str_list.append(f"Starts: {self.active_from.strftime('%Y-%m-%d')}")
+        if self.active_duration:
+            str_list.append(f"Duration: {self.active_duration}")
+
+        return " | ".join(str_list)
 
 
 class AchievementComplete(BaseModel):  # A members progress on a task
