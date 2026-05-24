@@ -6,6 +6,7 @@ from achievements.models import Achievement, AchievementTask, AchievementComplet
 from django.contrib import admin
 from django.utils.html import format_html
 from stregsystem.admin import BaseAdmin
+from django.conf import settings
 
 
 class AchievementAdmin(BaseAdmin):
@@ -47,9 +48,8 @@ class AchievementAdmin(BaseAdmin):
 
     @admin.action(description="Set Active From to now")
     def set_active_from_to_now(self, request, queryset):
-        tz = pytz.timezone("Europe/Copenhagen")
         for obj in queryset:
-            obj.active_from = datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
+            obj.active_from = datetime.now(tz=pytz.timezone(settings.TIME_ZONE))
             obj.full_clean()
             obj.save()
 

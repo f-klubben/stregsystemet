@@ -14,6 +14,7 @@ from stregsystem.models import (
     Member,
     BaseModel,
 )
+from django.conf import settings
 
 
 class AchievementTask(BaseModel):
@@ -351,7 +352,7 @@ def get_new_achievements(member: Member, product: Product, amount: int = 1) -> L
     (This function assumes that a Sale was JUST made)
     """
 
-    now = datetime.now(tz=pytz.timezone("Europe/Copenhagen"))
+    now = datetime.now(tz=pytz.timezone(settings.TIME_ZONE))
 
     # Step 1: Get IDs of achievements already completed by the member
     finished_achievements = AchievementComplete.objects.filter(member=member)

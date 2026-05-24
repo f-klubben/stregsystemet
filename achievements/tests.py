@@ -439,3 +439,294 @@ class AchievementLogicTests(TestCase):
         self.assertEqual(top_percentage_1, 100.0)  # A member with no achievements is always top 100%
         self.assertEqual(top_percentage_2, 100.0)
         self.assertEqual(top_percentage_3, 50.0)
+
+
+class AchievementEdgeCaseTests(TestCase):
+    def setUp(self):
+        self.member = Member.objects.create(username="testuser", balance=100)
+        self.category = Category.objects.create(name="Test Category")
+        self.product = Product.objects.create(name="Test Product", price=10, active=True)
+        self.product.categories.add(self.category)
+
+        self.cph_tz = pytz.timezone("Europe/Copenhagen")
+
+    def test_get_new_achievements_for_any_purchase(self):
+        """Test getting an achievement for buying any product (any_purchase task type)"""
+        # Create a task that triggers on any purchase
+        task = AchievementTask.objects.create(task_type="any_purchase", goal_value=1)
+
+        # Create achievement with the any_purchase task
+        achievement = Achievement.objects.create(
+            title="First Purchase",
+            description="Make your first purchase"
+        )
+        achievement.tasks.add(task)
+
+        # Create a sale
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 0))):
+            Sale.objects.create(member=self.member, product=self.product, price=10)
+
+        # Check that the achievement is awarded
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 1))):
+            new_achievements = get_new_achievements(self.member, self.product)
+            self.assertIn(achievement, new_achievements)
+
+    def test_get_new_achievements_for_any_purchase_multiple_required(self):
+        """Test getting an achievement that requires multiple purchases"""
+        # Create a task that requires 3 purchases
+        task = AchievementTask.objects.create(task_type="any_purchase", goal_value=3)
+
+        # Create achievement
+        achievement = Achievement.objects.create(
+            title="Frequent Buyer",
+            description="Make 3 purchases"
+        )
+        achievement.tasks.add(task)
+
+        # Create 2 sales (not enough)
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 0))):
+            Sale.objects.create(member=self.member, product=self.product, price=10)
+            Sale.objects.create(member=self.member, product=self.product, price=10)
+
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 1))):
+            new_achievements = get_new_achievements(self.member, self.product)
+            self.assertNotIn(achievement, new_achievements)
+
+        # Create 3rd sale (should trigger achievement)
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 13, 0))):
+            Sale.objects.create(member=self.member, product=self.product, price=10)
+
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 13, 1))):
+            new_achievements = get_new_achievements(self.member, self.product)
+            self.assertIn(achievement, new_achievements)
+
+    def test_get_new_achievements_with_multiple_tasks(self):
+        # Create achievement with multiple tasks
+        task1 = AchievementTask.objects.create(task_type="product", product=self.product, goal_value=1)
+        task2 = AchievementTask.objects.create(task_type="category", category=self.category, goal_value=1)
+
+        achievement = Achievement.objects.create(title="Multi-Task Achievement", description="Complete multiple tasks")
+        achievement.tasks.add(task1, task2)
+
+        # Create sale
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 0))):
+            Sale.objects.create(member=self.member, product=self.product, price=10)
+
+        # Should complete achievement since both tasks are satisfied
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 1))):
+            new_achievements = get_new_achievements(self.member, self.product)
+            self.assertIn(achievement, new_achievements)
+
+    def test_get_new_achievements_with_active_duration(self):
+        task = AchievementTask.objects.create(task_type="product", product=self.product, goal_value=2)
+
+        achievement = Achievement.objects.create(
+            title="Time-Limited Achievement",
+            description="Complete within time limit",
+            active_duration=datetime.timedelta(hours=1),
+        )
+        achievement.tasks.add(task)
+
+        # Create sales within time window
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 0))):
+            Sale.objects.create(member=self.member, product=self.product, price=10)
+
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 30))):
+            Sale.objects.create(member=self.member, product=self.product, price=10)
+
+        # Should complete achievement
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 31))):
+            new_achievements = get_new_achievements(self.member, self.product)
+            self.assertIn(achievement, new_achievements)
+
+    def test_get_new_achievements_with_active_from(self):
+        task = AchievementTask.objects.create(task_type="product", product=self.product, goal_value=1)
+
+        achievement = Achievement.objects.create(
+            title="Future Achievement",
+            description="Only active from specific date",
+            active_from=self.cph_tz.localize(datetime.datetime(2025, 6, 1)),
+        )
+        achievement.tasks.add(task)
+
+        # Create sale before active_from
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 0))):
+            Sale.objects.create(member=self.member, product=self.product, price=10)
+
+        # Should not complete achievement (before active_from)
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 1))):
+            new_achievements = get_new_achievements(self.member, self.product)
+            self.assertNotIn(achievement, new_achievements)
+
+        # Create another sale after active_from
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 6, 1, 12, 0))):
+            Sale.objects.create(member=self.member, product=self.product, price=10)
+
+        # Should complete achievement (after active_from)
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 6, 1, 12, 1))):
+            new_achievements = get_new_achievements(self.member, self.product)
+            self.assertIn(achievement, new_achievements)
+
+    def test_get_acquired_achievements_with_rarity_edge_cases(self):
+        # Create multiple achievements
+        task1 = AchievementTask.objects.create(task_type="product", product=self.product, goal_value=1)
+        achievement1 = Achievement.objects.create(title="Common Achievement", description="Easy to get")
+        achievement1.tasks.add(task1)
+
+        task2 = AchievementTask.objects.create(task_type="product", product=self.product, goal_value=5)
+        achievement2 = Achievement.objects.create(title="Rare Achievement", description="Hard to get")
+        achievement2.tasks.add(task2)
+
+        # Create multiple members
+        member2 = Member.objects.create(username="testuser2", balance=100)
+        member3 = Member.objects.create(username="testuser3", balance=100)
+
+        # Member 1 gets both achievements
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 0))):
+            for _ in range(5):
+                Sale.objects.create(member=self.member, product=self.product, price=10)
+
+            # Trigger achievement completion
+            get_new_achievements(self.member, self.product)
+
+        # Member 2 gets only common achievement
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 0))):
+            Sale.objects.create(member=member2, product=self.product, price=10)
+            get_new_achievements(member2, self.product)
+
+        # Member 3 gets no achievements
+
+        # Test rarity calculations
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 13, 0))):
+            # Member 1 should have both achievements
+            achievements = get_acquired_achievements_with_rarity(self.member)
+            achievement_titles = [a[0].title for a in achievements]
+            self.assertIn("Common Achievement", achievement_titles)
+            self.assertIn("Rare Achievement", achievement_titles)
+
+            # Check rarity percentages
+            for achievement, rarity in achievements:
+                if achievement.title == "Common Achievement":
+                    self.assertEqual(rarity, 100.0)  # 2 out of 2 members who have any achievements
+                elif achievement.title == "Rare Achievement":
+                    self.assertEqual(rarity, 50.0)  # 1 out of 2 members who have any achievements
+
+    def test_get_missing_achievements_edge_cases(self):
+        # Create multiple achievements
+        task1 = AchievementTask.objects.create(task_type="product", product=self.product, goal_value=1)
+        achievement1 = Achievement.objects.create(title="Easy Achievement", description="Easy to get")
+        achievement1.tasks.add(task1)
+
+        task2 = AchievementTask.objects.create(task_type="product", product=self.product, goal_value=10)
+        achievement2 = Achievement.objects.create(title="Hard Achievement", description="Hard to get")
+        achievement2.tasks.add(task2)
+
+        # Member gets easy achievement
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 0))):
+            Sale.objects.create(member=self.member, product=self.product, price=10)
+            # Trigger achievement completion
+            get_new_achievements(self.member, self.product)
+
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 1))):
+            missing = get_missing_achievements(self.member)
+            missing_titles = [a.title for a in missing]
+
+            self.assertNotIn("Easy Achievement", missing_titles)
+            self.assertIn("Hard Achievement", missing_titles)
+
+    def test_leaderboard_position_tie_breaking(self):
+        # Create multiple members with same number of achievements
+        member2 = Member.objects.create(username="testuser2", balance=100)
+        member3 = Member.objects.create(username="testuser3", balance=100)
+
+        task = AchievementTask.objects.create(task_type="product", product=self.product, goal_value=1)
+        achievement = Achievement.objects.create(title="Test Achievement", description="Test")
+        achievement.tasks.add(task)
+
+        # All members get the achievement
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 0))):
+            Sale.objects.create(member=self.member, product=self.product, price=10)
+            Sale.objects.create(member=member2, product=self.product, price=10)
+            Sale.objects.create(member=member3, product=self.product, price=10)
+
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 1))):
+            # All should have same position (tie)
+            pos1 = get_user_leaderboard_position(self.member)
+            pos2 = get_user_leaderboard_position(member2)
+            pos3 = get_user_leaderboard_position(member3)
+
+            self.assertEqual(pos1, pos2)
+            self.assertEqual(pos2, pos3)
+            self.assertEqual(pos1, 100.0)  # All tied for first place
+
+    def test_leaderboard_position_rank_gaps_bug(self):
+        """
+        Test for the bug where current_rank increments every iteration
+        regardless of ties, creating rank gaps.
+        """
+        # Create members with different achievement counts to expose the bug
+        member2 = Member.objects.create(username="testuser2", balance=100)
+        member3 = Member.objects.create(username="testuser3", balance=100)
+        member4 = Member.objects.create(username="testuser4", balance=100)
+
+        # Create achievements
+        task1 = AchievementTask.objects.create(task_type="product", product=self.product, goal_value=1)
+        achievement1 = Achievement.objects.create(title="Easy Achievement", description="Easy")
+        achievement1.tasks.add(task1)
+
+        task2 = AchievementTask.objects.create(task_type="product", product=self.product, goal_value=2)
+        achievement2 = Achievement.objects.create(title="Hard Achievement", description="Hard")
+        achievement2.tasks.add(task2)
+
+        # Member 1: 2 achievements (should be rank 1)
+        # Member 2: 2 achievements (should be rank 1 - tie)
+        # Member 3: 1 achievement (should be rank 2)
+        # Member 4: 0 achievements (should be rank 3 or 100%)
+
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 0))):
+            # Member 1 gets 2 achievements
+            Sale.objects.create(member=self.member, product=self.product, price=10)
+            get_new_achievements(self.member, self.product)  # Should complete achievement1
+            Sale.objects.create(member=self.member, product=self.product, price=10)
+            get_new_achievements(self.member, self.product)  # Should complete achievement2
+
+            # Member 2 gets 2 achievements
+            Sale.objects.create(member=member2, product=self.product, price=10)
+            get_new_achievements(member2, self.product)  # Should complete achievement1
+            Sale.objects.create(member=member2, product=self.product, price=10)
+            get_new_achievements(member2, self.product)  # Should complete achievement2
+
+            # Member 3 gets 1 achievement
+            Sale.objects.create(member=member3, product=self.product, price=10)
+            get_new_achievements(member3, self.product)  # Should complete achievement1 only
+
+            # Member 4 gets no achievements
+
+        with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 13, 0))):
+            # Debug: Check actual achievement counts
+            from achievements.models import AchievementComplete
+            from django.db.models import Count
+
+            leaderboard = (
+                AchievementComplete.objects.all()
+                .values('member')
+                .annotate(total=Count('id'))
+                .order_by('-total', 'member')
+            )
+
+            print(f"Leaderboard data:")
+            for entry in leaderboard:
+                print(f"Member {entry['member']}: {entry['total']} achievements")
+
+            pos1 = get_user_leaderboard_position(self.member)  # Should be 100% (rank 1)
+            pos2 = get_user_leaderboard_position(member2)  # Should be 100% (rank 1, tie)
+            pos3 = get_user_leaderboard_position(member3)  # Should be 50% (rank 2)
+            pos4 = get_user_leaderboard_position(member4)  # Should be 0% (rank 3)
+
+            print(f"Positions: member1={pos1}, member2={pos2}, member3={pos3}, member4={pos4}")
+
+            # With the bug, these assertions might fail due to incorrect rank calculation
+            self.assertEqual(pos1, 100.0)
+            self.assertEqual(pos2, 100.0)
+            self.assertEqual(pos3, 50.0)
+            self.assertEqual(pos4, 0.0)
