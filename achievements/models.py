@@ -1,19 +1,13 @@
-from typing import List
+from datetime import datetime
+from typing import List, Dict, Tuple
 
+import pytz
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from django.db.models import Sum
-from stregsystem.models import BaseModel, Product, Category, Sale, Member
-from django.db.models import Q, Count, Sum, QuerySet
-from django.db import models
-from collections import defaultdict
+from django.db.models import Count, Sum, QuerySet
 from django.db.models import Prefetch
-
-from typing import List, Dict, Tuple
-from datetime import datetime, timedelta
-import pytz
-
+from stregsystem.models import BaseModel, Product, Category, Sale, Member
 from stregsystem.models import (
     Product,
     Category,
@@ -342,7 +336,7 @@ class Achievement(BaseModel):
         if self.active_from and self.active_duration:
             raise ValidationError("Only one of 'Active From' or 'Active Duration' can be set, or neither.")
 
-        if not self.pk or not self.tasks.exists():
+        if not self.tasks.exists():
             raise ValidationError("An achievement must have at least one task.")
 
     def __str__(self):
