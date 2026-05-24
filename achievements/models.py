@@ -336,9 +336,6 @@ class Achievement(BaseModel):
         if self.active_from and self.active_duration:
             raise ValidationError("Only one of 'Active From' or 'Active Duration' can be set, or neither.")
 
-        if not self.tasks.exists():
-            raise ValidationError("An achievement must have at least one task.")
-
     def __str__(self):
         str_list = [f"{self.title} - {self.description}"]
 
