@@ -57,21 +57,22 @@ class AchievementTask(BaseModel):
 
     goal_value = models.IntegerField(help_text="E.g. 300 = 3.00ml or mg. For funds: 500 = 5.00 kr.")
 
-    def is_relevant(self, product: Product, categories: List[int]) -> bool:
+    def is_relevant(self, product: Product, category_ids: List[int] | None = None) -> bool:
         """
-        Returns True if the task is relevant for the given product and categories.
+        Returns True if the task is relevant for the given product.
+        Pass pre-fetched category_ids to avoid extra DB queries in loops.
         """
         if self.task_type in ["any_purchase", "used_funds", "remaining_funds"]:
             return True
         if self.task_type == "product" and self.product_id == product.id:
             return True
-        if self.task_type == "category" and self.category_id in categories:
-            return True
+        if self.task_type == "category":
+            ids = category_ids if category_ids is not None else list(product.categories.values_list('id', flat=True))
+            return self.category_id in ids
         if self.task_type == "alcohol_content" and getattr(product, 'alcohol_content_ml', 0) > 0:
             return True
         if self.task_type == "caffeine_content" and getattr(product, 'caffeine_content_mg', 0) > 0:
             return True
-
         return False
 
     def is_task_completed(self, sales: List[Sale], member: Member) -> bool:
@@ -122,20 +123,6 @@ class AchievementTask(BaseModel):
         # Ensure goal_value is positive
         if self.goal_value <= 0:
             raise ValidationError("Goal value must be greater than 0.")
-
-    def is_relevant_for_purchase(self, product: Product) -> bool:
-        if self.task_type in ["any_purchase", "used_funds", "remaining_funds"]:
-            return True
-        if self.task_type == "product" and self.product == product:
-            return True
-        if self.task_type == "category" and self.category in product.categories.all():
-            return True
-        if self.task_type == "alcohol_content" and getattr(product, 'alcohol_content_ml', 0) > 0:
-            return True
-        if self.task_type == "caffeine_content" and getattr(product, 'caffeine_content_mg', 0) > 0:
-            return True
-
-        return False
 
     def __str__(self):
         str_list = []
@@ -326,10 +313,9 @@ class Achievement(BaseModel):
 
         return all(c.is_active(now) for c in constraints)  # All constraints needs to be active
 
-    def is_relevant_for_purchase(self, product: Product) -> bool:
+    def is_relevant_for_purchase(self, product: Product, category_ids: List[int] | None = None) -> bool:
         tasks = self.tasks.all()
-
-        return any(t.is_relevant_for_purchase(product) for t in tasks)  # Only one task needs to be relevant
+        return any(t.is_relevant(product, category_ids) for t in tasks)
 
     def clean(self):
         super().clean()
