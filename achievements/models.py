@@ -79,7 +79,7 @@ class AchievementTask(BaseModel):
         Determines if the task is completed based on the sales and member's attributes.
         """
         task_type = self.task_type
-        used_funds = sales.aggregate(total=Sum('price'))['total']  # Sum of prices
+        used_funds = sales.aggregate(total=Sum('price'))['total'] or 0  # Sum of prices
         remaining_funds = member.balance
         alcohol_promille = member.calculate_alcohol_promille()
         caffeine = member.calculate_caffeine_in_body()
