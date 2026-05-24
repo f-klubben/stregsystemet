@@ -166,7 +166,7 @@ class AchievementConstraint(BaseModel):
 
     MONTHS = [
         (1, "January"),
-        (2, "Feburary"),
+        (2, "February"),
         (3, "March"),
         (4, "April"),
         (5, "May"),
