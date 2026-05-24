@@ -244,7 +244,7 @@ class AchievementConstraint(BaseModel):
             if start_val is not None and end_val is None:
                 errors[end] = f"{start} must be set if {end} is set."
             elif end_val is not None and start_val is None:
-                errors[start] = f"{start} must be set if {end} is set."
+                errors[start] = f"{end} must be set if {start} is set."
             elif start_val is not None and end_val is not None and not wrap_around:
                 if start_val > end_val:
                     errors[start] = f"{start} must be less than or equal to {end}."
