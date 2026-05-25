@@ -1,3 +1,8 @@
+from django.dispatch import Signal
+
+on_new_sale = Signal()
+
+
 def after_member_save(sender, instance, created, **kwargs):
     if sender.__name__ != "Member":
         return

@@ -24,6 +24,7 @@ from stregsystem.utils import (
     PaymentToolException,
     ProductAndAmount,
 )
+from stregsystem.signals import on_new_sale
 
 
 def price_display(value):
@@ -741,7 +742,7 @@ class Sale(BaseModel):
             raise RuntimeError("Sale has already been refunded")
 
         if admin_user is not None and not admin_user.is_staff:
-            raise PermissionError("Only staff users can refund tickets")
+            raise PermissionError("Only staff users can refund others sales")
 
         self.refunded_at = timezone.now()
         self.refunded_by = admin_user
@@ -756,7 +757,7 @@ class Sale(BaseModel):
         return self.refunded_at is not None
 
     def on_bulk_created(self):
-        self.on_new_sale()
+        on_new_sale.send(sender=self, product=self.product)
 
     def save(self, *args, **kwargs):
         if not self._is_save_allowed():
@@ -770,14 +771,7 @@ class Sale(BaseModel):
         super(Sale, self).save(*args, **kwargs)
 
         if not already_exists:
-            self.on_new_sale()
-
-    def on_new_sale(self):
-        from events.models import Ticket, TicketRecord
-
-        ticket = Ticket.is_product_a_ticket(self.product)
-        if ticket:
-            TicketRecord.create_from_sale_and_ticket(self, ticket)
+            on_new_sale.send(sender=self, product=self.product)
 
     def _is_save_allowed(self):
         # New sale, always allow save
