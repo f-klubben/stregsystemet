@@ -32,6 +32,10 @@ class EventInstanceAdmin(admin.ModelAdmin):
         'get_issue_count',
         'get_stand_by_count',
         'capacity',
+        'start_time',
+        'end_time',
+        'final_refund_time',
+        'location',
     )
     readonly_fields = (
         'get_issue_count',
@@ -46,13 +50,13 @@ class EventInstanceAdmin(admin.ModelAdmin):
             raise ValueError("obj must be an EventInstance")
         return obj.get_name()
 
-    @admin.display(description="Issued tickets count")
+    @admin.display(description="Tickets issued")
     def get_issue_count(self, obj):
         if not isinstance(obj, EventInstance):
             raise ValueError("obj must be an EventInstance")
         return obj.get_issued_ticket_records().count()
 
-    @admin.display(description="Stand-by tickets count")
+    @admin.display(description="Tickets on Stand-by")
     def get_stand_by_count(self, obj):
         if not isinstance(obj, EventInstance):
             raise ValueError("obj must be an EventInstance")
