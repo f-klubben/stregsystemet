@@ -1,10 +1,9 @@
-
-
 from django.dispatch import receiver
 from stregsystem.signals import on_new_sale
 from stregsystem.models import Product, Sale
 
 from events.models import Ticket, TicketRecord
+
 
 @receiver(on_new_sale)
 def handle_new_sale(sender: Sale, **kwargs):

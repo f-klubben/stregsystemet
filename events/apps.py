@@ -7,4 +7,3 @@ class EventsConfig(AppConfig):
 
     def ready(self):
         import events.signals  # noqa: F401 — triggers @receiver registration
-        
