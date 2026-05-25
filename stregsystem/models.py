@@ -767,7 +767,7 @@ class Sale(BaseModel):
         return self.pk is not None and Sale.objects.filter(pk=self.pk).exists()
 
     def delete(self, *args, **kwargs):
-        if self.id:
+        if self.pk:
             super(Sale, self).delete(*args, **kwargs)
         else:
             raise RuntimeError("You can't delete a sale that hasn't happened")

@@ -73,6 +73,12 @@ class SaleAdmin(BaseAdmin):
             'get_price_display',
         ] + super()._get_fields_to_display()
 
+    def _get_fields_to_display_as_readonly(self) -> list[str]:
+        return [
+            'refunded_by',
+            'refunded_at',
+        ] + super()._get_fields_to_display_as_readonly()
+
     actions = [refund_sales]
     search_fields = ['^member__username', '=product__id', 'product__name']
     valid_lookups = 'member'
