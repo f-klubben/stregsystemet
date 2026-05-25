@@ -4,7 +4,10 @@ from events.models import EventInstance, TicketRecord, Event, Ticket
 
 
 class EventAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description',)
+    list_display = (
+        'name',
+        'description',
+    )
 
 
 @admin.action(description="Refunder valgte event instances")
@@ -57,7 +60,12 @@ class EventInstanceAdmin(admin.ModelAdmin):
 
 
 class TicketAdmin(admin.ModelAdmin):
-    list_display = ('name', "quantity", 'event_instance', 'product',)
+    list_display = (
+        'name',
+        "quantity",
+        'event_instance',
+        'product',
+    )
 
 
 @admin.action(description="Refunder valgte ticket records")
@@ -70,7 +78,15 @@ def refund_tickets(modeladmin, request, queryset):
 
 class TicketRecordAdmin(admin.ModelAdmin):
     readonly_fields = ("sale",)
-    list_display = ('ticket', 'sale', 'has_attended', 'is_stand_by', 'admin_issued_to', 'admin_issued_by', 'get_ticket_owner')
+    list_display = (
+        'ticket',
+        'sale',
+        'has_attended',
+        'is_stand_by',
+        'admin_issued_to',
+        'admin_issued_by',
+        'get_ticket_owner',
+    )
 
     actions = [refund_tickets]
 
