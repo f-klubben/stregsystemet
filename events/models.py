@@ -217,7 +217,8 @@ class TicketRecord(models.Model):
     def get_stand_by_pretty(self) -> str:
         return get_bool_pretty(self.is_stand_by)
 
-    def get_ticket_owner(self) -> Optional[Member]:
+    @property
+    def get_ticket_owner(self) -> Member:
         if self.sale is not None:
             return self.sale.member
         elif self.admin_issued_to is not None:
