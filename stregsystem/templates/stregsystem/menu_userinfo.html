@@ -40,6 +40,7 @@
          <th>Dato og tidspunkt</th>
          <th>Produkt</th>
          <th>Pris</th>
+         <th>Refunderet</th>
       </tr>
       {% autoescape off %}
       {% for sale in last_sale_list %}
@@ -47,6 +48,7 @@
             <td style="width: 157px;">{{ sale.timestamp }}</td>
             <td style="width: 240px;">{{ sale.product.name }}</td>
             <td class="price" style="width: 30px ;">{{ sale.price|money }}</td>
+            <td style="width: 30px ;">{% if sale.refunded_at %}{{ sale.refunded_at|date:"d/m/Y H:i" }}{% endif %}</td>
          </tr>
       {% endfor %}
       {% endautoescape %}
@@ -102,7 +104,11 @@
       </tr>
       <tr>
          <td>Forbrug</td>
-         <td>{{stats.total_amount|money}} 𝓕$ / {{stats.total_purchases}} køb</td>
+         <td>{{stats_none_refunded.total_amount|money}} 𝓕$ / {{stats_none_refunded.total_purchases}} køb</td>
+      </tr>
+      <tr>
+         <td>Refunderet forbrug</td>
+         <td>{{stats_refunded.total_amount|money}} 𝓕$ / {{stats_refunded.total_purchases}} køb</td>
       </tr>
    </table>
    <a href="/{{room.id}}/send_csv_mail/{{member.id}}/">Anmod om bruger data</a>

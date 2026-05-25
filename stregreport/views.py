@@ -327,7 +327,12 @@ def ranks_for_year(request, year):
 # gives a list of member objects, with the additional field sale__count, with the number of sales which are in the parameter id
 def sale_product_rank(ids, from_time, to_time, rank_limit=10):
     stat_list = (
-        Member.objects.filter(sale__timestamp__gt=from_time, sale__timestamp__lte=to_time, sale__product__in=ids)
+        Member.objects.filter(
+            sale__timestamp__gt=from_time,
+            sale__timestamp__lte=to_time,
+            sale__product__in=ids,
+            sale__refunded_at__isnull=True,
+        )
         .annotate(Count('sale'))
         .order_by('-sale__count', 'username')[:rank_limit]
     )
