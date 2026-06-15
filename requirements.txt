@@ -1,4 +1,4 @@
-Django==4.1.13
+Django==4.2.30
 Coverage==7.13.5
 pytz==2026.1
 freezegun==1.5.1

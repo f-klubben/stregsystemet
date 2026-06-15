@@ -11,7 +11,7 @@ readme = "README.md"
 dependencies = [
     "coverage==7.13.5",
     "debugpy==1.8.16",
-    "django==4.1.13",
+    "django==4.2.30",
     "django-debug-toolbar==4.3.0",
     "django-select2==8.2.3",
     "freezegun==1.5.1",
