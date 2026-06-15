@@ -53,6 +53,7 @@ class CustomLoginView(View):
     def get(self, request):
         ctx = self._base_context(request)
         ctx["stage"] = 1
+        messages.info(request, "Log ind for at fortsætte")
         return render(request, self.template_name, ctx)
 
     def post(self, request):

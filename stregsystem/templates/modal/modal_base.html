@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="icon" sizes="any" type="image/svg+xml" href="{% static "/stregsystem/logo/logo.svg" %}">
     <title>{% block title %}TREOENs STREGSYSTEM{% endblock %}</title>
+    <link href="{% static "stregsystem/modal/stregsystem-modal.css" %}" rel="stylesheet">
 
     {% block head %}
     {% endblock %}
@@ -35,13 +36,14 @@
         }
 
         .title {
-            font-size: 20px;
-            font-weight: bold;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
         }
 
         .title > img {
-            width: 25px;
+            width: 50px;
+            margin: 10px;
         }
 
         label {
@@ -96,8 +98,8 @@
     <body>
         <div class="card">
             <div class="title">
-                <img src="https://fklub.dk/_media/f-klubben.png"/>
-                TREOENs STREGSYSTEM
+                <img src="{% static "/stregsystem/logo/logo.svg" %}"/>
+                <h1>TREOENs STREGSYSTEM</h1>
             </div>
 
             {% if messages %}
