@@ -11,16 +11,14 @@ uv sync
 uv run pre-commit install
 ```
  
+Additionally if you want pre-commit to be available in your PATH:
+```bash
+uv tool install pre-commit
+pre-commit install
+```
+
 Black will now run automatically on every `git commit`.
- 
-## What runs
- 
-[Black](https://black.readthedocs.io) is run against `stregsystem`, `stregreport`, `kiosk`, and `razzia` with the following settings:
- 
-- Line length: 120
-- Target version: Python 3.11
-- String normalization: disabled
-- Excluded: `migrations/` and `urls.py`
+Check the [config](./.pre-commit-config.yaml) for extra details
 
 ## Running manually
  
