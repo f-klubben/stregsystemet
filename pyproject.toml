@@ -5,11 +5,20 @@ description = "The Stregsystem is used at F-Klubben to pay for goods bought at S
 authors = [
     { name = "FIT" },
 ]
-requires-python = ">=3.10"
+license = { file = "LICENSE" }
+requires-python = "==3.11.*"
 readme = "README.md"
-
-[project.license]
-file = "LICENSE"
+dependencies = [
+    "coverage==7.13.5",
+    "debugpy==1.8.16",
+    "django==4.1.13",
+    "django-debug-toolbar==4.3.0",
+    "django-select2==8.2.3",
+    "freezegun==1.5.1",
+    "pytz==2026.1",
+    "qrcode==8.2",
+    "requests==2.33.0",
+]
 
 [tool.migratefixture.targets]
 kiosk = "0011_rename_uploaded_date_kioskitem_created_at"
