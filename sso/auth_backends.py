@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Optional
 
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -13,7 +14,7 @@ class PasswordlessMemberBackend:
     """
 
     MAX_OTP_ATTEMPTS = 3
-    OTP_DURATION_MIN = 5
+    OTP_DURATION_SEC = 15 * 60
 
     def authenticate(self, request, username=None, otp=None, **kwargs):
         if username is None or not otp:
@@ -29,7 +30,7 @@ class PasswordlessMemberBackend:
             return None
 
         # Too old request
-        if otp_request.created_at < timezone.now() - timedelta(minutes=self.OTP_DURATION_MIN):
+        if otp_request.created_at < timezone.now() - timedelta(seconds=self.OTP_DURATION_SEC):
             otp_request.is_valid = False
             otp_request.save()
             return None
@@ -55,7 +56,7 @@ class PasswordlessMemberBackend:
 
         return member.paired_user
 
-    def get_user(self, user_id):
+    def get_user(self, user_id) -> Optional[User]:
         try:
             return User.objects.get(pk=user_id)
         except User.DoesNotExist:

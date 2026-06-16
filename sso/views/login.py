@@ -8,8 +8,6 @@ from sso.models import MemberOTPRequest
 from stregsystem.models import Member
 from stregsystem.mail import send_fcode_mail
 
-OTP_TTL_SECONDS = 600
-
 
 def _issue_otp(member: Member) -> str:
     MemberOTPRequest.objects.filter(member=member).update(is_valid=False)
@@ -53,6 +51,8 @@ class CustomLoginView(View):
             return render(request, self.template_name, locals())
 
         masked_email = member.masked_email
+        otp_ttl = PasswordlessMemberBackend.OTP_DURATION_SEC
+        otp_digits = range(1, MemberOTPRequest.OTP_DIGITS + 1)
 
         if stage == 1: # Generate and send OTP
             otp = _issue_otp(member)
