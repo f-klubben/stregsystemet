@@ -43,18 +43,11 @@ def _send_otp_email(member: Member, otp: str) -> None:
 class CustomLoginView(View):
     template_name = "modal/login.html"
 
-    def _base_context(self, request) -> dict:
-        next_url = request.GET.get("next") or request.POST.get("next", "/")
-
-        return {
-            "next": next_url,
-        }
-
     def get(self, request):
-        ctx = self._base_context(request)
-        ctx["stage"] = 1
+        stage = 1
+        next = request.GET.get("next") or request.POST.get("next", "/")
         messages.info(request, "Log ind for at fortsætte")
-        return render(request, self.template_name, ctx)
+        return render(request, self.template_name, locals())
 
     def post(self, request):
         stage = request.POST.get("stage", "1")
@@ -66,43 +59,41 @@ class CustomLoginView(View):
         return redirect("sso_login")
 
     def _handle_stage_1(self, request):
-        ctx = self._base_context(request)
+        stage = 1
+        next = request.GET.get("next") or request.POST.get("next", "/")
         username = request.POST.get("username", "").strip()
-        ctx.update(stage=1, username=username)
 
         if not username:
             messages.error(request, "Indtast dit brugernavn")
-            return render(request, self.template_name, ctx)
+            return render(request, self.template_name, locals())
 
         try:
             member = Member.objects.get(username=username)
         except Member.DoesNotExist:
             messages.error(request, "Der findes ingen stregbruger med det navn")
-            return render(request, self.template_name, ctx)
+            return render(request, self.template_name, locals())
 
         if not member.email:
             messages.error(request, "Din stregbruger har ingen mailadresse. Kontakt TREO'en på treo@fklub.dk for hjælp")
-            return render(request, self.template_name, ctx)
+            return render(request, self.template_name, locals())
 
         otp = _issue_otp(member)
         _send_otp_email(member, otp)
 
-        ctx.update(
-            stage=2,
-            masked_email=_mask_email(member.email),
-        )
+        stage = 2
+        masked_email = _mask_email(member.email)
+
         messages.info(request, "En F-kode er blevet sendt til din mailadresse")
-        return render(request, self.template_name, ctx)
+        return render(request, self.template_name, locals())
 
     def _handle_stage_2(self, request):
-        ctx = self._base_context(request)
+        next = request.GET.get("next") or request.POST.get("next", "/")
         username = request.POST.get("username", "").strip()
-        next_url = ctx["next"]
-        ctx.update(stage=2, username=username)
+        stage = 2
 
         try:
             member = Member.objects.get(username=username)
-            ctx["masked_email"] = _mask_email(member.email)
+            masked_email = _mask_email(member.email)
         except Member.DoesNotExist:
             # Something has gone wrong, restart
             return redirect("sso_login")
@@ -123,7 +114,7 @@ class CustomLoginView(View):
                 )
             else:
                 messages.error(request, "Forkert F-kode. Dobbelttjek mailen og forsøg igen")
-            return render(request, self.template_name, ctx)
+            return render(request, self.template_name, locals())
 
         login(request, user, backend="sso.auth_backends.PasswordlessMemberBackend")
-        return redirect(next_url or "index")
+        return redirect(next or "index")
