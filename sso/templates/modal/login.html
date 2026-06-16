@@ -86,17 +86,18 @@
     </div>
 
     <button type="submit">Log ind →</button>
+  </form>
 
-    <div class="form-footer">
-      <span>Udløber om <strong id="countdown">05:00</strong></span>
-      <form method="POST" action="{% url 'sso_resend_otp' %}" style="display:contents">
+<div class="form-footer">
+    <span>Udløber om <strong id="countdown">05:00</strong></span>
+    <form method="POST" action="{% url 'sso_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" novalidate style="display:contents">
         {% csrf_token %}
+        <input type="hidden" name="stage" value="1"/>
         <input type="hidden" name="username" value="{{ username }}"/>
         {% if next %}<input type="hidden" name="next" value="{{ next }}"/>{% endif %}
         <button type="submit" id="resend-btn" disabled>Gensend F-kode</button>
-      </form>
-    </div>
-  </form>
+    </form>
+</div>
 
   <div class="form-footer" style="margin-top:.75rem">
     <a href="{% url 'sso_login' %}{% if next %}?next={{ next }}{% endif %}">← Indtast et andet brugernavn</a>

@@ -127,28 +127,3 @@ class CustomLoginView(View):
 
         login(request, user, backend="sso.auth_backends.PasswordlessMemberBackend")
         return redirect(next_url or "index")
-
-class ResendOTPView(View):
-    template_name = "modal/login.html"
-
-    def post(self, request):
-        username = request.POST.get("username", "").strip()
-        next_url = request.POST.get("next", "/")
-
-        try:
-            member = Member.objects.get(username=username)
-        except Member.DoesNotExist:
-            return redirect("sso_login")
-
-        otp = _issue_otp(member)
-        _send_otp_email(member, otp)
-
-        messages.info(request, "Vi har sendt en ny F-kode til din mailadresse")
-        ctx = {
-            "stage": 2,
-            "username": username,
-            "next": next_url,
-            "masked_email": _mask_email(member.email),
-            "service_name": request.session.get("sso_service_name", ""),
-        }
-        return render(request, self.template_name, ctx)
