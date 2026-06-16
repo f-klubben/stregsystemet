@@ -32,10 +32,10 @@ def _issue_otp(member: Member) -> str:
     return otp
 
 
-def _send_otp_email(member: Member, otp: str) -> None:
+def _send_otp_email(member: Member, redirect_url, otp: str) -> None:
     full_code = f"F-{otp}"
     print(f"Send F-code: {full_code}")
-    send_fcode_mail(member, full_code, "linky")
+    send_fcode_mail(member, full_code, redirect_url)
 
 
 class CustomLoginView(View):
@@ -70,7 +70,7 @@ class CustomLoginView(View):
 
         if stage == 1: # Generate and send OTP
             otp = _issue_otp(member)
-            _send_otp_email(member, otp)
+            _send_otp_email(member, otp, next)
 
             stage = 2
             messages.info(request, "En F-kode er blevet sendt til din mailadresse")
@@ -86,7 +86,7 @@ class CustomLoginView(View):
 
                 if otp_request is None or otp_request.failed_attempts >= PasswordlessMemberBackend.MAX_OTP_ATTEMPTS:
                     fresh_otp = _issue_otp(member)
-                    _send_otp_email(member, fresh_otp)
+                    _send_otp_email(member, fresh_otp, next)
                     messages.error(
                         request,
                         "For mange for forkerte forsøg. Vi har sendt en ny F-kode",
