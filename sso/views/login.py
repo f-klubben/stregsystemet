@@ -107,7 +107,7 @@ class CustomLoginView(View):
             # Something has gone wrong, restart
             return redirect("sso_login")
 
-        otp = self._extract_otp_digits(request)
+        otp = request.POST.get("otp", "")
 
         user = authenticate(request, username=username, otp=otp)
 
@@ -127,19 +127,6 @@ class CustomLoginView(View):
 
         login(request, user, backend="sso.auth_backends.PasswordlessMemberBackend")
         return redirect(next_url or "index")
-
-    @staticmethod
-    def _extract_otp_digits(request) -> str:
-        """
-        Prefer the hidden combined field ('F' + 5 digits).
-        Fall back to reading the five individual cell fields otp_1 … otp_5.
-        Returns the 5 numeric digits only (without the leading 'F').
-        """
-        combined = request.POST.get("otp_combined", "")
-        if combined.startswith("F") and len(combined) == 6:
-            return combined[1:]
-        return "".join(request.POST.get(f"otp_{i}", "") for i in range(1, 6))
-
 
 class ResendOTPView(View):
     template_name = "modal/login.html"

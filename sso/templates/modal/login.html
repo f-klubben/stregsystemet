@@ -40,7 +40,6 @@
 {% block content %}
   <h2>Kære Fember</h2>
   {% if stage == 1 or not stage %}
-
   <div class="stage-dots"><span class="active"></span><span></span></div>
   <p>Indtast din stregbruger for at fortsætte.</p>
 
@@ -70,7 +69,7 @@
     <input type="hidden" name="stage" value="2"/>
     <input type="hidden" name="username" value="{{ username }}"/>
     {% if next %}<input type="hidden" name="next" value="{{ next }}"/>{% endif %}
-    <input type="hidden" name="otp_combined" id="otp-combined"/>
+    <input type="hidden" name="otp" id="otp"/>
 
     <br>
     <label>F‑Code</label>
@@ -111,7 +110,7 @@
   if (!grid) return;
 
   const cells    = Array.from(grid.querySelectorAll('.digit-cell'));
-  const combined = document.getElementById('otp-combined');
+  const combined = document.getElementById('otp');
   const form     = document.getElementById('otp-form');
 
   const sync = () => combined.value = 'F' + cells.map(c => c.value).join('');
