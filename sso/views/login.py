@@ -37,7 +37,7 @@ def _issue_otp(member: Member) -> str:
 def _send_otp_email(member: Member, otp: str) -> None:
     full_code = f"F-{otp}"
     print(f"Send F-code: {full_code}")
-    send_fcode_mail(member, full_code, f"hffps://{otp}", "linky")
+    send_fcode_mail(member, full_code, "linky")
 
 
 class CustomLoginView(View):
