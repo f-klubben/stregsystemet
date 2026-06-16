@@ -5,8 +5,8 @@ from django.views import View
 
 from sso.auth_backends import PasswordlessMemberBackend
 from sso.models import MemberOTPRequest
+from sso.mail import send_fcode_mail
 from stregsystem.models import Member
-from stregsystem.mail import send_fcode_mail
 
 
 def _issue_otp(member: Member) -> str:
@@ -61,6 +61,7 @@ class CustomLoginView(View):
             stage = 2
             messages.info(request, "En F-kode er blevet sendt til din mailadresse")
             return render(request, self.template_name, locals())
+
         if stage == 2: # Try to validate OTP
             otp = request.POST.get("otp", "")
 
