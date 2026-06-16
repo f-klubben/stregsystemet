@@ -1,6 +1,3 @@
-import random
-import string
-
 from django.contrib.auth import login, authenticate
 from django.contrib import messages
 from django.shortcuts import redirect, render
@@ -12,22 +9,11 @@ from stregsystem.models import Member
 from stregsystem.mail import send_fcode_mail
 
 OTP_TTL_SECONDS = 600
-OTP_DIGITS = 5
-
-
-def _mask_email(email: str) -> str:
-    local, domain = email.split("@", 1)
-    masked = local[0] + "***" if len(local) > 1 else "***"
-    return f"{masked}@{domain}"
-
-
-def _generate_otp() -> str:
-    return "".join(random.choices(string.digits, k=OTP_DIGITS))
 
 
 def _issue_otp(member: Member) -> str:
     MemberOTPRequest.objects.filter(member=member).update(is_valid=False)
-    otp = _generate_otp()
+    otp = MemberOTPRequest.generate_otp_code()
     MemberOTPRequest.objects.create(member=member, code=otp)
     return otp
 
@@ -66,7 +52,7 @@ class CustomLoginView(View):
             messages.error(request, "Din stregbruger har ingen mailadresse. Kontakt TREO'en på treo@fklub.dk for hjælp")
             return render(request, self.template_name, locals())
 
-        masked_email = _mask_email(member.email)
+        masked_email = member.masked_email
 
         if stage == 1: # Generate and send OTP
             otp = _issue_otp(member)

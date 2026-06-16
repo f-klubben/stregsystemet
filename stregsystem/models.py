@@ -208,6 +208,12 @@ class Member(BaseModel):  # id automatisk...
     def __str__(self):
         return f"{active_str(self.active)} {self.username}: {self.firstname} {self.lastname} | {self.email} ({money(self.balance)})"
 
+    @property
+    def masked_email(self) -> str:
+        local, domain = self.email.split("@", 1)
+        masked = local[0] + "***" if len(local) > 1 else "***"
+        return f"{masked}@{domain}"
+
     def info_string(self) -> str:
         return f"{self.username}: {self.firstname} {self.lastname} | {self.email}"
 
