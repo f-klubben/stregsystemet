@@ -4,6 +4,9 @@ This repo uses [pre-commit](https://pre-commit.com) to run code formatting check
  
 ## Setup
  
+
+Please note: The following assumes already using 'uv' as virtual environment manager. This is not necessary to setup pre-commit.
+
 Install dependencies and wire up the Git hook:
  
 ```bash
