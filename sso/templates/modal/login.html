@@ -151,6 +151,10 @@
     el.textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
     if (s <= 0) { clearInterval(timer); el.textContent = 'Udløbet'; btn.disabled = false; }
   }, 1000);
+
+  setTimeout(() => {
+       btn.disabled = false;
+  }, 15 * 1000) // Enable button again already after 15 seconds
 })();
 </script>
 {% endblock %}
