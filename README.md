@@ -118,3 +118,7 @@ Themes
 Attaching Debugger
 -------
 [Read about attaching a debugger here.](./debugger.md)
+
+Pre-Commit
+-------
+[Read about using pre-commit here.](./pre-commit.md)

@@ -39,4 +39,5 @@ include = ["stregsystem", "treo", "media", "kiosk", "razzia", "openapi", "stregr
 [dependency-groups]
 dev = [
     "tomli-w>=1.2.0",
+    "pre-commit>=4.6.0",
 ]
