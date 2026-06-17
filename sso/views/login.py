@@ -54,7 +54,7 @@ class CustomLoginView(View):
         otp_ttl = PasswordlessMemberBackend.OTP_DURATION_SEC
         otp_digits = range(1, MemberOTPRequest.OTP_DIGITS + 1)
 
-        if stage == 1: # Generate and send OTP
+        if stage == 1:  # Generate and send OTP
             otp = _issue_otp(member)
             _send_otp_email(member, otp, next)
 
@@ -62,14 +62,15 @@ class CustomLoginView(View):
             messages.info(request, "En F-kode er blevet sendt til din mailadresse")
             return render(request, self.template_name, locals())
 
-        if stage == 2: # Try to validate OTP
+        if stage == 2:  # Try to validate OTP
             otp = request.POST.get("otp", "")
 
             user = authenticate(request, username=username, otp=otp)
 
             if user is None:
-                otp_request = MemberOTPRequest.objects.filter(member=member, is_valid=True).order_by(
-                    "-created_at").first()
+                otp_request = (
+                    MemberOTPRequest.objects.filter(member=member, is_valid=True).order_by("-created_at").first()
+                )
 
                 if otp_request is None or otp_request.failed_attempts >= PasswordlessMemberBackend.MAX_OTP_ATTEMPTS:
                     fresh_otp = _issue_otp(member)

@@ -13,7 +13,7 @@ class MemberOTPRequest(models.Model):
     OTP_DIGITS = 5
 
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
-    code = models.CharField(max_length=OTP_DIGITS + 1) #  An 'F'
+    code = models.CharField(max_length=OTP_DIGITS + 1)  #  An 'F'
     failed_attempts = models.PositiveSmallIntegerField(default=0)
     is_valid = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
