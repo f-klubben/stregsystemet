@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+import json
 from collections import Counter
 from copy import deepcopy
 from unittest import mock
@@ -42,10 +43,16 @@ from stregsystem.models import (
     PendingSignup,
     NamedProduct,
     ApprovalModel,
+    ProductNote,
 )
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
-from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, PaymentToolException
+from stregsystem.utils import (
+    make_active_productlist_query,
+    mobile_payment_exact_match_member,
+    strip_emoji,
+    PaymentToolException,
+)
 from stregsystem.mail import data_sent
 
 
@@ -139,6 +146,17 @@ class SaleViewTests(TestCase):
 
         fulfill.assert_called_once_with(PayTransaction(900))
 
+    def test_quickbuy_member_case_is_insensitive(self):
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/menu.html")
+
+        response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "JOKKE"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "stregsystem/menu.html")
+
     def test_make_sale_quickbuy_wrong_product_for_named_product(self):
         item = Product.objects.get(id=1)
         NamedProduct.objects.create(name='test1', product=item)
@@ -210,6 +228,12 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/error_productdoesntexist.html")
 
+    def test_products_show_when_quickbuying(self):
+        response = self.client.post(reverse('quickbuy', args="1"), {"quickbuy": "jokke 1"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Ingen produkter.")
+
     @patch('stregsystem.models.Member.can_fulfill')
     def test_make_sale_menusale_fail(self, can_fulfill):
         can_fulfill.return_value = False
@@ -273,7 +297,8 @@ class SaleViewTests(TestCase):
         # Assert that the index screen at least contains one of the products in
         # the database. Technically this doesn't check everything exhaustively,
         # but it's better than nothing -Jesper 18/09-2017
-        self.assertContains(response, "<td>Limfjordsporter</td>", html=True)
+        self.assertContains(response, "Limfjordsporter")
+        self.assertNotContains(response, "NonExistentProduct")
 
     def test_quickbuy_no_known_member(self):
         response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "notinthere"})
@@ -704,6 +729,24 @@ class ProductTests(TestCase):
 
         self.assertTrue(product.is_active())
 
+    def test_is_active_active_future_start_date(self):
+        product = Product.objects.create(
+            active=True,
+            price=100,
+            start_date=timezone.now().date() + datetime.timedelta(days=1),
+        )
+
+        self.assertFalse(product.is_active())
+
+    def test_make_active_productlist_query_excludes_future_start_date(self):
+        future_product = Product.objects.create(
+            active=True,
+            price=100,
+            start_date=timezone.now().date() + datetime.timedelta(days=1),
+        )
+
+        self.assertNotIn(future_product, list(make_active_productlist_query(Product.objects)))
+
     def test_is_active_active_expired(self):
         product = Product.objects.create(
             active=True, price=100, deactivate_date=(timezone.now() - datetime.timedelta(hours=1))
@@ -757,6 +800,103 @@ class ProductTests(TestCase):
         product.sale_set.create(price=100, member=self.jeff)
 
         self.assertFalse(product.is_active())
+
+
+class ProductNoteTest(TestCase):
+    fixtures = ["initial_data"]
+
+    def test_appearing(self):
+        # Make working product note
+        test_product = Product.objects.all().first()
+        self.test_product_note = ProductNote(
+            text="TEST-NOTE",
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+        # Make secondary product note, for same product
+        self.secondary_test_product_note = ProductNote(
+            text="SECONDARY-TEST-NOTE",
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+        )
+        self.secondary_test_product_note.save()
+        self.secondary_test_product_note.products.add(test_product)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+
+        # Test that the note is in the menu
+        self.assertContains(response, "TEST-NOTE")
+        self.assertContains(response, "SECONDARY-TEST-NOTE")
+
+    def test_chosen_color(self):
+        # Make working product note
+        test_product = Product.objects.all().first()
+        test_product.active = False
+
+        self.test_product_note = ProductNote(
+            text="COLORED-NOTE",
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+            background_color="Yellow",
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+
+        self.assertContains(
+            response,
+            "<div class=\"note-box\" style=\"background-color: Yellow; color: \">COLORED-NOTE</div>",
+            html=True,
+        )
+
+    def test_incorrect_dates(self):
+        # Make expired product note
+        test_product = Product.objects.all().first()
+        self.test_product_note = ProductNote(
+            text="EXPIRED-NOTE",
+            start_date=datetime.date.today() - datetime.timedelta(days=1),
+            end_date=datetime.date.today() - datetime.timedelta(days=1),
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+        # Make product note that is not yet active
+        self.test_product_note = ProductNote(
+            text="FUTURE-NOTE",
+            start_date=datetime.date.today() + datetime.timedelta(days=1),
+            end_date=datetime.date.today() + datetime.timedelta(days=1),
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+
+        # Test that the note is in the menu
+        self.assertNotContains(response, "EXPIRED-NOTE")
+        self.assertNotContains(response, "FUTURE-NOTE")
+
+    def test_inactive(self):
+        # Make inactive product note
+        test_product = Product.objects.all().first()
+        self.test_product_note = ProductNote(
+            text="INACTIVE-NOTE",
+            active=False,
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today(),
+        )
+        self.test_product_note.save()
+        self.test_product_note.products.add(test_product)
+
+        # Get the menu
+        response = self.client.post(reverse('menu_index', args=(1,)))
+
+        # Test that the inactive note doesn't show up
+        self.assertNotContains(response, "INACTIVE-NOTE")
 
 
 class SaleTests(TestCase):
@@ -1142,19 +1282,19 @@ class ProductRoomFilterTests(TestCase):
     def test_general_room_dont_get_special_items(self):
         numberOfSpecialItems = 2
         response = self.client.get(reverse('menu_index', args=(1,)))
-        products = response.context['product_list']
+        product_pairs = response.context['product_note_pair_list']
         specialProduct = Product.objects.get(pk=3)
 
-        self.assertFalse(specialProduct in products)
-        self.assertEqual(len(products), len(Product.objects.all()) - numberOfSpecialItems)
+        any(self.assertFalse(specialProduct == pair.product) for pair in product_pairs)
+        self.assertEqual(len(product_pairs), len(Product.objects.all()) - numberOfSpecialItems)
 
     def test_special_room_get_special_items(self):
         response = self.client.get(reverse('menu_index', args=(2,)))
-        products = response.context['product_list']
+        product_pairs = response.context['product_note_pair_list']
         specialProduct = Product.objects.get(pk=3)
 
-        self.assertTrue(specialProduct in products)
-        self.assertEqual(len(products), len(Product.objects.all()))
+        self.assertTrue(any(specialProduct == pair.product) for pair in product_pairs)
+        self.assertEqual(len(product_pairs), len(Product.objects.all()))
 
 
 class CategoryAdminTests(TestCase):
@@ -2173,3 +2313,91 @@ class MailTests(TestCase):
 
         signup_request.approve()
         mock_mail_method.assert_called_once()
+
+
+class DateAttributeTestCase(TestCase):
+    def test_created_at_field(self):
+        now = timezone.now()
+        with freeze_time(now):
+            member = Member.objects.create(username="DateAtrtributeTest")
+            self.assertEqual(member.created_at, now)
+            self.assertEqual(member.updated_at, now)
+
+        now2 = timezone.now()
+        with freeze_time(now2):
+            member.balance = 20
+            member.save()
+            self.assertEqual(member.created_at, now)
+            self.assertEqual(member.updated_at, now2)
+
+
+class ApiTests(TestCase):
+    """
+    A lot of the API testing is done separately using Dredd and OpenAPI.
+    These are edge-cases which can't be expressed in OpenAPI.
+    """
+
+    def setUp(self):
+        member = Member.objects.create(username="martin_p", email="test@example.com", signup_due_paid=False)
+        member.save()
+
+    def test_signup_duplicate_username(self):
+        response = self.client.post(
+            reverse('api_signup'),
+            json.dumps(
+                {
+                    'education': "sw",
+                    'username': "martin_p",  # Note: Duplicate username
+                    'firstname': "Martin",
+                    'lastname': "P.",
+                    'email': "test2@example.com",
+                    'gender': "M",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertNotEquals(response.status_code, 200)
+
+    def test_signup_partial_form_no_name(self):
+        response = self.client.post(
+            reverse('api_signup'),
+            json.dumps({'education': "sw", 'username': "martin_p2", 'email': "test2@example.com", 'gender': "M"}),
+            content_type="application/json",
+        )
+
+        self.assertNotEquals(response.status_code, 200)
+
+    def test_signup_partial_form_no_username(self):
+        response = self.client.post(
+            reverse('api_signup'),
+            json.dumps(
+                {
+                    'education': "sw",
+                    'firstname': "Martin",
+                    'lastname': "P.",
+                    'email': "test2@example.com",
+                    'gender': "M",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertNotEquals(response.status_code, 200)
+
+    def test_signup_partial_form_no_education(self):
+        response = self.client.post(
+            reverse('api_signup'),
+            json.dumps(
+                {
+                    'username': "martin_p2",
+                    'firstname': "Martin",
+                    'lastname': "P.",
+                    'email': "test2@example.com",
+                    'gender': "M",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertNotEquals(response.status_code, 200)

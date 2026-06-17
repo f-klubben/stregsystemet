@@ -69,16 +69,47 @@ ol span {
     font-weight: normal;
 }
 
-button.linkalike {
-  background: none;
-  border: none;
+button {
   cursor: pointer;
-  font: inherit;
-  text-decoration: underline;
-  color: LinkText;
 
-  &:active{
-    color: ActiveText;
+    &.linkalike {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+    text-decoration: underline;
+    color: LinkText;
+
+    &:active{
+      color: ActiveText;
+    }
+  }
+}
+
+.external-link-popover {
+  font-size: 1.5em;
+  padding: 1em;
+
+  & p {
+    margin: 0;
+  }
+  & button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: .1em;
+    background: none;
+    border: none;
+
+    & svg {
+      width: 2.2em;
+      height: 2.2em;
+    }
+  }
+  & img {
+    width: 100vw;
+    max-width: 40vmin;
+    max-height: 40vmin;
   }
 }
 
@@ -160,7 +191,7 @@ table h2, table h3 {
 /* Ensures that bats/"flakes" don't interfere with qr-code scanning */
 .qr-code {
     position: relative;
-    z-index: 2147483647;
+    z-index: 0;
     image-rendering: pixelated;
 }
 
@@ -197,5 +228,13 @@ footer {
   animation-duration: 1s;
   animation-iteration-count: 3;
   color: red;
+}
+
+.note-box {
+  display: inline;
+  padding: 2px 4px 2px 4px;
+  border-radius: 8px;
+  color: black;
+  background-color: red;
 }
 

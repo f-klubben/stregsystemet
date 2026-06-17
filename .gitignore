@@ -24,3 +24,7 @@ stregsystem.log
 .direnv
 .envrc
 result
+*.qcow2
+
+# vscode user and workspace settings
+.vscode/

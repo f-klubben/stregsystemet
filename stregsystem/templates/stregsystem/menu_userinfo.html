@@ -32,9 +32,10 @@
    </p>
 
    <br />
+   <p><b>Købshistorik</b></p>
 
-   <p><b>Sidste 10 køb</b></p>
-   <table class="default">
+
+      <table class="default" style="table-layout: fixed;">
       <tr>
          <th>Dato og tidspunkt</th>
          <th>Produkt</th>
@@ -43,13 +44,25 @@
       {% autoescape off %}
       {% for sale in last_sale_list %}
          <tr>
-            <td>{{sale.timestamp}}</td>
-            <td>{{sale.product.name}}</td>
-            <td class="price">{{sale.price|money}}</td>
+            <td style="width: 157px;">{{ sale.timestamp }}</td>
+            <td style="width: 240px;">{{ sale.product.name }}</td>
+            <td class="price" style="width: 30px ;">{{ sale.price|money }}</td>
          </tr>
       {% endfor %}
       {% endautoescape %}
    </table>
+
+
+   <div class="pagination">
+  {% if last_sale_list.has_previous %}
+    <a href="?purchaselist={{ last_sale_list.previous_page_number }}">Forrige</a>
+  {% endif %}
+  Side {{ last_sale_list.number }} af {{ last_sale_list.paginator.num_pages }}
+  {% if last_sale_list.has_next %}
+    <a href="?purchaselist={{ last_sale_list.next_page_number }}">Næste</a>
+  {% endif %}
+   </div>
+
 
    <br />
 
