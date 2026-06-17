@@ -456,10 +456,7 @@ class AchievementEdgeCaseTests(TestCase):
         task = AchievementTask.objects.create(task_type="any_purchase", goal_value=1)
 
         # Create achievement with the any_purchase task
-        achievement = Achievement.objects.create(
-            title="First Purchase",
-            description="Make your first purchase"
-        )
+        achievement = Achievement.objects.create(title="First Purchase", description="Make your first purchase")
         achievement.tasks.add(task)
 
         # Create a sale
@@ -477,10 +474,7 @@ class AchievementEdgeCaseTests(TestCase):
         task = AchievementTask.objects.create(task_type="any_purchase", goal_value=3)
 
         # Create achievement
-        achievement = Achievement.objects.create(
-            title="Frequent Buyer",
-            description="Make 3 purchases"
-        )
+        achievement = Achievement.objects.create(title="Frequent Buyer", description="Make 3 purchases")
         achievement.tasks.add(task)
 
         # Create 2 sales (not enough)
