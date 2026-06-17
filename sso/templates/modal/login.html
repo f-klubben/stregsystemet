@@ -18,8 +18,6 @@
       text-align: center;
       font-size: 1.2rem;
       font-family: monospace;
-      border: 1px solid #ccc;
-      border-radius: 6px;
       outline: none;
       transition: border-color .15s;
       padding: 0;
@@ -89,7 +87,7 @@
   </form>
 
 <div class="form-footer">
-    <span>Udløber om <strong id="countdown">00:00</strong></span>
+    <span>Udløber om <strong id="countdown">15:00</strong></span>
     <form method="POST" action="{% url 'sso_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" novalidate style="display:contents">
         {% csrf_token %}
         <input type="hidden" name="stage" value="1"/>
