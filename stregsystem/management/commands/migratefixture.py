@@ -11,7 +11,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--fixture", required=False)
-        parser.add_argument("--all", action="store_true", default=False)
+        parser.add_argument("--all-fixtures", action="store_true", default=False)
         parser.add_argument("--update-targets", action="store_true", default=False)
 
     def handle(self, *args, **opts):
