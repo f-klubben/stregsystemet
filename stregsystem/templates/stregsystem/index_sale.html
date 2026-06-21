@@ -17,7 +17,7 @@
  og
 {% else %}{% if not forloop.first %},
 {% endif %}{% endif %}
-{{ product_with_counts.1 }} {{ product_with_counts.0 }}{% endfor %}
+{{ product_with_counts.1 }} {{ product_with_counts.0.name }}{% endfor %}
 for tilsammen {{cost|money}} kr.
 </b>
 {% if member_has_low_balance %}

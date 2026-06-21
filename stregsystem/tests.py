@@ -108,7 +108,8 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        assertCountEqual(self, response.context["products"], [('Limfjordsporter', 2)])
+        products_with_counts = [(product.name, count) for product, count in response.context["products_with_counts"]]
+        assertCountEqual(self, products_with_counts, [('Limfjordsporter', 2)])
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(1800))
@@ -124,8 +125,8 @@ class SaleViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
-
-        assertCountEqual(self, response.context["products"], {('Limfjordsporter', 1)})
+        products_with_counts = [(product.name, count) for product, count in response.context["products_with_counts"]]
+        assertCountEqual(self, products_with_counts, {('Limfjordsporter', 1)})
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))
@@ -140,7 +141,8 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        assertCountEqual(self, response.context["products"], {('Limfjordsporter', 1)})
+        products_with_counts = [(product.name, count) for product, count in response.context["products_with_counts"]]
+        assertCountEqual(self, products_with_counts, {('Limfjordsporter', 1)})
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))
