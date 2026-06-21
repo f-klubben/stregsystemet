@@ -20,6 +20,7 @@ from stregsystem.models import (
     PendingSignup,
     Theme,
     ProductNote,
+    Intent,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -454,6 +455,18 @@ class ProductNoteAdmin(BaseAdmin):
     actions = [toggle_active_selected_products]
 
 
+class IntentAdmin(BaseAdmin):
+    def _get_fields_to_display(self):
+        return [
+            'status',
+            'product_string',
+            'member',
+            'room',
+            'expires_at',
+            'id',
+        ] + super()._get_fields_to_display()
+
+
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(Member, MemberAdmin)
@@ -467,3 +480,4 @@ admin.site.register(MobilePayment, MobilePaymentAdmin)
 admin.site.register(PendingSignup)
 admin.site.register(Theme, ThemeAdmin)
 admin.site.register(ProductNote, ProductNoteAdmin)
+admin.site.register(Intent, IntentAdmin)
