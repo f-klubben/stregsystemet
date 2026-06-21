@@ -565,7 +565,6 @@ def intent_accept(request, intent_id):
     return _redirect_to_intent_origin(request, intent, status="success")
 
 
-@require_POST
 def intent_cancel(request, intent_id):
     member = Member.objects.get(username__iexact="lowdough", active=True)
 
