@@ -161,6 +161,9 @@ class Order(object):
             bought_ids.extend([item.product.id] * item.count)
         return bought_ids
 
+    def get_products(self) -> 'List[Product]':
+        return [product for item in self.items for product in [item.product] * item.count]
+
     # @HACK In reality calculating the total for old products is way harder and
     # more complicated than this. While it's not in the database this is
     # acceptable

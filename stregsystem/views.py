@@ -1133,7 +1133,7 @@ def api_sale_intent_status(request, intent_id):
     elif intent.status == Intent.FINALIZED:
         order = Order.from_buystring(intent.buy_string, intent.room, intent.created_at)
         details = __sale_details_as_dict(
-            intent.member, intent.room, order.products, order, order.created_on, order.get_bought_ids()
+            intent.member, intent.room, order.get_products(), order, order.created_on, order.get_bought_ids()
         )
     elif intent.status == Intent.CANCELLED:
         raise Http404
