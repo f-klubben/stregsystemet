@@ -263,6 +263,8 @@ def usermenu(request, room, member, bought, from_sale=False):
 
     heatmap_context = prepare_heatmap_template_context(member, 12, datetime.date.today())
 
+    products_with_counts = Counter([product for product in product_list]).most_common()
+
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())
     else:
