@@ -62,7 +62,7 @@ class AchievementTask(BaseModel):
         """
         Returns True if the task is relevant for the given product.
         Pass pre-fetched category_ids to avoid extra DB queries in loops.
-        """ 
+        """
 
         if self.task_type in ["any_purchase", "used_funds", "remaining_funds"]:
             return True

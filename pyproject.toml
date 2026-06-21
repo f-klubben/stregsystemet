@@ -42,4 +42,5 @@ dev = [
     "tomli-w>=1.2.0",
     "pre-commit>=4.6.0",
     "django-stubs>=6.0.5",
+    "black>=26.5.1",
 ]
