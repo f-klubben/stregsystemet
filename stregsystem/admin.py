@@ -1,4 +1,4 @@
-from typing import Any, Literal, Sequence
+from typing import Any
 from django.contrib import admin
 from django import forms
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
@@ -231,6 +231,7 @@ class NamedProductAdmin(BaseAdmin):
 class CategoryAdmin(BaseAdmin):
     def _get_fields_to_display(self):
         return [
+            'id',
             'name',
             'items_in_category',
         ] + super()._get_fields_to_display()

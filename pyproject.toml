@@ -15,6 +15,7 @@ dependencies = [
     "django-debug-toolbar==4.3.0",
     "django-select2==8.2.3",
     "freezegun==1.5.1",
+    "pillow>=12.2.0",
     "pytz==2026.1",
     "qrcode==8.2",
     "requests==2.33.0",
@@ -40,4 +41,6 @@ include = ["stregsystem", "treo", "media", "kiosk", "razzia", "openapi", "stregr
 dev = [
     "tomli-w>=1.2.0",
     "pre-commit>=4.6.0",
+    "django-stubs>=6.0.5",
+    "black>=26.5.1",
 ]
