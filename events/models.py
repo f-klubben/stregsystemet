@@ -236,5 +236,5 @@ class TicketRecord(models.Model):
         super(TicketRecord, self).save(*args, **kwargs)
 
     def __str__(self):
-        ticket_owner = self.get_ticket_owner()
+        ticket_owner = self.get_ticket_owner
         return f"{ticket_owner.username if ticket_owner else 'No Owner?'}'s billet: {self.ticket.name} (Stand-by: {self.get_stand_by_pretty()}, Refunded: {self.get_refunded_pretty()})"
