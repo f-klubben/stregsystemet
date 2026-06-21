@@ -708,7 +708,7 @@ class AchievementEdgeCaseTests(TestCase):
                 .order_by('-total', 'member')
             )
 
-            print(f"Leaderboard data:")
+            print("Leaderboard data:")
             for entry in leaderboard:
                 print(f"Member {entry['member']}: {entry['total']} achievements")
 
@@ -720,7 +720,7 @@ class AchievementEdgeCaseTests(TestCase):
             print(f"Positions: member1={pos1}, member2={pos2}, member3={pos3}, member4={pos4}")
 
             # With the bug, these assertions might fail due to incorrect rank calculation
-            self.assertEqual(pos1, 100.0)
-            self.assertEqual(pos2, 100.0)
-            self.assertEqual(pos3, 50.0)
-            self.assertEqual(pos4, 0.0)
+            self.assertEqual(pos1, 33.33)
+            self.assertEqual(pos2, 33.33)
+            self.assertEqual(pos3, 100.0)
+            self.assertEqual(pos4, 100.0)

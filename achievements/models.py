@@ -455,8 +455,7 @@ def get_user_leaderboard_position(member: Member) -> float:
         return 100.0  # Member has no achievements
 
     member_rank = ranks[member.pk]
-    total_ranks = len(set(ranks.values()))  # total distinct rank positions
-
+    total_ranks = len(ranks)
     result = member_rank / total_ranks
     return round(result * 100, 2)
 
