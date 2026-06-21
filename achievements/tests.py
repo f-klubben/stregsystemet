@@ -721,6 +721,6 @@ class AchievementEdgeCaseTests(TestCase):
 
             # With the bug, these assertions might fail due to incorrect rank calculation
             self.assertEqual(pos1, 33.33)
-            self.assertEqual(pos2, 33.33) 
+            self.assertEqual(pos2, 33.33)
             self.assertEqual(pos3, 100.0)
             self.assertEqual(pos4, 100.0)
