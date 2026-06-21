@@ -1142,6 +1142,7 @@ def api_sale_intent_status(request, intent_id):
 
     return JsonResponse(
         {
+            "id": intent.id,
             "status": intent.status,  # or similar. But not "deleted", that will return 404
             "expires_at": intent.expires_at,
             "updated_at": intent.updated_at,
