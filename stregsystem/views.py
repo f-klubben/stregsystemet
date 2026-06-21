@@ -227,7 +227,7 @@ def quicksale(request, room, member: Member, bought_ids):
         member_balance,
     ) = __set_local_values(member, room, products, order, now)
 
-    products = Counter([str(product.name) for product in products]).most_common()
+    products_with_counts = Counter([product for product in products]).most_common()
 
     # THIS WAS NOT IN THE ORIGINAL STREGSYSTEM AND I ADDED IT BECAUSE OTHERWISE IT WOULD
     # NOT SHOW THE PRODUCTS AFTER USING QUICKBUY

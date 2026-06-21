@@ -1,4 +1,4 @@
-from typing import List, Counter, Tuple
+from typing import List, Tuple
 
 from achievements.models import (
     Achievement,
@@ -16,11 +16,10 @@ register = template.Library()
 
 
 @register.inclusion_tag('achievements/achievement_notification.html')
-def achievement_notifications(products: List[Product], member: Member):
+def achievement_notifications(products: List[tuple[Product, int]], member: Member):
     new_achievements: List[Achievement] = []
-    for p, count in Counter(products).most_common():
-        new_achievements.extend(get_new_achievements(member, p))
-
+    for product, _ in sorted(products, key=lambda x: x[1], reverse=True):
+        new_achievements.extend(get_new_achievements(member, product))
     return {
         "new_achievements": new_achievements,
     }
@@ -44,19 +43,19 @@ def achievement_ranking(member: Member):
         elif rarity <= 10:
             color = (76, 81, 247)  # Fortnite Blue (Rare)
         elif rarity <= 25:
-            color = (49, 146, 54)  # Fortnite Green (Common)
+            color = (49, 146, 54)  # Fortnite Green (Uncommon)
         else:
-            color = (140, 140, 140)  # Fortnite Green (Uncommon)
+            color = (140, 140, 140)  # Fortnite Gray (Common)
         return f"rgb{color}"
 
     # Convert the acquired achievements to a list of tuples with rounded rarity and color
-    acquired_achievements = [
+    get_acquired_achievements_with_color = [
         (achievement, f"{round(rarity, 2)}%", get_color_by_rarity(rarity))
         for achievement, rarity in acquired_achievements
     ]
 
     return {
-        'acquired_achievements': acquired_achievements,
+        'acquired_achievements': get_acquired_achievements_with_color,
         'missing_achievements': missing_achievements,
         'achievement_progress_str': achievement_progress_str,
         'achievement_top_percentage': achievement_top_percentage,

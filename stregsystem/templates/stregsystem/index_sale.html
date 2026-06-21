@@ -13,11 +13,11 @@
 <b>
 {% autoescape off %}
 <span class="username">{{member.username}}</span> har lige købt
-{% for product in products %}{% if forloop.last and not forloop.first %}
+{% for product_with_counts in products_with_counts %}{% if forloop.last and not forloop.first %}
  og
 {% else %}{% if not forloop.first %},
 {% endif %}{% endif %}
-{{ product.1 }} {{ product.0 }}{% endfor %}
+{{ product_with_counts.1 }} {{ product_with_counts.0 }}{% endfor %}
 for tilsammen {{cost|money}} kr.
 </b>
 {% if member_has_low_balance %}
@@ -51,5 +51,5 @@ for tilsammen {{cost|money}} kr.
 {% endautoescape %}
 <br />
 <br />
-    {% achievement_notifications products member %}
+    {% achievement_notifications products_with_counts member %}
 {% endblock %}

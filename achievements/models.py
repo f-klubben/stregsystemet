@@ -40,7 +40,7 @@ class AchievementTask(BaseModel):
         blank=False,
     )
 
-    product = models.ForeignKey(
+    product: models.ForeignKey[Product | None, Product | None] = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
         null=True,
@@ -48,7 +48,7 @@ class AchievementTask(BaseModel):
         help_text="Only has to be set, if 'Specific Product' was chosen as the Task Type.",
     )
 
-    category = models.ForeignKey(
+    category: models.ForeignKey[Category | None, Category | None] = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
         null=True,
@@ -62,21 +62,26 @@ class AchievementTask(BaseModel):
         """
         Returns True if the task is relevant for the given product.
         Pass pre-fetched category_ids to avoid extra DB queries in loops.
-        """
+        """ 
+
         if self.task_type in ["any_purchase", "used_funds", "remaining_funds"]:
             return True
-        if self.task_type == "product" and self.product_id == product.id:
-            return True
+        if self.task_type == "product":
+            if not self.product:
+                raise ValueError("Product must be set for product-based tasks.")
+            return self.product.pk == product.pk
         if self.task_type == "category":
+            if not self.category:
+                raise ValueError("Category must be set for category-based tasks.")
             ids = category_ids if category_ids is not None else list(product.categories.values_list('id', flat=True))
-            return self.category_id in ids
+            return self.category.pk in ids
         if self.task_type == "alcohol_content" and getattr(product, 'alcohol_content_ml', 0) > 0:
             return True
         if self.task_type == "caffeine_content" and getattr(product, 'caffeine_content_mg', 0) > 0:
             return True
         return False
 
-    def is_task_completed(self, sales: List[Sale], member: Member) -> bool:
+    def is_task_completed(self, sales: QuerySet[Sale, Sale], member: Member) -> bool:
         """
         Determines if the task is completed based on the sales and member's attributes.
         """
@@ -306,6 +311,8 @@ class Achievement(BaseModel):
         help_text="Tasks that must be completed to earn this achievement.",
     )
 
+    completed_count: int  # added by annotation
+
     def is_active(self, now: datetime) -> bool:
         constraints = self.constraints.all()
 
@@ -339,7 +346,7 @@ class AchievementComplete(BaseModel):  # A members progress on a task
     achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
     completed_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
+    class Meta(BaseModel.Meta):
         unique_together = ("member", "achievement")
 
     def __str__(self):
@@ -430,6 +437,7 @@ def get_user_leaderboard_position(member: Member) -> float:
     # Assign ranks with dense ranking
     ranks = {}
     current_rank = 1
+    rank = 1
     last_total = None
 
     for entry in leaderboard:
@@ -438,16 +446,15 @@ def get_user_leaderboard_position(member: Member) -> float:
 
         if total != last_total:
             rank = current_rank
-        # if total == last_total, keep previous rank
 
         ranks[member_id] = rank
         last_total = total
         current_rank += 1
 
-    if member.id not in ranks:
+    if member.pk not in ranks:
         return 100.0  # Member has no achievements
 
-    member_rank = ranks[member.id]
+    member_rank = ranks[member.pk]
     total_ranks = len(set(ranks.values()))  # total distinct rank positions
 
     result = member_rank / total_ranks
@@ -479,10 +486,10 @@ def _find_completed_achievements(
 
 def _filter_relevant_sales(
     achievements: List[Achievement], member: Member, now: datetime
-) -> Dict[AchievementTask, QuerySet]:
+) -> Dict[AchievementTask, QuerySet[Sale, Sale]]:
     # Start with all sales for this member, select related to reduce hits
     member_sales = Sale.objects.filter(member=member).select_related('product').prefetch_related('product__categories')
-    task_to_sales: Dict[AchievementTask, QuerySet] = {}
+    task_to_sales: Dict[AchievementTask, QuerySet[Sale, Sale]] = {}
 
     for achievement in achievements:
         # Determine global time window

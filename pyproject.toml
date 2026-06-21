@@ -41,4 +41,5 @@ include = ["stregsystem", "treo", "media", "kiosk", "razzia", "openapi", "stregr
 dev = [
     "tomli-w>=1.2.0",
     "pre-commit>=4.6.0",
+    "django-stubs>=6.0.5",
 ]
