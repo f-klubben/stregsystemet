@@ -1,6 +1,7 @@
 {% extends "stregsystem/base.html" %}
 
 {% load stregsystem_extras %}
+{% load achievement_templates %}
 
 {% block title %}Treoens stregsystem : Brugerinfo {% endblock %}
 
@@ -112,7 +113,9 @@
       </tr>
    </table>
    <a href="/{{room.id}}/send_csv_mail/{{member.id}}/">Anmod om bruger data</a>
+
+    {% achievement_ranking member %}
+
 </main>
 
 {% endblock %}
-
