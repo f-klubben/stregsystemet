@@ -30,10 +30,25 @@ from stregsystem.utils import (
 
 @admin.action(description="Refund selected")
 def refund_sales(modeladmin, request, queryset):
+    refunded = 0
+    skipped = 0
+    failed = 0
+
     for sale in queryset:
-        if not isinstance(sale, Sale):
-            raise ValueError("queryset must be of Sale")
-        sale.process_refund(request.user)
+        if sale.is_refunded():
+            skipped += 1
+            continue
+        try:
+            sale.process_refund(request.user)
+            refunded += 1
+        except Exception as e:
+            failed += 1
+            messages.add_message(request, messages.ERROR, f"Sale {sale.pk} failed to refund: {e}")
+
+    if refunded:
+        messages.add_message(request, messages.SUCCESS, f"{refunded} sale(s) refunded.")
+    if skipped:
+        messages.add_message(request, messages.INFO, f"{skipped} sale(s) were already refunded.")
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -77,6 +92,13 @@ class SaleAdmin(BaseAdmin):
             'refunded_by',
             'refunded_at',
         ] + super()._get_fields_to_display_as_readonly()
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if not request.user.is_superuser:
+            if 'refund_sales' in actions:
+                del actions['refund_sales']
+        return actions
 
     actions = [refund_sales]
     search_fields = ['^member__username', '=product__id', 'product__name']
