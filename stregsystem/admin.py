@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 from django.contrib import admin
 from django import forms
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
@@ -20,6 +20,7 @@ from stregsystem.models import (
     PendingSignup,
     Theme,
     ProductNote,
+    User,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -76,6 +77,17 @@ class BaseAdmin(admin.ModelAdmin):
 class SaleAdmin(BaseAdmin):
     list_filter = ('room', 'timestamp')
 
+    def get_list_display(self, request):
+        list_display = super().get_list_display(request)
+        if "get_refunded" in list_display:
+            has_refunds = self.get_queryset(request).filter(refunded_at__isnull=False).exists()
+            if not has_refunds:
+                list_display.remove("get_refunded")
+                list_display.remove("refunded_by")
+                list_display.remove("refunded_at")
+
+        return list_display
+
     def _get_fields_to_display(self):
         return [
             'get_username',
@@ -95,7 +107,8 @@ class SaleAdmin(BaseAdmin):
 
     def get_actions(self, request):
         actions = super().get_actions(request)
-        if not request.user.is_superuser:
+        user = cast(User, request.user)
+        if not user.is_staff:
             if 'refund_sales' in actions:
                 del actions['refund_sales']
         return actions

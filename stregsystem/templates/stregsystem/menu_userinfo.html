@@ -41,7 +41,9 @@
          <th>Dato og tidspunkt</th>
          <th>Produkt</th>
          <th>Pris</th>
-         <th>Refunderet</th>
+         {% if anySaleHasBeenRefundedInPage %}
+            <th>Refunderet</th>
+         {% endif %}
       </tr>
       {% autoescape off %}
       {% for sale in last_sale_list %}
@@ -49,7 +51,9 @@
             <td style="width: 157px;">{{ sale.timestamp }}</td>
             <td style="width: 240px;">{{ sale.product.name }}</td>
             <td class="price" style="width: 30px ;">{{ sale.price|money }}</td>
-            <td style="width: 30px ;">{% if sale.refunded_at %}{{ sale.refunded_at|date:"d/m/Y H:i" }}{% endif %}</td>
+            {% if anySaleHasBeenRefundedInPage %}
+               <td style="width: 30px ;">{% if sale.refunded_at %}{{ sale.refunded_at|date:"d/m/Y H:i" }}{% endif %}</td>
+            {% endif %}
          </tr>
       {% endfor %}
       {% endautoescape %}

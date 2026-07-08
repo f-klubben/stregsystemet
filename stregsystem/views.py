@@ -282,7 +282,7 @@ def menu_userinfo(request, room_id, member_id):
     if not member.signup_approved():
         return render(request, 'stregsystem/error_signup_not_approved.html', locals())
 
-    all_sales = member.sale_set.order_by('-timestamp')
+    all_sales: QuerySet[Sale] = member.sale_set.order_by('-timestamp')
     all_none_refunded_sales = all_sales.filter(refunded_at__isnull=True)
     all_refunded_sales = all_sales.filter(refunded_at__isnull=False)
 
@@ -296,6 +296,8 @@ def menu_userinfo(request, room_id, member_id):
     paginator = Paginator(all_sales, 10)
     list_number = request.GET.get('purchaselist', 1)
     last_sale_list = paginator.get_page(list_number)
+
+    anySaleHasBeenRefundedInPage = any(sale.refunded_at is not None for sale in last_sale_list)
 
     try:
         last_payment = member.payment_set.order_by('-timestamp')[0]
