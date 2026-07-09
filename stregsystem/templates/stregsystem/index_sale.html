@@ -1,6 +1,7 @@
 {% extends "stregsystem/index.html" %}
 
 {% load stregsystem_extras %}
+{% load achievement_templates %}
 
 {% block head %}
 {{ block.super }}
@@ -13,8 +14,12 @@
 {% autoescape off %}
 <span class="username">{{member.username}}</span> har lige købt
 {% for productAndAmount in productAndAmounts %}
-    {% if forloop.last and not forloop.first %}
-        og
+    {% if not forloop.first %}
+        {% if forloop.last %}
+            og
+        {% else %}
+            ,
+        {% endif %}
     {% endif %}
     {{ productAndAmount.amount }} {{ productAndAmount.product.name }}
 {% endfor %}
@@ -52,4 +57,5 @@ for tilsammen {{cost|money}} kr.
 {% endautoescape %}
 <br />
 <br />
+    {% achievement_notifications products_with_counts member %}
 {% endblock %}

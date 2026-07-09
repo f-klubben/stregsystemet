@@ -8,3 +8,4 @@ requests==2.33.0
 qrcode==8.2
 debugpy==1.8.16
 Pillow==10.3.0
+tomli_w==1.2.0

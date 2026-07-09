@@ -100,6 +100,7 @@ INSTALLED_APPS = [
     'kiosk',
     'razzia',
     'events',
+    'achievements',
     'django_select2',
     'django.contrib.admin',
     'django.contrib.auth',
