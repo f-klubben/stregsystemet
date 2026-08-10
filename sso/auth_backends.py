@@ -6,15 +6,13 @@ from django.utils import timezone
 
 from sso.models import MemberOTPRequest
 from stregsystem.models import Member
+from django.conf import settings
 
 
 class PasswordlessMemberBackend:
     """
     Minimal passwordless authentication backend.
     """
-
-    MAX_OTP_ATTEMPTS = 3
-    OTP_DURATION_SEC = 15 * 60
 
     def authenticate(self, request, username=None, otp=None, **kwargs):
         if username is None or not otp:
@@ -30,13 +28,13 @@ class PasswordlessMemberBackend:
             return None
 
         # Too old request
-        if otp_request.created_at < timezone.now() - timedelta(seconds=self.OTP_DURATION_SEC):
+        if otp_request.created_at < timezone.now() - timedelta(minutes=settings.SSO_CODE_DURATION_MIN):
             otp_request.is_valid = False
             otp_request.save()
             return None
 
         # Too many tries for this OTP
-        if otp_request.failed_attempts >= self.MAX_OTP_ATTEMPTS:
+        if otp_request.failed_attempts >= settings.SSO_MAX_ATTEMPTS:
             otp_request.is_valid = False
             otp_request.save()
             return None

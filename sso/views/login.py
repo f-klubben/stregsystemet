@@ -2,6 +2,7 @@ from django.contrib.auth import login, authenticate
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.views import View
+from django.conf import settings
 
 from sso.auth_backends import PasswordlessMemberBackend
 from sso.models import MemberOTPRequest
@@ -16,7 +17,7 @@ def _issue_otp(member: Member) -> str:
     return otp
 
 
-def _send_otp_email(member: Member, redirect_url, otp: str) -> None:
+def _send_otp_email(member: Member, redirect_url: str, otp: str) -> None:
     full_code = f"F-{otp}"
     print(f"Send F-code: {full_code}")
     send_fcode_mail(member, full_code, redirect_url)
@@ -51,7 +52,7 @@ class CustomLoginView(View):
             return render(request, self.template_name, locals())
 
         masked_email = member.masked_email
-        otp_ttl = PasswordlessMemberBackend.OTP_DURATION_SEC
+        otp_ttl = settings.SSO_CODE_DURATION_MIN * 60
         otp_digits = range(1, MemberOTPRequest.OTP_DIGITS + 1)
 
         if stage == 1:  # Generate and send OTP

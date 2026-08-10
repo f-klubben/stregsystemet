@@ -1,3 +1,4 @@
+from django.conf import settings
 from stregsystem.mail import send_template_mail
 
 
@@ -5,6 +6,11 @@ def send_fcode_mail(member, fcode, redirect_url):
     send_template_mail(
         member,
         "send_otp.html",
-        {**vars(member), 'fcode': fcode, 'redirect_url': redirect_url},
-        "Stregsystem FFO - F-Code",
+        {
+            **vars(member),
+            'fcode': fcode,
+            'redirect_url': redirect_url,
+            'expire_duration': settings.SSO_CODE_DURATION_MIN,
+        },
+        "Stregsystem FFO",
     )
