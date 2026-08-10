@@ -1,7 +1,7 @@
 import datetime
 import io
 import json
-from typing import List, Type
+from typing import List, Type, Tuple
 
 import pytz
 import qrcode
@@ -18,13 +18,12 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.core import management
 from django.core.exceptions import ValidationError
-from django.db.models import Q, Count, Sum
+from django.db.models import Q, Count, Sum, QuerySet
 from django.forms import modelformset_factory
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django_select2 import forms as s2forms
 
 from stregreport.views import fjule_party
 
@@ -228,7 +227,14 @@ def quicksale(request, room, member: Member, bought_ids):
         member_balance,
     ) = __set_local_values(member, room, products, order, now)
 
-    products = Counter([str(product.name) for product in products]).most_common()
+    products_with_counts = Counter([product for product in products]).most_common()
+
+    # THIS WAS NOT IN THE ORIGINAL STREGSYSTEM AND I ADDED IT BECAUSE OTHERWISE IT WOULD
+    # NOT SHOW THE PRODUCTS AFTER USING QUICKBUY
+    ProductNotePair = namedtuple('ProductNotePair', 'product note')
+    product_note_pair_list = [
+        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room.id)
+    ]
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
@@ -256,6 +262,8 @@ def usermenu(request, room, member, bought, from_sale=False):
     give_multibuy_hint = give_multibuy_hint and from_sale
 
     heatmap_context = prepare_heatmap_template_context(member, 12, datetime.date.today())
+
+    products_with_counts = Counter([product for product in product_list]).most_common()
 
     if member.has_stregforbud():
         return render(request, 'stregsystem/error_stregforbud.html', locals())
