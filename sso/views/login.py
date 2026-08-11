@@ -17,9 +17,9 @@ def _issue_otp(member: Member) -> str:
     return otp
 
 
-def _send_otp_email(member: Member, redirect_url: str, otp: str) -> None:
+def _send_otp_email(member: Member, otp: str, redirect_url: str) -> None:
     full_code = f"F-{otp}"
-    print(f"Send F-code: {full_code}")
+    print(f"Sent F-code: {full_code}")
     send_fcode_mail(member, full_code, redirect_url)
 
 
