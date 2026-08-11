@@ -38,7 +38,7 @@ class BaseLoginTestCase(TestCase):
             {
                 "stage": "2",
                 "username": username,
-                "otp_combined": f"F{otp}",
+                "otp": f"F{otp}",
                 "next": next_url,
             },
         )
@@ -150,25 +150,6 @@ class Stage2ViewTests(BaseLoginTestCase):
     def test_unknown_username_in_stage2_restarts(self):
         response = self._post_stage2("ghost", self.otp)
         self.assertRedirects(response, self.login_url, fetch_redirect_response=False)
-
-    def test_otp_combined_field_parsed_correctly(self):
-        """F prefix is stripped; backend receives only the 5 digits."""
-        response = self._post_stage2("jeff", self.otp)
-        self.assertRedirects(response, "/", fetch_redirect_response=False)
-
-    def test_individual_cell_fields_accepted_as_fallback(self):
-        """Individual otp_1...otp_5 fields work when otp_combined is absent."""
-        digits = list(self.otp)
-        response = self.client.post(
-            self.login_url,
-            {
-                "stage": "2",
-                "username": "jeff",
-                "next": "/",
-                **{f"otp_{i+1}": d for i, d in enumerate(digits)},
-            },
-        )
-        self.assertRedirects(response, "/", fetch_redirect_response=False)
 
 
 class PasswordlessMemberBackendTests(BaseLoginTestCase):
