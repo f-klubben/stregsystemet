@@ -60,14 +60,14 @@ class Stage1ViewTests(BaseLoginTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["stage"], 1)
         messages = [m.message for m in response.context["messages"]]
-        self.assertTrue(any("username" in m.lower() for m in messages))
+        self.assertTrue(any("brugernavn" in m.lower() for m in messages))
 
     def test_unknown_username_returns_error(self):
         response = self._post_stage1("ghost")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["stage"], 1)
         messages = [m.message for m in response.context["messages"]]
-        self.assertTrue(any("no account" in m.lower() for m in messages))
+        self.assertTrue(any("stregbruger" in m.lower() for m in messages))
 
     def test_known_username_advances_to_stage2(self):
         response = self._post_stage1("jeff")
@@ -90,7 +90,7 @@ class Stage1ViewTests(BaseLoginTestCase):
         response = self._post_stage1("jeff")
         self.assertEqual(response.context["stage"], 1)
         messages = [m.message for m in response.context["messages"]]
-        self.assertTrue(any("email" in m.lower() for m in messages))
+        self.assertTrue(any("mailadresse" in m.lower() for m in messages))
 
     def test_masked_email_in_context_on_stage2(self):
         response = self._post_stage1("jeff")
