@@ -45,6 +45,8 @@ class CustomLoginView(View):
             member = Member.objects.get(username=username)
         except Member.DoesNotExist:
             messages.error(request, "Der findes ingen stregbruger med det navn")
+            if stage == 2:
+                return redirect("sso_login")
             return render(request, self.template_name, locals())
 
         if not member.email:
