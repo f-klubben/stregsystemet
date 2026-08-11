@@ -39,8 +39,10 @@ class PasswordlessMemberBackend:
             otp_request.save()
             return None
 
+        clean_otp = ''.join(c for c in otp if c.isdigit())
+
         # Test whether correct OTP provided
-        if otp_request.code != otp:
+        if otp_request.code != clean_otp:
             otp_request.failed_attempts += 1
             otp_request.save()
             return None
