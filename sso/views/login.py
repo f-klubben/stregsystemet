@@ -73,7 +73,7 @@ class CustomLoginView(View):
                     MemberOTPRequest.objects.filter(member=member, is_valid=True).order_by("-created_at").first()
                 )
 
-                if otp_request is None or otp_request.failed_attempts >= PasswordlessMemberBackend.MAX_OTP_ATTEMPTS:
+                if otp_request is None or otp_request.failed_attempts >= settings.SSO_MAX_ATTEMPTS:
                     fresh_otp = _issue_otp(member)
                     _send_otp_email(member, fresh_otp, next)
                     messages.error(
