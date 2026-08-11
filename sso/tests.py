@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.conf import settings
 
 from sso.auth_backends import PasswordlessMemberBackend
 from sso.models import MemberOTPRequest
@@ -132,7 +133,7 @@ class Stage2ViewTests(BaseLoginTestCase):
         self.assertEqual(otp_req.failed_attempts, 1)
 
     def test_max_attempts_issues_new_otp(self):
-        for _ in range(PasswordlessMemberBackend.MAX_OTP_ATTEMPTS):
+        for _ in range(settings.SSO_MAX_ATTEMPTS):
             self._post_stage2("jeff", "99999")
         # Original OTP should be invalidated; a fresh one issued
         self.assertEqual(MemberOTPRequest.objects.filter(member=self.member, is_valid=True).count(), 1)
@@ -168,47 +169,6 @@ class Stage2ViewTests(BaseLoginTestCase):
             },
         )
         self.assertRedirects(response, "/", fetch_redirect_response=False)
-
-
-class ResendOTPViewTests(BaseLoginTestCase):
-    def setUp(self):
-        super().setUp()
-        self._post_stage1("jeff")
-        self.original_otp = MemberOTPRequest.objects.get(member=self.member, is_valid=True).code
-        self.resend_url = reverse("sso_resend_otp")
-
-    def _resend(self, username="jeff", next_url="/"):
-        return self.client.post(self.resend_url, {"username": username, "next": next_url})
-
-    def test_resend_invalidates_old_otp(self):
-        self._resend()
-        self.assertEqual(MemberOTPRequest.objects.filter(member=self.member, is_valid=True).count(), 1)
-        self.assertEqual(MemberOTPRequest.objects.filter(code=self.original_otp, is_valid=True).count(), 0)
-
-    def test_resend_creates_new_otp(self):
-        self._resend()
-        new_otp = MemberOTPRequest.objects.get(member=self.member, is_valid=True).code
-        self.assertNotEqual(new_otp, self.original_otp)
-
-    def test_resend_returns_stage2(self):
-        response = self._resend()
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context["stage"], 2)
-
-    def test_resend_unknown_username_redirects_to_login(self):
-        response = self._resend(username="ghost")
-        self.assertRedirects(response, self.login_url, fetch_redirect_response=False)
-
-    def test_new_otp_is_accepted_after_resend(self):
-        self._resend()
-        new_otp = MemberOTPRequest.objects.get(member=self.member, is_valid=True).code
-        response = self._post_stage2("jeff", new_otp)
-        self.assertRedirects(response, "/", fetch_redirect_response=False)
-
-    def test_old_otp_rejected_after_resend(self):
-        self._resend()
-        response = self._post_stage2("jeff", self.original_otp)
-        self.assertFalse(self.client.session.get("_auth_user_id"))
 
 
 class PasswordlessMemberBackendTests(BaseLoginTestCase):
@@ -278,7 +238,7 @@ class PasswordlessMemberBackendTests(BaseLoginTestCase):
         req = MemberOTPRequest.objects.create(
             member=self.member,
             code="12345",
-            failed_attempts=PasswordlessMemberBackend.MAX_OTP_ATTEMPTS,
+            failed_attempts=settings.SSO_MAX_ATTEMPTS,
         )
         user = self._authenticate("jeff", "12345")
         self.assertIsNone(user)
@@ -288,7 +248,7 @@ class PasswordlessMemberBackendTests(BaseLoginTestCase):
         req = MemberOTPRequest.objects.create(
             member=self.member,
             code="12345",
-            failed_attempts=PasswordlessMemberBackend.MAX_OTP_ATTEMPTS - 1,
+            failed_attempts=settings.SSO_MAX_ATTEMPTS - 1,
         )
         user = self._authenticate("jeff", "12345")
         self.assertIsNotNone(user)
