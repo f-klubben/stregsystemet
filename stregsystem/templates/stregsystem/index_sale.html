@@ -13,11 +13,17 @@
 <b>
 {% autoescape off %}
 <span class="username">{{member.username}}</span> har lige købt
-{% for product_with_counts in products_with_counts %}{% if forloop.last and not forloop.first %}
- og
-{% else %}{% if not forloop.first %},
-{% endif %}{% endif %}
-{{ product_with_counts.1 }} {{ product_with_counts.0.name }}{% endfor %}
+{% for productAndAmount in productAndAmounts %}
+    {% if not forloop.first %}
+        {% if forloop.last %}
+            og
+        {% else %}
+            ,
+        {% endif %}
+    {% endif %}
+    {{ productAndAmount.amount }} {{ productAndAmount.product.name }}
+{% endfor %}
+
 for tilsammen {{cost|money}} kr.
 </b>
 {% if member_has_low_balance %}

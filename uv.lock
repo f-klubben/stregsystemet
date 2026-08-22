@@ -224,6 +224,12 @@ wheels = [
 ]
 
 [[package]]
+name = "dredd-hooks"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/0c/f4/23234e8b673f8d4eec3c9dd79fb7e420b029c7064dea6c49ba7e22242ba8/dredd_hooks-0.2.0.tar.gz", hash = "sha256:7d0527ee269d716126de912098b6d8750fcb3755232cb902e5a360f1921df780", size = 9823, upload-time = "2018-04-09T12:47:29.107Z" }
+
+[[package]]
 name = "filelock"
 version = "3.29.4"
 source = { registry = "https://pypi.org/simple" }
@@ -461,7 +467,7 @@ wheels = [
 
 [[package]]
 name = "stregsystemet"
-version = "2.7.0"
+version = "2.7.1"
 source = { virtual = "." }
 dependencies = [
     { name = "coverage" },
@@ -480,6 +486,7 @@ dependencies = [
 dev = [
     { name = "black" },
     { name = "django-stubs" },
+    { name = "dredd-hooks" },
     { name = "pre-commit" },
     { name = "tomli-w" },
 ]
@@ -502,6 +509,7 @@ requires-dist = [
 dev = [
     { name = "black", specifier = ">=26.5.1" },
     { name = "django-stubs", specifier = ">=6.0.5" },
+    { name = "dredd-hooks", specifier = ">=0.2.0" },
     { name = "pre-commit", specifier = ">=4.6.0" },
     { name = "tomli-w", specifier = ">=1.2.0" },
 ]

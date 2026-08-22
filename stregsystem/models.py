@@ -1,8 +1,9 @@
+from __future__ import annotations
 import datetime
 import urllib.parse
 from abc import abstractmethod
-from collections import Counter
 from email.utils import parseaddr
+from typing import Optional
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
@@ -21,7 +22,9 @@ from stregsystem.utils import (
     make_processed_mobilepayment_query,
     make_unprocessed_member_filled_mobilepayment_query,
     PaymentToolException,
+    ProductAndAmount,
 )
+from stregsystem.signals import on_new_sale
 
 
 def price_display(value):
@@ -110,11 +113,10 @@ class Order(object):
         self.items = items or set()  # Set to none because we don't persist
 
     @classmethod
-    def from_products(cls, member, room, products):
-        counts = Counter(products)
+    def from_products(cls, member, room, productAndAmounts: list[ProductAndAmount]):
         order = cls(member, room)
-        for product, count in counts.items():
-            item = OrderItem(product=product, order=order, count=count)
+        for productAndAmount in productAndAmounts:
+            item = OrderItem(product=productAndAmount.product, order=order, count=productAndAmount.amount)
             order.items.add(item)
         return order
 
@@ -148,8 +150,13 @@ class Order(object):
             for i in range(item.count):
                 s = Sale(member=self.member, product=item.product, room=self.room, price=item.product.price)
                 sales.append(s)
+
         # Save all the sales
         Sale.objects.bulk_create(sales)
+
+        # Notify sale of creation
+        for sale in sales:
+            sale.on_bulk_created()
 
         # We changed the user balance, so save that
         self.member.save()
@@ -698,6 +705,9 @@ class Sale(BaseModel):
     timestamp = models.DateTimeField(auto_now_add=True)
     price = models.IntegerField()
 
+    refunded_at = models.DateTimeField(blank=True, null=True)
+    refunded_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
+
     class Meta(BaseModel.Meta):
         index_together = [
             ["product", "timestamp"],
@@ -717,16 +727,70 @@ class Sale(BaseModel):
         return self.__str__()
 
     def __str__(self):
-        return self.member.username + " " + self.product.name + " (" + money(self.price) + ") " + str(self.timestamp)
+        return (
+            self.member.username
+            + (" [REFUNDED]" if self.is_refunded() else " ")
+            + self.product.name
+            + " ("
+            + money(self.price)
+            + ") "
+            + str(self.timestamp)
+        )
+
+    def process_refund(self, admin_user: Optional[User]) -> None:
+        if self.is_refunded():
+            raise RuntimeError("Sale has already been refunded")
+
+        if admin_user is not None and not admin_user.is_staff:
+            raise PermissionError("Only staff users can refund others sales")
+
+        self.refunded_at = timezone.now()
+        self.refunded_by = admin_user
+        self.save()
+
+        # Refund the user
+        refund_transaction = GetTransaction(amount=self.price)
+        self.member.fulfill(refund_transaction)
+        self.member.save()
+
+    def is_refunded(self):
+        return self.refunded_at is not None
+
+    def on_bulk_created(self):
+        on_new_sale.send(sender=self, product=self.product)
 
     def save(self, *args, **kwargs):
-        if self.id:
+        if not self._is_save_allowed():
             raise RuntimeError("Updates of sales are not allowed")
+
+        already_exists = self.exists_in_database()
+
+        print(
+            f"Saving Sale ({self.pk}): member={self.member}, product={self.product}, room={self.room}, price={self.price}"
+        )
         super(Sale, self).save(*args, **kwargs)
 
-    def delete(self, *args, **kwargs):
-        if self.id:
-            super(Sale, self).delete(*args, **kwargs)
+        if not already_exists:
+            on_new_sale.send(sender=self, product=self.product)
+
+    def _is_save_allowed(self):
+        # New sale, always allow save
+        if not self.exists_in_database():
+            return True
+
+        database_value = Sale.objects.get(pk=self.pk)
+
+        if database_value.refunded_at is None and self.refunded_at is not None:
+            return True  # Allow saving if we're processing a refund (setting refunded_at from None to a timestamp)
+
+        return False  # Otherwise, disallow save
+
+    def exists_in_database(self):
+        return self.pk is not None and Sale.objects.filter(pk=self.pk).exists()
+
+    def delete(self, using: str | None = None, keep_parents: bool = False) -> tuple[int, dict[str, int]]:
+        if self.pk:
+            return super(Sale, self).delete(using=using, keep_parents=keep_parents)
         else:
             raise RuntimeError("You can't delete a sale that hasn't happened")
 
