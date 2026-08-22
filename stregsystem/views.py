@@ -282,14 +282,22 @@ def menu_userinfo(request, room_id, member_id):
     if not member.signup_approved():
         return render(request, 'stregsystem/error_signup_not_approved.html', locals())
 
-    stats = Sale.objects.filter(member_id=member_id).aggregate(
+    all_sales: QuerySet[Sale] = member.sale_set.order_by('-timestamp')
+    all_none_refunded_sales = all_sales.filter(refunded_at__isnull=True)
+    all_refunded_sales = all_sales.filter(refunded_at__isnull=False)
+
+    stats_none_refunded = Sale.objects.filter(member_id=member_id, refunded_at__isnull=True).aggregate(
+        total_amount=Sum('price'), total_purchases=Count('timestamp')
+    )
+    stats_refunded = Sale.objects.filter(member_id=member_id, refunded_at__isnull=False).aggregate(
         total_amount=Sum('price'), total_purchases=Count('timestamp')
     )
 
-    all_sales = member.sale_set.order_by('-timestamp')
     paginator = Paginator(all_sales, 10)
     list_number = request.GET.get('purchaselist', 1)
     last_sale_list = paginator.get_page(list_number)
+
+    anySaleHasBeenRefundedInPage = any(sale.refunded_at is not None for sale in last_sale_list)
 
     try:
         last_payment = member.payment_set.order_by('-timestamp')[0]
@@ -364,7 +372,12 @@ def menu_userrank(request, room_id, member_id):
 
     def ranking(category_ids, from_d, to_d):
         qs = (
-            Member.objects.filter(sale__product__in=category_ids, sale__timestamp__gt=from_d, sale__timestamp__lte=to_d)
+            Member.objects.filter(
+                sale__product__in=category_ids,
+                sale__timestamp__gt=from_d,
+                sale__timestamp__lte=to_d,
+                sale__refunded_at__isnull=True,
+            )
             .annotate(Count('sale'))
             .order_by('-sale__count', 'username')
         )
@@ -385,6 +398,7 @@ def menu_userrank(request, room_id, member_id):
             sale__product__in=category_ids,
             sale__timestamp__gt=from_d,
             sale__timestamp__lte=to_d,
+            sale__refunded_at__isnull=True,
         )
         if member not in qs:
             return 0
@@ -397,6 +411,7 @@ def menu_userrank(request, room_id, member_id):
             product__in=category_ids,
             timestamp__gt=from_d,
             timestamp__lte=to_d,
+            refunded_at__isnull=True,
         )
         return qs.count()
 

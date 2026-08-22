@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 from django.contrib import admin
 from django import forms
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
@@ -20,6 +20,7 @@ from stregsystem.models import (
     PendingSignup,
     Theme,
     ProductNote,
+    User,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -28,15 +29,27 @@ from stregsystem.utils import (
 )
 
 
-def refund(modeladmin, request, queryset):
-    for obj in queryset:
-        transaction = PayTransaction(obj.price)
-        obj.member.rollback(transaction)
-        obj.member.save()
-    queryset.delete()
+@admin.action(description="Refund selected")
+def refund_sales(modeladmin, request, queryset):
+    refunded = 0
+    skipped = 0
+    failed = 0
 
+    for sale in queryset:
+        if sale.is_refunded():
+            skipped += 1
+            continue
+        try:
+            sale.process_refund(request.user)
+            refunded += 1
+        except Exception as e:
+            failed += 1
+            messages.add_message(request, messages.ERROR, f"Sale {sale.pk} failed to refund: {e}")
 
-refund.short_description = "Refund selected"
+    if refunded:
+        messages.add_message(request, messages.SUCCESS, f"{refunded} sale(s) refunded.")
+    if skipped:
+        messages.add_message(request, messages.INFO, f"{skipped} sale(s) were already refunded.")
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -64,17 +77,43 @@ class BaseAdmin(admin.ModelAdmin):
 class SaleAdmin(BaseAdmin):
     list_filter = ('room', 'timestamp')
 
+    def get_list_display(self, request):
+        list_display = super().get_list_display(request)
+        if "get_refunded" in list_display:
+            has_refunds = self.get_queryset(request).filter(refunded_at__isnull=False).exists()
+            if not has_refunds:
+                list_display.remove("get_refunded")
+                list_display.remove("refunded_by")
+                list_display.remove("refunded_at")
+
+        return list_display
+
     def _get_fields_to_display(self):
         return [
             'get_username',
             'get_fullname',
             'get_product_name',
             'get_room_name',
+            'get_refunded',
             'timestamp',
             'get_price_display',
         ] + super()._get_fields_to_display()
 
-    actions = [refund]
+    def _get_fields_to_display_as_readonly(self) -> list[str]:
+        return [
+            'refunded_by',
+            'refunded_at',
+        ] + super()._get_fields_to_display_as_readonly()
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        user = cast(User, request.user)
+        if not user.is_staff:
+            if 'refund_sales' in actions:
+                del actions['refund_sales']
+        return actions
+
+    actions = [refund_sales]
     search_fields = ['^member__username', '=product__id', 'product__name']
     valid_lookups = 'member'
     autocomplete_fields = ['member', 'product']
@@ -93,6 +132,11 @@ class SaleAdmin(BaseAdmin):
 
     get_fullname.short_description = "Full name"
     get_fullname.admin_order_field = "member__firstname"
+
+    def get_refunded(self, obj):
+        if not isinstance(obj, Sale):
+            raise ValueError("obj must be of Sale")
+        return obj.is_refunded()
 
     def get_product_name(self, obj):
         return obj.product.name

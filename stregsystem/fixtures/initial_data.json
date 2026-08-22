@@ -158,58 +158,6 @@
   }
 },
 {
-  "model": "stregsystem.sale",
-  "pk": 1,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:36.066Z",
-    "member": 1,
-    "product": 2,
-    "room": 1,
-    "timestamp": "2017-03-13T12:52:00Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 2,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:36.066Z",
-    "member": 1,
-    "product": 3,
-    "room": 1,
-    "timestamp": "2017-03-13T12:52:52Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 3,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:36.066Z",
-    "member": 1,
-    "product": 3,
-    "room": 1,
-    "timestamp": "2017-03-13T12:52:52Z",
-    "price": 100
-  }
-},
-{
-  "model": "stregsystem.sale",
-  "pk": 4,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:36.066Z",
-    "member": 1,
-    "product": 3,
-    "room": 1,
-    "timestamp": "2017-03-13T12:52:52Z",
-    "price": 100
-  }
-},
-{
   "model": "auth.user",
   "fields": {
     "password": "pbkdf2_sha256$30000$ivRA8qABWClG$pxi2R4uyotlGpwa66RQuDOXFaO9JElQutMFJqXmnOdI=",
@@ -224,6 +172,66 @@
     "date_joined": "2017-03-06T10:53:54Z",
     "groups": [],
     "user_permissions": []
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 1,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:36.066Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2017-03-13T12:52:00Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 2,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:36.066Z",
+    "member": 1,
+    "product": 3,
+    "room": 1,
+    "timestamp": "2017-03-13T12:52:52Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 3,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:36.066Z",
+    "member": 1,
+    "product": 3,
+    "room": 1,
+    "timestamp": "2017-03-13T12:52:52Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 4,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:36.066Z",
+    "member": 1,
+    "product": 3,
+    "room": 1,
+    "timestamp": "2017-03-13T12:52:52Z",
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
   }
 }
 ]
