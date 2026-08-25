@@ -20,7 +20,7 @@ def send_welcome_mail(member):
         member,
         "welcome.html",
         {**vars(member), 'formatted_balance': money(member.balance)},
-        "Stregsystem",  # Original code didn't specify a subject line.
+        "F-Club - Welcome",  # Original code didn't specify a subject line.
     )
 
 
