@@ -20,7 +20,7 @@ def send_welcome_mail(member):
         member,
         "welcome.html",
         {**vars(member), 'formatted_balance': money(member.balance)},
-        None,  # Original code didn't specify a subject line.
+        "Stregsystem",  # Original code didn't specify a subject line.
     )
 
 
@@ -99,16 +99,19 @@ def send_userdata_mail(member):
         {**vars(member), "fember": member.username},
         f'{member.username} has requested their user data!',
         {"sales.csv": sales_csv.encode(), "payments.csv": payments_csv.encode(), "userdata.csv": userdata_csv.encode()},
+        'tilmeld@fklub.dk',
     )
     member.save()
     return True
 
 
-def send_template_mail(member, target_template: str, context: dict, subject: str, attachments: dict = {}):
+def send_template_mail(member, target_template: str, context: dict, subject: str, attachments: dict = {}, cc: str = None):
     msg = MIMEMultipart()
     msg['From'] = 'treo@fklub.dk'
     msg['To'] = member.email
     msg['Subject'] = subject
+    if cc:
+        msg['Cc'] = cc
     html = render_to_string(f"mail/{target_template}", context)
     msg.attach(MIMEText(html, 'html'))
 
