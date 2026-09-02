@@ -193,6 +193,7 @@ class Member(BaseModel):  # id automatisk...
     undo_count = models.IntegerField(default=0)  # for 'undos' i alt
     notes = models.TextField(blank=True)
     signup_due_paid = models.BooleanField(default=True)
+    paired_user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
 
     stregforbud_override = False
 
@@ -210,6 +211,12 @@ class Member(BaseModel):  # id automatisk...
 
     def __str__(self):
         return f"{active_str(self.active)} {self.username}: {self.firstname} {self.lastname} | {self.email} ({money(self.balance)})"
+
+    @property
+    def masked_email(self) -> str:
+        local, domain = self.email.split("@", 1)
+        masked = local[0] + "***" if len(local) > 1 else "***"
+        return f"{masked}@{domain}"
 
     def info_string(self) -> str:
         return f"{self.username}: {self.firstname} {self.lastname} | {self.email}"
@@ -350,6 +357,25 @@ class Member(BaseModel):  # id automatisk...
         )
 
         return user_with_most_coffees_bought == self
+
+    def generate_companion_user(self):
+        """
+        Used for authenticating with OIDC. A companion user is created on first login attempt.
+        """
+        username = f"auth_{self.pk}"
+        i = 0
+        while len(User.objects.filter(username=username)) != 0:
+            i += 1
+            username = f"auth_{self.pk}_{i}"
+
+        user = User.objects.create(
+            username=username,
+            is_staff=False,
+            is_superuser=False,
+            is_active=True,
+        )
+        self.paired_user = user
+        self.save()
 
 
 class Payment(BaseModel):  # id automatisk...

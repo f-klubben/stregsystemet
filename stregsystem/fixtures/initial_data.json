@@ -1,45 +1,5 @@
 [
 {
-  "model": "stregsystem.member",
-  "pk": 1,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:35.812Z",
-    "active": true,
-    "username": "jokke",
-    "year": "2007",
-    "firstname": "Joakim",
-    "lastname": "Byg",
-    "gender": "",
-    "email": "treo@cs.aau.dk",
-    "want_spam": true,
-    "balance": 1800,
-    "undo_count": 0,
-    "notes": "",
-    "signup_due_paid": true
-  }
-},
-{
-  "model": "stregsystem.member",
-  "pk": 2,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:35.812Z",
-    "active": true,
-    "username": "jan",
-    "year": "2017",
-    "firstname": "Jan",
-    "lastname": "Byg",
-    "gender": "",
-    "email": "treo2@cs.aau.dk",
-    "want_spam": true,
-    "balance": 0,
-    "undo_count": 0,
-    "notes": "",
-    "signup_due_paid": true
-  }
-},
-{
   "model": "stregsystem.room",
   "pk": 1,
   "fields": {
@@ -224,6 +184,48 @@
     "date_joined": "2017-03-06T10:53:54Z",
     "groups": [],
     "user_permissions": []
+  }
+},
+{
+  "model": "stregsystem.member",
+  "pk": 1,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:35.812Z",
+    "active": true,
+    "username": "jokke",
+    "year": "2007",
+    "firstname": "Joakim",
+    "lastname": "Byg",
+    "gender": "",
+    "email": "treo@cs.aau.dk",
+    "want_spam": true,
+    "balance": 1800,
+    "undo_count": 0,
+    "notes": "",
+    "signup_due_paid": true,
+    "paired_user": null
+  }
+},
+{
+  "model": "stregsystem.member",
+  "pk": 2,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:35.812Z",
+    "active": true,
+    "username": "jan",
+    "year": "2017",
+    "firstname": "Jan",
+    "lastname": "Byg",
+    "gender": "",
+    "email": "treo2@cs.aau.dk",
+    "want_spam": true,
+    "balance": 0,
+    "undo_count": 0,
+    "notes": "",
+    "signup_due_paid": true,
+    "paired_user": null
   }
 }
 ]
