@@ -38,7 +38,7 @@
   <div class="right">
     <input type="button" onclick="location.href='/{{room.id}}';" value="Menu"/>
     {% block signup_button %}
-      <input type="button" onclick="location.href='/signup'" value="Tilmeld"/>
+      <input type="button" onclick="location.href='/signup'" value="Tilmeld" {% if is_september %}style="font-size: 40pt;"{% else %}{% endif %}/>
     {% endblock %}
   </div>
 </header>
