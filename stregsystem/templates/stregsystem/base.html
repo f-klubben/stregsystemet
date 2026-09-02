@@ -37,7 +37,9 @@
   </h1>
   <div class="right">
     <input type="button" onclick="location.href='/{{room.id}}';" value="Menu"/>
-    <input type="button" onclick="location.href='/signup'" value="Tilmeld"/>
+    {% block signup_button %}
+      <input type="button" onclick="location.href='/signup'" value="Tilmeld"/>
+    {% endblock %}
   </div>
 </header>
 <div id="base-content">
