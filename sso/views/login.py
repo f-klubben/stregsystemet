@@ -80,7 +80,7 @@ class CustomLoginView(View):
                     _send_otp_email(member, fresh_otp, next)
                     messages.error(
                         request,
-                        "For mange for forkerte forsøg. Vi har sendt en ny F-kode",
+                        "For mange forkerte forsøg. Vi har sendt en ny F-kode",
                     )
                 else:
                     messages.error(request, "Forkert F-kode. Dobbelttjek mailen og forsøg igen")
