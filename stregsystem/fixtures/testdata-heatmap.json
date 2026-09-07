@@ -1,105 +1,5 @@
 [
 {
-  "model": "stregsystem.member",
-  "pk": 1,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.680Z",
-    "active": true,
-    "username": "tester",
-    "year": "2017",
-    "firstname": "Test",
-    "lastname": "Testsen",
-    "gender": "U",
-    "email": "plznospam@fklub.dk",
-    "want_spam": true,
-    "balance": 13354537,
-    "undo_count": 0,
-    "notes": "This is a test user.",
-    "signup_due_paid": true
-  }
-},
-{
-  "model": "stregsystem.member",
-  "pk": 2,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.680Z",
-    "active": true,
-    "username": "mlarsen",
-    "year": "2020",
-    "firstname": "Martin",
-    "lastname": "Larsen",
-    "gender": "M",
-    "email": "mlarsen@nsa.gov",
-    "want_spam": true,
-    "balance": 10000,
-    "undo_count": 0,
-    "notes": "",
-    "signup_due_paid": true
-  }
-},
-{
-  "model": "stregsystem.member",
-  "pk": 3,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.680Z",
-    "active": true,
-    "username": "tables",
-    "year": "2020",
-    "firstname": "Bobby",
-    "lastname": "Tables",
-    "gender": "M",
-    "email": "tables@nsa.gov",
-    "want_spam": true,
-    "balance": 12500,
-    "undo_count": 0,
-    "notes": "",
-    "signup_due_paid": true
-  }
-},
-{
-  "model": "stregsystem.member",
-  "pk": 4,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.680Z",
-    "active": true,
-    "username": "marx",
-    "year": "2020",
-    "firstname": "Karl",
-    "lastname": "Marx",
-    "gender": "M",
-    "email": "kmarx@nsa.gov",
-    "want_spam": true,
-    "balance": 6900,
-    "undo_count": 0,
-    "notes": "",
-    "signup_due_paid": true
-  }
-},
-{
-  "model": "stregsystem.member",
-  "pk": 5,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:54.680Z",
-    "active": true,
-    "username": "jdoe",
-    "year": "2020",
-    "firstname": "John",
-    "lastname": "Doe",
-    "gender": "M",
-    "email": "jdoe@nsa.gov",
-    "want_spam": true,
-    "balance": 42000,
-    "undo_count": 0,
-    "notes": "",
-    "signup_due_paid": true
-  }
-},
-{
   "model": "stregsystem.mobilepayment",
   "pk": 1,
   "fields": {
@@ -1085,6 +985,111 @@
     "date_joined": "2021-09-13T13:43:22Z",
     "groups": [],
     "user_permissions": []
+  }
+},
+{
+  "model": "stregsystem.member",
+  "pk": 1,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.680Z",
+    "active": true,
+    "username": "tester",
+    "year": "2017",
+    "firstname": "Test",
+    "lastname": "Testsen",
+    "gender": "U",
+    "email": "plznospam@fklub.dk",
+    "want_spam": true,
+    "balance": 13354537,
+    "undo_count": 0,
+    "notes": "This is a test user.",
+    "signup_due_paid": true,
+    "paired_user": null
+  }
+},
+{
+  "model": "stregsystem.member",
+  "pk": 2,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.680Z",
+    "active": true,
+    "username": "mlarsen",
+    "year": "2020",
+    "firstname": "Martin",
+    "lastname": "Larsen",
+    "gender": "M",
+    "email": "mlarsen@nsa.gov",
+    "want_spam": true,
+    "balance": 10000,
+    "undo_count": 0,
+    "notes": "",
+    "signup_due_paid": true,
+    "paired_user": null
+  }
+},
+{
+  "model": "stregsystem.member",
+  "pk": 3,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.680Z",
+    "active": true,
+    "username": "tables",
+    "year": "2020",
+    "firstname": "Bobby",
+    "lastname": "Tables",
+    "gender": "M",
+    "email": "tables@nsa.gov",
+    "want_spam": true,
+    "balance": 12500,
+    "undo_count": 0,
+    "notes": "",
+    "signup_due_paid": true,
+    "paired_user": null
+  }
+},
+{
+  "model": "stregsystem.member",
+  "pk": 4,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.680Z",
+    "active": true,
+    "username": "marx",
+    "year": "2020",
+    "firstname": "Karl",
+    "lastname": "Marx",
+    "gender": "M",
+    "email": "kmarx@nsa.gov",
+    "want_spam": true,
+    "balance": 6900,
+    "undo_count": 0,
+    "notes": "",
+    "signup_due_paid": true,
+    "paired_user": null
+  }
+},
+{
+  "model": "stregsystem.member",
+  "pk": 5,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.680Z",
+    "active": true,
+    "username": "jdoe",
+    "year": "2020",
+    "firstname": "John",
+    "lastname": "Doe",
+    "gender": "M",
+    "email": "jdoe@nsa.gov",
+    "want_spam": true,
+    "balance": 42000,
+    "undo_count": 0,
+    "notes": "",
+    "signup_due_paid": true,
+    "paired_user": null
   }
 }
 ]

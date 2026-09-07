@@ -24,6 +24,8 @@ from django.conf.global_settings import DEFAULT_AUTO_FIELD
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 PYPROJECT_PATH = os.path.join(BASE_DIR, "pyproject.toml")
+SSO_CODE_DURATION_MIN = 15
+SSO_MAX_ATTEMPTS = 3
 
 # @UPGRADE remove the specific unicode "u" here when we finalize the upgrade to
 # python3. It's only required to satisfy python2 StringIO
@@ -108,6 +110,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'sso',
     'debug_toolbar',
 ]
 
@@ -255,6 +258,11 @@ LOGGING = {
         }
     }
 }
+
+AUTHENTICATION_BACKENDS = [
+    'sso.auth_backends.PasswordlessMemberBackend',
+    'django.contrib.auth.backends.ModelBackend',  # keep for admin/superusers
+]
 
 global STREGSYSTEM_VERSION, STREGSYSTEM_API_VERSION
 
