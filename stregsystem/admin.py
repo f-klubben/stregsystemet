@@ -208,10 +208,7 @@ class ProductAdmin(BaseAdmin):
 
 
 class NamedProductAdmin(BaseAdmin):
-    search_fields = (
-        'name',
-        'product',
-    )
+    search_fields = ('name',)
 
     def _get_fields_to_display(self):
         return [
