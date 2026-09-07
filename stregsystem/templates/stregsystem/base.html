@@ -38,7 +38,7 @@
   <div class="right">
     <input type="button" onclick="location.href='/{{room.id}}';" value="Menu"/>
     {% block signup_button %}
-      <input type="button" onclick="location.href='/signup'" value="Tilmeld" {% if is_september %}style="font-size: 40pt;"{% else %}{% endif %}/>
+      <input type="button" id="signupBtn" onclick="location.href='/signup'" value="Tilmeld"/>
     {% endblock %}
   </div>
 </header>
@@ -78,6 +78,14 @@ document.addEventListener("DOMContentLoaded", () => {
       restartBtn?.click(); 
     }
   });
+
+  // Big signup button in september
+  const today = new Date()
+  const isSeptember = (today.getMonth() === 8)
+  if (isSeptember) {
+    const signupBtn = document.getElementById("signupBtn");
+    signupBtn.style.fontSize = "40pt"
+  }
 });
 </script>
 
