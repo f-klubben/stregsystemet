@@ -185,7 +185,7 @@ class Member(BaseModel):  # id automatisk...
     username = models.CharField(max_length=16, validators=[no_whitespace_validator])
     year = models.CharField(max_length=4, default=get_current_year)  # Put the current year as default
     firstname = models.CharField(max_length=20)  # for 'firstname'
-    lastname = models.CharField(max_length=30)  # for 'lastname'
+    lastname = models.CharField(max_length=31)  # for 'lastname'
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     email = models.EmailField(blank=True)
     want_spam = models.BooleanField(default=True)  # oensker vedkommende fember mails?
@@ -782,7 +782,6 @@ class PendingSignup(ApprovalModel):
 
         # Only delete Pending Signup if approved.
         if self.status == ApprovalModel.APPROVED:
-            self.member.trigger_welcome_mail()
             self.delete()
         else:
             self.save()
