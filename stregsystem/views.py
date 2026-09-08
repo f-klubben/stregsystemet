@@ -102,7 +102,6 @@ def index(request, room_id):
         ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room_id)
     ]
     news = __get_news()
-    is_september = (timezone.now().month == 9)
     return render(request, 'stregsystem/index.html', locals())
 
 
