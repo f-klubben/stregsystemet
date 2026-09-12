@@ -76,7 +76,7 @@ DEBUG = cfg.getboolean("debug", "DEBUG")
 
 CSRF_COOKIE_SECURE = cfg.getboolean("debug", "CSRF_COOKIE_SECURE")
 CSRF_COOKIE_HTTPONLY = cfg.getboolean("debug", "CSRF_COOKIE_HTTPONLY")
-CSRF_TRUSTED_ORIGINS = ["https://fappen.fklub.dk", "https://stregsystem.fklub.dk"]
+CSRF_TRUSTED_ORIGINS = ["https://fappen.fklub.dk", "https://stregsystem.fklub.dk", "http://host.docker.internal"]
 SESSION_COOKIE_SECURE = cfg.getboolean("debug", "SESSION_COOKIT_SECURE")
 
 SECURE_BROWSER_XSS_FILTER = cfg.getboolean("debug", "SECURE_BROWSER_XSS_FILTER")
@@ -87,7 +87,7 @@ X_FRAME_OPTIONS = cfg.get("general", "X_FRAME_OPTIONS")
 
 # We don't have any default hostnames for debug
 # But you really should have some when you are deploying
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["host.docker.internal"]
 
 for e in cfg.items("hostnames"):
     ALLOWED_HOSTS.append(e[1])
