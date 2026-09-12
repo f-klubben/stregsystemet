@@ -1036,9 +1036,7 @@ def api_sale_intent(request):
     data = json.loads(request.body)
 
     # Parse productstring parameter
-    product_string = None
-    if 'productstring' in data:
-        product_string = str(data['productstring']).strip()
+    product_string = str(data.get('productstring', '')).strip() or None
 
     if product_string is None:
         return HttpResponseBadRequest("Parameter missing: productstring")
