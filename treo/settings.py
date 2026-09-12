@@ -99,6 +99,7 @@ INSTALLED_APPS = [
     'stregreport',
     'kiosk',
     'razzia',
+    'achievements',
     'django_select2',
     'django.contrib.admin',
     'django.contrib.auth',

@@ -12,7 +12,6 @@ from django.utils.dateparse import parse_datetime
 import stregsystem.parser as parser
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
-from django.contrib.admin.sites import AdminSite
 from django.contrib.messages import get_messages
 from django.forms import model_to_dict
 from django.test import TestCase
@@ -22,7 +21,7 @@ from freezegun import freeze_time
 from stregreport import views
 from stregsystem import admin
 from stregsystem import views as stregsystem_views
-from stregsystem.admin import CategoryAdmin, ProductAdmin, MemberForm, MemberAdmin
+from stregsystem.admin import CategoryAdmin, ProductAdmin, MemberForm
 from stregsystem.booze import ballmer_peak
 from stregsystem.caffeine import CAFFEINE_DEGRADATION_PR_HOUR, CAFFEINE_IN_COFFEE
 from stregsystem.models import (
@@ -111,7 +110,8 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        assertCountEqual(self, response.context["products"], [('Limfjordsporter', 2)])
+        products_with_counts = [(product.name, count) for product, count in response.context["products_with_counts"]]
+        assertCountEqual(self, products_with_counts, [('Limfjordsporter', 2)])
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(1800))
@@ -127,8 +127,8 @@ class SaleViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
-
-        assertCountEqual(self, response.context["products"], {('Limfjordsporter', 1)})
+        products_with_counts = [(product.name, count) for product, count in response.context["products_with_counts"]]
+        assertCountEqual(self, products_with_counts, {('Limfjordsporter', 1)})
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))
@@ -143,7 +143,8 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        assertCountEqual(self, response.context["products"], {('Limfjordsporter', 1)})
+        products_with_counts = [(product.name, count) for product, count in response.context["products_with_counts"]]
+        assertCountEqual(self, products_with_counts, {('Limfjordsporter', 1)})
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))

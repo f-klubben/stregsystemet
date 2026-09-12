@@ -1,6 +1,7 @@
 {% extends "stregsystem/base.html" %}
 
 {% load stregsystem_extras %}
+{% load achievement_templates %}
 {% load listutil %}
 
 {% block title %}Treoens stregsystem : Menu {% endblock %}
@@ -128,8 +129,8 @@
     {% endautoescape %}
   {% endblock %}
   <br />
-  {% include "stregsystem/purchase_heatmap.html" %}
-</main>
-
+    {% include "stregsystem/purchase_heatmap.html" %}
+  </main>
+  {% achievement_notifications products_with_counts member %}
 {% endblock %}
 
