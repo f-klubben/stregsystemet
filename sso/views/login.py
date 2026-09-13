@@ -87,6 +87,9 @@ class CustomLoginView(View):
 
         if stage == 2:  # Try to validate OTP
             otp = request.POST.get("otp", "")
+            # Fallback: combine individual otp_1 through otp_5 fields
+            if not otp:
+                otp = "".join(request.POST.get(f"otp_{i}", "") for i in range(1, MemberOTPRequest.OTP_DIGITS + 1))
 
             user = authenticate(request, username=username, otp=otp)
 
