@@ -18,6 +18,10 @@ class MemberOTPRequest(models.Model):
     is_valid = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        verbose_name = "OTP request"
+        verbose_name_plural = "OTP requests"
+
     @classmethod
     def generate_otp_code(cls) -> str:
         return "".join(random.choices(string.digits, k=cls.OTP_DIGITS))
