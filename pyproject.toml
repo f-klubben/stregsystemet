@@ -5,7 +5,6 @@ description = "The Stregsystem is used at F-Klubben to pay for goods bought at S
 authors = [
     { name = "FIT" },
 ]
-license = { file = "LICENSE" }
 requires-python = "==3.11.*"
 readme = "README.md"
 dependencies = [
@@ -21,15 +20,19 @@ dependencies = [
     "requests==2.33.0",
 ]
 
+[project.license]
+file = "LICENSE"
+
 [tool.migratefixture.targets]
 kiosk = "0011_rename_uploaded_date_kioskitem_created_at"
 razzia = "0003_razzia_created_at_razzia_updated_at"
 stregreport = "0009_rename_razziaentry_razziaentryold"
-stregsystem = "0024_alter_productnote_products"
+stregsystem = "0025_member_paired_user"
 sessions = "0001_initial"
 contenttypes = "0002_remove_content_type_name"
 auth = "0012_alter_user_first_name_max_length"
 admin = "0003_logentry_add_action_flag_choices"
+sso = "0001_initial"
 
 [tool.stregsystemet]
 api-version = "1.2"
