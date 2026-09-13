@@ -176,6 +176,7 @@ class PasswordlessMemberBackendTests(BaseLoginTestCase):
         new_user = self.member.paired_user
 
         self.member.paired_user = None
+        self.member.save()
         self.member.generate_companion_user()
 
         # Check that the newly generated user actually is new.
