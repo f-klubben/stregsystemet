@@ -378,6 +378,8 @@ class Member(BaseModel):  # id automatisk...
 
         user = User.objects.create(
             username=username,
+            first_name=self.firstname,
+            last_name=self.lastname,
             is_staff=False,
             is_superuser=False,
             is_active=True,
