@@ -140,12 +140,12 @@ class Stage2ViewTests(BaseLoginTestCase):
         fresh = MemberOTPRequest.objects.get(member=self.member, is_valid=True)
         self.assertNotEqual(fresh.code, self.otp)
 
-    # def test_max_attempts_shows_resend_message(self):
-    #    for _ in range(PasswordlessMemberBackend.MAX_OTP_ATTEMPTS):
-    #        self._post_stage2("jeff", "99999")
-    #    response = self._post_stage2("jeff", "99999")
-    #    messages = [m.message for m in response.context["messages"]]
-    #    self.assertTrue(any("new code" in m.lower() for m in messages))
+    def test_max_attempts_shows_resend_message(self):
+        response = None
+        for _ in range(settings.SSO_MAX_ATTEMPTS):
+            response = self._post_stage2("jeff", "99999")
+        messages = [m.message for m in response.context["messages"]]
+        self.assertTrue(any("ny f-kode" in m.lower() for m in messages))
 
     def test_unknown_username_in_stage2_restarts(self):
         response = self._post_stage2("ghost", self.otp)
