@@ -1,10 +1,14 @@
+import hmac
 from datetime import timedelta
+from typing import Optional
 
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.utils import timezone
 
 from sso.models import MemberOTPRequest
 from stregsystem.models import Member
+from django.conf import settings
 
 
 class PasswordlessMemberBackend:
@@ -12,11 +16,10 @@ class PasswordlessMemberBackend:
     Minimal passwordless authentication backend.
     """
 
-    MAX_OTP_ATTEMPTS = 3
-    OTP_DURATION_MIN = 5
-
-    def authenticate(self, request, username=None, otp=None, **kwargs):
-        if username is None or not otp:
+    def authenticate(
+        self, request, username: Optional[str] = None, otp: Optional[str] = None, **kwargs: object
+    ) -> Optional[User]:
+        if not username or not otp:
             return None
 
         try:
@@ -24,38 +27,53 @@ class PasswordlessMemberBackend:
         except Member.DoesNotExist:
             return None
 
-        otp_request = MemberOTPRequest.objects.filter(member=member, is_valid=True).order_by("-created_at").first()
-        if not otp_request:
-            return None
+        with transaction.atomic():
+            otp_request = (
+                MemberOTPRequest.objects.select_for_update()
+                .filter(member=member, is_valid=True)
+                .order_by("-created_at")
+                .first()
+            )
+            if not otp_request:
+                return None
 
-        # Too old request
-        if otp_request.created_at < timezone.now() - timedelta(minutes=self.OTP_DURATION_MIN):
+            # Too old request
+            if otp_request.created_at < timezone.now() - timedelta(minutes=settings.SSO_CODE_DURATION_MIN):
+                otp_request.is_valid = False
+                otp_request.save()
+                return None
+
+            # Too many tries for this OTP
+            if otp_request.failed_attempts >= settings.SSO_MAX_ATTEMPTS:
+                otp_request.is_valid = False
+                otp_request.save()
+                return None
+
+            clean_otp = ''.join(c for c in otp if c.isdigit())
+
+            if not clean_otp:
+                return None
+
+            # Test whether correct OTP provided
+            if not hmac.compare_digest(otp_request.code, clean_otp):
+                otp_request.failed_attempts += 1
+                otp_request.save()
+                return None
+
+            # Login successful - Clear login attempts
             otp_request.is_valid = False
             otp_request.save()
-            return None
-
-        # Too many tries for this OTP
-        if otp_request.failed_attempts >= self.MAX_OTP_ATTEMPTS:
-            otp_request.is_valid = False
-            otp_request.save()
-            return None
-
-        # Test whether correct OTP provided
-        if otp_request.code != otp:
-            otp_request.failed_attempts += 1
-            otp_request.save()
-            return None
-
-        # Login successful - Clear login attempts
-        otp_request.is_valid = False
-        otp_request.save()
 
         if member.paired_user is None:
             member.generate_companion_user()
 
+        # ModelBackend behavior (user_can_authenticate checks is_active).
+        if not member.paired_user.is_active:
+            return None
+
         return member.paired_user
 
-    def get_user(self, user_id):
+    def get_user(self, user_id) -> Optional[User]:
         try:
             return User.objects.get(pk=user_id)
         except User.DoesNotExist:

@@ -212,6 +212,12 @@ class Member(BaseModel):  # id automatisk...
     def __str__(self):
         return f"{active_str(self.active)} {self.username}: {self.firstname} {self.lastname} | {self.email} ({money(self.balance)})"
 
+    @property
+    def masked_email(self) -> str:
+        local, domain = self.email.split("@", 1)
+        masked = local[0] + "***" if len(local) > 1 else "***"
+        return f"{masked}@{domain}"
+
     def info_string(self) -> str:
         return f"{self.username}: {self.firstname} {self.lastname} | {self.email}"
 
@@ -352,10 +358,18 @@ class Member(BaseModel):  # id automatisk...
 
         return user_with_most_coffees_bought == self
 
+    @transaction.atomic
     def generate_companion_user(self):
         """
-        Used for authenticating with OIDC. A companion user is created on first login attempt.
+        Used for authenticating with SSO, invoked once a member has been authenticated.
+        A companion user is created if it doesn't already exist.
         """
+        # Make sure self is locked, in case it was already inquired.
+        locked_self = Member.objects.select_for_update().get(pk=self.pk)
+        if locked_self.paired_user is not None:
+            self.paired_user = locked_self.paired_user
+            return
+
         username = f"auth_{self.pk}"
         i = 0
         while len(User.objects.filter(username=username)) != 0:
@@ -364,12 +378,15 @@ class Member(BaseModel):  # id automatisk...
 
         user = User.objects.create(
             username=username,
+            first_name=self.firstname,
+            last_name=self.lastname,
             is_staff=False,
             is_superuser=False,
             is_active=True,
         )
+        locked_self.paired_user = user
+        locked_self.save()
         self.paired_user = user
-        self.save()
 
 
 class Payment(BaseModel):  # id automatisk...

@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.conf import settings
 
 from sso.auth_backends import PasswordlessMemberBackend
 from sso.models import MemberOTPRequest
@@ -37,7 +38,7 @@ class BaseLoginTestCase(TestCase):
             {
                 "stage": "2",
                 "username": username,
-                "otp_combined": f"F{otp}",
+                "otp": f"F{otp}",
                 "next": next_url,
             },
         )
@@ -59,14 +60,14 @@ class Stage1ViewTests(BaseLoginTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["stage"], 1)
         messages = [m.message for m in response.context["messages"]]
-        self.assertTrue(any("username" in m.lower() for m in messages))
+        self.assertTrue(any("brugernavn" in m.lower() for m in messages))
 
     def test_unknown_username_returns_error(self):
         response = self._post_stage1("ghost")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["stage"], 1)
         messages = [m.message for m in response.context["messages"]]
-        self.assertTrue(any("no account" in m.lower() for m in messages))
+        self.assertTrue(any("stregbruger" in m.lower() for m in messages))
 
     def test_known_username_advances_to_stage2(self):
         response = self._post_stage1("jeff")
@@ -89,7 +90,7 @@ class Stage1ViewTests(BaseLoginTestCase):
         response = self._post_stage1("jeff")
         self.assertEqual(response.context["stage"], 1)
         messages = [m.message for m in response.context["messages"]]
-        self.assertTrue(any("email" in m.lower() for m in messages))
+        self.assertTrue(any("mailadresse" in m.lower() for m in messages))
 
     def test_masked_email_in_context_on_stage2(self):
         response = self._post_stage1("jeff")
@@ -132,19 +133,19 @@ class Stage2ViewTests(BaseLoginTestCase):
         self.assertEqual(otp_req.failed_attempts, 1)
 
     def test_max_attempts_issues_new_otp(self):
-        for _ in range(PasswordlessMemberBackend.MAX_OTP_ATTEMPTS):
+        for _ in range(settings.SSO_MAX_ATTEMPTS):
             self._post_stage2("jeff", "99999")
         # Original OTP should be invalidated; a fresh one issued
         self.assertEqual(MemberOTPRequest.objects.filter(member=self.member, is_valid=True).count(), 1)
         fresh = MemberOTPRequest.objects.get(member=self.member, is_valid=True)
         self.assertNotEqual(fresh.code, self.otp)
 
-    # def test_max_attempts_shows_resend_message(self):
-    #    for _ in range(PasswordlessMemberBackend.MAX_OTP_ATTEMPTS):
-    #        self._post_stage2("jeff", "99999")
-    #    response = self._post_stage2("jeff", "99999")
-    #    messages = [m.message for m in response.context["messages"]]
-    #    self.assertTrue(any("new code" in m.lower() for m in messages))
+    def test_max_attempts_shows_resend_message(self):
+        response = None
+        for _ in range(settings.SSO_MAX_ATTEMPTS):
+            response = self._post_stage2("jeff", "99999")
+        messages = [m.message for m in response.context["messages"]]
+        self.assertTrue(any("ny f-kode" in m.lower() for m in messages))
 
     def test_unknown_username_in_stage2_restarts(self):
         response = self._post_stage2("ghost", self.otp)
@@ -235,6 +236,7 @@ class PasswordlessMemberBackendTests(BaseLoginTestCase):
         new_user = self.member.paired_user
 
         self.member.paired_user = None
+        self.member.save()
         self.member.generate_companion_user()
 
         # Check that the newly generated user actually is new.
@@ -278,7 +280,7 @@ class PasswordlessMemberBackendTests(BaseLoginTestCase):
         req = MemberOTPRequest.objects.create(
             member=self.member,
             code="12345",
-            failed_attempts=PasswordlessMemberBackend.MAX_OTP_ATTEMPTS,
+            failed_attempts=settings.SSO_MAX_ATTEMPTS,
         )
         user = self._authenticate("jeff", "12345")
         self.assertIsNone(user)
@@ -288,7 +290,7 @@ class PasswordlessMemberBackendTests(BaseLoginTestCase):
         req = MemberOTPRequest.objects.create(
             member=self.member,
             code="12345",
-            failed_attempts=PasswordlessMemberBackend.MAX_OTP_ATTEMPTS - 1,
+            failed_attempts=settings.SSO_MAX_ATTEMPTS - 1,
         )
         user = self._authenticate("jeff", "12345")
         self.assertIsNotNone(user)

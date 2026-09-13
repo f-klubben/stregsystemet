@@ -1,4 +1,5 @@
 {% extends "modal/modal_base.html" %}
+{% load static %}
 
 {% block title %}Log ind{% if service_name %} — {{ service_name }}{% endif %}{% endblock %}
 
@@ -93,6 +94,7 @@
 {% endblock %}
 
 {% block content %}
+  <h2>Kære Fember</h2>
   {% if service_name or next %}
   <div class="sso-banner">
     Log ind for at fortsætte til <strong>{{ service_name|default:"the connected service" }}</strong>
@@ -102,7 +104,6 @@
   {% if stage == 1 or not stage %}
 
   <div class="stage-dots"><span class="active"></span><span></span></div>
-  <h1>Kære Fember</h1>
   <p class="subtitle">Indtast din stregbruger for at fortsætte.</p>
 
   <form method="POST" action="{% url 'sso_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" novalidate>
@@ -110,6 +111,7 @@
     <input type="hidden" name="stage" value="1"/>
     {% if next %}<input type="hidden" name="next" value="{{ next }}"/>{% endif %}
 
+    <br>
     <label for="username">Brugernavn</label>
     <input
       type="text" id="username" name="username"
@@ -131,32 +133,35 @@
     <input type="hidden" name="stage" value="2"/>
     <input type="hidden" name="username" value="{{ username }}"/>
     {% if next %}<input type="hidden" name="next" value="{{ next }}"/>{% endif %}
-    <input type="hidden" name="otp_combined" id="otp-combined"/>
+    <input type="hidden" name="otp" id="otp"/>
 
+    <br>
     <label>F‑Code</label>
     <div class="otp-row" id="otp-grid">
       <input type="text" value="F" readonly tabindex="-1" class="f-cell" aria-label="F prefix"/>
-      {% for i in "12345" %}
+      {% for i in otp_digits %}
       <input
         type="text" inputmode="numeric" pattern="[0-9]"
         name="otp_{{ i }}" maxlength="1" class="digit-cell"
         autocomplete="one-time-code" aria-label="Digit {{ i }}"
-        {% if i == "1" %}autofocus{% endif %}
+        {% if i == 1 %}autofocus{% endif %}
       />
       {% endfor %}
     </div>
 
     <button type="submit">Log ind →</button>
+  </form>
 
-    <div class="form-footer">
-      <span>Udløber om <strong id="countdown">05:00</strong></span>
-      <form method="POST" action="{% url 'sso_resend_otp' %}" style="display:contents">
+<div class="form-footer">
+    <span>Udløber om <strong id="countdown">15:00</strong></span>
+    <form method="POST" action="{% url 'sso_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" novalidate style="display:contents">
         {% csrf_token %}
+        <input type="hidden" name="stage" value="1"/>
         <input type="hidden" name="username" value="{{ username }}"/>
         {% if next %}<input type="hidden" name="next" value="{{ next }}"/>{% endif %}
         <button type="submit" id="resend-btn" disabled>Gensend F-kode</button>
-      </form>
-    </div>
+    </form>
+</div>
   </form>
 
   <div class="form-footer" style="margin-top:.75rem">
@@ -171,7 +176,7 @@
   if (!grid) return;
 
   const cells    = Array.from(grid.querySelectorAll('.digit-cell'));
-  const combined = document.getElementById('otp-combined');
+  const combined = document.getElementById('otp');
   const form     = document.getElementById('otp-form');
 
   const sync = () => combined.value = 'F' + cells.map(c => c.value).join('');
@@ -206,13 +211,17 @@
 
   const el  = document.getElementById('countdown');
   const btn = document.getElementById('resend-btn');
-  let s = 300;
+  let s = {{ otp_ttl }};
 
   const timer = setInterval(() => {
     s--;
     el.textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
     if (s <= 0) { clearInterval(timer); el.textContent = 'Udløbet'; btn.disabled = false; }
   }, 1000);
+
+  setTimeout(() => {
+       btn.disabled = false;
+  }, 5000) // 5 seconds to re-enable the button
 })();
 </script>
 {% endblock %}
