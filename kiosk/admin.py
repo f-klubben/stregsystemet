@@ -21,7 +21,7 @@ class KioskItemAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     list_display = ('active', 'name', 'notes', 'ordering', 'created_at', 'start_datetime', 'end_datetime')
     list_filter = ('active',)
-    list_display_links = ('active', 'name', 'notes', 'ordering', 'created_at', 'start_datetime', 'end_datetime')
+    list_display_links = ('name',)
     actions = [set_active_kiosk_item, set_inactive_kiosk_item]
 
 
