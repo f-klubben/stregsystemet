@@ -20,7 +20,7 @@ class Command(BaseCommand):
             return
 
         if not opts["fixture"] and not opts["all_fixtures"]:
-            self.stderr.write("Error: --fixture or --all-fixtures is required")
+            self.stderr.write("Error: --fixture [path], --all-fixtures, or --update-targets is required")
             return
 
         tmp = tempfile.NamedTemporaryFile(suffix=".sqlite3", delete=False)
