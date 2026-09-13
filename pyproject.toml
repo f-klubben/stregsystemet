@@ -38,7 +38,16 @@ sso = "0001_initial"
 api-version = "1.2"
 
 [tool.setuptools.packages.find]
-include = ["stregsystem", "treo", "media", "kiosk", "razzia", "openapi", "stregreport"]
+include = [
+    "stregsystem",
+    "treo",
+    "media",
+    "kiosk",
+    "razzia",
+    "openapi",
+    "stregreport",
+    "sso",
+]
 
 [dependency-groups]
 dev = [
