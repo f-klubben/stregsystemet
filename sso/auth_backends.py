@@ -56,6 +56,10 @@ class PasswordlessMemberBackend:
         if member.paired_user is None:
             member.generate_companion_user()
 
+        # ModelBackend behavior (user_can_authenticate checks is_active).
+        if not member.paired_user.is_active:
+            return None
+
         return member.paired_user
 
     def get_user(self, user_id) -> Optional[User]:
