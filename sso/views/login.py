@@ -49,12 +49,13 @@ class CustomLoginView(View):
     def get(self, request):
         stage = 1
         next = request.GET.get("next") or request.POST.get("next", "/")
-        messages.info(request, "Log ind for at fortsætte")
+        messages.warning(request, f"Log ind for at fortsætte til {next}")
         return render(request, self.template_name, locals())
 
     def post(self, request):
         stage = int(request.POST.get("stage", "1"))
         next = request.GET.get("next") or request.POST.get("next", "/")
+        messages.warning(request, f"Log ind for at fortsætte til {next}")
         username = request.POST.get("username", "").strip()
 
         if not username:

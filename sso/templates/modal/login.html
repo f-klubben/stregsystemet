@@ -17,17 +17,6 @@
       margin-bottom: 1.5rem;
     }
 
-    /* SSO banner */
-    .sso-banner {
-      font-size: .85rem;
-      color: #555;
-      background: #f0f4ff;
-      border: 1px solid #c7d7ff;
-      border-radius: 6px;
-      padding: .6rem .85rem;
-      margin-bottom: 1.25rem;
-    }
-
     /* OTP grid */
     .otp-row {
       display: flex;
@@ -94,16 +83,10 @@
 {% endblock %}
 
 {% block content %}
-  <h2>Kære Fember</h2>
-  {% if service_name or next %}
-  <div class="sso-banner">
-    Log ind for at fortsætte til <strong>{{ service_name|default:"the connected service" }}</strong>
-  </div>
-  {% endif %}
-
   {% if stage == 1 or not stage %}
-
   <div class="stage-dots"><span class="active"></span><span></span></div>
+
+  <h2>Kære Fember</h2>
   <p class="subtitle">Indtast din stregbruger for at fortsætte.</p>
 
   <form method="POST" action="{% url 'sso_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" novalidate>
