@@ -25,7 +25,11 @@ def make_active_productlist_query(queryset) -> QuerySet:
     now = timezone.now()
     # Create a query for the set of products that MIGHT be active. Might
     # because they can be out of stock. Which we compute later
-    active_candidates = queryset.filter(Q(active=True) & (Q(deactivate_date=None) | Q(deactivate_date__gte=now)))
+    active_candidates = queryset.filter(
+        Q(active=True)
+        & (Q(deactivate_date=None) | Q(deactivate_date__gte=now))
+        & (Q(start_date__isnull=True) | Q(start_date__lte=now.date()))
+    )
     # This query selects all the candidates that are out of stock.
     candidates_out_of_stock = (
         active_candidates.filter(sale__timestamp__gt=F("start_date"))
@@ -215,21 +219,19 @@ def rows_to_csv(rows) -> str:
 
 
 def get_user_oauth_sessions(user):
-    tokens = (
-        RefreshToken.objects
-        .filter(user=user) # , revoked__gt=timezone.now()
-        .select_related("application")
-    )
+    tokens = RefreshToken.objects.filter(user=user).select_related("application")  # , revoked__gt=timezone.now()
 
     sessions = []
 
     for t in tokens:
         access_token = t.access_token
-        sessions.append({
-            "id": t.id,
-            "application": access_token.application.name if t.application else None,
-            "scope": access_token.scope if access_token else None,
-        })
+        sessions.append(
+            {
+                "id": t.id,
+                "application": access_token.application.name if t.application else None,
+                "scope": access_token.scope if access_token else None,
+            }
+        )
 
     return sessions
 

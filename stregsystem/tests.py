@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+import json
 from collections import Counter
 from copy import deepcopy
 from unittest import mock
@@ -10,7 +11,6 @@ from django.utils.dateparse import parse_datetime
 import stregsystem.parser as parser
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
-from django.contrib.admin.sites import AdminSite
 from django.contrib.messages import get_messages
 from django.forms import model_to_dict
 from django.test import TestCase
@@ -20,7 +20,7 @@ from freezegun import freeze_time
 from stregreport import views
 from stregsystem import admin
 from stregsystem import views as stregsystem_views
-from stregsystem.admin import CategoryAdmin, ProductAdmin, MemberForm, MemberAdmin
+from stregsystem.admin import CategoryAdmin, ProductAdmin, MemberForm
 from stregsystem.booze import ballmer_peak
 from stregsystem.caffeine import CAFFEINE_DEGRADATION_PR_HOUR, CAFFEINE_IN_COFFEE
 from stregsystem.models import (
@@ -46,7 +46,12 @@ from stregsystem.models import (
 )
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
-from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, PaymentToolException
+from stregsystem.utils import (
+    make_active_productlist_query,
+    mobile_payment_exact_match_member,
+    strip_emoji,
+    PaymentToolException,
+)
 from stregsystem.mail import data_sent
 
 
@@ -103,7 +108,8 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        assertCountEqual(self, response.context["products"], [('Limfjordsporter', 2)])
+        products_with_counts = [(product.name, count) for product, count in response.context["products_with_counts"]]
+        assertCountEqual(self, products_with_counts, [('Limfjordsporter', 2)])
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(1800))
@@ -119,8 +125,8 @@ class SaleViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
-
-        assertCountEqual(self, response.context["products"], {('Limfjordsporter', 1)})
+        products_with_counts = [(product.name, count) for product, count in response.context["products_with_counts"]]
+        assertCountEqual(self, products_with_counts, {('Limfjordsporter', 1)})
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))
@@ -135,7 +141,8 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        assertCountEqual(self, response.context["products"], {('Limfjordsporter', 1)})
+        products_with_counts = [(product.name, count) for product, count in response.context["products_with_counts"]]
+        assertCountEqual(self, products_with_counts, {('Limfjordsporter', 1)})
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))
@@ -722,6 +729,24 @@ class ProductTests(TestCase):
         )
 
         self.assertTrue(product.is_active())
+
+    def test_is_active_active_future_start_date(self):
+        product = Product.objects.create(
+            active=True,
+            price=100,
+            start_date=timezone.now().date() + datetime.timedelta(days=1),
+        )
+
+        self.assertFalse(product.is_active())
+
+    def test_make_active_productlist_query_excludes_future_start_date(self):
+        future_product = Product.objects.create(
+            active=True,
+            price=100,
+            start_date=timezone.now().date() + datetime.timedelta(days=1),
+        )
+
+        self.assertNotIn(future_product, list(make_active_productlist_query(Product.objects)))
 
     def test_is_active_active_expired(self):
         product = Product.objects.create(
@@ -2296,7 +2321,6 @@ class MailTests(TestCase):
 
 
 class DateAttributeTestCase(TestCase):
-
     def test_created_at_field(self):
         now = timezone.now()
         with freeze_time(now):
@@ -2310,3 +2334,75 @@ class DateAttributeTestCase(TestCase):
             member.save()
             self.assertEqual(member.created_at, now)
             self.assertEqual(member.updated_at, now2)
+
+
+class ApiTests(TestCase):
+    """
+    A lot of the API testing is done separately using Dredd and OpenAPI.
+    These are edge-cases which can't be expressed in OpenAPI.
+    """
+
+    def setUp(self):
+        member = Member.objects.create(username="martin_p", email="test@example.com", signup_due_paid=False)
+        member.save()
+
+    def test_signup_duplicate_username(self):
+        response = self.client.post(
+            reverse('api_signup'),
+            json.dumps(
+                {
+                    'education': "sw",
+                    'username': "martin_p",  # Note: Duplicate username
+                    'firstname': "Martin",
+                    'lastname': "P.",
+                    'email': "test2@example.com",
+                    'gender': "M",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertNotEquals(response.status_code, 200)
+
+    def test_signup_partial_form_no_name(self):
+        response = self.client.post(
+            reverse('api_signup'),
+            json.dumps({'education': "sw", 'username': "martin_p2", 'email': "test2@example.com", 'gender': "M"}),
+            content_type="application/json",
+        )
+
+        self.assertNotEquals(response.status_code, 200)
+
+    def test_signup_partial_form_no_username(self):
+        response = self.client.post(
+            reverse('api_signup'),
+            json.dumps(
+                {
+                    'education': "sw",
+                    'firstname': "Martin",
+                    'lastname': "P.",
+                    'email': "test2@example.com",
+                    'gender': "M",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertNotEquals(response.status_code, 200)
+
+    def test_signup_partial_form_no_education(self):
+        response = self.client.post(
+            reverse('api_signup'),
+            json.dumps(
+                {
+                    'username': "martin_p2",
+                    'firstname': "Martin",
+                    'lastname': "P.",
+                    'email': "test2@example.com",
+                    'gender': "M",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertNotEquals(response.status_code, 200)

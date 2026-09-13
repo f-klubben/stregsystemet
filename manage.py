@@ -4,8 +4,7 @@ import sys
 
 import setup_utils
 
-
-if __name__ == "__main__":
+def main():
     cleanArgs = setup_utils.check_for_debugger(sys.argv)
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "treo.settings")
@@ -25,3 +24,6 @@ if __name__ == "__main__":
             )
         raise
     execute_from_command_line(cleanArgs)
+
+if __name__ == "__main__":
+    main()

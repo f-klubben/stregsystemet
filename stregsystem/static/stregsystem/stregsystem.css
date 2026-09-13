@@ -191,7 +191,7 @@ table h2, table h3 {
 /* Ensures that bats/"flakes" don't interfere with qr-code scanning */
 .qr-code {
     position: relative;
-    z-index: 2147483647;
+    z-index: 0;
     image-rendering: pixelated;
 }
 
