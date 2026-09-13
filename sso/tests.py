@@ -176,10 +176,10 @@ class ResendOTPViewTests(BaseLoginTestCase):
         super().setUp()
         self._post_stage1("jeff")
         self.original_otp = MemberOTPRequest.objects.get(member=self.member, is_valid=True).code
-        self.resend_url = reverse("sso_resend_otp")
+        self.resend_url = self.login_url
 
     def _resend(self, username="jeff", next_url="/"):
-        return self.client.post(self.resend_url, {"username": username, "next": next_url})
+        return self.client.post(self.resend_url, {"stage": "1", "username": username, "next": next_url})
 
     def test_resend_invalidates_old_otp(self):
         self._resend()
@@ -196,9 +196,12 @@ class ResendOTPViewTests(BaseLoginTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["stage"], 2)
 
-    def test_resend_unknown_username_redirects_to_login(self):
+    def test_resend_unknown_username_shows_error(self):
         response = self._resend(username="ghost")
-        self.assertRedirects(response, self.login_url, fetch_redirect_response=False)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["stage"], 1)
+        messages = [m.message for m in response.context["messages"]]
+        self.assertTrue(any("stregbruger" in m.lower() for m in messages))
 
     def test_new_otp_is_accepted_after_resend(self):
         self._resend()
