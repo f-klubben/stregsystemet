@@ -19,8 +19,8 @@ class Command(BaseCommand):
             self.update_targets()
             return
 
-        if not opts["fixture"]:
-            self.stderr.write("Error: --fixture is required, or --update-targets is required")
+        if not opts["fixture"] and not opts["all_fixtures"]:
+            self.stderr.write("Error: --fixture or --all-fixtures is required")
             return
 
         tmp = tempfile.NamedTemporaryFile(suffix=".sqlite3", delete=False)
@@ -39,7 +39,7 @@ class Command(BaseCommand):
                 self.stdout.write(f"{app} -> {migration}")
                 call_command("migrate", app, migration)
 
-            if opts["all"]:
+            if opts["all_fixtures"]:
                 self.update_all_fixtures("stregsystem/fixtures", targets)
             else:
                 fixture = opts["fixture"]
