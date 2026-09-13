@@ -14,8 +14,10 @@ class PasswordlessMemberBackend:
     Minimal passwordless authentication backend.
     """
 
-    def authenticate(self, request, username=None, otp=None, **kwargs):
-        if username is None or not otp:
+    def authenticate(
+        self, request, username: Optional[str] = None, otp: Optional[str] = None, **kwargs: object
+    ) -> Optional[User]:
+        if not username or not otp:
             return None
 
         try:
