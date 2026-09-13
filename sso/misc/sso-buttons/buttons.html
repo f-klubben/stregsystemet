@@ -1,0 +1,50 @@
+<link rel="stylesheet" href="https://raw.githubusercontent.com/f-klubben/stregsystemet/refs/heads/master/sso/misc/sso-buttons/buttons-style.css">
+<div class="fclub-sso-stack">
+  <button onclick="loginWithOIDC(['member:balance'])" class="fclub-sso-button member">
+    <img class="fclub-sso-logo" src="flogo.svg">
+    <span>Continue as Fember</span>
+  </button>
+
+  <button onclick="loginWithOIDC(['staff', 'member:balance'])" class="fclub-sso-button volunteer">
+    <img class="fclub-sso-logo" src="flogo.svg">
+    <span>Continue as F-rivillig</span>
+  </button>
+</div>
+
+<!-- Public PKCE authorization code flow example -->
+<script>
+const clientId = "demo123";
+
+async function loginWithOIDC(scopes) {
+  const redirectUri = "http://127.0.0.1:8001/callback/";
+  const issuerAuthEndpoint = "http://127.0.0.1:8000/o/authorize";
+
+  // CSRF protection
+  const state = crypto.randomUUID();
+
+  // PKCE
+  const verifier = crypto.randomUUID() + crypto.randomUUID();
+  const encoder = new TextEncoder();
+  const data = encoder.encode(verifier);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  const challenge = btoa(String.fromCharCode(...new Uint8Array(hash)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+
+  sessionStorage.setItem("oidc_state", state);
+  sessionStorage.setItem("pkce_verifier", verifier);
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: "code",
+    scope: scopes.join(' '),
+    state,
+    code_challenge: challenge,
+    code_challenge_method: "S256"
+  });
+
+  window.location.href = `${issuerAuthEndpoint}?${params.toString()}`;
+}
+</script>

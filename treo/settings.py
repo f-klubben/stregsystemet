@@ -24,6 +24,8 @@ from django.conf.global_settings import DEFAULT_AUTO_FIELD
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 PYPROJECT_PATH = os.path.join(BASE_DIR, "pyproject.toml")
+SSO_CODE_DURATION_MIN = 15
+SSO_MAX_ATTEMPTS = 3
 
 # @UPGRADE remove the specific unicode "u" here when we finalize the upgrade to
 # python3. It's only required to satisfy python2 StringIO
@@ -108,6 +110,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'sso',
+    'oauth2_provider',
     'debug_toolbar',
 ]
 
@@ -254,6 +258,33 @@ LOGGING = {
             'handlers': json.loads(cfg.get('logging', 'HANDLERS'))
         }
     }
+}
+
+AUTHENTICATION_BACKENDS = [
+    'sso.auth_backends.PasswordlessMemberBackend',
+    'django.contrib.auth.backends.ModelBackend',  # keep for admin/superusers
+]
+
+# openssl genrsa -out oidc.key 4096
+OIDC_RSA_PRIVATE_KEY = os.environ.get("OIDC_RSA_PRIVATE_KEY", None)
+if OIDC_RSA_PRIVATE_KEY is None:
+    with open('oidc.key', 'r') as f:
+        OIDC_RSA_PRIVATE_KEY = f.read()
+
+OAUTH2_PROVIDER = {
+    "OIDC_ENABLED": True,
+    "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
+    "SCOPES": {
+        "staff": "Tests whether the member is a volunteer",
+        "member:balance": "Retrieve balance",
+        "member:active": "Retrieve active-status",
+        "member:sales": "Retrieve all sales made",
+        "member:id": "Retrieve ID",
+        "member:email": "Retrieve email",
+        "member:name": "Retrieve first- and last name",
+        "member:year": "Retrieve enrollment year",
+        "member:gender": "Retrieve gender",
+    },
 }
 
 global STREGSYSTEM_VERSION, STREGSYSTEM_API_VERSION

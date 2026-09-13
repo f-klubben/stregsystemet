@@ -281,7 +281,7 @@ class MemberAdmin(BaseAdmin):
         (
             None,
             {
-                'fields': ('active', 'want_spam', 'signup_due_paid', 'balance', 'undo_count'),
+                'fields': ('active', 'want_spam', 'signup_due_paid', 'balance', 'undo_count', 'paired_user'),
                 'description': "Lad være med at rode med disse, med mindre du ved hvad du laver ...",
             },
         ),

@@ -1,0 +1,117 @@
+import random
+import string
+from typing import Optional
+from urllib.parse import urlparse, parse_qs
+from oauth2_provider.models import Application
+
+from django.contrib.auth import login, authenticate
+from django.contrib import messages
+from django.shortcuts import redirect, render
+from django.views import View
+from django.conf import settings
+
+from sso.auth_backends import PasswordlessMemberBackend
+from sso.models import MemberOTPRequest
+from sso.mail import send_fcode_mail
+from stregsystem.models import Member
+
+
+def _issue_otp(member: Member) -> str:
+    MemberOTPRequest.objects.filter(member=member).update(is_valid=False)
+    otp = MemberOTPRequest.generate_otp_code()
+    MemberOTPRequest.objects.create(member=member, code=otp)
+    return otp
+
+
+def _send_otp_email(member: Member, otp: str, redirect_url: str) -> None:
+    full_code = f"F-{otp}"
+    print(f"Sent F-code: {full_code}")
+    send_fcode_mail(member, full_code, redirect_url)
+
+
+def _get_client_from_next(next_url: str) -> Optional[Application]:
+    parsed = urlparse(next_url)
+    params = parse_qs(parsed.query)
+    client_id = params.get("client_id", [None])[0]
+
+    if not client_id:
+        return None
+
+    try:
+        return Application.objects.get(client_id=client_id)
+    except Application.DoesNotExist:
+        return None
+
+
+class CustomLoginView(View):
+    template_name = "modal/login.html"
+
+    def get(self, request):
+        stage = 1
+        next = request.GET.get("next") or request.POST.get("next", "/")
+        messages.warning(request, f"Log ind for at fortsætte til {next}")
+        return render(request, self.template_name, locals())
+
+    def post(self, request):
+        stage = int(request.POST.get("stage", "1"))
+        next = request.GET.get("next") or request.POST.get("next", "/")
+        messages.warning(request, f"Log ind for at fortsætte til {next}")
+        username = request.POST.get("username", "").strip()
+
+        if not username:
+            messages.error(request, "Indtast dit brugernavn")
+            return render(request, self.template_name, locals())
+
+        try:
+            member = Member.objects.get(username=username)
+        except Member.DoesNotExist:
+            messages.error(request, "Der findes ingen stregbruger med det navn")
+            if stage == 2:
+                return redirect("sso_login")
+            return render(request, self.template_name, locals())
+
+        if not member.email:
+            messages.error(request, "Din stregbruger har ingen mailadresse. Kontakt TREO'en på treo@fklub.dk for hjælp")
+            return render(request, self.template_name, locals())
+
+        masked_email = member.masked_email
+        otp_ttl = settings.SSO_CODE_DURATION_MIN * 60
+        otp_digits = range(1, MemberOTPRequest.OTP_DIGITS + 1)
+
+        if stage == 1:  # Generate and send OTP
+            otp = _issue_otp(member)
+            _send_otp_email(member, otp, next)
+
+            stage = 2
+            messages.info(request, "En F-kode er blevet sendt til din mailadresse")
+            return render(request, self.template_name, locals())
+
+        if stage == 2:  # Try to validate OTP
+            otp = request.POST.get("otp", "")
+            # Fallback: combine individual otp_1 through otp_5 fields
+            if not otp:
+                otp = "".join(request.POST.get(f"otp_{i}", "") for i in range(1, MemberOTPRequest.OTP_DIGITS + 1))
+
+            user = authenticate(request, username=username, otp=otp)
+
+            if user is None:
+                otp_request = (
+                    MemberOTPRequest.objects.filter(member=member, is_valid=True).order_by("-created_at").first()
+                )
+
+                if otp_request is None or otp_request.failed_attempts >= settings.SSO_MAX_ATTEMPTS:
+                    fresh_otp = _issue_otp(member)
+                    _send_otp_email(member, fresh_otp, next)
+                    messages.error(
+                        request,
+                        "For mange forkerte forsøg. Vi har sendt en ny F-kode",
+                    )
+                else:
+                    messages.error(request, "Forkert F-kode. Dobbelttjek mailen og forsøg igen")
+                return render(request, self.template_name, locals())
+
+            login(request, user, backend="sso.auth_backends.PasswordlessMemberBackend")
+            return redirect(next or "index")
+
+        # Something has gone wrong, restart
+        return redirect("sso_login")
