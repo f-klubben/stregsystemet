@@ -111,6 +111,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'sso',
+    'oauth2_provider',
     'debug_toolbar',
 ]
 
