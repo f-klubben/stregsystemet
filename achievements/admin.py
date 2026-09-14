@@ -11,6 +11,7 @@ from django.conf import settings
 
 class AchievementAdmin(BaseAdmin):
     form = AchievementForm
+    date_hierarchy = 'active_from'
 
     search_fields = ['title', 'description']
 
@@ -60,14 +61,18 @@ class AchievementAdmin(BaseAdmin):
             obj.full_clean()
             obj.save()
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related('constraints', 'tasks')
+
     actions = [set_active_from_to_now, set_active_from_to_null]
 
 
 class AchievementTaskAdmin(BaseAdmin):
     def _get_fields_to_display(self):
         return [
-            'notes',
             'task_type',
+            'notes',
             'goal_value',
             'get_product',
             'category',
@@ -80,6 +85,7 @@ class AchievementTaskAdmin(BaseAdmin):
         return ""
 
     get_product.short_description = "Product"
+    get_product.admin_order_field = "product__name"
 
 
 class AchievementCompleteAdmin(BaseAdmin):
@@ -98,15 +104,20 @@ class AchievementCompleteAdmin(BaseAdmin):
     def get_username(self, obj):
         return obj.member.username
 
+    get_username.short_description = 'Username'
+    get_username.admin_order_field = 'member__username'
+
     def get_achievement_title(self, obj):
         return obj.achievement.title
 
     get_achievement_title.short_description = 'Achievement Title'
+    get_achievement_title.admin_order_field = 'achievement__title'
 
     def get_achievement_description(self, obj):
         return obj.achievement.description
 
     get_achievement_description.short_description = 'Achievement Description'
+    get_achievement_description.admin_order_field = 'achievement__description'
 
 
 class AchievementConstraintAdmin(BaseAdmin):
