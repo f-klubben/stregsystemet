@@ -3,10 +3,11 @@ from django.utils.html import format_html
 from django.utils.safestring import SafeString
 
 from sso.models import MemberOTPRequest
+from stregsystem.admin import BaseAdmin
 
 
 @admin.register(MemberOTPRequest)
-class MemberOTPRequestAdmin(admin.ModelAdmin):
+class MemberOTPRequestAdmin(BaseAdmin):
     list_display = (
         'id',
         'member_link',
