@@ -190,7 +190,7 @@ def __get_heatmap_data_by_date(
     cutoff_date = end_date - timedelta(days=days_to_go_back)
 
     last_sale_list = list(
-        member.sale_set.filter(timestamp__gte=cutoff_date, timestamp__lte=end_date)
+        member.sale_set.filter(timestamp__gte=cutoff_date, timestamp__lte=end_date, refunded_at__isnull=True)
         .select_related('product')
         .order_by('-timestamp')
     )
