@@ -193,6 +193,7 @@ class Member(BaseModel):  # id automatisk...
     undo_count = models.IntegerField(default=0)  # for 'undos' i alt
     notes = models.TextField(blank=True)
     signup_due_paid = models.BooleanField(default=True)
+    # welcome_mail_sent = models.BooleanField(default=False)
 
     stregforbud_override = False
 
@@ -226,12 +227,15 @@ class Member(BaseModel):  # id automatisk...
         return pending_signup.status == ApprovalModel.APPROVED
 
     def trigger_welcome_mail(self):
+        """if self.welcome_mail_sent:
+        return"""
         if not self.signup_due_paid:
             return
         if not self.signup_approved():
             return
-
         send_welcome_mail(self)
+        # self.welcome_mail_sent = True
+        self.save()
 
     # XXX - virker ikke
     #    def get_absolute_url(self):
