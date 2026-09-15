@@ -8,14 +8,15 @@ from stregsystem.admin import BaseAdmin
 
 @admin.register(MemberOTPRequest)
 class MemberOTPRequestAdmin(BaseAdmin):
-    list_display = (
-        'id',
-        'member_link',
-        'created_at',
-        'is_valid',
-        'failed_attempts',
-        'code_masked',
-    )
+    def _get_fields_to_display(self):
+        return [
+            'id',
+            'member_link',
+            'created_at',
+            'is_valid',
+            'failed_attempts',
+            'code_masked',
+        ] + super()._get_fields_to_display()
 
     list_display_links = ('id',)
     list_filter = (
