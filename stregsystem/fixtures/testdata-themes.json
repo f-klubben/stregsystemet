@@ -1,85 +1,5 @@
 [
 {
-  "model": "stregsystem.member",
-  "pk": 1,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:15:14.727Z",
-    "active": true,
-    "username": "tester",
-    "year": "2026",
-    "firstname": "Test",
-    "lastname": "Testsen",
-    "gender": "",
-    "email": "plznospam@fklub.dk",
-    "want_spam": true,
-    "balance": 13366037,
-    "undo_count": 0,
-    "notes": "This is a test user.",
-    "signup_due_paid": true
-  }
-},
-{
-  "model": "stregsystem.member",
-  "pk": 2,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:15:14.727Z",
-    "active": true,
-    "username": "q",
-    "year": "2026",
-    "firstname": "q",
-    "lastname": "q",
-    "gender": "",
-    "email": "plznospam@fklub.dk",
-    "want_spam": true,
-    "balance": 13366037,
-    "undo_count": 0,
-    "notes": "This is a test user with a short name for maximum testing speed.",
-    "signup_due_paid": true
-  }
-},
-{
-  "model": "stregsystem.member",
-  "pk": 3,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:15:14.727Z",
-    "active": true,
-    "username": "nodough",
-    "year": "2026",
-    "firstname": "No",
-    "lastname": "Dough",
-    "gender": "",
-    "email": "plznospam@fklub.dk",
-    "want_spam": true,
-    "balance": 0,
-    "undo_count": 0,
-    "notes": "This is a test user with no stregdollars.",
-    "signup_due_paid": true
-  }
-},
-{
-  "model": "stregsystem.member",
-  "pk": 4,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:15:14.727Z",
-    "active": true,
-    "username": "lowdough",
-    "year": "2026",
-    "firstname": "Low",
-    "lastname": "Dough",
-    "gender": "",
-    "email": "plznospam@fklub.dk",
-    "want_spam": true,
-    "balance": 1500,
-    "undo_count": 0,
-    "notes": "This is a test user with only 15 stregdollars.",
-    "signup_due_paid": true
-  }
-},
-{
   "model": "stregsystem.category",
   "pk": 1,
   "fields": {
@@ -1421,6 +1341,90 @@
     "date_joined": "2026-03-10T10:15:12.983Z",
     "groups": [],
     "user_permissions": []
+  }
+},
+{
+  "model": "stregsystem.member",
+  "pk": 1,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.727Z",
+    "active": true,
+    "username": "tester",
+    "year": "2026",
+    "firstname": "Test",
+    "lastname": "Testsen",
+    "gender": "",
+    "email": "plznospam@fklub.dk",
+    "want_spam": true,
+    "balance": 13366037,
+    "undo_count": 0,
+    "notes": "This is a test user.",
+    "signup_due_paid": true,
+    "paired_user": null
+  }
+},
+{
+  "model": "stregsystem.member",
+  "pk": 2,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.727Z",
+    "active": true,
+    "username": "q",
+    "year": "2026",
+    "firstname": "q",
+    "lastname": "q",
+    "gender": "",
+    "email": "plznospam@fklub.dk",
+    "want_spam": true,
+    "balance": 13366037,
+    "undo_count": 0,
+    "notes": "This is a test user with a short name for maximum testing speed.",
+    "signup_due_paid": true,
+    "paired_user": null
+  }
+},
+{
+  "model": "stregsystem.member",
+  "pk": 3,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.727Z",
+    "active": true,
+    "username": "nodough",
+    "year": "2026",
+    "firstname": "No",
+    "lastname": "Dough",
+    "gender": "",
+    "email": "plznospam@fklub.dk",
+    "want_spam": true,
+    "balance": 0,
+    "undo_count": 0,
+    "notes": "This is a test user with no stregdollars.",
+    "signup_due_paid": true,
+    "paired_user": null
+  }
+},
+{
+  "model": "stregsystem.member",
+  "pk": 4,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:14.727Z",
+    "active": true,
+    "username": "lowdough",
+    "year": "2026",
+    "firstname": "Low",
+    "lastname": "Dough",
+    "gender": "",
+    "email": "plznospam@fklub.dk",
+    "want_spam": true,
+    "balance": 1500,
+    "undo_count": 0,
+    "notes": "This is a test user with only 15 stregdollars.",
+    "signup_due_paid": true,
+    "paired_user": null
   }
 }
 ]
