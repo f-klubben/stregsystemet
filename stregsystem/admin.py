@@ -28,15 +28,12 @@ from stregsystem.utils import (
 )
 
 
-def refund(modeladmin, request, queryset):
-    for obj in queryset:
-        transaction = PayTransaction(obj.price)
-        obj.member.rollback(transaction)
-        obj.member.save()
-    queryset.delete()
-
-
-refund.short_description = "Refund selected"
+@admin.action(description="Refunder valgte sales")
+def refund_sales(modeladmin, request, queryset):
+    for sale in queryset:
+        if not isinstance(sale, Sale):
+            raise ValueError("queryset must be of Sale")
+        sale.process_refund(request.user)
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -68,13 +65,15 @@ class SaleAdmin(BaseAdmin):
         return [
             'get_username',
             'get_fullname',
+            'get_refunded',
             'get_product_name',
             'get_room_name',
             'timestamp',
             'get_price_display',
         ] + super()._get_fields_to_display()
 
-    actions = [refund]
+    readonly_fields = ("refunded_at", "refunded_by")
+    actions = [refund_sales]
     search_fields = ['^member__username', '=product__id', 'product__name']
     valid_lookups = 'member'
     autocomplete_fields = ['member', 'product']
@@ -93,6 +92,11 @@ class SaleAdmin(BaseAdmin):
 
     get_fullname.short_description = "Full name"
     get_fullname.admin_order_field = "member__firstname"
+
+    def get_refunded(self, obj):
+        if not isinstance(obj, Sale):
+            raise ValueError("obj must be of Sale")
+        return obj.is_refunded()
 
     def get_product_name(self, obj):
         return obj.product.name
@@ -140,19 +144,19 @@ def toggle_active_selected_products(modeladmin, request, queryset):
 
 
 class ProductActivatedListFilter(admin.SimpleListFilter):
-    title = "activated"
-    parameter_name = "activated"
+    title = 'activated'
+    parameter_name = 'activated'
 
     def lookups(self, request, model_admin):
         return (
-            ("Yes", "Yes"),
-            ("No", "No"),
+            ('Yes', 'Yes'),
+            ('No', 'No'),
         )
 
     def queryset(self, request, queryset):
-        if self.value() == "Yes":
+        if self.value() == 'Yes':
             return make_active_productlist_query(queryset)
-        elif self.value() == "No":
+        elif self.value() == 'No':
             return make_inactive_productlist_query(queryset)
         else:
             return queryset

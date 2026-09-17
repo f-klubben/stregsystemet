@@ -1,6 +1,6 @@
-from django.db.models.signals import post_save
-from django.db.models import F
-from django.dispatch import receiver
+from django.dispatch import Signal
+
+on_new_sale = Signal()
 
 
 def after_member_save(sender, instance, created, **kwargs):

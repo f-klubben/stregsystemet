@@ -1207,7 +1207,9 @@
     "product": 11,
     "room": 1,
     "timestamp": "2017-03-13T12:52:52.142Z",
-    "price": 100
+    "price": 100,
+    "refunded_at": null,
+    "refunded_by": null
   }
 },
 {
@@ -1220,7 +1222,9 @@
     "product": 32,
     "room": 1,
     "timestamp": "2017-03-13T12:54:12.423Z",
-    "price": 200
+    "price": 200,
+    "refunded_at": null,
+    "refunded_by": null
   }
 },
 {
@@ -1233,7 +1237,9 @@
     "product": 42,
     "room": 1,
     "timestamp": "2017-03-13T13:38:10.573Z",
-    "price": 300
+    "price": 300,
+    "refunded_at": null,
+    "refunded_by": null
   }
 },
 {
@@ -1357,6 +1363,7 @@
 },
 {
   "model": "auth.user",
+  "pk": 1,
   "fields": {
     "password": "pbkdf2_sha256$30000$ivRA8qABWClG$pxi2R4uyotlGpwa66RQuDOXFaO9JElQutMFJqXmnOdI=",
     "last_login": null,
@@ -1374,6 +1381,7 @@
 },
 {
   "model": "auth.user",
+  "pk": 2,
   "fields": {
     "password": "pbkdf2_sha256$30000$ivRA8qABWClG$pxi2R4uyotlGpwa66RQuDOXFaO9JElQutMFJqXmnOdI=",
     "last_login": null,
@@ -1391,6 +1399,7 @@
 },
 {
   "model": "auth.user",
+  "pk": 3,
   "fields": {
     "password": "pbkdf2_sha256$30000$ivRA8qABWClG$pxi2R4uyotlGpwa66RQuDOXFaO9JElQutMFJqXmnOdI=",
     "last_login": null,
@@ -1408,6 +1417,7 @@
 },
 {
   "model": "auth.user",
+  "pk": 4,
   "fields": {
     "password": "pbkdf2_sha256$30000$ivRA8qABWClG$pxi2R4uyotlGpwa66RQuDOXFaO9JElQutMFJqXmnOdI=",
     "last_login": null,

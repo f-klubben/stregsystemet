@@ -47,6 +47,7 @@ from stregsystem.models import (
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
 from stregsystem.utils import (
+    ProductAndAmount,
     make_active_productlist_query,
     mobile_payment_exact_match_member,
     strip_emoji,
@@ -91,6 +92,14 @@ class ModelMiscTests(TestCase):
 class SaleViewTests(TestCase):
     fixtures = ["initial_data"]
 
+    def _compare_product_and_amounts_to_buy(self, response, expected_productAndAmounts) -> list[ProductAndAmount]:
+        productAndAmounts = response.context["productAndAmounts"]
+        self.assertIsNotNone(productAndAmounts)
+        self.assertIsInstance(productAndAmounts, list)
+        self.assertCountEqual(productAndAmounts, expected_productAndAmounts)
+        self.assertListEqual(productAndAmounts, expected_productAndAmounts)
+        return productAndAmounts
+
     def test_make_sale_letter_quickbuy(self):
         response = self.client.post(reverse('quickbuy', args="1"), {"quickbuy": "jokke a"})
         self.assertEqual(response.status_code, 200)
@@ -108,8 +117,7 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        products_with_counts = [(product.name, count) for product, count in response.context["products_with_counts"]]
-        assertCountEqual(self, products_with_counts, [('Limfjordsporter', 2)])
+        self._compare_product_and_amounts_to_buy(response, [ProductAndAmount(Product.objects.get(id=1), 2)])
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(1800))
@@ -125,8 +133,8 @@ class SaleViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
-        products_with_counts = [(product.name, count) for product, count in response.context["products_with_counts"]]
-        assertCountEqual(self, products_with_counts, {('Limfjordsporter', 1)})
+
+        self._compare_product_and_amounts_to_buy(response, [ProductAndAmount(Product.objects.get(id=1), 1)])
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))
@@ -141,8 +149,7 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        products_with_counts = [(product.name, count) for product, count in response.context["products_with_counts"]]
-        assertCountEqual(self, products_with_counts, {('Limfjordsporter', 1)})
+        self._compare_product_and_amounts_to_buy(response, [ProductAndAmount(Product.objects.get(id=1), 1)])
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))
@@ -579,11 +586,12 @@ class OrderTest(TestCase):
 
     def test_order_fromproducts(self):
         products = [
-            self.product,
-            self.product,
+            ProductAndAmount(self.product, 2),
         ]
         order = Order.from_products(self.member, self.room, products)
-        self.assertEqual(list(Counter(products).items()), [(item.product, item.count) for item in order.items])
+        for item in order.items:
+            self.assertEqual(item.product, products[0].product)
+            self.assertEqual(item.count, products[0].amount)
 
     def test_order_total_single_item(self):
         order = Order(self.member, self.room)
@@ -909,12 +917,51 @@ class SaleTests(TestCase):
             active=True,
         )
 
+    def test_sale_process_refund(self):
+        admin = User.objects.create_superuser("admin", "admin@example.com", "adminpassword")
+        sale_1 = Sale.objects.create(member=self.member, product=self.product, price=self.product.price)
+        sale_2 = Sale.objects.create(member=self.member, product=self.product, price=self.product.price)
+
+        self.assertEqual(self.member.balance, 100)
+
+        now = timezone.now()
+        with freeze_time(now):
+            sale_1.process_refund(admin)
+            self.member.refresh_from_db()
+            self.assertEqual(self.member.balance, 101)
+            self.assertEqual(sale_1.refunded_by, admin)
+            self.assertIsNotNone(sale_1.refunded_at)
+            assert sale_1.refunded_at is not None
+            self.assertEqual(sale_1.refunded_at, now)
+
+        now = timezone.now()
+        with freeze_time(now):
+            sale_2.process_refund(None)
+            self.member.refresh_from_db()
+            self.assertEqual(self.member.balance, 102)
+            self.assertIsNone(sale_2.refunded_by)
+            self.assertIsNotNone(sale_2.refunded_at)
+            assert sale_2.refunded_at is not None
+            self.assertEqual(sale_2.refunded_at, now)
+
+        non_admin = User.objects.create_user("nonadmin", "nonadmin@example.com", "nonadminpassword")
+        sale_3 = Sale.objects.create(member=self.member, product=self.product, price=self.product.price)
+
+        with self.assertRaises(PermissionError):
+            sale_3.process_refund(non_admin)
+
+        with self.assertRaises(RuntimeError):
+            sale_1.process_refund(admin)
+
+        with self.assertRaises(RuntimeError):
+            sale_2.process_refund(None)
+
     def test_sale_save_not_saved(self):
         sale = Sale(member=self.member, product=self.product, price=100)
 
         sale.save()
 
-        self.assertIsNotNone(sale.id)
+        self.assertIsNotNone(sale.pk)
 
     def test_sale_save_already_saved(self):
         sale = Sale(member=self.member, product=self.product, price=100)
@@ -1283,18 +1330,18 @@ class ProductRoomFilterTests(TestCase):
     def test_general_room_dont_get_special_items(self):
         numberOfSpecialItems = 2
         response = self.client.get(reverse('menu_index', args=(1,)))
-        product_pairs = response.context['product_note_pair_list']
+        product_pairs = response.context['productDisplayItems']
         specialProduct = Product.objects.get(pk=3)
 
-        any(self.assertFalse(specialProduct == pair.product) for pair in product_pairs)
+        any(self.assertFalse(specialProduct == displayItem.product) for displayItem in product_pairs)
         self.assertEqual(len(product_pairs), len(Product.objects.all()) - numberOfSpecialItems)
 
     def test_special_room_get_special_items(self):
         response = self.client.get(reverse('menu_index', args=(2,)))
-        product_pairs = response.context['product_note_pair_list']
+        product_pairs = response.context['productDisplayItems']
         specialProduct = Product.objects.get(pk=3)
 
-        self.assertTrue(any(specialProduct == pair.product) for pair in product_pairs)
+        self.assertTrue(any(specialProduct == displayItem.product) for displayItem in product_pairs)
         self.assertEqual(len(product_pairs), len(Product.objects.all()))
 
 

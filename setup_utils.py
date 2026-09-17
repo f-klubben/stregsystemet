@@ -13,7 +13,9 @@ def check_for_debugger(args: list[str]) -> list[str]:
         listen_and_wait_for_debugger()
         args.remove(waitForDebugArg)
 
-    return args
+    return [
+        arg for arg in args if arg != ""
+    ]  # strip empty strings from VSCode input
 
 
 def listen_and_wait_for_debugger():

@@ -39,6 +39,7 @@ include = ["stregsystem", "treo", "media", "kiosk", "razzia", "openapi", "stregr
 
 [dependency-groups]
 dev = [
+    "dredd-hooks>=0.2.0",
     "tomli-w>=1.2.0",
     "pre-commit>=4.6.0",
     "django-stubs>=6.0.5",
