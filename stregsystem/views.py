@@ -55,6 +55,7 @@ from stregsystem.utils import (
     parse_csv_and_create_mobile_payments,
     PaymentToolException,
     make_unprocessed_signups_query,
+    get_member_rankings,
 )
 
 from .booze import ballmer_peak
@@ -362,44 +363,6 @@ def menu_userrank(request, room_id, member_id):
     if not member.signup_approved():
         return render(request, 'stregsystem/error_signup_not_approved.html', locals())
 
-    def ranking(category_ids, from_d, to_d):
-        qs = (
-            Member.objects.filter(sale__product__in=category_ids, sale__timestamp__gt=from_d, sale__timestamp__lte=to_d)
-            .annotate(Count('sale'))
-            .order_by('-sale__count', 'username')
-        )
-        if member not in qs:
-            return 0, qs.count()
-        return list(qs).index(Member.objects.get(id=member.id)) + 1, int(qs.count())
-
-    def get_product_ids_for_category(category) -> list:
-        return list(
-            Product.objects.filter(categories__exact=Category.objects.get(name__exact=category)).values_list(
-                'id', flat=True
-            )
-        )
-
-    def category_per_uni_day(category_ids, from_d, to_d):
-        qs = Member.objects.filter(
-            id=member.id,
-            sale__product__in=category_ids,
-            sale__timestamp__gt=from_d,
-            sale__timestamp__lte=to_d,
-        )
-        if member not in qs:
-            return 0
-        else:
-            return "{:.2f}".format(qs.count() / ((to_d - from_d).days * 162.14 / 365))  # university workdays in 2021
-
-    def sale_count_for_product(category_ids, from_d, to_d):
-        qs = Sale.objects.filter(
-            member=member,
-            product__in=category_ids,
-            timestamp__gt=from_d,
-            timestamp__lte=to_d,
-        )
-        return qs.count()
-
     # let user know when they first purchased a product
     member_first_purchase = "Ikke endnu, køb en limfjordsporter!"
     first_purchase = Sale.objects.filter(member=member_id).order_by('-timestamp')
@@ -413,23 +376,9 @@ def menu_userrank(request, room_id, member_id):
             from_date = form.cleaned_data['from_date']
             to_date = form.cleaned_data['to_date'] + datetime.timedelta(days=1)
     else:
-        # setup initial dates for form and results
         form = RankingDateForm(initial={'from_date': from_date, 'to_date': to_date})
 
-    # get prod_ids for each category as dict {cat: [key1, key2])}, then flatten list of singleton
-    # dicts into one dict, lastly calculate member_id rating and units/weekday for category_ids
-    rankings = {
-        key: (
-            ranking(category_ids, from_date, to_date),
-            category_per_uni_day(category_ids, from_date, to_date),
-            sale_count_for_product(category_ids, from_date, to_date),
-        )
-        for key, category_ids in {
-            k: v
-            for x in map(lambda x: {x: get_product_ids_for_category(x)}, list(Category.objects.all()))
-            for k, v in x.items()
-        }.items()
-    }
+    rankings = get_member_rankings(member, from_date, to_date)
 
     return render(request, 'stregsystem/menu_userrank.html', locals())
 

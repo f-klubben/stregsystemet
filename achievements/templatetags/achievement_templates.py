@@ -18,8 +18,9 @@ register = template.Library()
 @register.inclusion_tag('achievements/achievement_notification.html')
 def achievement_notifications(products: List[tuple[Product, int]], member: Member):
     new_achievements: List[Achievement] = []
-    for product, _ in sorted(products, key=lambda x: x[1], reverse=True):
-        new_achievements.extend(get_new_achievements(member, product))
+    bought_multiple_products = len(products) > 1
+    for product, amount in sorted(products, key=lambda x: x[1], reverse=True):
+        new_achievements.extend(get_new_achievements(member, product, amount, bought_multiple_products))
     return {
         "new_achievements": new_achievements,
     }

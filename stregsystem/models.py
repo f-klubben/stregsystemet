@@ -356,7 +356,7 @@ class Payment(BaseModel):  # id automatisk...
     class Meta(BaseModel.Meta):
         permissions = (("import_batch_payments", "Import batch payments"),)
 
-    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, on_delete=mmemberodels.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     amount = models.IntegerField()  # penge, oere...
     notes = models.TextField(blank=True)

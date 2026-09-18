@@ -39,15 +39,14 @@ class AchievementForm(forms.ModelForm):
 
             for filename in os.listdir(folder_path):
                 file_path = os.path.join(folder_path, filename)
-
-                # Check for matching hash
+                if not os.path.isfile(file_path):
+                    continue
                 with open(file_path, 'rb') as f:
-                    existing_hash = hashlib.md5(f.read()).hexdigest()
-                    if uploaded_hash == existing_hash:
-                        # Match found — use existing file
-                        instance.icon.name = os.path.join('stregsystem/achievement', filename)
-                        match_found = True
-                        break
+                   existing_hash = hashlib.md5(f.read()).hexdigest()
+                if uploaded_hash == existing_hash:
+                    instance.icon.name = os.path.join('stregsystem/achievement', filename)
+                    match_found = True
+                    break
 
             if not match_found:
                 # No match — reset file pointer and let Django upload it

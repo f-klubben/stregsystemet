@@ -1,3 +1,4 @@
+import datetime
 import logging
 import re
 import csv
@@ -15,6 +16,8 @@ import qrcode
 import qrcode.image.svg
 
 import urllib.parse
+
+from stregsystem.models import Category, Member, Sale, Product
 
 logger = logging.getLogger(__name__)
 
@@ -214,3 +217,84 @@ def rows_to_csv(rows) -> str:
     # Converting elements in rows to strings to ensure it can be written to the file object
     csv.writer(file).writerows([[str(item) for item in row] for row in rows])
     return file.data
+
+
+def get_member_rankings_current_year(member):
+    now = timezone.now()
+    from_date = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    to_date = now
+    return get_member_rankings(member, from_date, to_date)
+
+
+def get_member_rankings_current_month(member):
+    now = timezone.now()
+    from_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    to_date = now
+    return get_member_rankings(member, from_date, to_date)
+
+
+def get_product_ids_for_category(category: Category) -> list[int]:
+    return list(Product.objects.filter(categories=category).values_list('id', flat=True))
+
+
+def get_category_product_ids(categories: list[Category]) -> dict[Category, list[int]]:
+    return {category: get_product_ids_for_category(category) for category in categories}
+
+
+def ranking(
+    member: Member, product_ids: list[int], from_date: datetime.datetime, to_date: datetime.datetime
+) -> tuple[int, int]:
+    qs = (
+        Member.objects.filter(
+            sale__product__in=product_ids,
+            sale__timestamp__gt=from_date,
+            sale__timestamp__lte=to_date,
+        )
+        .annotate(Count('sale'))
+        .order_by('-sale__count', 'username')
+    )
+    if member not in qs:
+        return 0, qs.count()
+    rank = list(qs).index(Member.objects.get(id=member.pk)) + 1
+    return rank, qs.count()
+
+
+def category_per_uni_day(
+    member: Member, product_ids: list[int], from_date: datetime.datetime, to_date: datetime.datetime
+) -> str:
+    qs = Member.objects.filter(
+        id=member.pk,
+        sale__product__in=product_ids,
+        sale__timestamp__gt=from_date,
+        sale__timestamp__lte=to_date,
+    )
+    if member not in qs:
+        return "0.00"
+    university_days = (to_date - from_date).days * 162.14 / 365  # university workdays in 2021
+    return "{:.2f}".format(qs.count() / university_days)
+
+
+def sale_count_for_product(
+    member: Member, product_ids: list[int], from_date: datetime.datetime, to_date: datetime.datetime
+) -> int:
+    return Sale.objects.filter(
+        member=member,
+        product__in=product_ids,
+        timestamp__gt=from_date,
+        timestamp__lte=to_date,
+    ).count()
+
+
+def get_member_rankings(
+    member: Member, from_date: datetime.datetime, to_date: datetime.datetime
+) -> dict[Category, tuple[tuple[int, int], str, int]]:
+    category_product_ids = get_category_product_ids(list(Category.objects.all()))
+
+    return {
+        category: (
+            ranking(member, product_ids, from_date, to_date),
+            category_per_uni_day(member, product_ids, from_date, to_date),
+            sale_count_for_product(member, product_ids, from_date, to_date),
+        )
+        for category, product_ids in category_product_ids.items()
+    }
