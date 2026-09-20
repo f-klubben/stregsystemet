@@ -3,18 +3,20 @@ from django.utils.html import format_html
 from django.utils.safestring import SafeString
 
 from sso.models import MemberOTPRequest
+from stregsystem.admin import BaseAdmin
 
 
 @admin.register(MemberOTPRequest)
-class MemberOTPRequestAdmin(admin.ModelAdmin):
-    list_display = (
-        'id',
-        'member_link',
-        'created_at',
-        'is_valid',
-        'failed_attempts',
-        'code_masked',
-    )
+class MemberOTPRequestAdmin(BaseAdmin):
+    def _get_fields_to_display(self):
+        return [
+            'id',
+            'member_link',
+            'created_at',
+            'is_valid',
+            'failed_attempts',
+            'code_masked',
+        ] + super()._get_fields_to_display()
 
     list_display_links = ('id',)
     list_filter = (

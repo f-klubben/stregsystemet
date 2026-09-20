@@ -1,22 +1,10 @@
 {% extends "modal/modal_base.html" %}
 {% load static %}
 
-{% block title %}Log ind{% if service_name %} — {{ service_name }}{% endif %}{% endblock %}
+{% block title %}Log ind{% endblock %}
 
 {% block head %}
   <style>
-    h1 {
-      font-size: 1.3rem;
-      font-weight: 600;
-      margin-bottom: .35rem;
-    }
-
-    .subtitle {
-      font-size: .9rem;
-      color: #666;
-      margin-bottom: 1.5rem;
-    }
-
     /* OTP grid */
     .otp-row {
       display: flex;
@@ -30,8 +18,6 @@
       text-align: center;
       font-size: 1.2rem;
       font-family: monospace;
-      border: 1px solid #ccc;
-      border-radius: 6px;
       outline: none;
       transition: border-color .15s;
       padding: 0;
@@ -46,48 +32,14 @@
       pointer-events: none;
     }
 
-    /* Utility row below form */
-    .form-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: .85rem;
-      font-size: .85rem;
-      color: #666;
-    }
-
-    .form-footer a,
-    .form-footer button {
-      background: none;
-      border: none;
-      padding: 0;
-      color: #4a7cf7;
-      cursor: pointer;
-      font-size: .85rem;
-      text-decoration: none;
-    }
-    .form-footer button:disabled { color: #aaa; cursor: default; }
-
-    /* Stage dots */
-    .stage-dots { display: flex; gap: 5px; margin-bottom: 1.5rem; }
-    .stage-dots span {
-      height: 3px;
-      border-radius: 2px;
-      background: #ddd;
-      width: 20px;
-      transition: background .2s, width .2s;
-    }
-    .stage-dots .active  { background: #4a7cf7; width: 28px; }
-    .stage-dots .done    { background: #2ecc71; }
   </style>
 {% endblock %}
 
 {% block content %}
+  <h2>Kære Fember</h2>
   {% if stage == 1 or not stage %}
   <div class="stage-dots"><span class="active"></span><span></span></div>
-
-  <h2>Kære Fember</h2>
-  <p class="subtitle">Indtast din stregbruger for at fortsætte.</p>
+  <p>Indtast din stregbruger for at fortsætte.</p>
 
   <form method="POST" action="{% url 'sso_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" novalidate>
     {% csrf_token %}
@@ -108,8 +60,8 @@
   {% elif stage == 2 %}
 
   <div class="stage-dots"><span class="done"></span><span class="active"></span></div>
+  <p>Indtast F&#8209;koden, der blev sendt til <strong>{{ masked_email }}</strong></p>
   <h1>Tjek din indbakke</h1>
-  <p class="subtitle">Indtast F&#8209;koden, der blev sendt til <strong>{{ masked_email }}</strong></p>
 
   <form method="POST" action="{% url 'sso_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" id="otp-form" novalidate>
     {% csrf_token %}

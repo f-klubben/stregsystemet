@@ -1,5 +1,101 @@
 [
 {
+  "model": "stregsystem.mobilepayment",
+  "pk": 1,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.794Z",
+    "status": "U",
+    "member": null,
+    "payment": null,
+    "customer_name": "Martin Larsen",
+    "timestamp": "2019-11-29T12:51:08.857Z",
+    "amount": 6969,
+    "transaction_id": "156E027485173228",
+    "comment": "mlarsen indbetalt "
+  }
+},
+{
+  "model": "stregsystem.mobilepayment",
+  "pk": 2,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.794Z",
+    "status": "U",
+    "member": null,
+    "payment": null,
+    "customer_name": "Bobby Tables",
+    "timestamp": "2019-11-28T16:40:55.719Z",
+    "amount": 50000,
+    "transaction_id": "232E027452733666",
+    "comment": "tables eksdee"
+  }
+},
+{
+  "model": "stregsystem.mobilepayment",
+  "pk": 3,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.794Z",
+    "status": "U",
+    "member": 4,
+    "payment": null,
+    "customer_name": "Karl Marx",
+    "timestamp": "2019-11-28T14:30:58.357Z",
+    "amount": 20000,
+    "transaction_id": "241E027449465355",
+    "comment": "marx"
+  }
+},
+{
+  "model": "stregsystem.mobilepayment",
+  "pk": 4,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.794Z",
+    "status": "U",
+    "member": null,
+    "payment": null,
+    "customer_name": "Bobby Tables",
+    "timestamp": "2019-11-28T16:40:55.719Z",
+    "amount": 50000,
+    "transaction_id": "232E027452733676",
+    "comment": "tables eksdee"
+  }
+},
+{
+  "model": "stregsystem.mobilepayment",
+  "pk": 5,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.794Z",
+    "status": "U",
+    "member": 5,
+    "payment": null,
+    "customer_name": "John Doe",
+    "timestamp": "2019-11-27T11:15:38.529Z",
+    "amount": 15000,
+    "transaction_id": "016E027417049990",
+    "comment": "jdoe"
+  }
+},
+{
+  "model": "stregsystem.mobilepayment",
+  "pk": 6,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.794Z",
+    "status": "U",
+    "member": 1,
+    "payment": null,
+    "customer_name": "Tester Testsen",
+    "timestamp": "2019-11-26T11:54:37.521Z",
+    "amount": 20000,
+    "transaction_id": "207E027395896809",
+    "comment": "tester"
+  }
+},
+{
   "model": "stregsystem.category",
   "pk": 1,
   "fields": {
@@ -184,6 +280,104 @@
   }
 },
 {
+  "model": "stregsystem.room",
+  "pk": 3,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:20.898Z",
+    "name": "room_special_drinks_2",
+    "description": "Another room with special drinks",
+    "notes": ""
+  }
+},
+{
+  "model": "stregsystem.room",
+  "pk": 10,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:41.972Z",
+    "name": "Jægerstuen",
+    "description": "Rummet i Jægerstuen",
+    "notes": ""
+  }
+},
+{
+  "model": "stregsystem.product",
+  "pk": 1,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.932Z",
+    "name": "Test ØL",
+    "price": 100,
+    "active": true,
+    "start_date": null,
+    "quantity": 0,
+    "deactivate_date": null,
+    "alcohol_content_ml": 0.0,
+    "caffeine_content_mg": 0,
+    "categories": [],
+    "rooms": []
+  }
+},
+{
+  "model": "stregsystem.product",
+  "pk": 2,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.932Z",
+    "name": "Kold Kaffe",
+    "price": 200,
+    "active": true,
+    "start_date": null,
+    "quantity": 0,
+    "deactivate_date": null,
+    "alcohol_content_ml": 0.0,
+    "caffeine_content_mg": 0,
+    "categories": [],
+    "rooms": []
+  }
+},
+{
+  "model": "stregsystem.product",
+  "pk": 3,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.932Z",
+    "name": "Fadøl",
+    "price": 1500,
+    "active": true,
+    "start_date": null,
+    "quantity": 0,
+    "deactivate_date": null,
+    "alcohol_content_ml": 0.0,
+    "caffeine_content_mg": 0,
+    "categories": [],
+    "rooms": [
+      1
+    ]
+  }
+},
+{
+  "model": "stregsystem.product",
+  "pk": 4,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:35.978Z",
+    "name": "Smoker",
+    "price": 100,
+    "active": true,
+    "start_date": null,
+    "quantity": 0,
+    "deactivate_date": null,
+    "alcohol_content_ml": 0.0,
+    "caffeine_content_mg": 0,
+    "categories": [],
+    "rooms": [
+      2
+    ]
+  }
+},
+{
   "model": "stregsystem.product",
   "pk": 11,
   "fields": {
@@ -203,6 +397,24 @@
     "rooms": [
       1
     ]
+  }
+},
+{
+  "model": "stregsystem.product",
+  "pk": 13,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.932Z",
+    "name": "Fake ØL",
+    "price": 300,
+    "active": true,
+    "start_date": null,
+    "quantity": 0,
+    "deactivate_date": null,
+    "alcohol_content_ml": 0.0,
+    "caffeine_content_mg": 0,
+    "categories": [],
+    "rooms": []
   }
 },
 {
@@ -375,6 +587,26 @@
     "rooms": [
       1
     ]
+  }
+},
+{
+  "model": "stregsystem.product",
+  "pk": 123,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:41.925Z",
+    "name": "Beer",
+    "price": 600,
+    "active": true,
+    "start_date": null,
+    "quantity": 0,
+    "deactivate_date": null,
+    "alcohol_content_ml": 0.2,
+    "caffeine_content_mg": 0,
+    "categories": [
+      11
+    ],
+    "rooms": []
   }
 },
 {
@@ -763,6 +995,16 @@
       1879
     ],
     "rooms": []
+  }
+},
+{
+  "model": "stregsystem.namedproduct",
+  "pk": 1,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:41.819Z",
+    "name": "beer",
+    "product": 123
   }
 },
 {
@@ -1156,6 +1398,83 @@
   }
 },
 {
+  "model": "stregsystem.oldprice",
+  "pk": 1,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.858Z",
+    "product": 1,
+    "price": 100,
+    "changed_on": "2017-03-13T12:43:28.044Z"
+  }
+},
+{
+  "model": "stregsystem.oldprice",
+  "pk": 2,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.858Z",
+    "product": 2,
+    "price": 200,
+    "changed_on": "2017-03-13T12:43:40.784Z"
+  }
+},
+{
+  "model": "stregsystem.oldprice",
+  "pk": 3,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.858Z",
+    "product": 2,
+    "price": 200,
+    "changed_on": "2017-03-13T12:43:42.151Z"
+  }
+},
+{
+  "model": "stregsystem.oldprice",
+  "pk": 11,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.774Z",
+    "product": 13,
+    "price": 300,
+    "changed_on": "2023-09-06T06:59:00.505Z"
+  }
+},
+{
+  "model": "stregsystem.oldprice",
+  "pk": 12,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.774Z",
+    "product": 1,
+    "price": 100,
+    "changed_on": "2023-09-06T06:59:12.033Z"
+  }
+},
+{
+  "model": "stregsystem.oldprice",
+  "pk": 13,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.774Z",
+    "product": 2,
+    "price": 200,
+    "changed_on": "2023-09-06T06:59:28.392Z"
+  }
+},
+{
+  "model": "stregsystem.oldprice",
+  "pk": 14,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.774Z",
+    "product": 3,
+    "price": 1500,
+    "changed_on": "2023-09-06T06:59:50.330Z"
+  }
+},
+{
   "model": "stregsystem.sale",
   "pk": 1,
   "fields": {
@@ -1195,6 +1514,761 @@
   }
 },
 {
+  "model": "stregsystem.sale",
+  "pk": 4,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:36.066Z",
+    "member": 1,
+    "product": 3,
+    "room": 1,
+    "timestamp": "2017-03-13T12:52:52Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 8,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-07-03T06:31:38.412Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 9,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-07-03T06:31:58.628Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 10,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-07-05T06:32:17.029Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 11,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-07-05T06:32:24.962Z",
+    "price": 200
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 12,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-07-08T06:32:33.665Z",
+    "price": 200
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 13,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-07-08T06:32:39.906Z",
+    "price": 200
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 14,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-07-11T06:32:50.954Z",
+    "price": 200
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 15,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-07-11T06:32:55.453Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 16,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-07-15T06:33:08.914Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 17,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 13,
+    "room": 1,
+    "timestamp": "2023-07-15T06:33:14.566Z",
+    "price": 300
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 18,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 13,
+    "room": 1,
+    "timestamp": "2023-07-18T06:33:30.689Z",
+    "price": 300
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 19,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 13,
+    "room": 1,
+    "timestamp": "2023-07-18T06:33:32.977Z",
+    "price": 300
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 20,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 13,
+    "room": 1,
+    "timestamp": "2023-07-18T06:33:35.945Z",
+    "price": 300
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 21,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 13,
+    "room": 1,
+    "timestamp": "2023-07-22T06:33:43.515Z",
+    "price": 300
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 22,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-07-22T06:33:46.335Z",
+    "price": 200
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 23,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-07-25T06:33:55.529Z",
+    "price": 200
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 24,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-07-25T06:33:58.663Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 25,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 3,
+    "room": 1,
+    "timestamp": "2023-07-30T06:34:35.145Z",
+    "price": 1500
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 27,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-08-03T06:34:48.584Z",
+    "price": 200
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 28,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-08-03T06:34:51.434Z",
+    "price": 200
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 29,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-08-06T06:37:45.688Z",
+    "price": 200
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 30,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-06T06:37:47.321Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 31,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-09T06:37:53.897Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 32,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-11T06:46:22.735Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 33,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-13T06:46:35.149Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 34,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-16T06:46:42.036Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 35,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-19T06:47:40.094Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 36,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-19T06:47:44.657Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 37,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-21T06:48:15.721Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 38,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-24T06:49:42.682Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 39,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-26T06:49:49.263Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 40,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-26T06:49:51.322Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 41,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-26T06:49:53.011Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 42,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-29T06:50:02.353Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 43,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-08-31T06:50:08.571Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 44,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-09-02T06:50:25.448Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 45,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-09-04T06:50:34.380Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 46,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-09-04T06:50:36.176Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 47,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-09-04T06:50:37.993Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 48,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-09-17T21:14:40.841Z",
+    "price": 200
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 49,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-09-17T21:14:41.863Z",
+    "price": 200
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 50,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-09-17T21:14:42.694Z",
+    "price": 200
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 51,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-09-17T21:14:43.594Z",
+    "price": 200
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 52,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-09-17T21:21:09.311Z",
+    "price": 200
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 56,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-09-19T16:36:26.044Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 57,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 1,
+    "room": 1,
+    "timestamp": "2023-09-19T16:45:11.349Z",
+    "price": 100
+  }
+},
+{
+  "model": "stregsystem.sale",
+  "pk": 58,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:54.930Z",
+    "member": 1,
+    "product": 2,
+    "room": 1,
+    "timestamp": "2023-09-19T17:07:47.761Z",
+    "price": 200
+  }
+},
+{
+  "model": "stregsystem.news",
+  "pk": 1,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.835Z",
+    "title": "Varm kaffe udgår",
+    "text": "Det er med stor fornøjelse, at vi annoncerer sortimentsudskiftningen af \"varm kaffe\" med vores nye og forbedrede produkt, \"kold kaffe\". Dette valg er truffet efter at have modtaget flere klager fra ærede fembers, der desværre har oplevet at brænde sig på javaen.",
+    "pub_date": "2023-08-07T21:46:04Z",
+    "stop_date": "2043-08-07T11:00:00Z"
+  }
+},
+{
+  "model": "stregsystem.theme",
+  "pk": 1,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.347Z",
+    "name": "easter",
+    "html": "easter.html",
+    "css": "easter.css",
+    "js": "easter.js",
+    "begin_month": 4,
+    "begin_day": 1,
+    "end_month": 4,
+    "end_day": 31,
+    "override": "N"
+  }
+},
+{
+  "model": "stregsystem.theme",
+  "pk": 2,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.347Z",
+    "name": "bober",
+    "html": "bober.html",
+    "css": "men.css",
+    "js": "bober.js",
+    "begin_month": 4,
+    "begin_day": 20,
+    "end_month": 4,
+    "end_day": 20,
+    "override": "N"
+  }
+},
+{
+  "model": "stregsystem.theme",
+  "pk": 3,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.347Z",
+    "name": "bat",
+    "html": "bat.html",
+    "css": "bat.css",
+    "js": "bat.js",
+    "begin_month": 10,
+    "begin_day": 1,
+    "end_month": 10,
+    "end_day": 31,
+    "override": "N"
+  }
+},
+{
+  "model": "stregsystem.theme",
+  "pk": 4,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.347Z",
+    "name": "adventcandle",
+    "html": "adventcandle.html",
+    "css": "adventcandle.css",
+    "js": "",
+    "begin_month": 12,
+    "begin_day": 1,
+    "end_month": 12,
+    "end_day": 24,
+    "override": "N"
+  }
+},
+{
+  "model": "stregsystem.theme",
+  "pk": 5,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.347Z",
+    "name": "snow",
+    "html": "snow.html",
+    "css": "snow.css",
+    "js": "",
+    "begin_month": 12,
+    "begin_day": 1,
+    "end_month": 12,
+    "end_day": 24,
+    "override": "N"
+  }
+},
+{
+  "model": "stregsystem.theme",
+  "pk": 6,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.347Z",
+    "name": "fireworks",
+    "html": "fireworks.html",
+    "css": "fireworks.css",
+    "js": "fireworks.js",
+    "begin_month": 12,
+    "begin_day": 25,
+    "end_month": 1,
+    "end_day": 31,
+    "override": "N"
+  }
+},
+{
+  "model": "stregsystem.theme",
+  "pk": 7,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:15.347Z",
+    "name": "activatefklub",
+    "html": "activatefklub.html",
+    "css": "activatefklub.css",
+    "js": "activatefklub.js",
+    "begin_month": 1,
+    "begin_day": 1,
+    "end_month": 12,
+    "end_day": 31,
+    "override": "N"
+  }
+},
+{
   "model": "auth.user",
   "fields": {
     "password": "pbkdf2_sha256$390000$Kt88MhSU3wsBuvk5eaezwQ$MV3CgIHzoVRz9GUh30vZTR6m0pEIJaiUtPEvN+QQye8=",
@@ -1207,6 +2281,23 @@
     "is_staff": true,
     "is_active": true,
     "date_joined": "2025-01-13T23:25:49.245Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$150000$iTYq6tgl0wkZ$sayKG1202U4C7vm6zdtogsSP+OxVoQZtoxtO1cXFWdg=",
+    "last_login": null,
+    "is_superuser": true,
+    "username": "autopayment",
+    "first_name": "auto",
+    "last_name": "payment",
+    "email": "",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2021-09-13T13:43:22Z",
     "groups": [],
     "user_permissions": []
   }
@@ -1342,6 +2433,48 @@
     "balance": 1500,
     "undo_count": 0,
     "notes": "This is a test user with only 15 stregdollars.",
+    "signup_due_paid": true,
+    "paired_user": null
+  }
+},
+{
+  "model": "stregsystem.member",
+  "pk": 5,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:15:07.770Z",
+    "active": true,
+    "username": "jdoe",
+    "year": "2020",
+    "firstname": "John",
+    "lastname": "Doe",
+    "gender": "M",
+    "email": "jdoe@nsa.gov",
+    "want_spam": true,
+    "balance": 42000,
+    "undo_count": 0,
+    "notes": "",
+    "signup_due_paid": true,
+    "paired_user": null
+  }
+},
+{
+  "model": "stregsystem.member",
+  "pk": 321,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:41.771Z",
+    "active": true,
+    "username": "kresten",
+    "year": "2025",
+    "firstname": "Kresten",
+    "lastname": "Laust",
+    "gender": "M",
+    "email": "",
+    "want_spam": true,
+    "balance": 20000,
+    "undo_count": 0,
+    "notes": "",
     "signup_due_paid": true,
     "paired_user": null
   }
