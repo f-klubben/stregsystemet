@@ -508,14 +508,22 @@ class UserInfoViewTests(TestCase):
             token="refresh-token",
         )
 
+        userinfo_url = reverse("userinfo", args=(self.room.id, self.jokke.id))
+        revoke_url = reverse("revoke_session", args=(self.room.id, self.jokke.id))
+        page = self.client.get(userinfo_url)
+        self.assertContains(page, "Test app")
+        self.assertContains(page, f'action="{revoke_url}"')
+        self.assertContains(page, f'name="session_id" value="{refresh_token.id}"')
+        self.assertContains(page, "Tilbagekald")
+
         response = self.client.post(
-            reverse("revoke_session", args=(self.room.id, self.jokke.id)),
+            revoke_url,
             {"session_id": refresh_token.id},
         )
 
         self.assertRedirects(
             response,
-            reverse("userinfo", args=(self.room.id, self.jokke.id)),
+            userinfo_url,
             fetch_redirect_response=False,
         )
         refresh_token.refresh_from_db()
