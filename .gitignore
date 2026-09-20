@@ -3,6 +3,7 @@ venv/
 
 local.cfg
 db.sqlite3
+oidc.key
 *.pyc
 
 .idea/
