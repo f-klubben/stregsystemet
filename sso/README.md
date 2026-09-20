@@ -36,7 +36,9 @@ presented as protecting those APIs until token and scope checks are added.
 In production, set `ISS_ENDPOINT` in the `[oidc]` section of `local.cfg` to the
 public HTTPS origin, for example `https://stregsystem.fklub.dk`. Provide the
 signing key in `OIDC_RSA_PRIVATE_KEY`. For local development, `oidc.key` in the
-project root is used when the key environment variable is absent.
+project root is used when the key environment variable is absent. Generate it
+with `python manage.py generatekey`. Without a key, the project still
+runs, but its OpenID Connect endpoints are disabled.
 
 ### 1. Figure out grant type (authorization flow) for your need
 

@@ -271,11 +271,13 @@ AUTHENTICATION_BACKENDS = [
 # openssl genrsa -out oidc.key 4096
 OIDC_RSA_PRIVATE_KEY = os.environ.get("OIDC_RSA_PRIVATE_KEY", None)
 if OIDC_RSA_PRIVATE_KEY is None:
-    with open(os.path.join(BASE_DIR, "oidc.key"), "r") as f:
-        OIDC_RSA_PRIVATE_KEY = f.read()
+    oidc_key_path = os.path.join(BASE_DIR, "oidc.key")
+    if os.path.exists(oidc_key_path):
+        with open(oidc_key_path, "r") as f:
+            OIDC_RSA_PRIVATE_KEY = f.read()
 
 OAUTH2_PROVIDER = {
-    "OIDC_ENABLED": True,
+    "OIDC_ENABLED": bool(OIDC_RSA_PRIVATE_KEY),
     "OIDC_ISS_ENDPOINT": cfg.get("oidc", "ISS_ENDPOINT"),
     "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
     "OAUTH2_VALIDATOR_CLASS": "sso.oauth2_validators.StregsystemOAuth2Validator",

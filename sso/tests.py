@@ -1,10 +1,25 @@
-from django.test import TestCase
+import os
+from tempfile import TemporaryDirectory
+
+from django.core.management import call_command
+from django.test import override_settings, TestCase
 from django.urls import reverse
 from django.conf import settings
 
 from sso.auth_backends import PasswordlessMemberBackend
 from sso.models import MemberOTPRequest
 from stregsystem.models import Member
+
+
+class GenerateKeyCommandTests(TestCase):
+    def test_generates_private_key(self):
+        with TemporaryDirectory() as directory, override_settings(BASE_DIR=directory):
+            call_command("generatekey")
+            key_path = os.path.join(directory, "oidc.key")
+
+            with open(key_path, "rb") as key_file:
+                self.assertTrue(key_file.read().startswith(b"-----BEGIN PRIVATE KEY-----"))
+            self.assertEqual(os.stat(key_path).st_mode & 0o777, 0o600)
 
 
 class BaseLoginTestCase(TestCase):
