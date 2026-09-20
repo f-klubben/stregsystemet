@@ -33,6 +33,11 @@ presented as protecting those APIs until token and scope checks are added.
 
 ## How to set up
 
+In production, set `ISS_ENDPOINT` in the `[oidc]` section of `local.cfg` to the
+public HTTPS origin, for example `https://stregsystem.fklub.dk`. Provide the
+signing key in `OIDC_RSA_PRIVATE_KEY`. For local development, `oidc.key` in the
+project root is used when the key environment variable is absent.
+
 ### 1. Figure out grant type (authorization flow) for your need
 
 More info on grant types: https://oauth.net/2/grant-types/

@@ -50,6 +50,9 @@ NAME = db.sqlite3
 USER =
 PASSWORD =
 
+[oidc]
+ISS_ENDPOINT =
+
 [hostnames]
 2=127.0.0.1
 3=localhost
@@ -268,11 +271,12 @@ AUTHENTICATION_BACKENDS = [
 # openssl genrsa -out oidc.key 4096
 OIDC_RSA_PRIVATE_KEY = os.environ.get("OIDC_RSA_PRIVATE_KEY", None)
 if OIDC_RSA_PRIVATE_KEY is None:
-    with open('oidc.key', 'r') as f:
+    with open(os.path.join(BASE_DIR, "oidc.key"), "r") as f:
         OIDC_RSA_PRIVATE_KEY = f.read()
 
 OAUTH2_PROVIDER = {
     "OIDC_ENABLED": True,
+    "OIDC_ISS_ENDPOINT": cfg.get("oidc", "ISS_ENDPOINT"),
     "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
     "OAUTH2_VALIDATOR_CLASS": "sso.oauth2_validators.StregsystemOAuth2Validator",
     "SCOPES": {
