@@ -374,7 +374,9 @@ class GroupsClaimTests(TestCase):
         self.assertNotIn("groups", self._claims(["openid"]))
 
     def test_groups_in_discovery_document(self):
-        response = self.client.get(reverse("oidc-connect-discovery-info"))
+        provider_settings = {**settings.OAUTH2_PROVIDER, "OIDC_ENABLED": True}
+        with self.settings(OAUTH2_PROVIDER=provider_settings):
+            response = self.client.get(reverse("oidc-connect-discovery-info"))
         self.assertIn("groups", response.json()["claims_supported"])
         self.assertIn("groups", response.json()["scopes_supported"])
 

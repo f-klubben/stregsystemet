@@ -219,7 +219,7 @@ def rows_to_csv(rows) -> str:
 
 
 def get_user_oauth_sessions(user):
-    tokens = RefreshToken.objects.filter(user=user).select_related("application")  # , revoked__gt=timezone.now()
+    tokens = RefreshToken.objects.filter(user=user, revoked__isnull=True).select_related("application")
 
     sessions = []
 

@@ -24,6 +24,8 @@ from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, J
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from oauth2_provider.models import RefreshToken
 
 from stregreport.views import fjule_party
 
@@ -56,6 +58,7 @@ from stregsystem.utils import (
     PaymentToolException,
     make_unprocessed_signups_query,
     get_user_oauth_sessions,
+    revoke_refresh_token,
 )
 
 from .booze import ballmer_peak
@@ -308,14 +311,21 @@ def menu_userinfo(request, room_id, member_id):
     return render(request, 'stregsystem/menu_userinfo.html', locals())
 
 
+@require_POST
 def menu_userinfo_revoke(request, room_id, member_id):
+    member = get_object_or_404(Member, pk=member_id, active=True)
     session_id = request.POST.get("session_id")
 
-    if session_id:
-        # do your backend action
-        print("Revoke", session_id)
+    if session_id and member.paired_user:
+        refresh_token = RefreshToken.objects.filter(
+            pk=session_id,
+            user=member.paired_user,
+            revoked__isnull=True,
+        ).first()
+        if refresh_token:
+            revoke_refresh_token(refresh_token)
 
-    return redirect(request.META.get("HTTP_REFERER", "/"))
+    return redirect("userinfo", room_id=room_id, member_id=member_id)
 
 
 def send_userdata(request, room_id, member_id):
