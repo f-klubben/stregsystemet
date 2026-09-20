@@ -315,3 +315,33 @@ class PasswordlessMemberBackendTests(BaseLoginTestCase):
     def test_get_user_missing_returns_none(self):
         result = self.backend.get_user(99999)
         self.assertIsNone(result)
+
+
+class GroupsClaimTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth.models import Group
+
+        self.member = Member.objects.create(username="jeff", firstname="jeff", lastname="jefferson", gender="M")
+        self.member.generate_companion_user()
+        self.user = self.member.paired_user
+        self.user.groups.add(Group.objects.create(name="treo"), Group.objects.create(name="fit"))
+
+    def _claims(self, scopes):
+        from types import SimpleNamespace
+        from sso.oauth2_validators import StregsystemOAuth2Validator
+
+        request = SimpleNamespace(user=self.user, scopes=scopes)
+        return StregsystemOAuth2Validator().get_oidc_claims(None, None, request)
+
+    def test_groups_claim_with_scope(self):
+        claims = self._claims(["openid", "groups"])
+        self.assertEqual(claims["sub"], str(self.user.id))
+        self.assertEqual(claims["groups"], ["fit", "treo"])
+
+    def test_groups_claim_requires_scope(self):
+        self.assertNotIn("groups", self._claims(["openid"]))
+
+    def test_groups_in_discovery_document(self):
+        response = self.client.get(reverse("oidc-connect-discovery-info"))
+        self.assertIn("groups", response.json()["claims_supported"])
+        self.assertIn("groups", response.json()["scopes_supported"])

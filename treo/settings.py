@@ -274,7 +274,10 @@ if OIDC_RSA_PRIVATE_KEY is None:
 OAUTH2_PROVIDER = {
     "OIDC_ENABLED": True,
     "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
+    "OAUTH2_VALIDATOR_CLASS": "sso.oauth2_validators.StregsystemOAuth2Validator",
     "SCOPES": {
+        "openid": "OpenID Connect",
+        "groups": "Retrieve the groups the member belongs to",
         "staff": "Tests whether the member is a volunteer",
         "member:balance": "Retrieve balance",
         "member:active": "Retrieve active-status",

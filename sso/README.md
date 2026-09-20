@@ -14,6 +14,8 @@ similar to how the tech giants do it (FFAANG: F-club, Facebook ... etc.).
 ## Scopes
 These allow access to various API endpoints.
 
+- `openid`: Required for OpenID Connect (ID token / userinfo).
+- `groups`: Adds a `groups` claim listing the names of the member's groups.
 - `member:balance`: The member's balance.
 - `member:active`: The member's active-status.
 - `member:sales`: All past sales of the member.
