@@ -50,6 +50,9 @@ NAME = db.sqlite3
 USER =
 PASSWORD =
 
+[oidc]
+ISS_ENDPOINT =
+
 [hostnames]
 2=127.0.0.1
 3=localhost
@@ -111,6 +114,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'sso',
+    'oauth2_provider',
     'debug_toolbar',
 ]
 
@@ -263,6 +267,33 @@ AUTHENTICATION_BACKENDS = [
     'sso.auth_backends.PasswordlessMemberBackend',
     'django.contrib.auth.backends.ModelBackend',  # keep for admin/superusers
 ]
+
+# openssl genrsa -out oidc.key 4096
+OIDC_RSA_PRIVATE_KEY = os.environ.get("OIDC_RSA_PRIVATE_KEY", None)
+if OIDC_RSA_PRIVATE_KEY is None:
+    oidc_key_path = os.path.join(BASE_DIR, "oidc.key")
+    if os.path.exists(oidc_key_path):
+        with open(oidc_key_path, "r") as f:
+            OIDC_RSA_PRIVATE_KEY = f.read()
+
+OAUTH2_PROVIDER = {
+    "OIDC_ENABLED": bool(OIDC_RSA_PRIVATE_KEY),
+    "OIDC_ISS_ENDPOINT": cfg.get("oidc", "ISS_ENDPOINT"),
+    "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
+    "OAUTH2_VALIDATOR_CLASS": "sso.oauth2_validators.StregsystemOAuth2Validator",
+    "SCOPES": {
+        "openid": "OpenID Connect",
+        "groups": "Retrieve the groups the member belongs to",
+        "member:balance": "Retrieve balance",
+        "member:active": "Retrieve active-status",
+        "member:sales": "Retrieve all sales made",
+        "member:id": "Retrieve ID",
+        "member:email": "Retrieve email",
+        "member:name": "Retrieve first- and last name",
+        "member:year": "Retrieve enrollment year",
+        "member:gender": "Retrieve gender",
+    },
+}
 
 global STREGSYSTEM_VERSION, STREGSYSTEM_API_VERSION
 

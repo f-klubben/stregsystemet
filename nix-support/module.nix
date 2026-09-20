@@ -78,6 +78,10 @@ with lib.types; {
                 default = "";
             };
         };
+        oidc.iss_endpoint = lib.mkOption {
+            type = str;
+            default = "";
+        };
         workingDirectory = lib.mkOption {
             type = str;
             default = "/var/run/stregsystemet";
@@ -135,6 +139,9 @@ with lib.types; {
                         NAME=${cfg.database.name}
                         USER=${cfg.database.user}
                         PASSWORD=${cfg.database.password}
+
+                        [oidc]
+                        ISS_ENDPOINT=${cfg.oidc.iss_endpoint}
     
                         [hostnames]
                         ${

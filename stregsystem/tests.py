@@ -7,6 +7,7 @@ from unittest import mock
 from unittest.mock import patch, MagicMock
 
 import pytz
+from oauth2_provider.models import AccessToken, Application, RefreshToken
 from django.utils.dateparse import parse_datetime
 import stregsystem.parser as parser
 from django.core.exceptions import ValidationError
@@ -486,6 +487,48 @@ class UserInfoViewTests(TestCase):
         )
 
         self.assertEqual(response.context["last_payment"], self.payments[-1])
+
+    def test_revoke_oauth_session(self):
+        self.jokke.generate_companion_user()
+        application = Application.objects.create(
+            name="Test app",
+            client_type=Application.CLIENT_PUBLIC,
+            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+        )
+        access_token = AccessToken.objects.create(
+            user=self.jokke.paired_user,
+            application=application,
+            token="access-token",
+            expires=timezone.now() + datetime.timedelta(hours=1),
+        )
+        refresh_token = RefreshToken.objects.create(
+            user=self.jokke.paired_user,
+            application=application,
+            access_token=access_token,
+            token="refresh-token",
+        )
+
+        userinfo_url = reverse("userinfo", args=(self.room.id, self.jokke.id))
+        revoke_url = reverse("revoke_session", args=(self.room.id, self.jokke.id))
+        page = self.client.get(userinfo_url)
+        self.assertContains(page, "Test app")
+        self.assertContains(page, f'action="{revoke_url}"')
+        self.assertContains(page, f'name="session_id" value="{refresh_token.id}"')
+        self.assertContains(page, "Tilbagekald")
+
+        response = self.client.post(
+            revoke_url,
+            {"session_id": refresh_token.id},
+        )
+
+        self.assertRedirects(
+            response,
+            userinfo_url,
+            fetch_redirect_response=False,
+        )
+        refresh_token.refresh_from_db()
+        self.assertIsNotNone(refresh_token.revoked)
+        self.assertFalse(AccessToken.objects.filter(pk=access_token.pk).exists())
 
     # @INCOMPLETE: Strictly speaking there are two more variables here. Are
     # they actually necessary, since we don't allow people to go negative
