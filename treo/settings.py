@@ -278,7 +278,6 @@ OAUTH2_PROVIDER = {
     "SCOPES": {
         "openid": "OpenID Connect",
         "groups": "Retrieve the groups the member belongs to",
-        "staff": "Tests whether the member is a volunteer",
         "member:balance": "Retrieve balance",
         "member:active": "Retrieve active-status",
         "member:sales": "Retrieve all sales made",

@@ -12,19 +12,24 @@ similar to how the tech giants do it (FFAANG: F-club, Facebook ... etc.).
 - Looks cool, and makes Members feel something familiar
 
 ## Scopes
-These allow access to various API endpoints.
+Scopes limit what a client may do. They are permissions requested by the
+client, not claims returned in the ID token. Every API scope must be enforced
+by its corresponding endpoint before that endpoint is considered protected.
 
 - `openid`: Required for OpenID Connect (ID token / userinfo).
 - `groups`: Adds a `groups` claim listing the names of the member's groups.
-- `member:balance`: The member's balance.
-- `member:active`: The member's active-status.
-- `member:sales`: All past sales of the member.
-- `member:id`: The member's ID.
-- `member:email`: The member's e-mail address.
-- `member:name`: The member's first- and last name.
-- `member:year`: The (university) enrollment year of the member.
-- `member:gender`: The sex of the member.
-- `staff`: Tests whether the user has the 'staff' attribute enabled -> whether the member is a volunteer.
+- `member:balance`: Access to the member balance endpoint.
+- `member:active`: Access to the member active-status endpoint.
+- `member:sales`: Access to the member sales endpoint.
+- `member:id`: Access to the member ID endpoint.
+- `member:email`: Access to the member e-mail endpoint.
+- `member:name`: Access to the member name endpoint.
+- `member:year`: Access to the member enrollment-year endpoint.
+- `member:gender`: Access to the member gender endpoint.
+
+At present, only the `openid` and `groups` OIDC behavior is implemented. The
+`member:*` scopes are reserved for the corresponding APIs and must not be
+presented as protecting those APIs until token and scope checks are added.
 
 ## How to set up
 
@@ -45,6 +50,11 @@ If you decide on authorization code or device authorization, then this guide is 
 If you're using something other than HTML/CSS, then you'll need to recreate the buttons manually.
 
 Put SSO buttons (html and stylesheet) in your application. Located at `misc/sso-buttons/buttons.html`.
+Both example buttons start the same `openid groups` flow. The second button is
+only an alternative label for sites that present a volunteer/admin entry point;
+the service must decide access from the returned `groups` claim. It does not
+request extra privileges. Sites without such an entry point should use only the
+first button.
 
 ### 3. Implement callback in your app
 

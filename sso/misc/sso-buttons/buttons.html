@@ -1,12 +1,12 @@
 <link rel="stylesheet" href="https://raw.githubusercontent.com/f-klubben/stregsystemet/refs/heads/master/sso/misc/sso-buttons/buttons-style.css">
 <div class="fclub-sso-stack">
-  <button onclick="loginWithOIDC(['member:balance'])" class="fclub-sso-button member">
-    <img class="fclub-sso-logo" src="flogo.svg">
+  <button type="button" onclick="loginWithOIDC()" class="fclub-sso-button member">
+    <img class="fclub-sso-logo" src="flogo.svg" alt="">
     <span>Continue as Fember</span>
   </button>
 
-  <button onclick="loginWithOIDC(['staff', 'member:balance'])" class="fclub-sso-button volunteer">
-    <img class="fclub-sso-logo" src="flogo.svg">
+  <button type="button" onclick="loginWithOIDC()" class="fclub-sso-button volunteer">
+    <img class="fclub-sso-logo" src="flogo.svg" alt="">
     <span>Continue as F-rivillig</span>
   </button>
 </div>
@@ -15,7 +15,7 @@
 <script>
 const clientId = "demo123";
 
-async function loginWithOIDC(scopes) {
+async function loginWithOIDC() {
   const redirectUri = "http://127.0.0.1:8001/callback/";
   const issuerAuthEndpoint = "http://127.0.0.1:8000/o/authorize";
 
@@ -39,7 +39,7 @@ async function loginWithOIDC(scopes) {
     client_id: clientId,
     redirect_uri: redirectUri,
     response_type: "code",
-    scope: scopes.join(' '),
+    scope: "openid groups",
     state,
     code_challenge: challenge,
     code_challenge_method: "S256"
