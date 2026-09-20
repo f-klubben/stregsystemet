@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.urls import include, re_path
+from django.urls import include, path, re_path
 from django.conf.urls.static import static
 from django.contrib import admin
 from oauth2_provider import urls as oauth2_urls
@@ -31,7 +31,7 @@ urlpatterns = [
     re_path(r'^admin/', admin.site.urls),
     # Override login_url
     re_path(r"^o/authorize/", CustomOAuth2ProviderLoginView.as_view(), name="authorize"),
-    re_path(r"^.well-known/openid-configuration", ConnectDiscoveryInfoView.as_view(), name="oidc-connect-discovery-info",),
+    path(".well-known/openid-configuration", ConnectDiscoveryInfoView.as_view(), name="oidc-connect-discovery-info"),
     re_path(r'^o/', include(oauth2_urls)),
     re_path(r'^ffo/', include("sso.urls")),
     re_path(r'^select2/', include('django_select2.urls')),

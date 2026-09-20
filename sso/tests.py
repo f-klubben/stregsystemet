@@ -110,6 +110,23 @@ class Stage2ViewTests(BaseLoginTestCase):
         response = self._post_stage2("jeff", self.otp, next_url="/dashboard/")
         self.assertRedirects(response, "/dashboard/", fetch_redirect_response=False)
 
+    def test_external_next_redirects_to_index(self):
+        response = self._post_stage2("jeff", self.otp, next_url="https://example.com/phishing")
+        self.assertRedirects(response, "/", fetch_redirect_response=False)
+
+    def test_https_login_rejects_http_next(self):
+        response = self.client.post(
+            self.login_url,
+            {
+                "stage": "2",
+                "username": "jeff",
+                "otp": f"F{self.otp}",
+                "next": "http://testserver/dashboard/",
+            },
+            secure=True,
+        )
+        self.assertRedirects(response, "/", fetch_redirect_response=False)
+
     def test_correct_otp_logs_user_in(self):
         self._post_stage2("jeff", self.otp)
         self.assertTrue(self.client.session.get("_auth_user_id"))
@@ -345,3 +362,7 @@ class GroupsClaimTests(TestCase):
         response = self.client.get(reverse("oidc-connect-discovery-info"))
         self.assertIn("groups", response.json()["claims_supported"])
         self.assertIn("groups", response.json()["scopes_supported"])
+
+    def test_discovery_route_does_not_match_suffixes(self):
+        response = self.client.get("/.well-known/openid-configuration-extra")
+        self.assertEqual(response.status_code, 404)

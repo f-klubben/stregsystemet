@@ -7,6 +7,7 @@ from oauth2_provider.models import Application
 from django.contrib.auth import login, authenticate
 from django.contrib import messages
 from django.shortcuts import redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 from django.conf import settings
 
@@ -46,15 +47,25 @@ def _get_client_from_next(next_url: str) -> Optional[Application]:
 class CustomLoginView(View):
     template_name = "modal/login.html"
 
+    def _get_next(self, request):
+        next_url = request.GET.get("next") or request.POST.get("next", "/")
+        if url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        ):
+            return next_url
+        return "/"
+
     def get(self, request):
         stage = 1
-        next = request.GET.get("next") or request.POST.get("next", "/")
+        next = self._get_next(request)
         messages.warning(request, f"Log ind for at fortsætte til {next}")
         return render(request, self.template_name, locals())
 
     def post(self, request):
         stage = int(request.POST.get("stage", "1"))
-        next = request.GET.get("next") or request.POST.get("next", "/")
+        next = self._get_next(request)
         messages.warning(request, f"Log ind for at fortsætte til {next}")
         username = request.POST.get("username", "").strip()
 
