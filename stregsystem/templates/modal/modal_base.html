@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="icon" sizes="any" type="image/svg+xml" href="{% static "/stregsystem/logo/logo.svg" %}">
     <title>{% block title %}TREOENs STREGSYSTEM{% endblock %}</title>
+    <link href="{% static "stregsystem/modal/stregsystem-modal.css" %}" rel="stylesheet">
 
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -95,11 +96,12 @@
     </head>
 
     <body>
-        <div class="title">
-            <img src="https://fklub.dk/_media/f-klubben.png"/>
-            TREOENs STREGSYSTEM
-        </div>
         <div class="card">
+            <div class="title">
+                <img src="{% static "/stregsystem/logo/logo.svg" %}"/>
+                <h1>TREOENs STREGSYSTEM</h1>
+            </div>
+
             {% if messages %}
             <ul class="messages">
                 {% for message in messages %}
