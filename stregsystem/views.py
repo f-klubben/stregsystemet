@@ -17,7 +17,7 @@ from collections import (
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import permission_required, login_required
 from django.core import management
 from django.core.exceptions import ValidationError
 from django.db.models import Q, Count, Sum, QuerySet
@@ -484,9 +484,10 @@ def menu_sale(request, room_id, member_id, product_id=None):
     return usermenu(request, room, member, product, from_sale=True)
 
 
+@login_required(login_url='/ffo/login')  # named URL or a path
 def intent_confirmation(request, intent_id):
     # Retrieve member from authentication
-    member = Member.objects.get(username__iexact="lowdough", active=True)
+    member = Member.objects.get(paired_user=request.user)
 
     try:
         intent = Intent.objects.get(id=intent_id)
