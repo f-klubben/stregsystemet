@@ -1,0 +1,118 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+    font-size: 15px;
+    color: #111;
+    padding: 1rem;
+}
+
+.card {
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 380px;
+}
+
+.title {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.title img {
+    width: 5em;
+    margin: 0;
+}
+
+label {
+  display: block;
+  font-size: .8rem;
+  font-weight: 500;
+  color: #444;
+  margin-bottom: .35rem;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: .65rem .8rem;
+  border: 1px solid #ccc;
+  font-size: .95rem;
+  outline: none;
+  transition: border-color .15s;
+  margin-bottom: 1rem;
+}
+input[type="text"]:focus { border-color: #4a7cf7; }
+
+button[type="submit"] {
+  width: 100%;
+  padding: .7rem;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  font-size: .95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .15s;
+}
+button[type="submit"]:hover { background: #333; }
+
+.messages { list-style: none; margin-bottom: 1rem; }
+.messages li {
+  font-size: .875rem;
+  padding: .6rem .85rem;
+  margin-bottom: .4rem;
+}
+.messages .error { background: #fff0f0; color: #c0392b; border: 1px solid #fcc; }
+.messages .info  { background: #f0faf5; color: #1a7f4b; border: 1px solid #b2e5cc; }
+
+
+h1 {
+  margin-bottom: .35rem;
+  color: red;
+}
+
+h3 {
+  font-size: .9rem;
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: .85rem;
+  font-size: .85rem;
+  color: #666;
+}
+
+.form-footer a {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #4a7cf7;
+  cursor: pointer;
+  font-size: .85rem;
+  text-decoration: none;
+}
+button:disabled { color: #aaa; cursor: default; }
+
+.stage-dots { display: flex; gap: 5px; margin-bottom: 1.5rem; }
+.stage-dots span {
+  height: 3px;
+  background: #ddd;
+  width: 20px;
+  transition: background .2s, width .2s;
+}
+.stage-dots .active  { background: #4a7cf7; width: 28px; }
+.stage-dots .done    { background: #2ecc71; }
