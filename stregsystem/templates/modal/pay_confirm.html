@@ -1,0 +1,179 @@
+{% extends "modal/modal_base.html" %}
+{% load stregsystem_extras mobilepay_qr %}
+
+{% block title %}Treoens stregsystem{% endblock %}
+
+{% block head %}
+        <style>
+        .merchant {
+            font-size: 14px;
+            color: #6c7378;
+            margin-bottom: 6px;
+        }
+
+        .total {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 16px 0 8px;
+        }
+
+        .lines {
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+
+        .line {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 14px;
+        }
+
+        .balance-box {
+            border: 1px solid #dcdcdc;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .balance { font-size: 14px; }
+        .ok { color: #2e7d32; font-size: 13px; }
+        .missing { color: #c23934; font-size: 13px; }
+
+        .qr {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .qr img { height: 180px; }
+
+        .timer {
+            color: #c23934;
+        }
+
+        .pay-btn {
+            width: 100% !important;
+            margin-top: 20px !important;
+            background: #0070ba !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 24px !important;
+            padding: 12px !important;
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+        }
+
+        .pay-btn:hover {
+            background: #005ea6 !important;
+        }
+
+        .cancel {
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        .cancel a {
+            color: #0070ba;
+            text-decoration: none;
+            font-size: 13px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="merchant">Checkout</div>
+
+    <div class="total">
+        {{ checkout_total|money }} 𝓕$
+    </div>
+
+    <div class="section-title">Ordre</div>
+    <math>{{ buystring }}</math>
+
+    <div class="lines">
+        {% for line in lines %}
+        <div class="line">
+            <div>{{ line.name }} × {{ line.qty }}</div>
+            <div>{{ line.total|money }} 𝓕$</div>
+        </div>
+        {% endfor %}
+    </div>
+
+
+    <div class="section-title">Betal med Stregbruger</div>
+
+    <div class="balance-box">
+        <div class="balance {{ has_funds|yesno:"ok,missing" }}">
+            Saldo før køb: {{ member.balance|money }} 𝓕$ <br />
+            Saldo efter køb: {{ after_purchase_balance|money }} 𝓕$
+        </div>
+    </div>
+
+
+    {% if suggested_topup != 0 %}
+    <div class="qr">
+        <p>Scan for at indsætte penge</p>
+        <div>
+            <b>{{suggested_topup | floatformat:2}} kr.</b>
+            <br /><br />
+            <a href="mobilepay://send?phone=90601&comment={{ member.username }}&amount={{ suggested_topup }}">
+              {% mobilepay_qr member.username suggested_topup %}
+            </a>
+        </div>
+        <div class="timer">
+            Tid før anmodningen udløber: <span id="timer"></span>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <form method="post"
+          action="{% url 'pay_intent_accept' intent_id %}">
+        {% csrf_token %}
+
+        <button class="pay-btn" type="submit">
+            {{ has_funds|yesno:"Betal,Jeg har sendt" }} {{ checkout_total|money }} 𝓕$
+        </button>
+    </form>
+
+
+    <div class="cancel">
+        <a href="{% url 'pay_intent_cancel' intent_id %}">
+            Annullér
+        </a>
+    </div>
+
+    <script>
+    {% if not has_funds %}
+
+    const expiresAt = new Date("{{ expires_at|date:'c' }}").getTime();
+
+    function updateTimer() {
+        const diff = expiresAt - Date.now();
+
+        if (diff <= 0) {
+            timer.innerText = "Expired";
+            return;
+        }
+
+        const m = Math.floor(diff / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+
+        timer.innerText = m + "m " + s + "s";
+    }
+
+    const timer = document.getElementById("timer");
+    setInterval(updateTimer, 1000);
+    updateTimer();
+
+    {% endif %}
+    </script>
+
+{% endblock %}
