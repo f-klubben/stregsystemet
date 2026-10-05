@@ -894,7 +894,7 @@ def api_sale(request):
         if not member.signup_approved():
             return HttpResponseBadRequest("Signup not manually approved")
 
-        if username != member.username:
+        if username.casefold() != member.username.casefold():
             return HttpResponseBadRequest("Username does not match member_id")
 
         if not buy_string.startswith(member.username):
