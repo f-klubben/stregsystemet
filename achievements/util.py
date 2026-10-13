@@ -2,9 +2,15 @@
 
 
 
-from django.db.models import BooleanField, CharField, ImageField, ManyToManyField, DateTimeField, DurationField
-from django.db.models.fields import _FieldDescriptor
-    
+from typing import Protocol
 
-def name_of(field_descriptor: _FieldDescriptor[BooleanField | CharField | ImageField | ManyToManyField | DateTimeField | DurationField]) -> str:
-    return field_descriptor.field.name 
+from django.db.models import Field
+
+
+class _HasModelField(Protocol):
+    @property
+    def field(self) -> Field: ...
+
+
+def name_of(field_descriptor: _HasModelField) -> str:
+    return field_descriptor.field.name
