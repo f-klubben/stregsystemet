@@ -5,19 +5,30 @@
 <div class="achievement-grid" id="achievements">
    {% for achievement_tuple in acquired_achievements %}
       {% with achievement=achievement_tuple.0 rarity=achievement_tuple.1 color=achievement_tuple.2 %}
-         <div class="achievement-card{% if achievement.hidden %} achievement-card-secret{% endif %}">
-            {% if achievement.hidden %}
-               <div class="rarity-badge secret-badge">Secret</div>
-            {% else %}
+         {% if achievement.hidden %}
+            <div class="achievement-card achievement-card-secret" style="--rarity-color: {{ color }}" tabindex="0">
+               <div class="rarity-badge secret-badge">
+                  <span class="secret-label">Secret</span>
+                  <span class="secret-rarity">{{ rarity }}</span>
+               </div>
+               <img
+                  class="achievement-logo"
+                  src="{{ achievement.icon.url }}"
+                  alt="Achievement Logo">
+               <div class="achievement-title">{{ achievement.title }}</div>
+               <div class="achievement-description">{{ achievement.description }}</div>
+            </div>
+         {% else %}
+            <div class="achievement-card">
                <div class="rarity-badge" style="background-color: {{ color }}">{{ rarity }}</div>
-            {% endif %}
-            <img
-               class="achievement-logo"
-               src="{{ achievement.icon.url }}"
-               alt="Achievement Logo">
-            <div class="achievement-title">{{ achievement.title }}</div>
-            <div class="achievement-description">{{ achievement.description }}</div>
-         </div>
+               <img
+                  class="achievement-logo"
+                  src="{{ achievement.icon.url }}"
+                  alt="Achievement Logo">
+               <div class="achievement-title">{{ achievement.title }}</div>
+               <div class="achievement-description">{{ achievement.description }}</div>
+            </div>
+         {% endif %}
       {% endwith %}
    {% endfor %}
   {% for achievement in missing_achievements %}
@@ -71,8 +82,9 @@
       background-color: #f9f9f9;
       position: relative; /* Needed for tooltip positioning */
       cursor: pointer; /* Hint that it’s interactive */
-    }
+   }
 
+   
    .achievement-card-secret {
       border-color: #b8860b;
       background: linear-gradient(135deg, #fff8e1, #f9f9f9);
@@ -81,6 +93,25 @@
 
    .secret-badge {
       background-color: #b8860b;
+   }
+
+   .secret-rarity {
+      display: none;
+   }
+
+   .achievement-card-secret:hover .secret-badge,
+   .achievement-card-secret:focus .secret-badge {
+      background-color: var(--rarity-color);
+   }
+
+   .achievement-card-secret:hover .secret-label,
+   .achievement-card-secret:focus .secret-label {
+      display: none;
+   }
+
+   .achievement-card-secret:hover .secret-rarity,
+   .achievement-card-secret:focus .secret-rarity {
+      display: inline;
    }
 
    .achievement-logo {
