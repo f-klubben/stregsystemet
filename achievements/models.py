@@ -131,8 +131,6 @@ class AchievementTask(BaseModel):
         remaining_funds = member.balance
         alcohol_promille = member.calculate_alcohol_promille()
         caffeine = member.calculate_caffeine_in_body()
-        # for each sale, check if it was multibuy (i.e. bought more than one product)
-        multibuys = sales.filter(amount__gt=1)
 
         if (
             task_type == self.PRODUCT_TASK_TYPE or task_type == self.CATEGORY_TASK_TYPE or task_type == self.ANY_PURCHASE_TASK_TYPE
@@ -165,8 +163,6 @@ class AchievementTask(BaseModel):
             
             if ranking is None or ranking[0][0] > self.goal_value:
                 return False
-        elif task_type == self.IS_SALE_MUTIBUY_TASK_TYPE and multibuys.count() < 1:
-            return False
             
 
         return True
@@ -370,6 +366,16 @@ class Achievement(BaseModel):
     description = models.CharField(max_length=100)
     icon = models.ImageField(upload_to="stregsystem/achievement")
 
+    hushhush = models.BooleanField(
+        default=True,
+        help_text="If True, the achievement description will be hidden.",
+    )
+
+    hidden = models.BooleanField(
+        default=False,
+        help_text="If True, the achievement will not be shown in the achievements list.",
+    )
+
     active_from = models.DateTimeField(
         null=True,
         blank=True,
@@ -490,11 +496,14 @@ def get_acquired_achievements_with_rarity(member: Member) -> list[tuple[Achievem
     return result
 
 
-def get_missing_achievements(member: Member) -> QuerySet[Achievement]:
+def get_missing_achievements(member: Member, exclude_hidden: bool = False) -> QuerySet[Achievement]:
     """Gets all missing achievements for a member"""
     completed_achievements = AchievementComplete.objects.filter(member=member)
     completed_achievement_ids = completed_achievements.values_list('achievement_id', flat=True)
     missing_achievements = Achievement.objects.exclude(id__in=completed_achievement_ids)
+
+    if not exclude_hidden:
+        missing_achievements = missing_achievements.filter(hidden=False)
 
     return missing_achievements
 
@@ -556,7 +565,7 @@ def _find_completed_achievements(
 
     for achievement in related_achievements:
         tasks = achievement.tasks.all()
-
+        
         if all(task.is_task_completed(task_to_sales[task], member) for task in tasks):
             completed_achievements.append(achievement)
             new_completions.append(AchievementComplete(member=member, achievement=achievement))

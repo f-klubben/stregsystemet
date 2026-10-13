@@ -18,12 +18,15 @@ class AchievementAdmin(BaseAdmin):
         return [
             'title',
             'description',
+            'hushhush',
+            'hidden',
             'get_icon',
             'get_active_from_or_active_duration',
         ] + super()._get_fields_to_display()
 
     fieldsets = (
         (None, {'fields': ('title', 'description')}),
+        (None, {'fields': ('hushhush', 'hidden')}),
         (None, {'fields': (('icon', 'existing_icons'),)}),
         (None, {'fields': ('tasks', 'constraints')}),
         (None, {'fields': (('active_from', 'active_duration'),)}),

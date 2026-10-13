@@ -17,10 +17,7 @@ register = template.Library()
 
 @register.inclusion_tag('achievements/achievement_notification.html')
 def achievement_notifications(products: List[tuple[Product, int]], member: Member):
-    new_achievements: List[Achievement] = []
-    bought_multiple_products = len(products) > 1
-    for product, amount in sorted(products, key=lambda x: x[1], reverse=True):
-        new_achievements.extend(get_new_achievements(member, product, amount, bought_multiple_products))
+    new_achievements = get_new_achievements(member, products)
     return {
         "new_achievements": new_achievements,
     }
@@ -29,7 +26,7 @@ def achievement_notifications(products: List[tuple[Product, int]], member: Membe
 @register.inclusion_tag('achievements/achievement_ranking.html')
 def achievement_ranking(member: Member):
     acquired_achievements: List[Tuple[Achievement, float]] = get_acquired_achievements_with_rarity(member)
-    missing_achievements: QuerySet[Achievement] = get_missing_achievements(member)
+    missing_achievements: QuerySet[Achievement] = get_missing_achievements(member, exclude_hidden=True)
     achievement_progress_str: str = (
         f"{len(acquired_achievements)}/{len(acquired_achievements)+len(missing_achievements)}"
     )

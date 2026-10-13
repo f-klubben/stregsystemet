@@ -23,6 +23,13 @@
         src={{ achievement_missing_icon }}
         alt="Achievement Logo">
      <div class="achievement-title">{{ achievement.title }}</div>
+     <div class="achievement-description">
+         {% if achievement.hushhush %}
+             <i>Hush hush</i>
+         {% else %}
+             {{ achievement.description }}
+         {% endif %}
+     </div>
   </div>
 {% endfor %}
 </div>

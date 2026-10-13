@@ -17,7 +17,10 @@ import qrcode.image.svg
 
 import urllib.parse
 
-from stregsystem.models import Category, Member, Sale, Product
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from stregsystem.models import Category, Member, Sale, Product
 
 logger = logging.getLogger(__name__)
 
@@ -233,16 +236,16 @@ def get_member_rankings_current_month(member):
     return get_member_rankings(member, from_date, to_date)
 
 
-def get_product_ids_for_category(category: Category) -> list[int]:
+def get_product_ids_for_category(category: "Category") -> list[int]:
     return list(Product.objects.filter(categories=category).values_list('id', flat=True))
 
 
-def get_category_product_ids(categories: list[Category]) -> dict[Category, list[int]]:
+def get_category_product_ids(categories: list["Category"]) -> dict["Category", list[int]]:
     return {category: get_product_ids_for_category(category) for category in categories}
 
 
 def ranking(
-    member: Member, product_ids: list[int], from_date: datetime.datetime, to_date: datetime.datetime
+    member: "Member", product_ids: list[int], from_date: datetime.datetime, to_date: datetime.datetime
 ) -> tuple[int, int]:
     qs = (
         Member.objects.filter(
@@ -260,7 +263,7 @@ def ranking(
 
 
 def category_per_uni_day(
-    member: Member, product_ids: list[int], from_date: datetime.datetime, to_date: datetime.datetime
+    member: "Member", product_ids: list[int], from_date: datetime.datetime, to_date: datetime.datetime
 ) -> str:
     qs = Member.objects.filter(
         id=member.pk,
@@ -275,7 +278,7 @@ def category_per_uni_day(
 
 
 def sale_count_for_product(
-    member: Member, product_ids: list[int], from_date: datetime.datetime, to_date: datetime.datetime
+    member: "Member", product_ids: list[int], from_date: datetime.datetime, to_date: datetime.datetime
 ) -> int:
     return Sale.objects.filter(
         member=member,
@@ -286,8 +289,8 @@ def sale_count_for_product(
 
 
 def get_member_rankings(
-    member: Member, from_date: datetime.datetime, to_date: datetime.datetime
-) -> dict[Category, tuple[tuple[int, int], str, int]]:
+    member: "Member", from_date: datetime.datetime, to_date: datetime.datetime
+) -> dict["Category", tuple[tuple[int, int], str, int]]:
     category_product_ids = get_category_product_ids(list(Category.objects.all()))
 
     return {
