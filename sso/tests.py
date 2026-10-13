@@ -1,10 +1,25 @@
-from django.test import TestCase
+import os
+from tempfile import TemporaryDirectory
+
+from django.core.management import call_command
+from django.test import override_settings, TestCase
 from django.urls import reverse
 from django.conf import settings
 
 from sso.auth_backends import PasswordlessMemberBackend
 from sso.models import MemberOTPRequest
 from stregsystem.models import Member
+
+
+class GenerateKeyCommandTests(TestCase):
+    def test_generates_private_key(self):
+        with TemporaryDirectory() as directory, override_settings(BASE_DIR=directory):
+            call_command("generatekey")
+            key_path = os.path.join(directory, "oidc.key")
+
+            with open(key_path, "rb") as key_file:
+                self.assertTrue(key_file.read().startswith(b"-----BEGIN PRIVATE KEY-----"))
+            self.assertEqual(os.stat(key_path).st_mode & 0o777, 0o600)
 
 
 class BaseLoginTestCase(TestCase):
@@ -110,6 +125,23 @@ class Stage2ViewTests(BaseLoginTestCase):
         response = self._post_stage2("jeff", self.otp, next_url="/dashboard/")
         self.assertRedirects(response, "/dashboard/", fetch_redirect_response=False)
 
+    def test_external_next_redirects_to_index(self):
+        response = self._post_stage2("jeff", self.otp, next_url="https://example.com/phishing")
+        self.assertRedirects(response, "/", fetch_redirect_response=False)
+
+    def test_https_login_rejects_http_next(self):
+        response = self.client.post(
+            self.login_url,
+            {
+                "stage": "2",
+                "username": "jeff",
+                "otp": f"F{self.otp}",
+                "next": "http://testserver/dashboard/",
+            },
+            secure=True,
+        )
+        self.assertRedirects(response, "/", fetch_redirect_response=False)
+
     def test_correct_otp_logs_user_in(self):
         self._post_stage2("jeff", self.otp)
         self.assertTrue(self.client.session.get("_auth_user_id"))
@@ -150,6 +182,69 @@ class Stage2ViewTests(BaseLoginTestCase):
     def test_unknown_username_in_stage2_restarts(self):
         response = self._post_stage2("ghost", self.otp)
         self.assertRedirects(response, self.login_url, fetch_redirect_response=False)
+
+    def test_otp_combined_field_parsed_correctly(self):
+        """F prefix is stripped; backend receives only the 5 digits."""
+        response = self._post_stage2("jeff", self.otp)
+        self.assertRedirects(response, "/", fetch_redirect_response=False)
+
+    def test_individual_cell_fields_accepted_as_fallback(self):
+        """Individual otp_1...otp_5 fields work when otp_combined is absent."""
+        digits = list(self.otp)
+        response = self.client.post(
+            self.login_url,
+            {
+                "stage": "2",
+                "username": "jeff",
+                "next": "/",
+                **{f"otp_{i+1}": d for i, d in enumerate(digits)},
+            },
+        )
+        self.assertRedirects(response, "/", fetch_redirect_response=False)
+
+
+class ResendOTPViewTests(BaseLoginTestCase):
+    def setUp(self):
+        super().setUp()
+        self._post_stage1("jeff")
+        self.original_otp = MemberOTPRequest.objects.get(member=self.member, is_valid=True).code
+        self.resend_url = self.login_url
+
+    def _resend(self, username="jeff", next_url="/"):
+        return self.client.post(self.resend_url, {"stage": "1", "username": username, "next": next_url})
+
+    def test_resend_invalidates_old_otp(self):
+        self._resend()
+        self.assertEqual(MemberOTPRequest.objects.filter(member=self.member, is_valid=True).count(), 1)
+        self.assertEqual(MemberOTPRequest.objects.filter(code=self.original_otp, is_valid=True).count(), 0)
+
+    def test_resend_creates_new_otp(self):
+        self._resend()
+        new_otp = MemberOTPRequest.objects.get(member=self.member, is_valid=True).code
+        self.assertNotEqual(new_otp, self.original_otp)
+
+    def test_resend_returns_stage2(self):
+        response = self._resend()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["stage"], 2)
+
+    def test_resend_unknown_username_shows_error(self):
+        response = self._resend(username="ghost")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["stage"], 1)
+        messages = [m.message for m in response.context["messages"]]
+        self.assertTrue(any("stregbruger" in m.lower() for m in messages))
+
+    def test_new_otp_is_accepted_after_resend(self):
+        self._resend()
+        new_otp = MemberOTPRequest.objects.get(member=self.member, is_valid=True).code
+        response = self._post_stage2("jeff", new_otp)
+        self.assertRedirects(response, "/", fetch_redirect_response=False)
+
+    def test_old_otp_rejected_after_resend(self):
+        self._resend()
+        response = self._post_stage2("jeff", self.original_otp)
+        self.assertFalse(self.client.session.get("_auth_user_id"))
 
 
 class PasswordlessMemberBackendTests(BaseLoginTestCase):
@@ -252,3 +347,39 @@ class PasswordlessMemberBackendTests(BaseLoginTestCase):
     def test_get_user_missing_returns_none(self):
         result = self.backend.get_user(99999)
         self.assertIsNone(result)
+
+
+class GroupsClaimTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth.models import Group
+
+        self.member = Member.objects.create(username="jeff", firstname="jeff", lastname="jefferson", gender="M")
+        self.member.generate_companion_user()
+        self.user = self.member.paired_user
+        self.user.groups.add(Group.objects.create(name="treo"), Group.objects.create(name="fit"))
+
+    def _claims(self, scopes):
+        from types import SimpleNamespace
+        from sso.oauth2_validators import StregsystemOAuth2Validator
+
+        request = SimpleNamespace(user=self.user, scopes=scopes)
+        return StregsystemOAuth2Validator().get_oidc_claims(None, None, request)
+
+    def test_groups_claim_with_scope(self):
+        claims = self._claims(["openid", "groups"])
+        self.assertEqual(claims["sub"], str(self.user.id))
+        self.assertEqual(claims["groups"], ["fit", "treo"])
+
+    def test_groups_claim_requires_scope(self):
+        self.assertNotIn("groups", self._claims(["openid"]))
+
+    def test_groups_in_discovery_document(self):
+        provider_settings = {**settings.OAUTH2_PROVIDER, "OIDC_ENABLED": True}
+        with self.settings(OAUTH2_PROVIDER=provider_settings):
+            response = self.client.get(reverse("oidc-connect-discovery-info"))
+        self.assertIn("groups", response.json()["claims_supported"])
+        self.assertIn("groups", response.json()["scopes_supported"])
+
+    def test_discovery_route_does_not_match_suffixes(self):
+        response = self.client.get("/.well-known/openid-configuration-extra")
+        self.assertEqual(response.status_code, 404)

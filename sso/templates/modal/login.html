@@ -61,6 +61,7 @@
 
   <div class="stage-dots"><span class="done"></span><span class="active"></span></div>
   <p>Indtast F&#8209;koden, der blev sendt til <strong>{{ masked_email }}</strong></p>
+  <h1>Tjek din indbakke</h1>
 
   <form method="POST" action="{% url 'sso_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" id="otp-form" novalidate>
     {% csrf_token %}
