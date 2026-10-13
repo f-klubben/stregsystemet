@@ -31,7 +31,6 @@ class AchievementTask(BaseModel):
     TIME_AS_MEMBER_TASK_TYPE = "time_as_member"
     TOP_X_IN_CATEGORY_MONTH_TASK_TYPE = "top_x_in_category_month"
     TOP_X_IN_CATEGORY_YEAR_TASK_TYPE = "top_x_in_category_year"
-    IS_SALE_MUTIBUY_TASK_TYPE = "is_sale_multibuy" 
     
     TASK_TYPES = [
         # Specific item types
@@ -116,9 +115,7 @@ class AchievementTask(BaseModel):
     def _is_relevant_based_on_all_products(self, products: list[tuple[Product, int]], category_ids: Optional[list[int]] = None) -> bool:
         is_relevant = False
 
-        if self.task_type == self.IS_SALE_MUTIBUY_TASK_TYPE:
-            if len(products) > 1 or any(amount > 1 for _, amount in products):
-                is_relevant = True
+        # Check if the task is relevant based on all products
 
         return is_relevant
 
@@ -373,7 +370,7 @@ class Achievement(BaseModel):
 
     hidden = models.BooleanField(
         default=False,
-        help_text="If True, the achievement will not be shown in the achievements list.",
+        help_text="If True, the achievement will not be shown in the achievements list until it is unlocked. This achievement will not count towards the total number of achievements unlocked for the member, or their leaderboard position. This is useful for secret achievements that work more like easter eggs, or status symbols (like badges).",
     )
 
     active_from = models.DateTimeField(
@@ -502,7 +499,7 @@ def get_missing_achievements(member: Member, exclude_hidden: bool = False) -> Qu
     completed_achievement_ids = completed_achievements.values_list('achievement_id', flat=True)
     missing_achievements = Achievement.objects.exclude(id__in=completed_achievement_ids)
 
-    if not exclude_hidden:
+    if exclude_hidden:
         missing_achievements = missing_achievements.filter(hidden=False)
 
     return missing_achievements
@@ -518,7 +515,7 @@ def get_user_leaderboard_position(member: Member) -> float:
     """
     # Build leaderboard with total achievement counts
     leaderboard = (
-        AchievementComplete.objects.all()
+        AchievementComplete.objects.filter(achievement__hidden=False)
         .values('member')
         .annotate(total=Count('id'))
         .order_by('-total', 'member')  # tie-break deterministically
