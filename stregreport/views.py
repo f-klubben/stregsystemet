@@ -511,3 +511,56 @@ def user_purchases_in_categories(request):
             "header": header,
         },
     )
+
+
+@permission_required("stregsystem.access_new_signups")
+def newsignups(request):
+
+    if request.method != 'POST':
+        (from_time, to_time, from_date_time_tz_aware, to_date_time_tz_aware) = parse_non_tz_aware_from_and_to_time(
+            None, None
+        )
+        return render(request, 'admin/stregsystem/report/newsignups.html', locals())
+
+    (from_time, to_time, from_date_time_tz_aware, to_date_time_tz_aware) = parse_non_tz_aware_from_and_to_time(
+        request.POST['from_date'], request.POST['to_date']
+    )
+
+    result = Member.objects.filter(created_at__range=[from_date_time_tz_aware, to_date_time_tz_aware])
+    signups_count = result.count()
+
+    signups = []
+    for r in result:
+        signups.append((r.username, r.created_at, r.signup_due_paid))
+
+    return render(request, 'admin/stregsystem/report/newsignups.html', locals())
+
+
+newsignups = staff_member_required(newsignups)
+
+
+def parse_non_tz_aware_from_and_to_time(from_time: str | None, to_time: str | None) -> (str, str, str, str):
+    date_format = '%Y-%m-%d'
+    now = timezone.now()
+
+    try:
+        from_time_date = datetime.datetime.strptime(from_time, date_format)
+        from_date_time_tz_aware = timezone.datetime(
+            from_time_date.year, from_time_date.month, from_time_date.day, tzinfo=pytz.UTC
+        )
+    except (ValueError, TypeError):
+        from_date_time_tz_aware = timezone.datetime(now.year, now.month, 1, 23, 59, 59) - datetime.timedelta(days=90)
+
+    try:
+        to_date_time = late(timezone.datetime.strptime(to_time, date_format))
+        to_date_time_tz_aware = timezone.datetime(
+            to_date_time.year, to_date_time.month, to_date_time.day, tzinfo=pytz.UTC
+        )
+    except (ValueError, TypeError):
+        # to_date_time = timezone.now()
+        to_date_time_tz_aware = now + datetime.timedelta(days=1)
+
+    from_time = from_date_time_tz_aware.strftime(date_format)
+    to_time = to_date_time_tz_aware.strftime(date_format)
+
+    return (from_time, to_time, from_date_time_tz_aware, to_date_time_tz_aware)
