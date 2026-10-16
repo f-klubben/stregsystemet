@@ -517,12 +517,12 @@ def user_purchases_in_categories(request):
 def newsignups(request):
 
     if request.method != 'POST':
-        (from_time, to_time, from_date_time_tz_aware, to_date_time_tz_aware) = parse_non_tz_aware_from_and_to_time(
+        from_time, to_time, from_date_time_tz_aware, to_date_time_tz_aware = parse_non_tz_aware_from_and_to_time(
             None, None
         )
         return render(request, 'admin/stregsystem/report/newsignups.html', locals())
 
-    (from_time, to_time, from_date_time_tz_aware, to_date_time_tz_aware) = parse_non_tz_aware_from_and_to_time(
+    from_time, to_time, from_date_time_tz_aware, to_date_time_tz_aware = parse_non_tz_aware_from_and_to_time(
         request.POST['from_date'], request.POST['to_date']
     )
 
