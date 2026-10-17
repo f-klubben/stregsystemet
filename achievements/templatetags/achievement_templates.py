@@ -16,7 +16,7 @@ register = template.Library()
 
 
 @register.inclusion_tag('achievements/achievement_notification.html')
-def achievement_notifications(products: List[tuple[Product, int]], member: Member):
+def achievement_notifications(products: List[Product], member: Member):
     new_achievements = get_new_achievements(member, products)
     return {
         "new_achievements": new_achievements,

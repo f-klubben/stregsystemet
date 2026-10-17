@@ -237,6 +237,8 @@ def get_member_rankings_current_month(member):
 
 
 def get_product_ids_for_category(category: "Category") -> list[int]:
+    from stregsystem.models import Product
+
     return list(Product.objects.filter(categories=category).values_list('id', flat=True))
 
 
@@ -244,60 +246,58 @@ def get_category_product_ids(categories: list["Category"]) -> dict["Category", l
     return {category: get_product_ids_for_category(category) for category in categories}
 
 
-def ranking(
-    member: "Member", product_ids: list[int], from_date: datetime.datetime, to_date: datetime.datetime
-) -> tuple[int, int]:
-    qs = (
-        Member.objects.filter(
-            sale__product__in=product_ids,
-            sale__timestamp__gt=from_date,
-            sale__timestamp__lte=to_date,
-        )
-        .annotate(Count('sale'))
-        .order_by('-sale__count', 'username')
-    )
-    if member not in qs:
-        return 0, qs.count()
-    rank = list(qs).index(Member.objects.get(id=member.pk)) + 1
-    return rank, qs.count()
+def _sales(product_ids, from_date, to_date):
+    from stregsystem.models import Sale
 
-
-def category_per_uni_day(
-    member: "Member", product_ids: list[int], from_date: datetime.datetime, to_date: datetime.datetime
-) -> str:
-    qs = Member.objects.filter(
-        id=member.pk,
-        sale__product__in=product_ids,
-        sale__timestamp__gt=from_date,
-        sale__timestamp__lte=to_date,
-    )
-    if member not in qs:
-        return "0.00"
-    university_days = (to_date - from_date).days * 162.14 / 365  # university workdays in 2021
-    return "{:.2f}".format(qs.count() / university_days)
-
-
-def sale_count_for_product(
-    member: "Member", product_ids: list[int], from_date: datetime.datetime, to_date: datetime.datetime
-) -> int:
     return Sale.objects.filter(
-        member=member,
-        product__in=product_ids,
+        product_id__in=product_ids,
         timestamp__gt=from_date,
         timestamp__lte=to_date,
-    ).count()
+    ).order_by()  # clear any default ordering so it doesn't leak into GROUP BY
 
 
-def get_member_rankings(
-    member: "Member", from_date: datetime.datetime, to_date: datetime.datetime
-) -> dict["Category", tuple[tuple[int, int], str, int]]:
+def ranking(member, product_ids, from_date, to_date, my_count: int | None = None) -> tuple[int, int]:
+    sales = _sales(product_ids, from_date, to_date)
+    total = sales.aggregate(n=Count('member', distinct=True))['n']
+
+    if my_count is None:
+        my_count = sales.filter(member=member).count()
+    if my_count == 0:
+        return 0, total
+
+    per_member = sales.values('member').annotate(c=Count('id'))
+    # members strictly ahead of me, plus tied members with an earlier username
+    # (matches the old ORDER BY -sale__count, username)
+    ahead = per_member.filter(c__gt=my_count).count()
+    tied_ahead = per_member.filter(c=my_count, member__username__lt=member.username).count()
+    return ahead + tied_ahead + 1, total
+
+
+def category_per_uni_day(member, product_ids, from_date, to_date, my_count: int | None = None) -> str:
+    if my_count is None:
+        my_count = sale_count_for_product(member, product_ids, from_date, to_date)
+    if my_count == 0:
+        return "0.00"
+    university_days = (to_date - from_date).days * 162.14 / 365  # university workdays in 2021
+    university_days = max(university_days, 1)  # avoid division by zero if from_date == to_date
+    return "{:.2f}".format(my_count / university_days)
+
+
+def sale_count_for_product(member, product_ids, from_date, to_date) -> int:
+    return _sales(product_ids, from_date, to_date).filter(member=member).count()
+
+
+def get_member_rankings(member, from_date, to_date):
+    from stregsystem.models import Category
+
     category_product_ids = get_category_product_ids(list(Category.objects.all()))
 
-    return {
-        category: (
-            ranking(member, product_ids, from_date, to_date),
-            category_per_uni_day(member, product_ids, from_date, to_date),
-            sale_count_for_product(member, product_ids, from_date, to_date),
+    result = {}
+    for category, product_ids in category_product_ids.items():
+        my_count = sale_count_for_product(member, product_ids, from_date, to_date)
+        result[category] = (
+            ranking(member, product_ids, from_date, to_date, my_count=my_count),
+            category_per_uni_day(member, product_ids, from_date, to_date, my_count=my_count),
+            my_count,
         )
-        for category, product_ids in category_product_ids.items()
-    }
+    return result

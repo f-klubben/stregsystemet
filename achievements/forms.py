@@ -14,6 +14,8 @@ class AchievementForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # The icon can be provided either as an upload or via existing_icons.
+        self.fields['icon'].required = False
 
         folder_path = os.path.join(settings.MEDIA_ROOT, 'stregsystem/achievement')
         choices = [('', '---')]
@@ -23,6 +25,16 @@ class AchievementForm(forms.ModelForm):
                     path = os.path.join('stregsystem/achievement', filename)
                     choices.append((path, filename))
         self.fields['existing_icons'].choices = choices
+
+    def clean(self):
+        cleaned_data = super().clean() or {}
+        if (
+            not cleaned_data.get('icon')
+            and not cleaned_data.get('existing_icons')
+            and not self.instance.icon
+        ):
+            self.add_error('icon', 'Choose an image file or select an existing image.')
+        return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)
