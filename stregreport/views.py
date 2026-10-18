@@ -550,7 +550,7 @@ def _render_signup_report(
     from_date_str = aware_date_to_local_str(from_date)
     to_date_str = aware_date_to_local_str(to_date)
 
-    return render(request, 'admin/stregsystem/report/newsignups.html', locals())
+    return render(request, 'admin/stregsystem/report/signups.html', locals())
 
 
 def parse_local_date(local_date_str: str) -> timezone.datetime:
