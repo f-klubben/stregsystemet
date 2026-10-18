@@ -536,9 +536,10 @@ def _redirect_to_intent_origin(request, intent, status: str):
     return render(request, "modal/pay_done.html", {"status": status})
 
 
+@login_required(login_url='/ffo/login')
 @require_POST
 def intent_accept(request, intent_id):
-    member = Member.objects.get(username__iexact="lowdough", active=True)
+    member = Member.objects.get(paired_user=request.user)
 
     try:
         intent = Intent.objects.get(id=intent_id, status=Intent.INITIATED)
@@ -575,8 +576,9 @@ def intent_accept(request, intent_id):
     return _redirect_to_intent_origin(request, intent, status="success")
 
 
+@login_required(login_url='/ffo/login')
 def intent_cancel(request, intent_id):
-    member = Member.objects.get(username__iexact="lowdough", active=True)
+    member = Member.objects.get(paired_user=request.user)
 
     try:
         intent = Intent.objects.get(id=intent_id, status=Intent.INITIATED)
