@@ -84,7 +84,7 @@ def make_processed_mobilepayment_query() -> QuerySet:
     return MobilePayment.objects.filter(
         Q(payment__isnull=True)
         & Q(member__isnull=False)
-        & Q(status__in=[MobilePayment.APPROVED, MobilePayment.IGNORED])
+        & Q(status__in=[MobilePayment.APPROVED])
     )
 
 
