@@ -1,7 +1,16 @@
 {% extends "admin/base_site.html" %}
 
-{% block title %}Nye Brugere{% endblock %}
-{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Reports</a>&nbsp;&rsaquo;&nbsp;Signuprapporteringer</div>{% endblock %}
+{% block title %}Signup-rapport{% endblock %}
+{% block breadcrumbs %}
+    <div class="breadcrumbs">
+        <a href="../../../">Hjem</a>
+        &rsaquo;
+        <a href="../../">Stregsystem</a>
+        &rsaquo;
+        <a href="../">Reports</a>
+        &rsaquo;
+        Signup-rapport
+    </div>{% endblock %}
 
 {% block content %}
 {% load static %}
@@ -15,7 +24,7 @@
 <script type="text/javascript" src="{% static 'admin/js/admin/DateTimeShortcuts.js' %}"></script>
 
 <div id="content-main">
-    <h1>Registreringer</h1>
+    <h1>Signup-rapport</h1>
     <form action="./" method="post">{% csrf_token %}
         <label for="id_from_date" class="required">Fra:</label>
         <p class="datetime">Dato: <input id="id_from_date" type="text" class="vDateField" name="from_date" size="10" value="{{from_time}}" /></p>
