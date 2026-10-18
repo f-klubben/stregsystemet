@@ -82,9 +82,7 @@ def make_processed_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
 
     return MobilePayment.objects.filter(
-        Q(payment__isnull=True)
-        & Q(member__isnull=False)
-        & Q(status__in=[MobilePayment.APPROVED])
+        Q(payment__isnull=True) & Q(member__isnull=False) & Q(status__in=[MobilePayment.APPROVED])
     )
 
 
