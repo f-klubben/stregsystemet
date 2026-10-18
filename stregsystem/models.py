@@ -543,8 +543,6 @@ class MobilePayment(ApprovalModel):
                 payment.log_from_mobile_payment(self, admin_user)
                 self.payment = payment
                 self.save()
-        elif self.status == ApprovalModel.IGNORED:
-            self.log_approval(admin_user, "Ignored")
 
     @classmethod
     @transaction.atomic
