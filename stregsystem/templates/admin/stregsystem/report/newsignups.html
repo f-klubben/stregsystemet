@@ -27,16 +27,16 @@
     <h1>Signup-rapport</h1>
     <form action="./" method="post">{% csrf_token %}
         <label for="id_from_date" class="required">Fra:</label>
-        <p class="datetime">Dato: <input id="id_from_date" type="text" class="vDateField" name="from_date" size="10" value="{{from_time}}" /></p>
+        <p class="datetime">Dato: <input id="id_from_date" type="text" class="vDateField" name="from_date" size="10" value="{{from_date_str}}" /></p>
         <label for="id_to_date" class="required">Til:</label>
-        <p class="datetime">Dato: <input id="id_to_date" type="text" class="vDateField" name="to_date" size="10" value="{{to_time}}" /></p>
+        <p class="datetime">Dato: <input id="id_to_date" type="text" class="vDateField" name="to_date" size="10" value="{{to_date_str}}" /></p>
         <input type="submit" value="Vis">
         <br />
         <label><small>Antal nye brugere i en angivet tidsperiode</small></label>
     </form>
     <br /><br />
     {% if signups_count %}
-        <p>Der blev oprettet {{signups_count}} medlemmer mellem {{from_time}} og {{to_time}}.</p>
+        <p>Der blev oprettet {{signups_count}} medlemmer mellem {{from_date_str}} og {{to_date_str}}.</p>
     {% endif %}
     {% if signups %}
         <table border="1" cellspacing="2" cellpadding="2">

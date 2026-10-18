@@ -1,5 +1,6 @@
 import datetime
 from functools import reduce
+from typing import Optional
 
 import pytz
 from django.contrib.admin.views.decorators import staff_member_required
@@ -10,6 +11,7 @@ from django.forms import fields
 from django.forms.widgets import SelectDateWidget
 from django.http import JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
+from django.http import HttpRequest, HttpResponse
 from django.urls import reverse
 from django.utils import dateparse, timezone
 from stregreport.forms import CategoryReportForm
@@ -514,53 +516,58 @@ def user_purchases_in_categories(request):
 
 
 @permission_required("stregsystem.access_new_signups")
-def newsignups(request):
-
+def signup_report(request: HttpRequest) -> HttpResponse:
     if request.method != 'POST':
-        from_time, to_time, from_date_time_tz_aware, to_date_time_tz_aware = parse_non_tz_aware_from_and_to_time(
-            None, None
-        )
-        return render(request, 'admin/stregsystem/report/newsignups.html', locals())
+        to_date = current_local_date()
+        from_date = to_date - timezone.timedelta(days=30)
 
-    from_time, to_time, from_date_time_tz_aware, to_date_time_tz_aware = parse_non_tz_aware_from_and_to_time(
-        request.POST['from_date'], request.POST['to_date']
-    )
+        return _render_signup_report(request, from_date, to_date, None, None)
 
-    result = Member.objects.filter(created_at__range=[from_date_time_tz_aware, to_date_time_tz_aware])
+    to_date = parse_local_date(request.POST['to_date'])
+    from_date = parse_local_date(request.POST['from_date'])
+
+    date_range = inclusive_date_range(from_date, to_date)
+
+    result = Member.objects.filter(created_at__range=date_range)
+
     signups_count = result.count()
+    signups = [(r.username, r.created_at, r.signup_due_paid) for r in result]
 
-    signups = []
-    for r in result:
-        signups.append((r.username, r.created_at, r.signup_due_paid))
+    return _render_signup_report(request, from_date, to_date, signups_count, signups)
+
+
+signup_report = staff_member_required(signup_report)
+
+
+def _render_signup_report(
+    request: HttpRequest,
+    from_date: timezone.datetime,
+    to_date: timezone.datetime,
+    signups_count: Optional[int],
+    signups: Optional[list[tuple[str, timezone.datetime, bool]]],
+) -> HttpResponse:
+
+    from_date_str = aware_date_to_local_str(from_date)
+    to_date_str = aware_date_to_local_str(to_date)
 
     return render(request, 'admin/stregsystem/report/newsignups.html', locals())
 
 
-newsignups = staff_member_required(newsignups)
+def parse_local_date(local_date_str: str) -> timezone.datetime:
+    tz = timezone.get_current_timezone()
+    return timezone.datetime.strptime(local_date_str, '%d-%m-%Y').replace(tzinfo=tz)
 
 
-def parse_non_tz_aware_from_and_to_time(from_time: str | None, to_time: str | None) -> (str, str, str, str):
-    date_format = '%Y-%m-%d'
-    now = timezone.now()
+def current_local_date() -> timezone.datetime:
+    tz = timezone.get_current_timezone()
+    return timezone.datetime.now(tz)
 
-    try:
-        from_time_date = datetime.datetime.strptime(from_time, date_format)
-        from_date_time_tz_aware = timezone.datetime(
-            from_time_date.year, from_time_date.month, from_time_date.day, tzinfo=pytz.UTC
-        )
-    except (ValueError, TypeError):
-        from_date_time_tz_aware = timezone.datetime(now.year, now.month, 1, 23, 59, 59) - datetime.timedelta(days=90)
 
-    try:
-        to_date_time = late(timezone.datetime.strptime(to_time, date_format))
-        to_date_time_tz_aware = timezone.datetime(
-            to_date_time.year, to_date_time.month, to_date_time.day, tzinfo=pytz.UTC
-        )
-    except (ValueError, TypeError):
-        # to_date_time = timezone.now()
-        to_date_time_tz_aware = now + datetime.timedelta(days=1)
+def aware_date_to_local_str(aware_date: timezone.datetime) -> str:
+    return aware_date.strftime('%d-%m-%Y')
 
-    from_time = from_date_time_tz_aware.strftime(date_format)
-    to_time = to_date_time_tz_aware.strftime(date_format)
 
-    return (from_time, to_time, from_date_time_tz_aware, to_date_time_tz_aware)
+def inclusive_date_range(
+    from_date: timezone.datetime, to_date: timezone.datetime
+) -> (timezone.datetime, timezone.datetime):
+    return (from_date, to_date + timezone.timedelta(days=1))
