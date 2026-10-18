@@ -31,7 +31,6 @@ class AchievementTask(BaseModel):
     TIME_AS_MEMBER_TASK_TYPE = "time_as_member"
     TOP_X_IN_CATEGORY_MONTH_TASK_TYPE = "top_x_in_category_month"
     TOP_X_IN_CATEGORY_YEAR_TASK_TYPE = "top_x_in_category_year"
-    IS_MULTIBUY_TASK_TYPE = "is_multibuy" 
     STREAK_DAYS_TASK_TYPE = "streak_days"
     FIRST_PURCHASE_OF_DAY_TASK_TYPE = "first_purchase_of_day"
     FIRST_PURCHASE_OF_WEEK_TASK_TYPE = "first_purchase_of_week"
@@ -46,7 +45,6 @@ class AchievementTask(BaseModel):
         (ANY_PURCHASE_TASK_TYPE, "Any Purchase"),
         (TOP_X_IN_CATEGORY_MONTH_TASK_TYPE, "Top X in Category (Month)"),
         (TOP_X_IN_CATEGORY_YEAR_TASK_TYPE, "Top X in Category (Year)"),
-        (IS_MULTIBUY_TASK_TYPE, "Multibuy"),
         (STREAK_DAYS_TASK_TYPE, "Streak Days"),
         (FIRST_PURCHASE_OF_DAY_TASK_TYPE, "First Purchase of Day"),
         (FIRST_PURCHASE_OF_WEEK_TASK_TYPE, "First Purchase of Week"),
@@ -61,6 +59,7 @@ class AchievementTask(BaseModel):
 
         (IMPOSSIBLE_TASK_TYPE, "Impossible Task"),
     ]
+    
     task_type = models.CharField(
         max_length=50,
         choices=TASK_TYPES,
