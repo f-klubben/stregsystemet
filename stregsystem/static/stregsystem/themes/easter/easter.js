@@ -33,6 +33,6 @@ function SetBodyEasterStyle() {
     bodyStyle.padding = "0";
     bodyStyle.margin = "0";
     bodyStyle.width = "100vw";
-    bodyStyle.height = "100vh";
+    bodyStyle.height = "100%";
     bodyStyle.position = "relative";
 }
