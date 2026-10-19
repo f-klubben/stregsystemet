@@ -528,10 +528,11 @@ def signup_report(request: HttpRequest) -> HttpResponse:
 
     date_range = inclusive_date_range(from_date, to_date)
 
-    result = Member.objects.filter(created_at__range=date_range)
+    query = Member.objects.filter(created_at__range=date_range)
+    signups_count = query.count()
 
-    signups_count = result.count()
-    signups = [(r.username, r.created_at, r.signup_due_paid) for r in result]
+    query = query.order_by('-created_at')[:10]
+    signups = [(r.username, r.created_at, r.signup_due_paid) for r in query]
 
     return _render_signup_report(request, from_date, to_date, signups_count, signups)
 
