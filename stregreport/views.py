@@ -1,5 +1,6 @@
 import datetime
 from functools import reduce
+from typing import Optional
 
 import pytz
 from django.contrib.admin.views.decorators import staff_member_required
@@ -10,6 +11,7 @@ from django.forms import fields
 from django.forms.widgets import SelectDateWidget
 from django.http import JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
+from django.http import HttpRequest, HttpResponse
 from django.urls import reverse
 from django.utils import dateparse, timezone
 from stregreport.forms import CategoryReportForm
@@ -515,3 +517,62 @@ def user_purchases_in_categories(request):
             "header": header,
         },
     )
+
+
+@permission_required("stregsystem.access_new_signups")
+def signup_report(request: HttpRequest) -> HttpResponse:
+    if request.method != 'POST':
+        to_date = current_local_date()
+        from_date = to_date - timezone.timedelta(days=30)
+
+        return _render_signup_report(request, from_date, to_date, None, None)
+
+    to_date = parse_local_date(request.POST['to_date'])
+    from_date = parse_local_date(request.POST['from_date'])
+
+    date_range = inclusive_date_range(from_date, to_date)
+
+    query = Member.objects.filter(created_at__range=date_range)
+    signups_count = query.count()
+
+    query = query.order_by('-created_at')[:10]
+    signups = [(r.username, r.created_at, r.signup_due_paid) for r in query]
+
+    return _render_signup_report(request, from_date, to_date, signups_count, signups)
+
+
+signup_report = staff_member_required(signup_report)
+
+
+def _render_signup_report(
+    request: HttpRequest,
+    from_date: timezone.datetime,
+    to_date: timezone.datetime,
+    signups_count: Optional[int],
+    signups: Optional[list[tuple[str, timezone.datetime, bool]]],
+) -> HttpResponse:
+
+    from_date_str = aware_date_to_local_str(from_date)
+    to_date_str = aware_date_to_local_str(to_date)
+
+    return render(request, 'admin/stregsystem/report/signups.html', locals())
+
+
+def parse_local_date(local_date_str: str) -> timezone.datetime:
+    tz = timezone.get_current_timezone()
+    return timezone.datetime.strptime(local_date_str, '%d-%m-%Y').replace(tzinfo=tz)
+
+
+def current_local_date() -> timezone.datetime:
+    tz = timezone.get_current_timezone()
+    return timezone.datetime.now(tz)
+
+
+def aware_date_to_local_str(aware_date: timezone.datetime) -> str:
+    return aware_date.strftime('%d-%m-%Y')
+
+
+def inclusive_date_range(
+    from_date: timezone.datetime, to_date: timezone.datetime
+) -> (timezone.datetime, timezone.datetime):
+    return (from_date, to_date + timezone.timedelta(days=1))
