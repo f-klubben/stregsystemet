@@ -5,6 +5,7 @@ from django.template.loader import get_template
 from django.utils import timezone
 
 from stregsystem.caffeine import caffeine_mg_to_coffee_cups
+from stregsystem.utils import FrontpageProduct
 
 register = template.Library()
 
@@ -47,6 +48,18 @@ def product_id_and_alias_string(product_id):
     else:
         #
         return str(product_id)
+
+
+@register.filter
+def product_with_alias_string(product: FrontpageProduct) -> str:
+    from random import choice
+
+    res = str(product.id)
+
+    if len(product.aliases) > 0:
+        res += f" / {choice(product.aliases)}"
+
+    return res
 
 
 @register.simple_tag

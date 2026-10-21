@@ -1,6 +1,7 @@
 import logging
 import re
 import csv
+from dataclasses import dataclass
 
 from django.utils.dateparse import parse_datetime
 from django.conf import settings
@@ -104,6 +105,89 @@ def make_unprocessed_membership_payment_query() -> QuerySet:
         & Q(member__isnull=True)
         & Q(comment__regex=r'^signup:[0-9a-fA-F-]{36}\+.{1,16}$')
     )
+
+
+@dataclass
+class FrontpageProductNote:
+    text: str
+    background_color: str
+    text_color: str
+
+
+@dataclass
+class FrontpageProduct:
+    id: int
+    name: str
+    price: int
+    aliases: list[str]
+    notes: list[FrontpageProductNote]
+
+
+def query_frontpage_products(room_id: str) -> list[FrontpageProduct]:
+    from stregsystem.models import Product, NamedProduct
+
+    now = timezone.now()
+
+    active_filter = (
+        Q(active=True)
+        & (Q(deactivate_date__isnull=True) | Q(deactivate_date__gte=now))
+        & (Q(start_date__isnull=True) | Q(start_date__lte=now.date()))
+    )
+
+    room_filter = Q(rooms__id=room_id) | Q(rooms__isnull=True)
+
+    products_query = Product.objects.filter(active_filter & room_filter)
+
+    products_out_of_stock = (
+        products_query.filter(sale__timestamp__gt=F("start_date"))
+        .annotate(c=Count("sale__id"))
+        .filter(c__gte=F("quantity"))
+        .values("id")
+    )
+
+    product_ids_out_of_stock = [product["id"] for product in products_out_of_stock]
+
+    products_query = products_query.exclude(Q(start_date__isnull=False) & Q(id__in=product_ids_out_of_stock))
+
+    product_ids = [product_id for (product_id) in products_query.values_list("id")]
+
+    aliases = NamedProduct.objects.filter(product__in=product_ids).values_list("name", "product_id")
+
+    note_active_filter = (
+        Q(active=True)
+        & (Q(start_date__isnull=True) | Q(start_date__lte=timezone.now()))
+        & (Q(end_date__isnull=True) | Q(end_date__gte=timezone.now()))
+    )
+
+    products = [
+        FrontpageProduct(
+            product.id,
+            product.name,
+            product.price,
+            [name for (name, product_id) in aliases if product_id == product.id],
+            [
+                FrontpageProductNote(text, background_color, text_color)
+                for (text, background_color, text_color) in product.productnote_set.filter(
+                    note_active_filter
+                ).values_list("text", "background_color", "text_color")
+            ],
+        )
+        for product in products_query
+    ]
+
+    return products
+
+
+def query_frontpage_products_split(
+    room_id: str,
+) -> (list[FrontpageProduct], list[FrontpageProduct], list[FrontpageProduct]):
+    """
+    Returns the frontpage products as the (full list, left half, right half)
+    """
+    products = query_frontpage_products(room_id)
+    products_left = products[: len(products) // 2]
+    products_right = products[len(products) // 2 :]
+    return products, products_left, products_right
 
 
 def date_to_midnight(date):
