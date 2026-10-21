@@ -1291,19 +1291,19 @@ class ProductRoomFilterTests(TestCase):
     def test_general_room_dont_get_special_items(self):
         numberOfSpecialItems = 2
         response = self.client.get(reverse('menu_index', args=(1,)))
-        product_pairs = response.context['product_note_pair_list']
-        specialProduct = Product.objects.get(pk=3)
+        products = response.context['products']
+        special_product = Product.objects.get(pk=3)
 
-        any(self.assertFalse(specialProduct == pair.product) for pair in product_pairs)
-        self.assertEqual(len(product_pairs), len(Product.objects.all()) - numberOfSpecialItems)
+        self.assertFalse(any(special_product == product for product in products))
+        self.assertEqual(len(products), len(Product.objects.all()) - numberOfSpecialItems)
 
     def test_special_room_get_special_items(self):
         response = self.client.get(reverse('menu_index', args=(2,)))
-        product_pairs = response.context['product_note_pair_list']
-        specialProduct = Product.objects.get(pk=3)
+        products = response.context['products']
+        special_product = Product.objects.get(pk=3)
 
-        self.assertTrue(any(specialProduct == pair.product) for pair in product_pairs)
-        self.assertEqual(len(product_pairs), len(Product.objects.all()))
+        self.assertTrue(any(special_product == product) for product in products)
+        self.assertEqual(len(products), len(Product.objects.all()))
 
 
 class CategoryAdminTests(TestCase):

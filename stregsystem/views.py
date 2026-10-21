@@ -20,7 +20,7 @@ from django.core import management
 from django.core.exceptions import ValidationError
 from django.db.models import Q, Count, Sum, QuerySet
 from django.forms import modelformset_factory
-from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
+from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse, HttpResponse, HttpRequest
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -55,6 +55,7 @@ from stregsystem.utils import (
     parse_csv_and_create_mobile_payments,
     PaymentToolException,
     make_unprocessed_signups_query,
+    query_frontpage_products_split,
 )
 
 from .booze import ballmer_peak
@@ -95,13 +96,11 @@ def roomindex(request):
 #    return render(request, 'stregsystem/roomindex.html', {'room_list': room_list})
 
 
-def index(request, room_id):
+def index(request: HttpRequest, room_id: str) -> HttpResponse:
     room = get_object_or_404(Room, pk=int(room_id))
-    ProductNotePair = namedtuple('ProductNotePair', 'product note')
-    product_note_pair_list = [
-        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room_id)
-    ]
     news = __get_news()
+    products, products_left, products_right = query_frontpage_products_split(room_id)
+
     return render(request, 'stregsystem/index.html', locals())
 
 
@@ -122,11 +121,7 @@ def _pre_process(buy_string):
 def sale(request, room_id):
     room = get_object_or_404(Room, pk=room_id)
     news = __get_news()
-    product_list = __get_productlist(room_id)
-    ProductNotePair = namedtuple('ProductNotePair', 'product note')
-    product_note_pair_list = [
-        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room_id)
-    ]
+    products, products_left, products_right = query_frontpage_products_split(room_id)
 
     buy_string = request.POST['quickbuy'].strip()
     # Handle empty line
@@ -190,11 +185,6 @@ def _multibuy_hint(now, member):
 
 def quicksale(request, room, member: Member, bought_ids):
     news = __get_news()
-    product_list = __get_productlist(room.id)
-    ProductNotePair = namedtuple('ProductNotePair', 'product note')
-    product_note_pair_list = [
-        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room.id)
-    ]
     now = timezone.now()
 
     # Retrieve products and construct transaction
@@ -229,12 +219,7 @@ def quicksale(request, room, member: Member, bought_ids):
 
     products_with_counts = Counter([product for product in products]).most_common()
 
-    # THIS WAS NOT IN THE ORIGINAL STREGSYSTEM AND I ADDED IT BECAUSE OTHERWISE IT WOULD
-    # NOT SHOW THE PRODUCTS AFTER USING QUICKBUY
-    ProductNotePair = namedtuple('ProductNotePair', 'product note')
-    product_note_pair_list = [
-        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room.id)
-    ]
+    products, products_left, products_right = query_frontpage_products_split(room.id)
 
     return render(request, 'stregsystem/index_sale.html', locals())
 
@@ -242,10 +227,9 @@ def quicksale(request, room, member: Member, bought_ids):
 def usermenu(request, room, member, bought, from_sale=False):
     negative_balance = member.balance < 0
     product_list = __get_productlist(room.id)
-    ProductNotePair = namedtuple('ProductNotePair', 'product note')
-    product_note_pair_list = [
-        ProductNotePair(product, __get_active_notes_for_product(product)) for product in __get_productlist(room.id)
-    ]
+
+    products, products_left, products_right = query_frontpage_products_split(room.id)
+
     news = __get_news()
     promille = member.calculate_alcohol_promille()
     (
