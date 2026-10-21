@@ -532,19 +532,16 @@ class MobilePayment(ApprovalModel):
 
     @transaction.atomic
     def submit_processed_mobile_payment(self, admin_user: User):
-        if self.status == ApprovalModel.APPROVED:
-            if not self.member.signup_due_paid:
-                signup = PendingSignup.objects.get(member=self.member)
-                signup.pay_towards_due(self)
-            else:
-                payment = Payment(member=self.member, amount=self.amount)
-                # Save payment and foreign key to MobilePayment field
-                payment.save(mbpayment=self)
-                payment.log_from_mobile_payment(self, admin_user)
-                self.payment = payment
-                self.save()
-        elif self.status == ApprovalModel.IGNORED:
-            self.log_approval(admin_user, "Ignored")
+        if not self.member.signup_due_paid:
+            signup = PendingSignup.objects.get(member=self.member)
+            signup.pay_towards_due(self)
+        else:
+            payment = Payment(member=self.member, amount=self.amount)
+            # Save payment and foreign key to MobilePayment field
+            payment.save(mbpayment=self)
+            payment.log_from_mobile_payment(self, admin_user)
+            self.payment = payment
+            self.save()
 
     @classmethod
     @transaction.atomic
