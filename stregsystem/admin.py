@@ -28,15 +28,13 @@ from stregsystem.utils import (
 )
 
 
+@admin.action(description="Refund selected")
 def refund(modeladmin, request, queryset):
     for obj in queryset:
         transaction = PayTransaction(obj.price)
         obj.member.rollback(transaction)
         obj.member.save()
     queryset.delete()
-
-
-refund.short_description = "Refund selected"
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -63,6 +61,11 @@ class BaseAdmin(admin.ModelAdmin):
 
 class SaleAdmin(BaseAdmin):
     list_filter = ('room', 'timestamp')
+    date_hierarchy = 'timestamp'
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('member', 'product', 'room')
 
     def _get_fields_to_display(self):
         return [
@@ -129,8 +132,9 @@ class SaleAdmin(BaseAdmin):
     get_price_display.admin_order_field = "price"
 
 
+@admin.action(description="Toggle active on products")
 def toggle_active_selected_products(modeladmin, request, queryset):
-    "toggles active on products, also removes deactivation date."
+    "Toggles active on products, also removes deactivation date."
     # This is horrible since it does not use update, but update will
     # not do not F('active') so we are doing this. I am sorry.
     for obj in queryset:
@@ -161,12 +165,17 @@ class ProductActivatedListFilter(admin.SimpleListFilter):
 class ProductAdmin(BaseAdmin):
     search_fields = ('name', 'price', 'id')
     list_filter = (ProductActivatedListFilter, 'deactivate_date', 'price')
+    date_hierarchy = 'start_date'
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related('categories', 'rooms')
 
     def _get_fields_to_display(self):
         return [
-            'activated',
-            'id',
             'name',
+            'id',
+            'activated',
             'get_price_display',
         ] + super()._get_fields_to_display()
 
@@ -228,8 +237,8 @@ class NamedProductAdmin(BaseAdmin):
 class CategoryAdmin(BaseAdmin):
     def _get_fields_to_display(self):
         return [
-            'id',
             'name',
+            'id',
             'items_in_category',
         ] + super()._get_fields_to_display()
 
@@ -252,8 +261,9 @@ class MemberForm(forms.ModelForm):
 
 class MemberAdmin(BaseAdmin):
     form = MemberForm
-    list_filter = ('want_spam',)
+    list_filter = ('want_spam', 'active', 'gender', 'year')
     search_fields = ('username', 'firstname', 'lastname', 'email')
+    date_hierarchy = 'created_at'
 
     def _get_fields_to_display(self):
         return [
@@ -308,6 +318,13 @@ class MemberAdmin(BaseAdmin):
 
 
 class PaymentAdmin(BaseAdmin):
+    list_filter = ('timestamp',)
+    date_hierarchy = 'timestamp'
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('member')
+
     def _get_fields_to_display(self):
         return [
             'get_username',
@@ -344,15 +361,22 @@ class PaymentAdmin(BaseAdmin):
 
 
 class MobilePaymentAdmin(BaseAdmin):
+    list_filter = ('status', 'timestamp')
+    date_hierarchy = 'timestamp'
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('member', 'payment')
+
     def _get_fields_to_display(self):
         return [
-            'payment',
-            'customer_name',
-            'comment',
-            'timestamp',
             'transaction_id',
+            'customer_name',
             'get_amount_display',
             'status',
+            'timestamp',
+            'payment',
+            'comment',
         ] + super()._get_fields_to_display()
 
     valid_lookups = 'member'
@@ -413,6 +437,8 @@ class LogEntryAdmin(BaseAdmin):
 
 
 class ThemeAdmin(BaseAdmin):
+    list_filter = ('override', 'begin_month', 'end_month')
+
     def _get_fields_to_display(self):
         return [
             'name',
@@ -441,27 +467,69 @@ class ThemeAdmin(BaseAdmin):
 
 
 class ProductNoteAdmin(BaseAdmin):
+    list_filter = ('active',)
+    date_hierarchy = 'start_date'
     search_fields = ('active', 'text')
 
     def _get_fields_to_display(self):
         return [
-            'active',
             'text',
+            'active',
         ] + super()._get_fields_to_display()
 
     actions = [toggle_active_selected_products]
+
+
+@admin.register(News)
+class NewsAdmin(BaseAdmin):
+    search_fields = ('title', 'text')
+    list_filter = ('pub_date', 'stop_date')
+    date_hierarchy = 'pub_date'
+    readonly_fields = ('created_at', 'updated_at', 'pub_date', 'stop_date')
+
+    def _get_fields_to_display(self):
+        return [
+            'title',
+            'pub_date',
+            'stop_date',
+        ] + super()._get_fields_to_display()
+
+
+@admin.register(Room)
+class RoomAdmin(BaseAdmin):
+    search_fields = ('name', 'description')
+    readonly_fields = ('created_at', 'updated_at')
+
+    def _get_fields_to_display(self):
+        return [
+            'name',
+            'description',
+        ] + super()._get_fields_to_display()
+
+
+@admin.register(PendingSignup)
+class PendingSignupAdmin(BaseAdmin):
+    search_fields = ('member__username', 'member__firstname', 'member__lastname')
+    list_filter = ('status', 'created_at')
+    date_hierarchy = 'created_at'
+    readonly_fields = ('created_at', 'updated_at')
+    autocomplete_fields = ['member']
+
+    def _get_fields_to_display(self):
+        return [
+            'member',
+            'due',
+            'status',
+        ] + super()._get_fields_to_display()
 
 
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(Member, MemberAdmin)
 admin.site.register(Payment, PaymentAdmin)
-admin.site.register(News)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(NamedProduct, NamedProductAdmin)
 admin.site.register(Category, CategoryAdmin)
-admin.site.register(Room)
 admin.site.register(MobilePayment, MobilePaymentAdmin)
-admin.site.register(PendingSignup)
 admin.site.register(Theme, ThemeAdmin)
 admin.site.register(ProductNote, ProductNoteAdmin)
