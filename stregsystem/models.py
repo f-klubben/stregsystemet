@@ -302,7 +302,8 @@ class Member(BaseModel):  # id automatisk...
 
         now = timezone.now()
         # Lets assume noone is drinking 12 hours straight
-        calculation_start = now - timedelta(hours=12)
+        # Updating the algorithm for modern times fyttetur. 96 hours should be able to contain an entire fyttetur of drinking
+        calculation_start = now - timedelta(hours=96)
 
         alcohol_sales = self.sale_set.filter(
             timestamp__gt=calculation_start, product__alcohol_content_ml__gt=0.0
