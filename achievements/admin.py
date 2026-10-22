@@ -3,7 +3,6 @@ from datetime import datetime
 import pytz
 from achievements.forms import AchievementForm
 from achievements.models import Achievement, AchievementTask, AchievementComplete, AchievementConstraint
-from achievements.util import name_of
 from django.contrib import admin
 from django.utils.html import format_html
 from stregsystem.admin import BaseAdmin
