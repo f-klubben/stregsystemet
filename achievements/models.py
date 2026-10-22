@@ -452,12 +452,12 @@ class Achievement(BaseModel):
 
     hushhush = models.BooleanField(
         default=True,
-        help_text="If True, the achievement description will be hidden.",
+        help_text="If Enabled, the achievement description will be hidden.",
     )
 
     hidden = models.BooleanField(
         default=False,
-        help_text="If True, the achievement will not be shown in the achievements list until it is unlocked. This achievement will not count towards the total number of achievements unlocked for the member, or their leaderboard position. This is useful for secret achievements that work more like easter eggs, or status symbols (like badges).",
+        help_text="If Enabled, the achievement will not be shown in the achievements list until it is unlocked. This achievement will not count towards the total number of achievements unlocked for the member, or their leaderboard position. This is useful for secret achievements that work more like easter eggs, or status symbols (like badges).",
     )
 
     active_from = models.DateTimeField(
