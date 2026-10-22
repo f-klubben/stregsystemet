@@ -18,6 +18,9 @@ NAME = db.sqlite3
 USER =
 PASSWORD =
 
+[oidc]
+ISS_ENDPOINT =
+
 [hostnames]
 2=127.0.0.1
 3=localhost

@@ -12,6 +12,7 @@ dependencies = [
     "debugpy==1.8.16",
     "django==4.1.13",
     "django-debug-toolbar==4.3.0",
+    "django-oauth-toolkit>=2.4.0",
     "django-select2==8.2.3",
     "freezegun==1.5.1",
     "pillow>=12.2.0",
