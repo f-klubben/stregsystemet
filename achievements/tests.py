@@ -730,6 +730,7 @@ class AchievementEdgeCaseTests(TestCase):
             self.assertEqual(pos3, 100.0)
             self.assertEqual(pos4, 100.0)
 
+
 class ImpossibleTaskTests(TestCase):
     def setUp(self) -> None:
         self.member = Member.objects.create(username="testuser", balance=100)
@@ -782,9 +783,7 @@ class TimeAsMemberTaskTests(TestCase):
     def test_completed_when_member_is_old_enough(self) -> None:
         with freeze_time(_cph(2025, 1, 1, 12, 0)):
             member = Member.objects.create(username="testuser")
-        task = AchievementTask(
-            task_type=AchievementTask.TIME_AS_MEMBER_TASK_TYPE, goal_value=24 * 60 * 60  # 1 day
-        )
+        task = AchievementTask(task_type=AchievementTask.TIME_AS_MEMBER_TASK_TYPE, goal_value=24 * 60 * 60)  # 1 day
 
         with freeze_time(_cph(2025, 1, 3, 12, 0)):
             self.assertTrue(_is_completed(task, member))
@@ -820,9 +819,7 @@ class TimeAsMemberTaskTests(TestCase):
             task.full_clean()
 
     def test_clean_rejects_product(self) -> None:
-        task = AchievementTask(
-            task_type=AchievementTask.TIME_AS_MEMBER_TASK_TYPE, product=self.product, goal_value=1
-        )
+        task = AchievementTask(task_type=AchievementTask.TIME_AS_MEMBER_TASK_TYPE, product=self.product, goal_value=1)
 
         with self.assertRaises(ValidationError):
             task.full_clean()
@@ -873,27 +870,21 @@ class TopXInCategoryTaskTests(TestCase):
         year_rankings: Rankings = {self.category_beer: self._ranking(1, 10)}
         month_rankings: Rankings = {self.category_beer: self._ranking(9, 10)}
 
-        self.assertFalse(
-            _is_completed(task, self.member, rankings_year=year_rankings, rankings_month=month_rankings)
-        )
+        self.assertFalse(_is_completed(task, self.member, rankings_year=year_rankings, rankings_month=month_rankings))
 
     def test_year_completed_when_rank_is_within_goal(self) -> None:
         task = self._create_task(AchievementTask.TOP_X_IN_CATEGORY_YEAR_TASK_TYPE, self.category_beer, 3)
         year_rankings: Rankings = {self.category_beer: self._ranking(1, 10)}
         month_rankings: Rankings = {self.category_beer: self._ranking(9, 10)}
 
-        self.assertTrue(
-            _is_completed(task, self.member, rankings_year=year_rankings, rankings_month=month_rankings)
-        )
+        self.assertTrue(_is_completed(task, self.member, rankings_year=year_rankings, rankings_month=month_rankings))
 
     def test_year_task_ignores_month_rankings(self) -> None:
         task = self._create_task(AchievementTask.TOP_X_IN_CATEGORY_YEAR_TASK_TYPE, self.category_beer, 3)
         year_rankings: Rankings = {self.category_beer: self._ranking(9, 10)}
         month_rankings: Rankings = {self.category_beer: self._ranking(1, 10)}
 
-        self.assertFalse(
-            _is_completed(task, self.member, rankings_year=year_rankings, rankings_month=month_rankings)
-        )
+        self.assertFalse(_is_completed(task, self.member, rankings_year=year_rankings, rankings_month=month_rankings))
 
     def test_without_category_completes_when_top_in_any_category(self) -> None:
         task = self._create_task(AchievementTask.TOP_X_IN_CATEGORY_MONTH_TASK_TYPE, None, 3)
@@ -956,6 +947,7 @@ class TopXInCategoryTaskTests(TestCase):
     def _ranking(self, rank: int, total: int = 10) -> tuple[tuple[int, int], str, int]:
         my_count: int = 0 if rank == 0 else 1
         return (rank, total), "0.00", my_count
+
 
 class StreakDaysTaskTests(TestCase):
     def setUp(self) -> None:
@@ -1062,9 +1054,7 @@ class StreakDaysTaskTests(TestCase):
         self.assertNotIn(achievement, new_achievements)
 
     def _create_task(self, goal_value: int) -> AchievementTask:
-        return AchievementTask.objects.create(
-            task_type=AchievementTask.STREAK_DAYS_TASK_TYPE, goal_value=goal_value
-        )
+        return AchievementTask.objects.create(task_type=AchievementTask.STREAK_DAYS_TASK_TYPE, goal_value=goal_value)
 
 
 class FirstPurchaseTaskTests(TestCase):
@@ -1154,14 +1144,10 @@ class FirstPurchaseTaskTests(TestCase):
         self.assertNotIn(achievement, second_buyer_achievements)
 
     def _create_day_task(self) -> AchievementTask:
-        return AchievementTask.objects.create(
-            task_type=AchievementTask.FIRST_PURCHASE_OF_DAY_TASK_TYPE, goal_value=1
-        )
+        return AchievementTask.objects.create(task_type=AchievementTask.FIRST_PURCHASE_OF_DAY_TASK_TYPE, goal_value=1)
 
     def _create_week_task(self) -> AchievementTask:
-        return AchievementTask.objects.create(
-            task_type=AchievementTask.FIRST_PURCHASE_OF_WEEK_TASK_TYPE, goal_value=1
-        )
+        return AchievementTask.objects.create(task_type=AchievementTask.FIRST_PURCHASE_OF_WEEK_TASK_TYPE, goal_value=1)
 
 
 def _cph(year: int, month: int, day: int, hour: int = 12, minute: int = 0) -> datetime.datetime:

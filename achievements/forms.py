@@ -28,11 +28,7 @@ class AchievementForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean() or {}
-        if (
-            not cleaned_data.get('icon')
-            and not cleaned_data.get('existing_icons')
-            and not self.instance.icon
-        ):
+        if not cleaned_data.get('icon') and not cleaned_data.get('existing_icons') and not self.instance.icon:
             self.add_error('icon', 'Choose an image file or select an existing image.')
         return cleaned_data
 
@@ -54,7 +50,7 @@ class AchievementForm(forms.ModelForm):
                 if not os.path.isfile(file_path):
                     continue
                 with open(file_path, 'rb') as f:
-                   existing_hash = hashlib.md5(f.read()).hexdigest()
+                    existing_hash = hashlib.md5(f.read()).hexdigest()
                 if uploaded_hash == existing_hash:
                     instance.icon.name = os.path.join('stregsystem/achievement', filename)
                     match_found = True

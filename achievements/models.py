@@ -36,7 +36,7 @@ class AchievementTask(BaseModel):
     FIRST_PURCHASE_OF_WEEK_TASK_TYPE = "first_purchase_of_week"
 
     IMPOSSIBLE_TASK_TYPE = "impossible"
-    
+
     TASK_TYPES = [
         # Specific item types
         (PRODUCT_TASK_TYPE, "Specific Product"),
@@ -54,12 +54,11 @@ class AchievementTask(BaseModel):
         # Financial-based goals
         (USED_FUNDS_TASK_TYPE, "Used Funds"),
         (REMAINING_FUNDS_TASK_TYPE, "Remaining Funds"),
-#       # Time-based goals
+        #       # Time-based goals
         (TIME_AS_MEMBER_TASK_TYPE, "Time as Member"),
-
         (IMPOSSIBLE_TASK_TYPE, "Impossible Task"),
     ]
-    
+
     task_type = models.CharField(
         max_length=50,
         choices=TASK_TYPES,
@@ -94,24 +93,35 @@ class AchievementTask(BaseModel):
             return False
 
         for product in products:
-            if (self._is_relevant_based_on_product(product, category_ids)):
+            if self._is_relevant_based_on_product(product, category_ids):
                 return True
 
         if self._is_relevant_based_on_all_products(products, category_ids):
             return True
 
-        
         return False
 
     def _is_relevant_based_on_product(self, product: Product, category_ids: Optional[list[int]] = None) -> bool:
-        if self.task_type in [self.ANY_PURCHASE_TASK_TYPE, self.USED_FUNDS_TASK_TYPE, self.REMAINING_FUNDS_TASK_TYPE, self.TIME_AS_MEMBER_TASK_TYPE, self.STREAK_DAYS_TASK_TYPE, self.FIRST_PURCHASE_OF_DAY_TASK_TYPE, self.FIRST_PURCHASE_OF_WEEK_TASK_TYPE]:
+        if self.task_type in [
+            self.ANY_PURCHASE_TASK_TYPE,
+            self.USED_FUNDS_TASK_TYPE,
+            self.REMAINING_FUNDS_TASK_TYPE,
+            self.TIME_AS_MEMBER_TASK_TYPE,
+            self.STREAK_DAYS_TASK_TYPE,
+            self.FIRST_PURCHASE_OF_DAY_TASK_TYPE,
+            self.FIRST_PURCHASE_OF_WEEK_TASK_TYPE,
+        ]:
             return True
         elif self.task_type == self.PRODUCT_TASK_TYPE:
             if not self.product:
                 raise ValueError("Product must be set for product-based tasks.")
             return self.product.pk == product.pk
-        elif self.task_type in [self.CATEGORY_TASK_TYPE, self.TOP_X_IN_CATEGORY_MONTH_TASK_TYPE, self.TOP_X_IN_CATEGORY_YEAR_TASK_TYPE]:
-            if not self.category: # no category means, must be top x in any category
+        elif self.task_type in [
+            self.CATEGORY_TASK_TYPE,
+            self.TOP_X_IN_CATEGORY_MONTH_TASK_TYPE,
+            self.TOP_X_IN_CATEGORY_YEAR_TASK_TYPE,
+        ]:
+            if not self.category:  # no category means, must be top x in any category
                 return True
             ids = category_ids if category_ids is not None else list(product.categories.values_list('id', flat=True))
             return self.category.pk in ids
@@ -122,14 +132,18 @@ class AchievementTask(BaseModel):
 
         return False
 
-    def _is_relevant_based_on_all_products(self, products: list[Product], category_ids: Optional[list[int]] = None) -> bool:
+    def _is_relevant_based_on_all_products(
+        self, products: list[Product], category_ids: Optional[list[int]] = None
+    ) -> bool:
         is_relevant = False
 
         # Check if the task is relevant based on all products in single purchase
 
         return is_relevant
 
-    def is_task_completed(self, sales: QuerySet[Sale, Sale], member: Member, rankings_year: dict, rankings_month: dict) -> bool:
+    def is_task_completed(
+        self, sales: QuerySet[Sale, Sale], member: Member, rankings_year: dict, rankings_month: dict
+    ) -> bool:
         """
         Determines if the task is completed based on the sales and member's attributes.
         """
@@ -139,7 +153,9 @@ class AchievementTask(BaseModel):
             return False
 
         if (
-            task_type == self.PRODUCT_TASK_TYPE or task_type == self.CATEGORY_TASK_TYPE or task_type == self.ANY_PURCHASE_TASK_TYPE
+            task_type == self.PRODUCT_TASK_TYPE
+            or task_type == self.CATEGORY_TASK_TYPE
+            or task_type == self.ANY_PURCHASE_TASK_TYPE
         ) and sales.count() < self.goal_value:
             return False
         elif task_type == self.ALCOHOL_CONTENT_TASK_TYPE:
@@ -148,7 +164,7 @@ class AchievementTask(BaseModel):
                 return False
         elif task_type == self.CAFFEINE_CONTENT_TASK_TYPE:
             caffeine = member.calculate_caffeine_in_body()
-            if caffeine < (self.goal_value / 100):    
+            if caffeine < (self.goal_value / 100):
                 return False
         elif task_type == self.USED_FUNDS_TASK_TYPE:
             used_funds = sales.aggregate(total=Sum('price'))['total'] or 0  # Sum of prices
@@ -168,7 +184,7 @@ class AchievementTask(BaseModel):
                 raise ValueError("Goal value must be set for top X in category tasks.")
             if task_type == self.TOP_X_IN_CATEGORY_MONTH_TASK_TYPE:
                 rankings = rankings_month
-            else: #if task_type == self.TOP_X_IN_CATEGORY_YEAR_TASK_TYPE:
+            else:  # if task_type == self.TOP_X_IN_CATEGORY_YEAR_TASK_TYPE:
                 rankings = rankings_year
 
             if self.category:
@@ -177,7 +193,9 @@ class AchievementTask(BaseModel):
                     return False
             else:
                 # If no category is set, check if the member is in the top X for any category
-                if not any(ranking[0][0] <= self.goal_value and not ranking[0][0] == 0 for ranking in rankings.values()):
+                if not any(
+                    ranking[0][0] <= self.goal_value and not ranking[0][0] == 0 for ranking in rankings.values()
+                ):
                     return False
         elif task_type == self.STREAK_DAYS_TASK_TYPE:
             if not self._has_purchase_streak(sales):
@@ -193,7 +211,6 @@ class AchievementTask(BaseModel):
 
         return True
 
-
     def _has_purchase_streak(self, sales: QuerySet[Sale, Sale]) -> bool:
         now: datetime = datetime.now(tz=pytz.timezone(settings.TIME_ZONE))
         first_day: datetime = (now - timedelta(days=self.goal_value - 1)).replace(
@@ -202,11 +219,9 @@ class AchievementTask(BaseModel):
         purchase_days: QuerySet = sales.filter(timestamp__gte=first_day).dates('timestamp', 'day')
         return purchase_days.count() == self.goal_value
 
-
     def _is_first_purchase_since(self, member: Member, period_start: datetime) -> bool:
         first_sale = Sale.objects.filter(timestamp__gte=period_start).order_by('timestamp', 'id').first()
         return first_sale is not None and first_sale.member == member
-
 
     def _period_start(self) -> datetime:
         now = datetime.now(tz=pytz.timezone(settings.TIME_ZONE))
@@ -214,7 +229,6 @@ class AchievementTask(BaseModel):
         if self.task_type == self.FIRST_PURCHASE_OF_WEEK_TASK_TYPE:
             return midnight - timedelta(days=midnight.weekday())
         return midnight
-
 
     def clean(self):
         super().clean()
@@ -248,10 +262,11 @@ class AchievementTask(BaseModel):
                 raise ValidationError("Goal value must be greater than 0 for time as member tasks.")
         elif self.task_type in (self.TOP_X_IN_CATEGORY_MONTH_TASK_TYPE, self.TOP_X_IN_CATEGORY_YEAR_TASK_TYPE):
             if self.product:
-                raise ValidationError("Product must not be set when task_type is 'top_x_in_category_month' or 'top_x_in_category_year'.")
+                raise ValidationError(
+                    "Product must not be set when task_type is 'top_x_in_category_month' or 'top_x_in_category_year'."
+                )
             if self.goal_value <= 0:
                 raise ValidationError("Goal value must be greater than 0 for top X in category tasks.")
-        
 
         # Ensure goal_value is positive
         if self.goal_value <= 0:
@@ -299,10 +314,8 @@ class AchievementTask(BaseModel):
             str_list.append("First Purchase of the Day")
         elif self.task_type == self.FIRST_PURCHASE_OF_WEEK_TASK_TYPE:
             str_list.append("First Purchase of the Week")
-        
-        return " | ".join(str_list) + f" - Goal: {self.goal_value}"
 
-    
+        return " | ".join(str_list) + f" - Goal: {self.goal_value}"
 
 
 class AchievementConstraint(BaseModel):
@@ -638,7 +651,7 @@ def _find_completed_achievements(
     rankings_month = get_member_rankings_current_month(member)
     for achievement in related_achievements:
         tasks = achievement.tasks.all()
-        
+
         if all(task.is_task_completed(task_to_sales[task], member, rankings_year, rankings_month) for task in tasks):
             completed_achievements.append(achievement)
             new_completions.append(AchievementComplete(member=member, achievement=achievement))
