@@ -725,7 +725,7 @@ def get_member_id(request):
 def get_product_category_mappings(request):
     return JsonResponse(
         {
-            p.pk: [{'category_id': cat.id, 'category_name': cat.name} for cat in p.categories.all()]
+            p.id: [{'category_id': cat.id, 'category_name': cat.name} for cat in p.categories.all()]
             for p in Product.objects.all()
         }
     )
