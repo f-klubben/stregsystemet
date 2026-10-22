@@ -715,11 +715,11 @@ def get_member_id(request):
         return HttpResponseBadRequest("Parameter missing: username")
 
     try:
-        member = Member.objects.get(username__iexact=username, active=True)
+        member = Member.objects.get(username=username, active=True)
     except Member.DoesNotExist:
         return HttpResponseBadRequest("Member not found")
 
-    return JsonResponse({'member_id': member.pk})
+    return JsonResponse({'member_id': member.id})
 
 
 def get_product_category_mappings(request):
