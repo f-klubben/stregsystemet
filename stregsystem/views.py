@@ -622,9 +622,7 @@ def perform_signup(validated_form: SignupForm) -> PendingSignup:
     if not validated_form.is_valid():
         raise ValidationError("The provided form contains errors: %s" % validated_form.errors)
 
-    username: str = validated_form.cleaned_data['username']
-
-    if Member.objects.filter(username=username).exists():
+    if Member.objects.filter(username=validated_form.cleaned_data.get('username')).all().count() > 0:
         raise ValidationError("Username already taken")
 
     member = Member.objects.create(
