@@ -2,10 +2,14 @@
 import datetime
 import json
 import uuid
+from typing import TYPE_CHECKING
 from collections import Counter
 from copy import deepcopy
 from unittest import mock
 from unittest.mock import patch, MagicMock
+
+if TYPE_CHECKING:
+    from django.test.client import _MonkeyPatchedWSGIResponse
 
 import pytz
 from django.utils.dateparse import parse_datetime
@@ -2346,8 +2350,8 @@ class ApiTests(TestCase):
     """
 
     def setUp(self):
-        member = Member.objects.create(username="martin_p", email="test@example.com", signup_due_paid=False)
-        member.save()
+        self.member = Member.objects.create(username="martin_p", email="test@example.com", signup_due_paid=False)
+        self.member.save()
 
     def test_signup_duplicate_username(self):
         response = self.client.post(
@@ -2558,3 +2562,35 @@ class IntentLifecycleTests(TestCase):
 
         self.intent.refresh_from_db()
         self.assertEqual(self.intent.status, Intent.PENDING)
+
+    def test_signup_duplicate_username_differing_only_in_case(self) -> None:
+        response = self.post_signup("MARTIN_P")
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_member_get_id_ignores_username_case(self) -> None:
+        for username in ("martin_p", "MARTIN_P", "Martin_P"):
+            with self.subTest(username=username):
+                response = self.get_member_id(username)
+
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.json(), {"member_id": self.member.pk})
+
+    def post_signup(self, username: str) -> "_MonkeyPatchedWSGIResponse":
+        return self.client.post(
+            reverse('api_signup'),
+            json.dumps(
+                {
+                    'education': "sw",
+                    'username': username,
+                    'firstname': "Martin",
+                    'lastname': "P.",
+                    'email': "test2@example.com",
+                    'gender': "M",
+                }
+            ),
+            content_type="application/json",
+        )
+
+    def get_member_id(self, username: str) -> "_MonkeyPatchedWSGIResponse":
+        return self.client.get(reverse('api_member_id'), {'username': username})
