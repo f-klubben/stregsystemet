@@ -17,20 +17,20 @@ class AchievementAdmin(BaseAdmin):
 
     def _get_fields_to_display(self):
         return [
-            name_of(Achievement.title),
-            name_of(Achievement.description),
-            name_of(Achievement.hushhush),
-            name_of(Achievement.hidden),
+            'title',
+            'description',
+            'hushhush',
+            'hidden',
             'get_icon',
             'get_active_from_or_active_duration',
         ] + super()._get_fields_to_display()
 
     fieldsets = (
-        (None, {'fields': (name_of(Achievement.title), name_of(Achievement.description))}),
-        (None, {'fields': (name_of(Achievement.hushhush), name_of(Achievement.hidden))}),
-        (None, {'fields': ((name_of(Achievement.icon), 'existing_icons'),)}),
-        (None, {'fields': (name_of(Achievement.tasks), name_of(Achievement.constraints))}),
-        (None, {'fields': ((name_of(Achievement.active_from), name_of(Achievement.active_duration)),)}),
+        (None, {'fields': ("title", "description")}),
+        (None, {'fields': ("hushhush", "hidden")}),
+        (None, {'fields': (("icon", 'existing_icons'),)}),
+        (None, {'fields': ("tasks", "constraints")}),
+        (None, {'fields': (("active_from", "active_duration"),)}),
     )
 
     def get_icon(self, obj):
