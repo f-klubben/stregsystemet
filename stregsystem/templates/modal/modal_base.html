@@ -1,0 +1,34 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="icon" sizes="any" type="image/svg+xml" href="{% static "/stregsystem/logo/logo.svg" %}">
+    <title>{% block title %}TREOENs STREGSYSTEM{% endblock %}</title>
+    <link href="{% static "stregsystem/modal/stregsystem-modal.css" %}" rel="stylesheet">
+
+    {% block head %}
+    {% endblock %}
+
+    </head>
+
+    <body>
+        <div class="card">
+            <div class="title">
+                <img src="{% static "/stregsystem/logo/logo.svg" %}"/>
+                <h1>TREOENs STREGSYSTEM</h1>
+            </div>
+
+            {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            {% block content %}
+            {% endblock %}
+        </div>
+    </body>
+</html>

@@ -208,10 +208,7 @@ class ProductAdmin(BaseAdmin):
 
 
 class NamedProductAdmin(BaseAdmin):
-    search_fields = (
-        'name',
-        'product',
-    )
+    search_fields = ('name',)
 
     def _get_fields_to_display(self):
         return [
@@ -281,7 +278,7 @@ class MemberAdmin(BaseAdmin):
         (
             None,
             {
-                'fields': ('active', 'want_spam', 'signup_due_paid', 'balance', 'undo_count'),
+                'fields': ('active', 'want_spam', 'signup_due_paid', 'balance', 'undo_count', 'paired_user'),
                 'description': "Lad være med at rode med disse, med mindre du ved hvad du laver ...",
             },
         ),

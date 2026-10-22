@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 import datetime
 import json
+from typing import TYPE_CHECKING
 from collections import Counter
 from copy import deepcopy
 from unittest import mock
 from unittest.mock import patch, MagicMock
+
+if TYPE_CHECKING:
+    from django.test.client import _MonkeyPatchedWSGIResponse
 
 import pytz
 from django.utils.dateparse import parse_datetime
@@ -1105,12 +1109,12 @@ class MemberModelFormTests(TestCase):
 
     def test_cant_create_duplicate_username(self):
         jeff = Member(username="jeff", firstname="jeffrey", lastname="jefferson", gender="M")
-        form = MemberForm(model_to_dict(jeff))
+        form = MemberForm(model_to_dict(jeff, exclude=['paired_user']))
         self.assertFalse(form.is_valid())
 
     def test_cant_create_duplicate_username_in_other_case(self):
         jeff = Member(username="JeFf", firstname="jeffrey", lastname="jefferson", gender="M")
-        form = MemberForm(model_to_dict(jeff))
+        form = MemberForm(model_to_dict(jeff, exclude=['paired_user']))
         self.assertFalse(form.is_valid())
 
     def test_can_create_non_duplicate_username(self):
@@ -1132,7 +1136,9 @@ class MemberAdminTests(TestCase):
         self.client.login(username="superuser", password="very_secure")
         self.jeff2.username = "jeff"
         response = self.client.post(
-            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}), model_to_dict(self.jeff2), follow=False
+            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}),
+            model_to_dict(self.jeff2, exclude=['paired_user']),
+            follow=False,
         )
 
         messages = list(get_messages(response.wsgi_request))
@@ -1146,7 +1152,9 @@ class MemberAdminTests(TestCase):
         self.client.login(username="superuser", password="very_secure")
         self.jeff2.username = "mr_jefferson"
         response = self.client.post(
-            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}), model_to_dict(self.jeff2), follow=False
+            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}),
+            model_to_dict(self.jeff2, exclude=['paired_user']),
+            follow=False,
         )
 
         messages = list(get_messages(response.wsgi_request))
@@ -2339,8 +2347,8 @@ class ApiTests(TestCase):
     """
 
     def setUp(self):
-        member = Member.objects.create(username="martin_p", email="test@example.com", signup_due_paid=False)
-        member.save()
+        self.member = Member.objects.create(username="martin_p", email="test@example.com", signup_due_paid=False)
+        self.member.save()
 
     def test_signup_duplicate_username(self):
         response = self.client.post(
@@ -2402,3 +2410,35 @@ class ApiTests(TestCase):
         )
 
         self.assertNotEquals(response.status_code, 200)
+
+    def test_signup_duplicate_username_differing_only_in_case(self) -> None:
+        response = self.post_signup("MARTIN_P")
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_member_get_id_ignores_username_case(self) -> None:
+        for username in ("martin_p", "MARTIN_P", "Martin_P"):
+            with self.subTest(username=username):
+                response = self.get_member_id(username)
+
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.json(), {"member_id": self.member.pk})
+
+    def post_signup(self, username: str) -> "_MonkeyPatchedWSGIResponse":
+        return self.client.post(
+            reverse('api_signup'),
+            json.dumps(
+                {
+                    'education': "sw",
+                    'username': username,
+                    'firstname': "Martin",
+                    'lastname': "P.",
+                    'email': "test2@example.com",
+                    'gender': "M",
+                }
+            ),
+            content_type="application/json",
+        )
+
+    def get_member_id(self, username: str) -> "_MonkeyPatchedWSGIResponse":
+        return self.client.get(reverse('api_member_id'), {'username': username})
