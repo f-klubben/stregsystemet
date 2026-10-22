@@ -11,6 +11,11 @@ from django.test import TestCase
 from freezegun import freeze_time
 from stregsystem.models import Member, Category, Product, Sale
 import datetime
+from django.db.models import QuerySet
+
+# category -> ((rank, total_buyers), per_uni_day, my_count), as returned by get_member_rankings
+Rankings = dict[Category, tuple[tuple[int, int], str, int]]
+CPH_TZ = pytz.timezone("Europe/Copenhagen")
 
 
 class AchievementTaskTests(TestCase):
@@ -27,46 +32,46 @@ class AchievementTaskTests(TestCase):
     def test_is_relevant_product_task(self):
         task = AchievementTask.objects.create(task_type="product", product=self.product_beer, goal_value=1)
 
-        self.assertTrue(task.is_relevant(self.product_beer))
-        self.assertFalse(task.is_relevant(self.product_soda))
+        self.assertTrue(task.is_relevant([self.product_beer]))
+        self.assertFalse(task.is_relevant([self.product_soda]))
 
     def test_is_relevant_category_task(self):
         task = AchievementTask.objects.create(task_type="category", category=self.category_beer, goal_value=1)
 
-        self.assertTrue(task.is_relevant(self.product_beer))
-        self.assertFalse(task.is_relevant(self.product_soda))
+        self.assertTrue(task.is_relevant([self.product_beer]))
+        self.assertFalse(task.is_relevant([self.product_soda]))
 
     def test_is_relevant_any_purchase_task(self):
         task = AchievementTask.objects.create(task_type="any_purchase", goal_value=1)
 
-        self.assertTrue(task.is_relevant(self.product_beer))
-        self.assertTrue(task.is_relevant(self.product_soda))
+        self.assertTrue(task.is_relevant([self.product_beer]))
+        self.assertTrue(task.is_relevant([self.product_soda]))
 
     def test_is_relevant_alcohol_content_task(self):
         task = AchievementTask.objects.create(task_type="alcohol_content", goal_value=100)
 
-        self.assertTrue(task.is_relevant(self.product_beer))
-        self.assertFalse(task.is_relevant(self.product_soda))
+        self.assertTrue(task.is_relevant([self.product_beer]))
+        self.assertFalse(task.is_relevant([self.product_soda]))
 
     def test_is_relevant_caffeine_content_task(self):
         task = AchievementTask.objects.create(task_type="caffeine_content", goal_value=100)
 
-        self.assertFalse(task.is_relevant(self.product_beer))
-        self.assertTrue(task.is_relevant(self.product_soda))
+        self.assertFalse(task.is_relevant([self.product_beer]))
+        self.assertTrue(task.is_relevant([self.product_soda]))
 
     def test_is_relevant_used_funds_task(self):
         task = AchievementTask.objects.create(task_type="used_funds", goal_value=100)
 
         # used_funds and remaining_funds tasks are always relevant
-        self.assertTrue(task.is_relevant(self.product_beer))
-        self.assertTrue(task.is_relevant(self.product_soda))
+        self.assertTrue(task.is_relevant([self.product_beer]))
+        self.assertTrue(task.is_relevant([self.product_soda]))
 
     def test_is_relevant_remaining_funds_task(self):
         task = AchievementTask.objects.create(task_type="remaining_funds", goal_value=100)
 
         # used_funds and remaining_funds tasks are always relevant
-        self.assertTrue(task.is_relevant(self.product_beer))
-        self.assertTrue(task.is_relevant(self.product_soda))
+        self.assertTrue(task.is_relevant([self.product_beer]))
+        self.assertTrue(task.is_relevant([self.product_soda]))
 
     def test_is_task_completed_product_task(self):
         member = Member.objects.create(username="testuser", balance=100)
@@ -77,7 +82,7 @@ class AchievementTaskTests(TestCase):
         Sale.objects.create(member=member, product=self.product_beer, price=10)
 
         sales = Sale.objects.filter(member=member, product=self.product_beer)
-        self.assertTrue(task.is_task_completed(sales, member))
+        self.assertTrue(task.is_task_completed(sales, member, {}, {}))
 
     def test_is_task_completed_category_task(self):
         member = Member.objects.create(username="testuser", balance=100)
@@ -87,7 +92,7 @@ class AchievementTaskTests(TestCase):
         Sale.objects.create(member=member, product=self.product_beer, price=10)
 
         sales = Sale.objects.filter(member=member, product__categories=self.category_beer)
-        self.assertTrue(task.is_task_completed(sales, member))
+        self.assertTrue(task.is_task_completed(sales, member, {}, {}))
 
     def test_is_task_completed_alcohol_content_task(self):
         member = Member.objects.create(username="testuser", balance=100)
@@ -97,7 +102,7 @@ class AchievementTaskTests(TestCase):
         Sale.objects.create(member=member, product=self.product_beer, price=10)
 
         sales = Sale.objects.filter(member=member)
-        self.assertTrue(task.is_task_completed(sales, member))
+        self.assertTrue(task.is_task_completed(sales, member, {}, {}))
 
     def test_is_task_completed_used_funds_task(self):
         member = Member.objects.create(username="testuser", balance=100)
@@ -108,7 +113,7 @@ class AchievementTaskTests(TestCase):
         Sale.objects.create(member=member, product=self.product_beer, price=30)
 
         sales = Sale.objects.filter(member=member)
-        self.assertTrue(task.is_task_completed(sales, member))
+        self.assertTrue(task.is_task_completed(sales, member, {}, {}))
 
     def test_is_task_completed_remaining_funds_task(self):
         member = Member.objects.create(username="testuser", balance=100)
@@ -118,7 +123,7 @@ class AchievementTaskTests(TestCase):
         Sale.objects.create(member=member, product=self.product_beer, price=30)
 
         sales = Sale.objects.filter(member=member)
-        self.assertTrue(task.is_task_completed(sales, member))
+        self.assertTrue(task.is_task_completed(sales, member, {}, {}))
 
     def test_task_validation(self):
         # Test product task validation
@@ -230,10 +235,10 @@ class AchievementModelTests(TestCase):
         self.assertFalse(self.achievement.is_active(november_date))
 
     def test_is_relevant_for_purchase(self):
-        self.assertTrue(self.achievement.is_relevant_for_purchase(self.product))
+        self.assertTrue(self.achievement.is_relevant_for_purchase([self.product]))
 
         other_product = Product.objects.create(name="Other Product", price=5, active=True)
-        self.assertFalse(self.achievement.is_relevant_for_purchase(other_product))
+        self.assertFalse(self.achievement.is_relevant_for_purchase([other_product]))
 
     def test_achievement_validation(self):
         # Test conflicting active_from and active_duration
@@ -293,7 +298,7 @@ class AchievementLogicTests(TestCase):
     def test_get_new_achievements_returns_correct_achievement(self):
         self.create_sale()
 
-        new_achievements = get_new_achievements(self.member1, self.product_beer)
+        new_achievements = get_new_achievements(self.member1, [self.product_beer])
         self.assertIn(self.achievement_beer_drinker, new_achievements)
         self.assertNotIn(self.achievement_better_beer_drinker, new_achievements)
 
@@ -313,13 +318,13 @@ class AchievementLogicTests(TestCase):
         self.achievement_beer_drinker.constraints.add(constraint)
 
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 13, 12, 50, 0))):
-            new_achievements_1 = get_new_achievements(self.member1, self.product_beer)
+            new_achievements_1 = get_new_achievements(self.member1, [self.product_beer])
 
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 13, 13, 1, 0))):
-            new_achievements_2 = get_new_achievements(self.member1, self.product_beer)
+            new_achievements_2 = get_new_achievements(self.member1, [self.product_beer])
 
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 14, 12, 50, 0))):
-            new_achievements_3 = get_new_achievements(self.member1, self.product_beer)
+            new_achievements_3 = get_new_achievements(self.member1, [self.product_beer])
 
         self.assertIn(self.achievement_beer_drinker, new_achievements_1)
         self.assertNotIn(self.achievement_beer_drinker, new_achievements_2)
@@ -349,7 +354,7 @@ class AchievementLogicTests(TestCase):
         # get_new_achievements is called within the achievement constraint
         # (the output should not contain the achievement, as it needs TWO beer sales)
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 13, 12, 50, 0))):
-            new_achievements_1 = get_new_achievements(self.member1, self.product_beer)
+            new_achievements_1 = get_new_achievements(self.member1, [self.product_beer])
 
         # Is within the achievement constraint
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 12, 12, 5))):
@@ -358,7 +363,7 @@ class AchievementLogicTests(TestCase):
         # get_new_achievements is called within the achievement constraint
         # (The output should contain the achievement now)
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 13, 12, 50, 0))):
-            new_achievements_2 = get_new_achievements(self.member1, self.product_beer)
+            new_achievements_2 = get_new_achievements(self.member1, [self.product_beer])
 
         self.assertNotIn(self.achievement_better_beer_drinker, new_achievements_1)
         self.assertIn(self.achievement_better_beer_drinker, new_achievements_2)
@@ -373,7 +378,7 @@ class AchievementLogicTests(TestCase):
 
         # A Thursday (Should not return beer_drinker achievement)
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15))):
-            new_achievements_1 = get_new_achievements(self.member1, self.product_beer)
+            new_achievements_1 = get_new_achievements(self.member1, [self.product_beer])
 
         # This day is a Thursday
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15))):
@@ -381,7 +386,7 @@ class AchievementLogicTests(TestCase):
 
         # A Thursday (Should return beer_drinker achievement)
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15))):
-            new_achievements_2 = get_new_achievements(self.member1, self.product_beer)
+            new_achievements_2 = get_new_achievements(self.member1, [self.product_beer])
 
         self.assertNotIn(self.achievement_beer_drinker, new_achievements_1)
         self.assertIn(self.achievement_beer_drinker, new_achievements_2)
@@ -392,7 +397,7 @@ class AchievementLogicTests(TestCase):
         self.create_sale()
         self.create_sale()
 
-        new_achievements = get_new_achievements(self.member1, self.product_beer)
+        new_achievements = get_new_achievements(self.member1, [self.product_beer])
 
         self.assertNotIn(self.achievement_beer_drinker, new_achievements)
         self.assertIn(self.achievement_better_beer_drinker, new_achievements)
@@ -465,7 +470,7 @@ class AchievementEdgeCaseTests(TestCase):
 
         # Check that the achievement is awarded
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 1))):
-            new_achievements = get_new_achievements(self.member, self.product)
+            new_achievements = get_new_achievements(self.member, [self.product])
             self.assertIn(achievement, new_achievements)
 
     def test_get_new_achievements_for_any_purchase_multiple_required(self):
@@ -483,7 +488,7 @@ class AchievementEdgeCaseTests(TestCase):
             Sale.objects.create(member=self.member, product=self.product, price=10)
 
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 1))):
-            new_achievements = get_new_achievements(self.member, self.product)
+            new_achievements = get_new_achievements(self.member, [self.product])
             self.assertNotIn(achievement, new_achievements)
 
         # Create 3rd sale (should trigger achievement)
@@ -491,7 +496,7 @@ class AchievementEdgeCaseTests(TestCase):
             Sale.objects.create(member=self.member, product=self.product, price=10)
 
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 13, 1))):
-            new_achievements = get_new_achievements(self.member, self.product)
+            new_achievements = get_new_achievements(self.member, [self.product])
             self.assertIn(achievement, new_achievements)
 
     def test_get_new_achievements_with_multiple_tasks(self):
@@ -508,7 +513,7 @@ class AchievementEdgeCaseTests(TestCase):
 
         # Should complete achievement since both tasks are satisfied
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 1))):
-            new_achievements = get_new_achievements(self.member, self.product)
+            new_achievements = get_new_achievements(self.member, [self.product])
             self.assertIn(achievement, new_achievements)
 
     def test_get_new_achievements_with_active_duration(self):
@@ -530,7 +535,7 @@ class AchievementEdgeCaseTests(TestCase):
 
         # Should complete achievement
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 31))):
-            new_achievements = get_new_achievements(self.member, self.product)
+            new_achievements = get_new_achievements(self.member, [self.product])
             self.assertIn(achievement, new_achievements)
 
     def test_get_new_achievements_with_active_from(self):
@@ -549,7 +554,7 @@ class AchievementEdgeCaseTests(TestCase):
 
         # Should not complete achievement (before active_from)
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 1))):
-            new_achievements = get_new_achievements(self.member, self.product)
+            new_achievements = get_new_achievements(self.member, [self.product])
             self.assertNotIn(achievement, new_achievements)
 
         # Create another sale after active_from
@@ -558,7 +563,7 @@ class AchievementEdgeCaseTests(TestCase):
 
         # Should complete achievement (after active_from)
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 6, 1, 12, 1))):
-            new_achievements = get_new_achievements(self.member, self.product)
+            new_achievements = get_new_achievements(self.member, [self.product])
             self.assertIn(achievement, new_achievements)
 
     def test_get_acquired_achievements_with_rarity_edge_cases(self):
@@ -581,12 +586,12 @@ class AchievementEdgeCaseTests(TestCase):
                 Sale.objects.create(member=self.member, product=self.product, price=10)
 
             # Trigger achievement completion
-            get_new_achievements(self.member, self.product)
+            get_new_achievements(self.member, [self.product])
 
         # Member 2 gets only common achievement
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 0))):
             Sale.objects.create(member=member2, product=self.product, price=10)
-            get_new_achievements(member2, self.product)
+            get_new_achievements(member2, [self.product])
 
         # Member 3 gets no achievements
 
@@ -619,7 +624,7 @@ class AchievementEdgeCaseTests(TestCase):
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 0))):
             Sale.objects.create(member=self.member, product=self.product, price=10)
             # Trigger achievement completion
-            get_new_achievements(self.member, self.product)
+            get_new_achievements(self.member, [self.product])
 
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 1))):
             missing = get_missing_achievements(self.member)
@@ -680,19 +685,19 @@ class AchievementEdgeCaseTests(TestCase):
         with freeze_time(self.cph_tz.localize(datetime.datetime(2025, 5, 15, 12, 0))):
             # Member 1 gets 2 achievements
             Sale.objects.create(member=self.member, product=self.product, price=10)
-            get_new_achievements(self.member, self.product)  # Should complete achievement1
+            get_new_achievements(self.member, [self.product])  # Should complete achievement1
             Sale.objects.create(member=self.member, product=self.product, price=10)
-            get_new_achievements(self.member, self.product)  # Should complete achievement2
+            get_new_achievements(self.member, [self.product])  # Should complete achievement2
 
             # Member 2 gets 2 achievements
             Sale.objects.create(member=member2, product=self.product, price=10)
-            get_new_achievements(member2, self.product)  # Should complete achievement1
+            get_new_achievements(member2, [self.product])  # Should complete achievement1
             Sale.objects.create(member=member2, product=self.product, price=10)
-            get_new_achievements(member2, self.product)  # Should complete achievement2
+            get_new_achievements(member2, [self.product])  # Should complete achievement2
 
             # Member 3 gets 1 achievement
             Sale.objects.create(member=member3, product=self.product, price=10)
-            get_new_achievements(member3, self.product)  # Should complete achievement1 only
+            get_new_achievements(member3, [self.product])  # Should complete achievement1 only
 
             # Member 4 gets no achievements
 
@@ -724,3 +729,447 @@ class AchievementEdgeCaseTests(TestCase):
             self.assertEqual(pos2, 33.33)
             self.assertEqual(pos3, 100.0)
             self.assertEqual(pos4, 100.0)
+
+
+class ImpossibleTaskTests(TestCase):
+    def setUp(self) -> None:
+        self.member = Member.objects.create(username="testuser", balance=100)
+        self.product = Product.objects.create(name="Beer", price=10, active=True)
+        self.impossible_task = AchievementTask.objects.create(
+            task_type=AchievementTask.IMPOSSIBLE_TASK_TYPE, goal_value=1
+        )
+
+    def test_is_never_relevant(self) -> None:
+        self.assertFalse(self.impossible_task.is_relevant([self.product]))
+
+    def test_is_never_completed(self) -> None:
+        self.assertFalse(_is_completed(self.impossible_task, self.member))
+
+    def test_clean_skips_validation(self) -> None:
+        task = AchievementTask(task_type=AchievementTask.IMPOSSIBLE_TASK_TYPE, goal_value=0)
+        task.full_clean()
+
+    def test_blocks_achievement_when_other_tasks_are_completed(self) -> None:
+        any_purchase_task = AchievementTask.objects.create(
+            task_type=AchievementTask.ANY_PURCHASE_TASK_TYPE, goal_value=1
+        )
+        achievement = _create_achievement("Blocked", any_purchase_task, self.impossible_task)
+        _create_sale(self.member, self.product, _cph(2025, 5, 15, 12, 0))
+
+        with freeze_time(_cph(2025, 5, 15, 12, 1)):
+            new_achievements = get_new_achievements(self.member, [self.product])
+
+        self.assertNotIn(achievement, new_achievements)
+
+    def test_achievement_with_only_impossible_task_is_never_awarded(self) -> None:
+        achievement = _create_achievement("Impossible", self.impossible_task)
+        _create_sale(self.member, self.product, _cph(2025, 5, 15, 12, 0))
+
+        with freeze_time(_cph(2025, 5, 15, 12, 1)):
+            new_achievements = get_new_achievements(self.member, [self.product])
+
+        self.assertNotIn(achievement, new_achievements)
+
+
+class TimeAsMemberTaskTests(TestCase):
+    def setUp(self) -> None:
+        self.product = Product.objects.create(name="Beer", price=10, active=True)
+
+    def test_is_relevant_for_any_product(self) -> None:
+        task = AchievementTask(task_type=AchievementTask.TIME_AS_MEMBER_TASK_TYPE, goal_value=1)
+
+        self.assertTrue(task.is_relevant([self.product]))
+
+    def test_completed_when_member_is_old_enough(self) -> None:
+        with freeze_time(_cph(2025, 1, 1, 12, 0)):
+            member = Member.objects.create(username="testuser")
+        task = AchievementTask(task_type=AchievementTask.TIME_AS_MEMBER_TASK_TYPE, goal_value=24 * 60 * 60)  # 1 day
+
+        with freeze_time(_cph(2025, 1, 3, 12, 0)):
+            self.assertTrue(_is_completed(task, member))
+
+    def test_completed_at_exact_threshold(self) -> None:
+        with freeze_time(_cph(2025, 1, 1, 12, 0)):
+            member = Member.objects.create(username="testuser")
+        task = AchievementTask(task_type=AchievementTask.TIME_AS_MEMBER_TASK_TYPE, goal_value=3600)
+
+        with freeze_time(_cph(2025, 1, 1, 13, 0)):
+            self.assertTrue(_is_completed(task, member))
+
+    def test_not_completed_when_member_is_too_young(self) -> None:
+        with freeze_time(_cph(2025, 1, 1, 12, 0)):
+            member = Member.objects.create(username="testuser")
+        task = AchievementTask(task_type=AchievementTask.TIME_AS_MEMBER_TASK_TYPE, goal_value=3600)
+
+        with freeze_time(_cph(2025, 1, 1, 12, 30)):
+            self.assertFalse(_is_completed(task, member))
+
+    def test_default_creation_date_never_completes(self) -> None:
+        member = Member.objects.create(username="testuser")
+        member.created_at = datetime.datetime(1976, 2, 1, 0, 0, tzinfo=datetime.timezone.utc)
+        task = AchievementTask(task_type=AchievementTask.TIME_AS_MEMBER_TASK_TYPE, goal_value=1)
+
+        with freeze_time(_cph(2025, 1, 1, 12, 0)):
+            self.assertFalse(_is_completed(task, member))
+
+    def test_clean_rejects_non_positive_goal(self) -> None:
+        task = AchievementTask(task_type=AchievementTask.TIME_AS_MEMBER_TASK_TYPE, goal_value=0)
+
+        with self.assertRaises(ValidationError):
+            task.full_clean()
+
+    def test_clean_rejects_product(self) -> None:
+        task = AchievementTask(task_type=AchievementTask.TIME_AS_MEMBER_TASK_TYPE, product=self.product, goal_value=1)
+
+        with self.assertRaises(ValidationError):
+            task.full_clean()
+
+
+class TopXInCategoryTaskTests(TestCase):
+    def setUp(self) -> None:
+        self.member = Member.objects.create(username="testuser", balance=100)
+        self.category_beer = Category.objects.create(name="Beer Category")
+        self.category_soda = Category.objects.create(name="Soda Category")
+        self.product_beer = Product.objects.create(name="Beer", price=10, active=True)
+        self.product_beer.categories.add(self.category_beer)
+        self.product_soda = Product.objects.create(name="Soda", price=5, active=True)
+        self.product_soda.categories.add(self.category_soda)
+
+    def test_month_completed_when_rank_is_within_goal(self) -> None:
+        task = self._create_task(AchievementTask.TOP_X_IN_CATEGORY_MONTH_TASK_TYPE, self.category_beer, 3)
+        rankings: Rankings = {self.category_beer: self._ranking(2, 10)}
+
+        self.assertTrue(_is_completed(task, self.member, rankings_month=rankings))
+
+    def test_month_completed_when_rank_equals_goal(self) -> None:
+        task = self._create_task(AchievementTask.TOP_X_IN_CATEGORY_MONTH_TASK_TYPE, self.category_beer, 3)
+        rankings: Rankings = {self.category_beer: self._ranking(3, 10)}
+
+        self.assertTrue(_is_completed(task, self.member, rankings_month=rankings))
+
+    def test_month_not_completed_when_rank_is_outside_goal(self) -> None:
+        task = self._create_task(AchievementTask.TOP_X_IN_CATEGORY_MONTH_TASK_TYPE, self.category_beer, 3)
+        rankings: Rankings = {self.category_beer: self._ranking(4, 10)}
+
+        self.assertFalse(_is_completed(task, self.member, rankings_month=rankings))
+
+    def test_rank_zero_is_not_completed(self) -> None:
+        task = self._create_task(AchievementTask.TOP_X_IN_CATEGORY_MONTH_TASK_TYPE, self.category_beer, 3)
+        rankings: Rankings = {self.category_beer: self._ranking(0, 0)}
+
+        self.assertFalse(_is_completed(task, self.member, rankings_month=rankings))
+
+    def test_not_completed_when_category_is_missing_from_rankings(self) -> None:
+        task = self._create_task(AchievementTask.TOP_X_IN_CATEGORY_MONTH_TASK_TYPE, self.category_beer, 3)
+        rankings: Rankings = {self.category_soda: self._ranking(1, 10)}
+
+        self.assertFalse(_is_completed(task, self.member, rankings_month=rankings))
+
+    def test_month_task_ignores_year_rankings(self) -> None:
+        task = self._create_task(AchievementTask.TOP_X_IN_CATEGORY_MONTH_TASK_TYPE, self.category_beer, 3)
+        year_rankings: Rankings = {self.category_beer: self._ranking(1, 10)}
+        month_rankings: Rankings = {self.category_beer: self._ranking(9, 10)}
+
+        self.assertFalse(_is_completed(task, self.member, rankings_year=year_rankings, rankings_month=month_rankings))
+
+    def test_year_completed_when_rank_is_within_goal(self) -> None:
+        task = self._create_task(AchievementTask.TOP_X_IN_CATEGORY_YEAR_TASK_TYPE, self.category_beer, 3)
+        year_rankings: Rankings = {self.category_beer: self._ranking(1, 10)}
+        month_rankings: Rankings = {self.category_beer: self._ranking(9, 10)}
+
+        self.assertTrue(_is_completed(task, self.member, rankings_year=year_rankings, rankings_month=month_rankings))
+
+    def test_year_task_ignores_month_rankings(self) -> None:
+        task = self._create_task(AchievementTask.TOP_X_IN_CATEGORY_YEAR_TASK_TYPE, self.category_beer, 3)
+        year_rankings: Rankings = {self.category_beer: self._ranking(9, 10)}
+        month_rankings: Rankings = {self.category_beer: self._ranking(1, 10)}
+
+        self.assertFalse(_is_completed(task, self.member, rankings_year=year_rankings, rankings_month=month_rankings))
+
+    def test_without_category_completes_when_top_in_any_category(self) -> None:
+        task = self._create_task(AchievementTask.TOP_X_IN_CATEGORY_MONTH_TASK_TYPE, None, 3)
+        rankings: Rankings = {self.category_beer: self._ranking(9, 10), self.category_soda: self._ranking(2, 10)}
+
+        self.assertTrue(_is_completed(task, self.member, rankings_month=rankings))
+
+    def test_without_category_not_completed_when_outside_top_in_all(self) -> None:
+        task = self._create_task(AchievementTask.TOP_X_IN_CATEGORY_MONTH_TASK_TYPE, None, 3)
+        rankings: Rankings = {self.category_beer: self._ranking(9, 10), self.category_soda: self._ranking(4, 10)}
+
+        self.assertFalse(_is_completed(task, self.member, rankings_month=rankings))
+
+    def test_without_category_ignores_rank_zero(self) -> None:
+        task = self._create_task(AchievementTask.TOP_X_IN_CATEGORY_MONTH_TASK_TYPE, None, 3)
+        rankings: Rankings = {self.category_beer: self._ranking(0, 0)}
+
+        self.assertFalse(_is_completed(task, self.member, rankings_month=rankings))
+
+    def test_without_category_not_completed_with_empty_rankings(self) -> None:
+        task = self._create_task(AchievementTask.TOP_X_IN_CATEGORY_YEAR_TASK_TYPE, None, 3)
+
+        self.assertFalse(_is_completed(task, self.member))
+
+    def test_is_relevant_for_product_in_category(self) -> None:
+        task = self._create_task(AchievementTask.TOP_X_IN_CATEGORY_MONTH_TASK_TYPE, self.category_beer, 3)
+
+        self.assertTrue(task.is_relevant([self.product_beer]))
+        self.assertFalse(task.is_relevant([self.product_soda]))
+
+    def test_without_category_is_relevant_for_any_product(self) -> None:
+        task = self._create_task(AchievementTask.TOP_X_IN_CATEGORY_YEAR_TASK_TYPE, None, 3)
+
+        self.assertTrue(task.is_relevant([self.product_beer]))
+        self.assertTrue(task.is_relevant([self.product_soda]))
+
+    def test_clean_rejects_product(self) -> None:
+        task = AchievementTask(
+            task_type=AchievementTask.TOP_X_IN_CATEGORY_MONTH_TASK_TYPE,
+            product=self.product_beer,
+            goal_value=3,
+        )
+
+        with self.assertRaises(ValidationError):
+            task.full_clean()
+
+    def test_clean_rejects_non_positive_goal(self) -> None:
+        task = AchievementTask(
+            task_type=AchievementTask.TOP_X_IN_CATEGORY_YEAR_TASK_TYPE,
+            category=self.category_beer,
+            goal_value=0,
+        )
+
+        with self.assertRaises(ValidationError):
+            task.full_clean()
+
+    def _create_task(self, task_type: str, category: Category | None, goal_value: int) -> AchievementTask:
+        return AchievementTask.objects.create(task_type=task_type, category=category, goal_value=goal_value)
+
+    def _ranking(self, rank: int, total: int = 10) -> tuple[tuple[int, int], str, int]:
+        my_count: int = 0 if rank == 0 else 1
+        return (rank, total), "0.00", my_count
+
+
+class StreakDaysTaskTests(TestCase):
+    def setUp(self) -> None:
+        self.member = Member.objects.create(username="testuser", balance=100)
+        self.other_member = Member.objects.create(username="otheruser", balance=100)
+        self.product = Product.objects.create(name="Beer", price=10, active=True)
+
+    def test_is_relevant_for_any_product(self) -> None:
+        task = self._create_task(3)
+
+        self.assertTrue(task.is_relevant([self.product]))
+
+    def test_completed_with_consecutive_days_ending_today(self) -> None:
+        for day in (13, 14, 15):
+            _create_sale(self.member, self.product, _cph(2025, 5, day, 12, 0))
+        task = self._create_task(3)
+
+        with freeze_time(_cph(2025, 5, 15, 18, 0)):
+            self.assertTrue(_is_completed(task, self.member))
+
+    def test_single_day_streak_completes_with_purchase_today(self) -> None:
+        _create_sale(self.member, self.product, _cph(2025, 5, 15, 12, 0))
+        task = self._create_task(1)
+
+        with freeze_time(_cph(2025, 5, 15, 18, 0)):
+            self.assertTrue(_is_completed(task, self.member))
+
+    def test_not_completed_with_gap_in_streak(self) -> None:
+        for day in (13, 15):
+            _create_sale(self.member, self.product, _cph(2025, 5, day, 12, 0))
+        task = self._create_task(3)
+
+        with freeze_time(_cph(2025, 5, 15, 18, 0)):
+            self.assertFalse(_is_completed(task, self.member))
+
+    def test_multiple_sales_on_same_day_count_once(self) -> None:
+        for hour in (10, 12, 14):
+            _create_sale(self.member, self.product, _cph(2025, 5, 15, hour, 0))
+        task = self._create_task(3)
+
+        with freeze_time(_cph(2025, 5, 15, 18, 0)):
+            self.assertFalse(_is_completed(task, self.member))
+
+    def test_not_completed_when_streak_ended_before_today(self) -> None:
+        for day in (10, 11, 12):
+            _create_sale(self.member, self.product, _cph(2025, 5, day, 12, 0))
+        task = self._create_task(3)
+
+        with freeze_time(_cph(2025, 5, 15, 18, 0)):
+            self.assertFalse(_is_completed(task, self.member))
+
+    def test_sales_older_than_window_do_not_break_completion(self) -> None:
+        for day in (12, 13, 14, 15):
+            _create_sale(self.member, self.product, _cph(2025, 5, day, 12, 0))
+        task = self._create_task(3)
+
+        with freeze_time(_cph(2025, 5, 15, 18, 0)):
+            self.assertTrue(_is_completed(task, self.member))
+
+    def test_window_starts_at_local_midnight(self) -> None:
+        _create_sale(self.member, self.product, _cph(2025, 5, 13, 0, 30))
+        _create_sale(self.member, self.product, _cph(2025, 5, 14, 12, 0))
+        _create_sale(self.member, self.product, _cph(2025, 5, 15, 12, 0))
+        task = self._create_task(3)
+
+        with freeze_time(_cph(2025, 5, 15, 18, 0)):
+            self.assertTrue(_is_completed(task, self.member))
+
+    def test_sale_just_before_window_does_not_count(self) -> None:
+        _create_sale(self.member, self.product, _cph(2025, 5, 12, 23, 30))
+        _create_sale(self.member, self.product, _cph(2025, 5, 14, 12, 0))
+        _create_sale(self.member, self.product, _cph(2025, 5, 15, 12, 0))
+        task = self._create_task(3)
+
+        with freeze_time(_cph(2025, 5, 15, 18, 0)):
+            self.assertFalse(_is_completed(task, self.member))
+
+    def test_other_members_sales_do_not_count(self) -> None:
+        _create_sale(self.other_member, self.product, _cph(2025, 5, 14, 12, 0))
+        _create_sale(self.member, self.product, _cph(2025, 5, 15, 12, 0))
+        task = self._create_task(2)
+
+        with freeze_time(_cph(2025, 5, 15, 18, 0)):
+            self.assertFalse(_is_completed(task, self.member))
+
+    def test_get_new_achievements_awards_streak(self) -> None:
+        achievement = _create_achievement("Streak", self._create_task(2))
+        _create_sale(self.member, self.product, _cph(2025, 5, 14, 12, 0))
+        _create_sale(self.member, self.product, _cph(2025, 5, 15, 12, 0))
+
+        with freeze_time(_cph(2025, 5, 15, 12, 1)):
+            new_achievements = get_new_achievements(self.member, [self.product])
+
+        self.assertIn(achievement, new_achievements)
+
+    def test_get_new_achievements_does_not_award_broken_streak(self) -> None:
+        achievement = _create_achievement("Streak", self._create_task(2))
+        _create_sale(self.member, self.product, _cph(2025, 5, 13, 12, 0))
+        _create_sale(self.member, self.product, _cph(2025, 5, 15, 12, 0))
+
+        with freeze_time(_cph(2025, 5, 15, 12, 1)):
+            new_achievements = get_new_achievements(self.member, [self.product])
+
+        self.assertNotIn(achievement, new_achievements)
+
+    def _create_task(self, goal_value: int) -> AchievementTask:
+        return AchievementTask.objects.create(task_type=AchievementTask.STREAK_DAYS_TASK_TYPE, goal_value=goal_value)
+
+
+class FirstPurchaseTaskTests(TestCase):
+    """2025-05-12 is a Monday, 2025-05-14 a Wednesday."""
+
+    def setUp(self) -> None:
+        self.member = Member.objects.create(username="testuser", balance=100)
+        self.other_member = Member.objects.create(username="otheruser", balance=100)
+        self.product = Product.objects.create(name="Beer", price=10, active=True)
+
+    def test_is_relevant_for_any_product(self) -> None:
+        self.assertTrue(self._create_day_task().is_relevant([self.product]))
+        self.assertTrue(self._create_week_task().is_relevant([self.product]))
+
+    def test_day_completed_for_first_buyer(self) -> None:
+        _create_sale(self.member, self.product, _cph(2025, 5, 14, 8, 0))
+        _create_sale(self.other_member, self.product, _cph(2025, 5, 14, 9, 0))
+
+        with freeze_time(_cph(2025, 5, 14, 12, 0)):
+            self.assertTrue(_is_completed(self._create_day_task(), self.member))
+
+    def test_day_not_completed_when_other_member_bought_first(self) -> None:
+        _create_sale(self.other_member, self.product, _cph(2025, 5, 14, 8, 0))
+        _create_sale(self.member, self.product, _cph(2025, 5, 14, 9, 0))
+
+        with freeze_time(_cph(2025, 5, 14, 12, 0)):
+            self.assertFalse(_is_completed(self._create_day_task(), self.member))
+
+    def test_day_ignores_sales_from_previous_days(self) -> None:
+        _create_sale(self.other_member, self.product, _cph(2025, 5, 13, 8, 0))
+        _create_sale(self.member, self.product, _cph(2025, 5, 14, 9, 0))
+
+        with freeze_time(_cph(2025, 5, 14, 12, 0)):
+            self.assertTrue(_is_completed(self._create_day_task(), self.member))
+
+    def test_day_starts_at_local_midnight(self) -> None:
+        _create_sale(self.other_member, self.product, _cph(2025, 5, 13, 23, 59))
+        _create_sale(self.member, self.product, _cph(2025, 5, 14, 0, 1))
+
+        with freeze_time(_cph(2025, 5, 14, 12, 0)):
+            self.assertTrue(_is_completed(self._create_day_task(), self.member))
+
+    def test_week_not_completed_when_other_member_bought_earlier_this_week(self) -> None:
+        _create_sale(self.other_member, self.product, _cph(2025, 5, 12, 9, 0))
+        _create_sale(self.member, self.product, _cph(2025, 5, 14, 9, 0))
+
+        with freeze_time(_cph(2025, 5, 14, 12, 0)):
+            self.assertFalse(_is_completed(self._create_week_task(), self.member))
+
+    def test_week_completed_for_first_buyer_of_the_week(self) -> None:
+        _create_sale(self.member, self.product, _cph(2025, 5, 12, 9, 0))
+        _create_sale(self.other_member, self.product, _cph(2025, 5, 14, 9, 0))
+
+        with freeze_time(_cph(2025, 5, 14, 12, 0)):
+            self.assertTrue(_is_completed(self._create_week_task(), self.member))
+
+    def test_week_starts_on_monday(self) -> None:
+        _create_sale(self.other_member, self.product, _cph(2025, 5, 11, 23, 59))  # Sunday
+        _create_sale(self.member, self.product, _cph(2025, 5, 12, 0, 1))  # Monday
+
+        with freeze_time(_cph(2025, 5, 14, 12, 0)):
+            self.assertTrue(_is_completed(self._create_week_task(), self.member))
+
+    def test_first_of_day_but_not_first_of_week(self) -> None:
+        _create_sale(self.other_member, self.product, _cph(2025, 5, 12, 9, 0))
+        _create_sale(self.member, self.product, _cph(2025, 5, 14, 9, 0))
+
+        with freeze_time(_cph(2025, 5, 14, 12, 0)):
+            self.assertTrue(_is_completed(self._create_day_task(), self.member))
+            self.assertFalse(_is_completed(self._create_week_task(), self.member))
+
+    def test_not_completed_without_any_sales(self) -> None:
+        with freeze_time(_cph(2025, 5, 14, 12, 0)):
+            self.assertFalse(_is_completed(self._create_day_task(), self.member))
+            self.assertFalse(_is_completed(self._create_week_task(), self.member))
+
+    def test_get_new_achievements_awards_only_first_buyer_of_the_day(self) -> None:
+        achievement = _create_achievement("Early Bird", self._create_day_task())
+        _create_sale(self.member, self.product, _cph(2025, 5, 14, 8, 0))
+        _create_sale(self.other_member, self.product, _cph(2025, 5, 14, 9, 0))
+
+        with freeze_time(_cph(2025, 5, 14, 9, 1)):
+            first_buyer_achievements = get_new_achievements(self.member, [self.product])
+            second_buyer_achievements = get_new_achievements(self.other_member, [self.product])
+
+        self.assertIn(achievement, first_buyer_achievements)
+        self.assertNotIn(achievement, second_buyer_achievements)
+
+    def _create_day_task(self) -> AchievementTask:
+        return AchievementTask.objects.create(task_type=AchievementTask.FIRST_PURCHASE_OF_DAY_TASK_TYPE, goal_value=1)
+
+    def _create_week_task(self) -> AchievementTask:
+        return AchievementTask.objects.create(task_type=AchievementTask.FIRST_PURCHASE_OF_WEEK_TASK_TYPE, goal_value=1)
+
+
+def _cph(year: int, month: int, day: int, hour: int = 12, minute: int = 0) -> datetime.datetime:
+    return CPH_TZ.localize(datetime.datetime(year, month, day, hour, minute))
+
+
+def _create_sale(member: Member, product: Product, when: datetime.datetime) -> Sale:
+    with freeze_time(when):
+        return Sale.objects.create(member=member, product=product, price=product.price)
+
+
+def _create_achievement(title: str, *tasks: AchievementTask) -> Achievement:
+    achievement = Achievement.objects.create(title=title, description=title)
+    achievement.tasks.add(*tasks)
+    return achievement
+
+
+def _is_completed(
+    task: AchievementTask,
+    member: Member,
+    rankings_year: Rankings | None = None,
+    rankings_month: Rankings | None = None,
+) -> bool:
+    sales: QuerySet[Sale, Sale] = Sale.objects.filter(member=member)
+    return task.is_task_completed(sales, member, rankings_year or {}, rankings_month or {})

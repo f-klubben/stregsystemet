@@ -1,0 +1,616 @@
+[
+{
+  "model": "achievements.achievement",
+  "pk": 1,
+  "fields": {
+    "created_at": "2026-10-17T01:00:30.906Z",
+    "updated_at": "2026-10-17T01:00:30.906Z",
+    "title": "buy 1 stregdollar",
+    "description": "buy 1 stregdollar",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": false,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      1
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 2,
+  "fields": {
+    "created_at": "2026-10-17T01:00:58.987Z",
+    "updated_at": "2026-10-17T01:00:58.987Z",
+    "title": "buy 1 øl",
+    "description": "buy 1 øl",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": false,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      2
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 3,
+  "fields": {
+    "created_at": "2026-10-17T01:01:15.758Z",
+    "updated_at": "2026-10-17T01:01:15.758Z",
+    "title": "buy 1 of anything",
+    "description": "buy 1 of anything",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": false,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      3
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 4,
+  "fields": {
+    "created_at": "2026-10-17T01:01:34.233Z",
+    "updated_at": "2026-10-17T01:01:34.234Z",
+    "title": "top 1 month any",
+    "description": "top 1 month any",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": false,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      4
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 5,
+  "fields": {
+    "created_at": "2026-10-17T01:01:50.092Z",
+    "updated_at": "2026-10-17T01:01:50.092Z",
+    "title": "top 1 month øl",
+    "description": "top 1 month øl",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": false,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      5
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 6,
+  "fields": {
+    "created_at": "2026-10-17T01:02:09.025Z",
+    "updated_at": "2026-10-17T01:02:09.025Z",
+    "title": "top 1 year any",
+    "description": "top 1 year any",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": true,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      6
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 7,
+  "fields": {
+    "created_at": "2026-10-17T01:02:38.860Z",
+    "updated_at": "2026-10-17T01:02:38.860Z",
+    "title": "top 1 year øl",
+    "description": "top 1 year øl",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": false,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      7
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 8,
+  "fields": {
+    "created_at": "2026-10-17T03:18:56.087Z",
+    "updated_at": "2026-10-17T03:18:56.087Z",
+    "title": "Streak 1",
+    "description": "Streak 1",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": false,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      8
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 9,
+  "fields": {
+    "created_at": "2026-10-17T03:19:15.874Z",
+    "updated_at": "2026-10-17T03:19:15.874Z",
+    "title": "Streak 2",
+    "description": "Streak 2",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": false,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      9
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 10,
+  "fields": {
+    "created_at": "2026-10-17T03:19:41.008Z",
+    "updated_at": "2026-10-17T03:19:41.008Z",
+    "title": "First purchase day",
+    "description": "First purchase day",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": false,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      10
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 11,
+  "fields": {
+    "created_at": "2026-10-17T03:20:02.170Z",
+    "updated_at": "2026-10-17T03:20:02.170Z",
+    "title": "First purchase week",
+    "description": "First purchase week",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": false,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      11
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 12,
+  "fields": {
+    "created_at": "2026-10-17T03:21:08.572Z",
+    "updated_at": "2026-10-17T03:21:08.572Z",
+    "title": "Alcohol content 200",
+    "description": "Alcohol content 200",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": false,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      12
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 13,
+  "fields": {
+    "created_at": "2026-10-17T03:21:56.977Z",
+    "updated_at": "2026-10-17T03:21:56.978Z",
+    "title": "Caffeine content 200",
+    "description": "Caffeine content 200",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": false,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      13
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 14,
+  "fields": {
+    "created_at": "2026-10-17T03:22:21.773Z",
+    "updated_at": "2026-10-17T03:22:21.773Z",
+    "title": "3000 used funds",
+    "description": "3000 used funds",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": false,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      14
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 15,
+  "fields": {
+    "created_at": "2026-10-17T03:22:49.058Z",
+    "updated_at": "2026-10-17T03:22:49.058Z",
+    "title": "1 remaining funds",
+    "description": "1 remaining funds",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": false,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      15
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 16,
+  "fields": {
+    "created_at": "2026-10-17T03:23:14.504Z",
+    "updated_at": "2026-10-17T03:23:14.504Z",
+    "title": "time 1 second",
+    "description": "time 1 second",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": false,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      16
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 17,
+  "fields": {
+    "created_at": "2026-10-17T03:23:28.580Z",
+    "updated_at": "2026-10-17T03:23:28.580Z",
+    "title": "time 1 day",
+    "description": "time 1 day",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": true,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      17
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 18,
+  "fields": {
+    "created_at": "2026-10-17T03:23:53.036Z",
+    "updated_at": "2026-10-17T03:23:53.036Z",
+    "title": "Impossible",
+    "description": "Impossible",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": false,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      18
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 19,
+  "fields": {
+    "created_at": "2026-10-17T03:24:13.592Z",
+    "updated_at": "2026-10-17T03:24:13.592Z",
+    "title": "Hush hush example",
+    "description": "Hush hush example",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": true,
+    "hidden": false,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      18
+    ]
+  }
+},
+{
+  "model": "achievements.achievement",
+  "pk": 20,
+  "fields": {
+    "created_at": "2026-10-17T03:24:34.730Z",
+    "updated_at": "2026-10-17T03:24:34.730Z",
+    "title": "Hidden example",
+    "description": "Hidden example",
+    "icon": "stregsystem/achievement/achievement_beer.png",
+    "hushhush": true,
+    "hidden": true,
+    "active_from": null,
+    "active_duration": null,
+    "constraints": [],
+    "tasks": [
+      18
+    ]
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 1,
+  "fields": {
+    "created_at": "2026-10-17T00:48:48.338Z",
+    "updated_at": "2026-10-17T00:48:48.338Z",
+    "notes": "specific product stregdollar 1",
+    "task_type": "product",
+    "product": 11,
+    "category": null,
+    "goal_value": 1
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 2,
+  "fields": {
+    "created_at": "2026-10-17T00:52:53.655Z",
+    "updated_at": "2026-10-17T00:52:53.655Z",
+    "notes": "Product category øl 1",
+    "task_type": "category",
+    "product": null,
+    "category": 3,
+    "goal_value": 1
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 3,
+  "fields": {
+    "created_at": "2026-10-17T00:53:32.906Z",
+    "updated_at": "2026-10-17T00:53:32.906Z",
+    "notes": "any purchase 1",
+    "task_type": "any_purchase",
+    "product": null,
+    "category": null,
+    "goal_value": 1
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 4,
+  "fields": {
+    "created_at": "2026-10-17T00:53:58.276Z",
+    "updated_at": "2026-10-17T00:53:58.276Z",
+    "notes": "top 1 month any",
+    "task_type": "top_x_in_category_month",
+    "product": null,
+    "category": null,
+    "goal_value": 1
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 5,
+  "fields": {
+    "created_at": "2026-10-17T00:54:16.714Z",
+    "updated_at": "2026-10-17T00:54:16.714Z",
+    "notes": "top 1 month øl",
+    "task_type": "top_x_in_category_month",
+    "product": null,
+    "category": 3,
+    "goal_value": 1
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 6,
+  "fields": {
+    "created_at": "2026-10-17T00:54:33.316Z",
+    "updated_at": "2026-10-17T00:54:33.316Z",
+    "notes": "top 1 year any",
+    "task_type": "top_x_in_category_year",
+    "product": null,
+    "category": null,
+    "goal_value": 1
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 7,
+  "fields": {
+    "created_at": "2026-10-17T00:54:49.125Z",
+    "updated_at": "2026-10-17T00:54:49.125Z",
+    "notes": "top 1 year øl",
+    "task_type": "top_x_in_category_year",
+    "product": null,
+    "category": 3,
+    "goal_value": 1
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 8,
+  "fields": {
+    "created_at": "2026-10-17T00:55:02.302Z",
+    "updated_at": "2026-10-17T00:55:02.302Z",
+    "notes": "Streak 1",
+    "task_type": "streak_days",
+    "product": null,
+    "category": null,
+    "goal_value": 1
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 9,
+  "fields": {
+    "created_at": "2026-10-17T00:55:17.872Z",
+    "updated_at": "2026-10-17T00:55:17.873Z",
+    "notes": "Streak 2",
+    "task_type": "streak_days",
+    "product": null,
+    "category": null,
+    "goal_value": 2
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 10,
+  "fields": {
+    "created_at": "2026-10-17T00:55:39.462Z",
+    "updated_at": "2026-10-17T00:55:39.462Z",
+    "notes": "First of today",
+    "task_type": "first_purchase_of_day",
+    "product": null,
+    "category": null,
+    "goal_value": 1
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 11,
+  "fields": {
+    "created_at": "2026-10-17T00:55:50.611Z",
+    "updated_at": "2026-10-17T00:55:50.611Z",
+    "notes": "First of week",
+    "task_type": "first_purchase_of_week",
+    "product": null,
+    "category": null,
+    "goal_value": 1
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 12,
+  "fields": {
+    "created_at": "2026-10-17T00:56:31.163Z",
+    "updated_at": "2026-10-17T00:56:31.163Z",
+    "notes": "alchohol content 200",
+    "task_type": "alcohol_content",
+    "product": null,
+    "category": null,
+    "goal_value": 200
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 13,
+  "fields": {
+    "created_at": "2026-10-17T00:57:17.099Z",
+    "updated_at": "2026-10-17T00:57:17.099Z",
+    "notes": "caffeine content 200",
+    "task_type": "caffeine_content",
+    "product": null,
+    "category": null,
+    "goal_value": 200
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 14,
+  "fields": {
+    "created_at": "2026-10-17T00:57:36.306Z",
+    "updated_at": "2026-10-17T00:57:36.306Z",
+    "notes": "used funds 3000",
+    "task_type": "used_funds",
+    "product": null,
+    "category": null,
+    "goal_value": 3000
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 15,
+  "fields": {
+    "created_at": "2026-10-17T00:58:18.147Z",
+    "updated_at": "2026-10-17T00:58:18.147Z",
+    "notes": "remaining funds 1",
+    "task_type": "remaining_funds",
+    "product": null,
+    "category": null,
+    "goal_value": 1
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 16,
+  "fields": {
+    "created_at": "2026-10-17T00:58:48.487Z",
+    "updated_at": "2026-10-17T00:58:48.487Z",
+    "notes": "time 1 second",
+    "task_type": "time_as_member",
+    "product": null,
+    "category": null,
+    "goal_value": 1
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 17,
+  "fields": {
+    "created_at": "2026-10-17T00:59:33.903Z",
+    "updated_at": "2026-10-17T00:59:33.903Z",
+    "notes": "time 1 day",
+    "task_type": "time_as_member",
+    "product": null,
+    "category": null,
+    "goal_value": 86400
+  }
+},
+{
+  "model": "achievements.achievementtask",
+  "pk": 18,
+  "fields": {
+    "created_at": "2026-10-17T00:59:45.780Z",
+    "updated_at": "2026-10-17T00:59:45.780Z",
+    "notes": "Impossible",
+    "task_type": "impossible",
+    "product": null,
+    "category": null,
+    "goal_value": 0
+  }
+}
+]
