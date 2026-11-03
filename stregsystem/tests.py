@@ -2414,6 +2414,38 @@ class ApiTests(TestCase):
 
         self.assertNotEquals(response.status_code, 200)
 
+    def test_signup_duplicate_username_differing_only_in_case(self) -> None:
+        response = self.post_signup("MARTIN_P")
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_member_get_id_ignores_username_case(self) -> None:
+        for username in ("martin_p", "MARTIN_P", "Martin_P"):
+            with self.subTest(username=username):
+                response = self.get_member_id(username)
+
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.json(), {"member_id": self.member.pk})
+
+    def post_signup(self, username: str) -> "_MonkeyPatchedWSGIResponse":
+        return self.client.post(
+            reverse('api_signup'),
+            json.dumps(
+                {
+                    'education': "sw",
+                    'username': username,
+                    'firstname': "Martin",
+                    'lastname': "P.",
+                    'email': "test2@example.com",
+                    'gender': "M",
+                }
+            ),
+            content_type="application/json",
+        )
+
+    def get_member_id(self, username: str) -> "_MonkeyPatchedWSGIResponse":
+        return self.client.get(reverse('api_member_id'), {'username': username})
+
 
 class ApiSaleIntentTests(TestCase):
     def setUp(self):
@@ -2489,6 +2521,12 @@ class ApiSaleIntentTests(TestCase):
 class IntentLifecycleTests(TestCase):
     def setUp(self):
         self.member = Member.objects.create(username="lowdough", active=True, balance=10000)
+
+        user = User.objects.create_user("lowdough_user", password="test_password")
+        self.member.paired_user = user
+        self.member.save()
+        self.client.force_login(user)
+
         self.room = Room.objects.create(name="Test Room")
         self.product = Product.objects.create(name="Club Mate", price=1000, active=True)
 
@@ -2562,35 +2600,3 @@ class IntentLifecycleTests(TestCase):
 
         self.intent.refresh_from_db()
         self.assertEqual(self.intent.status, Intent.PENDING)
-
-    def test_signup_duplicate_username_differing_only_in_case(self) -> None:
-        response = self.post_signup("MARTIN_P")
-
-        self.assertEqual(response.status_code, 400)
-
-    def test_member_get_id_ignores_username_case(self) -> None:
-        for username in ("martin_p", "MARTIN_P", "Martin_P"):
-            with self.subTest(username=username):
-                response = self.get_member_id(username)
-
-                self.assertEqual(response.status_code, 200)
-                self.assertEqual(response.json(), {"member_id": self.member.pk})
-
-    def post_signup(self, username: str) -> "_MonkeyPatchedWSGIResponse":
-        return self.client.post(
-            reverse('api_signup'),
-            json.dumps(
-                {
-                    'education': "sw",
-                    'username': username,
-                    'firstname': "Martin",
-                    'lastname': "P.",
-                    'email': "test2@example.com",
-                    'gender': "M",
-                }
-            ),
-            content_type="application/json",
-        )
-
-    def get_member_id(self, username: str) -> "_MonkeyPatchedWSGIResponse":
-        return self.client.get(reverse('api_member_id'), {'username': username})
