@@ -20,11 +20,13 @@ def money(value):
         value = 0
     return "{0:.2f}".format(value / 100.0)
 
+
 @register.filter
 def money_sd(value):
     if value is None:
         value = 0
     return "{0:.2f} 𝓕$".format(value / 100.0)
+
 
 @register.filter
 def multiply(value, arg):
