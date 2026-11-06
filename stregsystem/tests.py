@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
 import datetime
+import json
+from typing import TYPE_CHECKING
 from collections import Counter
 from copy import deepcopy
 from unittest import mock
 from unittest.mock import patch, MagicMock
+
+if TYPE_CHECKING:
+    from django.test.client import _MonkeyPatchedWSGIResponse
 
 import pytz
 from django.utils.dateparse import parse_datetime
 import stregsystem.parser as parser
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
-from django.contrib.admin.sites import AdminSite
 from django.contrib.messages import get_messages
 from django.forms import model_to_dict
 from django.test import TestCase
@@ -20,7 +24,7 @@ from freezegun import freeze_time
 from stregreport import views
 from stregsystem import admin
 from stregsystem import views as stregsystem_views
-from stregsystem.admin import CategoryAdmin, ProductAdmin, MemberForm, MemberAdmin
+from stregsystem.admin import CategoryAdmin, ProductAdmin, MemberForm
 from stregsystem.booze import ballmer_peak
 from stregsystem.caffeine import CAFFEINE_DEGRADATION_PR_HOUR, CAFFEINE_IN_COFFEE
 from stregsystem.models import (
@@ -46,7 +50,12 @@ from stregsystem.models import (
 )
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
-from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji, PaymentToolException
+from stregsystem.utils import (
+    make_active_productlist_query,
+    mobile_payment_exact_match_member,
+    strip_emoji,
+    PaymentToolException,
+)
 from stregsystem.mail import data_sent
 
 
@@ -103,7 +112,8 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        assertCountEqual(self, response.context["products"], [('Limfjordsporter', 2)])
+        products_with_counts = [(product.name, count) for product, count in response.context["products_with_counts"]]
+        assertCountEqual(self, products_with_counts, [('Limfjordsporter', 2)])
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(1800))
@@ -119,8 +129,8 @@ class SaleViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
-
-        assertCountEqual(self, response.context["products"], {('Limfjordsporter', 1)})
+        products_with_counts = [(product.name, count) for product, count in response.context["products_with_counts"]]
+        assertCountEqual(self, products_with_counts, {('Limfjordsporter', 1)})
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))
@@ -135,7 +145,8 @@ class SaleViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "stregsystem/index_sale.html")
 
-        assertCountEqual(self, response.context["products"], {('Limfjordsporter', 1)})
+        products_with_counts = [(product.name, count) for product, count in response.context["products_with_counts"]]
+        assertCountEqual(self, products_with_counts, {('Limfjordsporter', 1)})
         self.assertEqual(response.context["member"], Member.objects.get(username="jokke"))
 
         fulfill.assert_called_once_with(PayTransaction(900))
@@ -723,6 +734,24 @@ class ProductTests(TestCase):
 
         self.assertTrue(product.is_active())
 
+    def test_is_active_active_future_start_date(self):
+        product = Product.objects.create(
+            active=True,
+            price=100,
+            start_date=timezone.now().date() + datetime.timedelta(days=1),
+        )
+
+        self.assertFalse(product.is_active())
+
+    def test_make_active_productlist_query_excludes_future_start_date(self):
+        future_product = Product.objects.create(
+            active=True,
+            price=100,
+            start_date=timezone.now().date() + datetime.timedelta(days=1),
+        )
+
+        self.assertNotIn(future_product, list(make_active_productlist_query(Product.objects)))
+
     def test_is_active_active_expired(self):
         product = Product.objects.create(
             active=True, price=100, deactivate_date=(timezone.now() - datetime.timedelta(hours=1))
@@ -1080,12 +1109,12 @@ class MemberModelFormTests(TestCase):
 
     def test_cant_create_duplicate_username(self):
         jeff = Member(username="jeff", firstname="jeffrey", lastname="jefferson", gender="M")
-        form = MemberForm(model_to_dict(jeff))
+        form = MemberForm(model_to_dict(jeff, exclude=['paired_user']))
         self.assertFalse(form.is_valid())
 
     def test_cant_create_duplicate_username_in_other_case(self):
         jeff = Member(username="JeFf", firstname="jeffrey", lastname="jefferson", gender="M")
-        form = MemberForm(model_to_dict(jeff))
+        form = MemberForm(model_to_dict(jeff, exclude=['paired_user']))
         self.assertFalse(form.is_valid())
 
     def test_can_create_non_duplicate_username(self):
@@ -1107,7 +1136,9 @@ class MemberAdminTests(TestCase):
         self.client.login(username="superuser", password="very_secure")
         self.jeff2.username = "jeff"
         response = self.client.post(
-            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}), model_to_dict(self.jeff2), follow=False
+            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}),
+            model_to_dict(self.jeff2, exclude=['paired_user']),
+            follow=False,
         )
 
         messages = list(get_messages(response.wsgi_request))
@@ -1121,7 +1152,9 @@ class MemberAdminTests(TestCase):
         self.client.login(username="superuser", password="very_secure")
         self.jeff2.username = "mr_jefferson"
         response = self.client.post(
-            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}), model_to_dict(self.jeff2), follow=False
+            reverse('admin:stregsystem_member_change', kwargs={'object_id': 2}),
+            model_to_dict(self.jeff2, exclude=['paired_user']),
+            follow=False,
         )
 
         messages = list(get_messages(response.wsgi_request))
@@ -2289,3 +2322,123 @@ class MailTests(TestCase):
 
         signup_request.approve()
         mock_mail_method.assert_called_once()
+
+
+class DateAttributeTestCase(TestCase):
+    def test_created_at_field(self):
+        now = timezone.now()
+        with freeze_time(now):
+            member = Member.objects.create(username="DateAtrtributeTest")
+            self.assertEqual(member.created_at, now)
+            self.assertEqual(member.updated_at, now)
+
+        now2 = timezone.now()
+        with freeze_time(now2):
+            member.balance = 20
+            member.save()
+            self.assertEqual(member.created_at, now)
+            self.assertEqual(member.updated_at, now2)
+
+
+class ApiTests(TestCase):
+    """
+    A lot of the API testing is done separately using Dredd and OpenAPI.
+    These are edge-cases which can't be expressed in OpenAPI.
+    """
+
+    def setUp(self):
+        self.member = Member.objects.create(username="martin_p", email="test@example.com", signup_due_paid=False)
+        self.member.save()
+
+    def test_signup_duplicate_username(self):
+        response = self.client.post(
+            reverse('api_signup'),
+            json.dumps(
+                {
+                    'education': "sw",
+                    'username': "martin_p",  # Note: Duplicate username
+                    'firstname': "Martin",
+                    'lastname': "P.",
+                    'email': "test2@example.com",
+                    'gender': "M",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertNotEquals(response.status_code, 200)
+
+    def test_signup_partial_form_no_name(self):
+        response = self.client.post(
+            reverse('api_signup'),
+            json.dumps({'education': "sw", 'username': "martin_p2", 'email': "test2@example.com", 'gender': "M"}),
+            content_type="application/json",
+        )
+
+        self.assertNotEquals(response.status_code, 200)
+
+    def test_signup_partial_form_no_username(self):
+        response = self.client.post(
+            reverse('api_signup'),
+            json.dumps(
+                {
+                    'education': "sw",
+                    'firstname': "Martin",
+                    'lastname': "P.",
+                    'email': "test2@example.com",
+                    'gender': "M",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertNotEquals(response.status_code, 200)
+
+    def test_signup_partial_form_no_education(self):
+        response = self.client.post(
+            reverse('api_signup'),
+            json.dumps(
+                {
+                    'username': "martin_p2",
+                    'firstname': "Martin",
+                    'lastname': "P.",
+                    'email': "test2@example.com",
+                    'gender': "M",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertNotEquals(response.status_code, 200)
+
+    def test_signup_duplicate_username_differing_only_in_case(self) -> None:
+        response = self.post_signup("MARTIN_P")
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_member_get_id_ignores_username_case(self) -> None:
+        for username in ("martin_p", "MARTIN_P", "Martin_P"):
+            with self.subTest(username=username):
+                response = self.get_member_id(username)
+
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.json(), {"member_id": self.member.pk})
+
+    def post_signup(self, username: str) -> "_MonkeyPatchedWSGIResponse":
+        return self.client.post(
+            reverse('api_signup'),
+            json.dumps(
+                {
+                    'education': "sw",
+                    'username': username,
+                    'firstname': "Martin",
+                    'lastname': "P.",
+                    'email': "test2@example.com",
+                    'gender': "M",
+                }
+            ),
+            content_type="application/json",
+        )
+
+    def get_member_id(self, username: str) -> "_MonkeyPatchedWSGIResponse":
+        return self.client.get(reverse('api_member_id'), {'username': username})

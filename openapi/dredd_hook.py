@@ -1,6 +1,6 @@
 import dredd_hooks as hooks
 import json
-from utils import update_query_parameter_values, update_dictionary_values
+from utils import update_query_parameter_values, update_dictionary_values, replace_json_dictionary_values
 
 not_found_parameter_values = {
     'room_id': 1,
@@ -26,17 +26,20 @@ def replace_4xx_parameter_values(transaction):
     It isn't possible to specify individual parameter example values for each response type in OpenAPI.
     To properly test the return value of not-found parameters, replace all parameters.
     """
-    if transaction['expected']['statusCode'][0] == '4':
-        new_path = update_query_parameter_values(transaction['fullPath'], not_found_parameter_values)
-        print(f"Update endpoint path, from '{transaction['fullPath']}' to '{new_path}'")
-        transaction['fullPath'] = new_path
-        transaction['request']['uri'] = new_path
+    replace_username = transaction['expected']['statusCode'][0] == '4'
 
+    if transaction['id'].startswith("POST"):
+        # Signup is opposite, since we want to sign up a user that doesn't already exist.
+        if transaction['id'].endswith("/api/signup"):
+            replace_username = not replace_username
 
-@hooks.before_each
-def replace_body_in_post_requests(transaction):
-    if transaction['expected']['statusCode'][0] == '4' and transaction['id'].startswith("POST"):
-        body = json.loads(transaction['request']['body'])
-        update_dictionary_values(body, not_found_parameter_values)
-
-        transaction['request']['body'] = json.dumps(body)
+        if replace_username:
+            transaction['request']['body'] = replace_json_dictionary_values(
+                transaction['request']['body'],
+                not_found_parameter_values)
+    else:
+        if replace_username:
+            new_path = update_query_parameter_values(transaction['fullPath'], not_found_parameter_values)
+            print(f"Update endpoint path, from '{transaction['fullPath']}' to '{new_path}'")
+            transaction['fullPath'] = new_path
+            transaction['request']['uri'] = new_path

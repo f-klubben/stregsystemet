@@ -27,11 +27,10 @@ def razzia_view_single(request, razzia_id, queryname, title=None):
     if queryname is None:
         return render(request, template, locals())
 
-    result = list(Member.objects.filter(username__iexact=queryname))
-    if len(result) == 0:
+    try:
+        member = Member.objects.get(username__iexact=queryname, active=True)
+    except Member.DoesNotExist:
         return render(request, template, locals())
-
-    member = result[0]
 
     entries = list(razzia.razziaentry_set.filter(member__pk=member.pk).order_by('-time'))
     turns_already = len(entries)

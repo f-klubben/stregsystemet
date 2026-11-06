@@ -20,7 +20,8 @@ def send_welcome_mail(member):
         member,
         "welcome.html",
         {**vars(member), 'formatted_balance': money(member.balance)},
-        None,  # Original code didn't specify a subject line.
+        "F-Klubben - Velkommen!",
+        cc=["tilmeld@fklub.dk"],
     )
 
 
@@ -104,10 +105,13 @@ def send_userdata_mail(member):
     return True
 
 
-def send_template_mail(member, target_template: str, context: dict, subject: str, attachments: dict = {}):
+def send_template_mail(
+    member, target_template: str, context: dict, subject: str, attachments: dict = {}, cc: list[str] = []
+):
     msg = MIMEMultipart()
     msg['From'] = 'treo@fklub.dk'
     msg['To'] = member.email
+    msg['Cc'] = ', '.join(cc)
     msg['Subject'] = subject
     html = render_to_string(f"mail/{target_template}", context)
     msg.attach(MIMEText(html, 'html'))
@@ -122,6 +126,6 @@ def send_template_mail(member, target_template: str, context: dict, subject: str
 
     try:
         smtpObj = smtplib.SMTP('localhost', 25)
-        smtpObj.sendmail('treo@fklub.dk', member.email, msg.as_string())
+        smtpObj.sendmail('treo@fklub.dk', [member.email, *cc], msg.as_string())
     except Exception as e:
         logger.error(str(e))
