@@ -2442,3 +2442,81 @@ class ApiTests(TestCase):
 
     def get_member_id(self, username: str) -> "_MonkeyPatchedWSGIResponse":
         return self.client.get(reverse('api_member_id'), {'username': username})
+
+
+class ApiSaleTests(TestCase):
+    """
+    Tests for the /api/sale endpoint.
+
+    Most of the API is covered by Dredd and OpenAPI. These tests cover the
+    case-insensitive username comparison in particular.
+    """
+
+    fixtures = ["initial_data"]
+
+    def setUp(self):
+        self.member = Member.objects.get(username="jokke")
+        self.room = Room.objects.get(pk=1)
+        self.product = Product.objects.get(pk=1)
+
+    def post_sale(self, buystring, member_id=None, room_id=None) -> "_MonkeyPatchedWSGIResponse":
+        return self.client.post(
+            reverse('api_sale'),
+            json.dumps(
+                {
+                    'buystring': buystring,
+                    'room': room_id if room_id is not None else self.room.pk,
+                    'member_id': member_id if member_id is not None else self.member.pk,
+                }
+            ),
+            content_type="application/json",
+        )
+
+    def assert_successful_sale(self, response: "_MonkeyPatchedWSGIResponse") -> None:
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body['status'], 200)
+        self.assertEqual(body['msg'], 'OK')
+        self.assertEqual(body['values']['order']['items'], [self.product.pk])
+
+    def test_sale_with_exact_username_succeeds(self):
+        sales_before = Sale.objects.count()
+        balance_before = self.member.balance
+
+        response = self.post_sale(f'{self.member.username} {self.product.pk}')
+
+        self.assert_successful_sale(response)
+        self.assertEqual(Sale.objects.count(), sales_before + 1)
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.balance, balance_before - self.product.price)
+
+    def test_sale_with_uppercase_username_succeeds(self):
+        response = self.post_sale(f'{self.member.username.upper()} {self.product.pk}')
+
+        self.assert_successful_sale(response)
+
+    def test_sale_with_mixed_case_username_succeeds(self):
+        response = self.post_sale(f'{self.member.username.title()} {self.product.pk}')
+
+        self.assert_successful_sale(response)
+
+    def test_sale_with_username_of_another_member_is_rejected(self):
+        other_member = Member.objects.get(username="jan")
+        sales_before = Sale.objects.count()
+        balance_before = self.member.balance
+
+        with self.assertLogs('django.request', level='WARNING'):
+            response = self.post_sale(f'{other_member.username.upper()} {self.product.pk}')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content, b"Username does not match member_id")
+        self.assertEqual(Sale.objects.count(), sales_before)
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.balance, balance_before)
+
+    def test_sale_username_comparison_uses_casefold(self):
+        member = Member.objects.create(username="Straße", balance=10000, signup_due_paid=True)
+
+        response = self.post_sale(f'{member.username.upper()} {self.product.pk}', member_id=member.pk)
+
+        self.assert_successful_sale(response)
