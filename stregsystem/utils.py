@@ -1,3 +1,4 @@
+import datetime
 import logging
 import re
 import csv
@@ -15,6 +16,11 @@ import qrcode
 import qrcode.image.svg
 
 import urllib.parse
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from stregsystem.models import Category, Member, Sale, Product
 
 logger = logging.getLogger(__name__)
 
@@ -214,3 +220,84 @@ def rows_to_csv(rows) -> str:
     # Converting elements in rows to strings to ensure it can be written to the file object
     csv.writer(file).writerows([[str(item) for item in row] for row in rows])
     return file.data
+
+
+def get_member_rankings_current_year(member):
+    now = timezone.now()
+    from_date = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    to_date = now
+    return get_member_rankings(member, from_date, to_date)
+
+
+def get_member_rankings_current_month(member):
+    now = timezone.now()
+    from_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    to_date = now
+    return get_member_rankings(member, from_date, to_date)
+
+
+def get_product_ids_for_category(category: "Category") -> list[int]:
+    from stregsystem.models import Product
+
+    return list(Product.objects.filter(categories=category).values_list('id', flat=True))
+
+
+def get_category_product_ids(categories: list["Category"]) -> dict["Category", list[int]]:
+    return {category: get_product_ids_for_category(category) for category in categories}
+
+
+def _sales(product_ids, from_date, to_date):
+    from stregsystem.models import Sale
+
+    return Sale.objects.filter(
+        product_id__in=product_ids,
+        timestamp__gt=from_date,
+        timestamp__lte=to_date,
+    ).order_by()  # clear any default ordering so it doesn't leak into GROUP BY
+
+
+def ranking(member, product_ids, from_date, to_date, my_count: int | None = None) -> tuple[int, int]:
+    sales = _sales(product_ids, from_date, to_date)
+    total = sales.aggregate(n=Count('member', distinct=True))['n']
+
+    if my_count is None:
+        my_count = sales.filter(member=member).count()
+    if my_count == 0:
+        return 0, total
+
+    per_member = sales.values('member').annotate(c=Count('id'))
+    # members strictly ahead of me, plus tied members with an earlier username
+    # (matches the old ORDER BY -sale__count, username)
+    ahead = per_member.filter(c__gt=my_count).count()
+    tied_ahead = per_member.filter(c=my_count, member__username__lt=member.username).count()
+    return ahead + tied_ahead + 1, total
+
+
+def category_per_uni_day(member, product_ids, from_date, to_date, my_count: int | None = None) -> str:
+    if my_count is None:
+        my_count = sale_count_for_product(member, product_ids, from_date, to_date)
+    if my_count == 0:
+        return "0.00"
+    university_days = (to_date - from_date).days * 162.14 / 365  # university workdays in 2021
+    university_days = max(university_days, 1)  # avoid division by zero if from_date == to_date
+    return "{:.2f}".format(my_count / university_days)
+
+
+def sale_count_for_product(member, product_ids, from_date, to_date) -> int:
+    return _sales(product_ids, from_date, to_date).filter(member=member).count()
+
+
+def get_member_rankings(member, from_date, to_date):
+    from stregsystem.models import Category
+
+    category_product_ids = get_category_product_ids(list(Category.objects.all()))
+
+    result = {}
+    for category, product_ids in category_product_ids.items():
+        my_count = sale_count_for_product(member, product_ids, from_date, to_date)
+        result[category] = (
+            ranking(member, product_ids, from_date, to_date, my_count=my_count),
+            category_per_uni_day(member, product_ids, from_date, to_date, my_count=my_count),
+            my_count,
+        )
+    return result

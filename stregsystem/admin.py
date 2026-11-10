@@ -217,10 +217,7 @@ class ProductAdmin(BaseAdmin):
 
 
 class NamedProductAdmin(BaseAdmin):
-    search_fields = (
-        'name',
-        'product',
-    )
+    search_fields = ('name',)
 
     def _get_fields_to_display(self):
         return [
@@ -291,7 +288,7 @@ class MemberAdmin(BaseAdmin):
         (
             None,
             {
-                'fields': ('active', 'want_spam', 'signup_due_paid', 'balance', 'undo_count'),
+                'fields': ('active', 'want_spam', 'signup_due_paid', 'balance', 'undo_count', 'paired_user'),
                 'description': "Lad være med at rode med disse, med mindre du ved hvad du laver ...",
             },
         ),
@@ -410,7 +407,7 @@ class MobilePaymentAdmin(BaseAdmin):
     really_delete_selected.short_description = "Delete and refund selected entries"
 
 
-class LogEntryAdmin(BaseAdmin):
+class LogEntryAdmin(admin.ModelAdmin):
     date_hierarchy = 'action_time'
     list_filter = ['content_type', 'action_flag']
     search_fields = ['object_repr', 'change_message', 'user__username']
