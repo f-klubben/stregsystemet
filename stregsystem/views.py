@@ -481,7 +481,6 @@ def menu_sale(request, room_id, member_id, product_id=None):
 
 @login_required(login_url='/ffo/login')  # named URL or a path
 def intent_confirmation(request, intent_id):
-    # Retrieve member from authentication
     member = get_object_or_404(Member, paired_user=request.user)
     intent = get_object_or_404(Intent, id=intent_id)
 
@@ -501,13 +500,20 @@ def intent_confirmation(request, intent_id):
 
     after_purchase_balance = member.balance - checkout_total
     has_funds = after_purchase_balance > 0
+
     suggested_topup = 0
 
-    if after_purchase_balance < 0:
-        suggested_topup = 50
-        messages.warning(request, "Ikke nok stregdollars - indbetal manglende stregdollars")
-    elif after_purchase_balance < 5000:
-        suggested_topup = 50
+    if after_purchase_balance < 0:  # Not enough
+        suggested_topup = max(5000, abs(after_purchase_balance))
+        messages.warning(request, "Du har ikke nok stregdollars på din stregkonto")
+    elif after_purchase_balance < 5000:  # Low amount after purchase - suggest top-up
+        suggested_topup = 5000
+
+        # Suggest last paid amount
+        last_payment = member.get_last_payment()
+        if last_payment:
+            suggested_topup = last_payment.amount
+
         messages.info(request, "Du har ikke så mange stregdollars tilbage")
 
     return render(request, "modal/pay_confirm.html", locals())
