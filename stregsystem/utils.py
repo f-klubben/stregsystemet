@@ -96,9 +96,10 @@ def make_processed_mobilepayment_query() -> QuerySet:
 
 def make_unprocessed_member_filled_mobilepayment_query() -> QuerySet:
     from stregsystem.models import MobilePayment  # import locally to avoid circular import
+    from stregsystem.views import MINIMUM_TOPUP_AMOUNT
 
     return MobilePayment.objects.filter(
-        unprocessed_mobilepayments_filter() & Q(amount__gte=5000) & Q(member__isnull=False)
+        unprocessed_mobilepayments_filter() & Q(amount__gte=MINIMUM_TOPUP_AMOUNT) & Q(member__isnull=False)
     )
 
 
