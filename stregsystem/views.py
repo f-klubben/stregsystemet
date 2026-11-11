@@ -71,6 +71,9 @@ from .purchase_heatmap import (
     prepare_heatmap_template_context,
 )
 
+MINIMUM_TOPUP_AMOUNT = 5000
+LOW_BALANCE_THRESHOLD = 5000
+
 
 def __get_news():
     try:
@@ -504,10 +507,10 @@ def intent_confirmation(request, intent_id):
     suggested_topup = 0
 
     if after_purchase_balance < 0:  # Not enough
-        suggested_topup = max(5000, abs(after_purchase_balance))
+        suggested_topup = max(MINIMUM_TOPUP_AMOUNT, abs(after_purchase_balance))
         messages.warning(request, "Du har ikke nok stregdollars på din stregkonto")
-    elif after_purchase_balance < 5000:  # Low amount after purchase - suggest top-up
-        suggested_topup = 5000
+    elif after_purchase_balance < LOW_BALANCE_THRESHOLD:  # Low amount after purchase - suggest top-up
+        suggested_topup = MINIMUM_TOPUP_AMOUNT
 
         # Suggest last paid amount
         last_payment = member.get_last_payment()
@@ -1257,7 +1260,7 @@ def __set_local_values(member, room, products, order, now):
     give_multibuy_hint, sale_hints = _multibuy_hint(now, member)
 
     new_balance = Member.objects.get(pk=member.id).balance
-    member_has_low_balance = new_balance <= 5000
+    member_has_low_balance = new_balance < LOW_BALANCE_THRESHOLD
     member_balance = money(new_balance)
 
     # return it all
