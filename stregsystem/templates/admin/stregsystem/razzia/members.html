@@ -8,7 +8,7 @@
 	<h2>Registered members at razzia {{ razzia.start_date | date:"D d M Y" }} - {{ razzia.members.all | length }} fember(s)</h2>
 	{% for entry in razzia.razziaentryold_set.all %}
 	<ul>
-		<li>{{ entry.member.firstname }} {{ entry.member.lastname }} ({{ entry.member.username }}) at {{entry.time}}</li>
+		<li>{{ entry.member.firstname }} {{ entry.member.lastname }} ({{ entry.member.username }}) at {{entry.created_at}}</li>
 	</ul>
 	{% endfor %}
 {% endblock %}

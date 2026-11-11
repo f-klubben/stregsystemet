@@ -1,10 +1,10 @@
 from django.db import models
 
-from stregsystem.models import Member
+from stregsystem.models import Member, BaseModel
 from datetime import timedelta
 
 
-class Razzia(models.Model):
+class Razzia(BaseModel):
     class Meta:
         permissions = (("browse_razzia", "Can browse razzias"),)
 
@@ -17,11 +17,8 @@ class Razzia(models.Model):
 
     members = models.ManyToManyField(Member, through='RazziaEntry')
     start_date = models.DateTimeField(auto_now_add=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
 
-class RazziaEntry(models.Model):
+class RazziaEntry(BaseModel):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     razzia = models.ForeignKey(Razzia, on_delete=models.CASCADE)
-    time = models.DateTimeField(null=True, blank=True, auto_now_add=True)
