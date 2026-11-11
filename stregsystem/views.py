@@ -1106,15 +1106,9 @@ def _get_confirmation_url(request, intent_id) -> str:
 
 def _validate_buystring(buy_string) -> bool:
     try:
-        username, bought_ids = parser.parse(_pre_process("dummy " + buy_string))
+        _, _ = parser.parse(_pre_process("dummy " + buy_string))
         return True
-    except parser.QuickBuyError as err:
-        values = {
-            'correct': err.parsed_part,
-            'incorrect': err.failed_part,
-            'error_ptr': '~' * (len(err.parsed_part)) + '^',
-            'error_msg': ' ' * (len(err.parsed_part) - 4) + 'Fejl her',
-        }
+    except parser.QuickBuyError:
         return False
 
 
