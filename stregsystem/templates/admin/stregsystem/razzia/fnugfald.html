@@ -20,7 +20,7 @@
       {{member.firstname}} {{member.lastname}} ({{member.username}}) <b>wait {{ remaining_time_mins }}m {{ remaining_time_secs }}s </b> before next free beer
     {% else %}
       <div class="status"><div class="fa {% if already_used %} fa-exclamation-circle sucess {% else %} fa-check-circle sucess {% endif %} fa-fw" aria-hidden="true"></div></div>
-      {{member.firstname}} {{member.lastname}} ({{member.username}}) {% if already_checked_in %} last checked in at {{last_entry.time}} {% endif %}
+      {{member.firstname}} {{member.lastname}} ({{member.username}}) {% if already_checked_in %} last checked in at {{last_entry.created_at}} {% endif %}
     {% endif %}
 </div>
 

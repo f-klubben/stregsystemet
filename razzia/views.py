@@ -32,20 +32,24 @@ def razzia_view_single(request, razzia_id, queryname, title=None):
     except Member.DoesNotExist:
         return render(request, template, locals())
 
-    entries = list(razzia.razziaentry_set.filter(member__pk=member.pk).order_by('-time'))
+    entries = list(razzia.razziaentry_set.filter(member__pk=member.pk).order_by('-created_at'))
     turns_already = len(entries)
 
     timed_out = False
 
     # Get most recent visit
     if len(entries) > 0:
-        timed_out = entries[0].time > timezone.now() - razzia.turn_interval
+        timed_out = entries[0].created_at > timezone.now() - razzia.turn_interval
 
     # Back too soon?
     if timed_out:
         drunkard = True
-        remaining_time_secs = int(((entries[0].time + razzia.turn_interval) - timezone.now()).total_seconds() % 60)
-        remaining_time_mins = int(((entries[0].time + razzia.turn_interval) - timezone.now()).total_seconds() // 60)
+        remaining_time_secs = int(
+            ((entries[0].created_at + razzia.turn_interval) - timezone.now()).total_seconds() % 60
+        )
+        remaining_time_mins = int(
+            ((entries[0].created_at + razzia.turn_interval) - timezone.now()).total_seconds() // 60
+        )
         return render(request, template, locals())
 
     RazziaEntry(member=member, razzia=razzia).save()
