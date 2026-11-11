@@ -1129,6 +1129,8 @@ def api_sale_intent_status(request, intent_id):
         raise Http404
     elif intent.status == Intent.EXPIRED:
         pass
+    else:
+        raise NotImplementedError
 
     return JsonResponse(
         {
