@@ -485,7 +485,7 @@ class NewsAdmin(BaseAdmin):
     search_fields = ('title', 'text')
     list_filter = ('pub_date', 'stop_date')
     date_hierarchy = 'pub_date'
-    readonly_fields = ('created_at', 'updated_at', 'pub_date', 'stop_date')
+    readonly_fields = ('pub_date', 'stop_date')
 
     def _get_fields_to_display(self):
         return [
@@ -498,7 +498,6 @@ class NewsAdmin(BaseAdmin):
 @admin.register(Room)
 class RoomAdmin(BaseAdmin):
     search_fields = ('name', 'description')
-    readonly_fields = ('created_at', 'updated_at')
 
     def _get_fields_to_display(self):
         return [
@@ -512,7 +511,6 @@ class PendingSignupAdmin(BaseAdmin):
     search_fields = ('member__username', 'member__firstname', 'member__lastname')
     list_filter = ('status', 'created_at')
     date_hierarchy = 'created_at'
-    readonly_fields = ('created_at', 'updated_at')
     autocomplete_fields = ['member']
 
     def _get_fields_to_display(self):

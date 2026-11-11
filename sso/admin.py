@@ -24,7 +24,7 @@ class MemberOTPRequestAdmin(BaseAdmin):
         ('created_at', admin.DateFieldListFilter),
     )
     search_fields = ('member__username', 'member__firstname', 'member__lastname', 'member__email')
-    readonly_fields = ('code', 'created_at', 'member')
+    readonly_fields = ('code',)
     date_hierarchy = 'created_at'
 
     def get_queryset(self, request):
