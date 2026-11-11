@@ -255,7 +255,13 @@ LOGGING = {
         '': {
             'level': cfg.get('logging', 'LEVEL'),
             'handlers': json.loads(cfg.get('logging', 'HANDLERS'))
-        }
+        },
+        'django.server': {
+            'propagate': True,
+        },
+        'django.request': {
+            'propagate': True,
+        },
     }
 }
 
