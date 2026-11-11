@@ -108,7 +108,7 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
     wait_time = datetime.timedelta(minutes=30)
     if already_checked_in:
         last_entry = entries[0]
-        within_wait = last_entry.created_at > timezone.now() - wait_time
+        within_wait = last_entry.time > timezone.now() - wait_time
     # if member has already checked in within the last hour, don't allow another check in
     if (
         already_checked_in
@@ -117,8 +117,8 @@ def razzia_view_single(request, razzia_id, queryname, razzia_type=BreadRazzia.BR
     ):
         drunkard = True
         # time until next check in is legal
-        remaining_time_secs = int(((last_entry.created_at + wait_time) - timezone.now()).total_seconds() % 60)
-        remaining_time_mins = int(((last_entry.created_at + wait_time) - timezone.now()).total_seconds() // 60)
+        remaining_time_secs = int(((last_entry.time + wait_time) - timezone.now()).total_seconds() % 60)
+        remaining_time_mins = int(((last_entry.time + wait_time) - timezone.now()).total_seconds() // 60)
     if not already_checked_in or (
         (razzia_type == BreadRazzia.FOOBAR or razzia_type == BreadRazzia.FNUGFALD) and not within_wait
     ):
