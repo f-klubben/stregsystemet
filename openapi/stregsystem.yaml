@@ -211,7 +211,7 @@ paths:
       description: |-
         Returns the current status of a sale intent. Consumers can poll this endpoint
         as an alternative (or complement) to waiting for the webhook callback.
-      operationId: api_sale_intent_get
+      operationId: api_sale_intent_detailed_status
       parameters:
         - $ref: '#/components/parameters/intent_id_param'
       responses:

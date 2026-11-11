@@ -1114,7 +1114,7 @@ def _create_intent(product_string, room, webhook_url, return_url, expires_at):
     )
 
 
-def api_sale_intent_status(request, intent_id):
+def api_sale_intent_detailed_status(request, intent_id):
     intent = get_object_or_404(Intent, id=intent_id)
 
     details = {}

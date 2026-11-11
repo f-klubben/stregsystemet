@@ -44,11 +44,11 @@ def after_intent_save(sender, instance, created, **kwargs):
 
     # Call the view internally to get the status response
     from django.test import RequestFactory
-    from stregsystem.views import api_sale_intent_status
+    from stregsystem.views import api_sale_intent_detailed_status
 
     factory = RequestFactory()
     request = factory.get('/')
-    response = api_sale_intent_status(request, intent_id=instance.id)
+    response = api_sale_intent_detailed_status(request, intent_id=instance.id)
 
     # Forward the response to the webhook
     import hmac
