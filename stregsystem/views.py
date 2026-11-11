@@ -297,10 +297,7 @@ def menu_userinfo(request, room_id, member_id):
     list_number = request.GET.get('purchaselist', 1)
     last_sale_list = paginator.get_page(list_number)
 
-    try:
-        last_payment = member.payment_set.order_by('-timestamp')[0]
-    except IndexError:
-        last_payment = None
+    last_payment = member.get_last_payment()
 
     negative_balance = member.balance < 0
     stregforbud = member.has_stregforbud()
@@ -341,11 +338,9 @@ def menu_userpay(request, room_id, member_id):
 
     amounts = {100, 200}
 
-    try:
-        last_payment = member.payment_set.order_by('-timestamp')[0]
+    last_payment = member.get_last_payment()
+    if last_payment:
         amounts.add(last_payment.amount / 100.0)
-    except IndexError:
-        last_payment = None
 
     negative_balance = member.balance < 0
     if negative_balance:

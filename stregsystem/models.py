@@ -404,6 +404,12 @@ class Member(BaseModel):  # id automatisk...
 
         return user_with_most_coffees_bought == self
 
+    def get_last_payment(self):
+        try:
+            return self.payment_set.order_by('-timestamp')[0]
+        except IndexError:
+            return None
+
     @transaction.atomic
     def generate_companion_user(self):
         """
