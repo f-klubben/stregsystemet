@@ -487,12 +487,8 @@ def menu_sale(request, room_id, member_id, product_id=None):
 @login_required(login_url='/ffo/login')  # named URL or a path
 def intent_confirmation(request, intent_id):
     # Retrieve member from authentication
-    member = Member.objects.get(paired_user=request.user)
-
-    try:
-        intent = Intent.objects.get(id=intent_id)
-    except Intent.DoesNotExist:
-        raise
+    member = get_object_or_404(Member, paired_user=request.user)
+    intent = get_object_or_404(Intent, id=intent_id)
 
     buystring = member.username + " " + intent.product_string
     username, bought_ids = parser.parse(_pre_process(buystring))
@@ -539,12 +535,8 @@ def _redirect_to_intent_origin(request, intent, status: str):
 @login_required(login_url='/ffo/login')
 @require_POST
 def intent_accept(request, intent_id):
-    member = Member.objects.get(paired_user=request.user)
-
-    try:
-        intent = Intent.objects.get(id=intent_id, status=Intent.INITIATED)
-    except Intent.DoesNotExist:
-        raise Http404
+    member = get_object_or_404(Member, paired_user=request.user)
+    intent = get_object_or_404(Intent, id=intent_id, status=Intent.INITIATED)
 
     if intent.check_intent_expired():
         messages.error(request, "Betalingsanmodningen er udløbet.")
@@ -578,12 +570,8 @@ def intent_accept(request, intent_id):
 
 @login_required(login_url='/ffo/login')
 def intent_cancel(request, intent_id):
-    member = Member.objects.get(paired_user=request.user)
-
-    try:
-        intent = Intent.objects.get(id=intent_id, status=Intent.INITIATED)
-    except Intent.DoesNotExist:
-        raise Http404
+    member = get_object_or_404(Member, paired_user=request.user)
+    intent = get_object_or_404(Intent, id=intent_id, status=Intent.INITIATED)
 
     if intent.check_intent_expired():
         messages.error(request, "Betalingsanmodningen er udløbet.")
@@ -1123,10 +1111,7 @@ def _create_intent(product_string, room, webhook_url, return_url, expires_at):
 
 
 def api_sale_intent_status(request, intent_id):
-    try:
-        intent = Intent.objects.get(id=intent_id)
-    except Intent.DoesNotExist:
-        raise Http404
+    intent = get_object_or_404(Intent, id=intent_id)
 
     details = {}
     if intent.status == Intent.INITIATED:
