@@ -1,25 +1,5 @@
 [
 {
-  "model": "stregsystem.member",
-  "pk": 321,
-  "fields": {
-    "created_at": "1976-02-01T00:00:00Z",
-    "updated_at": "2026-03-10T10:14:41.771Z",
-    "active": true,
-    "username": "kresten",
-    "year": "2025",
-    "firstname": "Kresten",
-    "lastname": "Laust",
-    "gender": "M",
-    "email": "",
-    "want_spam": true,
-    "balance": 20000,
-    "undo_count": 0,
-    "notes": "",
-    "signup_due_paid": true
-  }
-},
-{
   "model": "stregsystem.category",
   "pk": 11,
   "fields": {
@@ -84,6 +64,27 @@
     "date_joined": "2025-01-09T17:56:49.184Z",
     "groups": [],
     "user_permissions": []
+  }
+},
+{
+  "model": "stregsystem.member",
+  "pk": 321,
+  "fields": {
+    "created_at": "1976-02-01T00:00:00Z",
+    "updated_at": "2026-03-10T10:14:41.771Z",
+    "active": true,
+    "username": "kresten",
+    "year": "2025",
+    "firstname": "Kresten",
+    "lastname": "Laust",
+    "gender": "M",
+    "email": "",
+    "want_spam": true,
+    "balance": 20000,
+    "undo_count": 0,
+    "notes": "",
+    "signup_due_paid": true,
+    "paired_user": null
   }
 }
 ]

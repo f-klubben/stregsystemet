@@ -1,17 +1,18 @@
 from __future__ import annotations
 import datetime
 import urllib.parse
+import uuid
 from abc import abstractmethod
 from collections import Counter
 from email.utils import parseaddr
-from typing import Optional
+from typing import Optional, List
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import RegexValidator
 from django.db import models, transaction
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 
 from stregsystem.caffeine import Intake, CAFFEINE_TIME_INTERVAL, current_caffeine_in_body_compound_interest
@@ -112,6 +113,41 @@ class Order(object):
         self.items = items or set()  # Set to none because we don't persist
 
     @classmethod
+    def from_buystring(cls, buy_string: str, room, initiated_time: datetime.datetime):
+        """
+        :raises Product.DoesNotExist: if a product in the buystring doesn't exist.
+        """
+        from stregsystem import parser
+        from stregsystem.views import _pre_process
+
+        username, bought_ids = parser.parse(_pre_process(buy_string))
+
+        member = Member.objects.get(username__iexact=username, active=True)
+
+        # Retrieve products and construct transaction
+        products: List[Product] = []
+
+        # Get the amount of unique items bought
+        unique_product_dict = {}
+        for unique_id in bought_ids:
+            if unique_id not in unique_product_dict:
+                unique_product_dict[unique_id] = 1
+            else:
+                unique_product_dict[unique_id] += 1
+
+        # Add the given amount of different products
+        for key, value in unique_product_dict.items():
+            product = Product.objects.get(
+                Q(pk=key),
+                Q(active=True),
+                Q(deactivate_date__gte=initiated_time) | Q(deactivate_date__isnull=True),
+                Q(rooms__id=room.id) | Q(rooms=None),
+            )
+            products.extend([product for _ in range(value)])
+
+        return Order.from_products(member=member, products=products, room=room)
+
+    @classmethod
     def from_products(cls, member, room, products):
         counts = Counter(products)
         order = cls(member, room)
@@ -119,6 +155,15 @@ class Order(object):
             item = OrderItem(product=product, order=order, count=count)
             order.items.add(item)
         return order
+
+    def get_bought_ids(self):
+        bought_ids = []
+        for item in self.items:
+            bought_ids.extend([item.product.id] * item.count)
+        return bought_ids
+
+    def get_products(self) -> 'List[Product]':
+        return [product for item in self.items for product in [item.product] * item.count]
 
     # @HACK In reality calculating the total for old products is way harder and
     # more complicated than this. While it's not in the database this is
@@ -196,6 +241,7 @@ class Member(BaseModel):  # id automatisk...
     undo_count = models.IntegerField(default=0)  # for 'undos' i alt
     notes = models.TextField(blank=True)
     signup_due_paid = models.BooleanField(default=True)
+    paired_user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
 
     stregforbud_override = False
 
@@ -213,6 +259,12 @@ class Member(BaseModel):  # id automatisk...
 
     def __str__(self):
         return f"{active_str(self.active)} {self.username}: {self.firstname} {self.lastname} | {self.email} ({money(self.balance)})"
+
+    @property
+    def masked_email(self) -> str:
+        local, domain = self.email.split("@", 1)
+        masked = local[0] + "***" if len(local) > 1 else "***"
+        return f"{masked}@{domain}"
 
     def info_string(self) -> str:
         return f"{self.username}: {self.firstname} {self.lastname} | {self.email}"
@@ -354,6 +406,42 @@ class Member(BaseModel):  # id automatisk...
 
         return user_with_most_coffees_bought == self
 
+    def get_last_payment(self):
+        try:
+            return self.payment_set.order_by('-timestamp')[0]
+        except IndexError:
+            return None
+
+    @transaction.atomic
+    def generate_companion_user(self):
+        """
+        Used for authenticating with SSO, invoked once a member has been authenticated.
+        A companion user is created if it doesn't already exist.
+        """
+        # Make sure self is locked, in case it was already inquired.
+        locked_self = Member.objects.select_for_update().get(pk=self.pk)
+        if locked_self.paired_user is not None:
+            self.paired_user = locked_self.paired_user
+            return
+
+        username = f"auth_{self.pk}"
+        i = 0
+        while len(User.objects.filter(username=username)) != 0:
+            i += 1
+            username = f"auth_{self.pk}_{i}"
+
+        user = User.objects.create(
+            username=username,
+            first_name=self.firstname,
+            last_name=self.lastname,
+            is_staff=False,
+            is_superuser=False,
+            is_active=True,
+        )
+        locked_self.paired_user = user
+        locked_self.save()
+        self.paired_user = user
+
 
 class Payment(BaseModel):  # id automatisk...
     class Meta(BaseModel.Meta):
@@ -386,7 +474,7 @@ class Payment(BaseModel):  # id automatisk...
         else:
             self.member.make_payment(self.amount)
             super(Payment, self).save(*args, **kwargs)
-            self.member.save()
+            self.member.save(update_fields=['balance'])
             if self.member.email != "" and self.amount != 0:
                 if '@' in parseaddr(self.member.email)[1] and self.member.want_spam:
                     send_payment_mail(self.member, self.amount, mbpayment.comment if mbpayment else None)
@@ -778,6 +866,77 @@ class Sale(BaseModel):
             super(Sale, self).delete(*args, **kwargs)
         else:
             raise RuntimeError("You can't delete a sale that hasn't happened")
+
+
+class Intent(BaseModel):
+    id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
+    secret = models.UUIDField(default=uuid.uuid4, editable=False)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    expires_at = models.DateTimeField()
+    product_string = models.TextField()
+    webhook_url = models.URLField(blank=True, null=True)
+    return_url = models.URLField(blank=True, null=True)
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, null=True)
+
+    INITIATED = 'I'
+    PENDING = 'P'
+    FINALIZED = 'F'
+    ABORTED = 'A'
+    CANCELLED = 'C'
+    EXPIRED = 'E'
+
+    INTENT_CHOICES = (
+        (INITIATED, 'Initiated'),
+        (PENDING, 'Pending'),
+        (FINALIZED, 'Finalized'),
+        (ABORTED, 'Aborted'),
+        (CANCELLED, 'Cancelled'),
+        (EXPIRED, 'Expired'),
+    )
+
+    status = models.CharField(max_length=1, choices=INTENT_CHOICES, default=INITIATED)
+
+    @property
+    def buy_string(self):
+        if not self.member:
+            raise Member.DoesNotExist
+
+        return f"{self.member.username} {self.product_string}"
+
+    def check_intent_expired(self) -> bool:
+        """
+        Checks if intent is expired, updates state to expired if it has.
+        """
+        if self.status == Intent.EXPIRED:
+            return True
+
+        if self.expires_at < timezone.now():
+            self.status = Intent.EXPIRED
+            self.save()
+            return True
+        return False
+
+    @transaction.atomic
+    def finalize_intent(self):
+        """
+        Attempts to execute the order for a pending intent.
+        Returns the resulting intent status.
+
+        :raises Product.DoesNotExist: if a product in the buystring has been removed in the meantime.
+        :raises NoMoreInventoryError: if a product has insufficient inventory.
+        :raises Member.DoesNotExist: if the intent is not owned.
+        """
+        order = Order.from_buystring(self.buy_string, self.room, self.created_at)
+
+        try:
+            order.execute()
+            self.status = Intent.FINALIZED
+        except StregForbudError:
+            # Still not enough funds, leave as PENDING without saving
+            return self.status
+
+        self.save()
+        return self.status
 
 
 # XXX
