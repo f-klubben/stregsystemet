@@ -26,7 +26,8 @@ jobs:
       - name: Check for outdated migrations
         run: python manage.py makemigrations --check --dry-run
 
-      # If it fails, run "manage.py migratefixture --update-targets" locally and commit
+      # Fails if the migration targets get updated.
+      # Run "manage.py migratefixture --update-targets" commit changes
       - name: Check for outdated targets
         run: |
           python manage.py migratefixture --update-targets
