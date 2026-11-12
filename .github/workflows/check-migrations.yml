@@ -1,0 +1,26 @@
+name: Check migrations
+
+on:
+  push:
+    branches:
+      - master
+      - next
+  pull_request:
+
+jobs:
+  check-migrations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11.9"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Fails (exit code 1) if model changes exist that don't have a migration yet
+      - name: Check for missing migrations
+        run: python manage.py makemigrations --check --dry-run
