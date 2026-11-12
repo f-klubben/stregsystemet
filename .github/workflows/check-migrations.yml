@@ -1,0 +1,34 @@
+name: Check migrations
+
+on:
+  push:
+    branches:
+      - master
+      - next
+  pull_request:
+
+jobs:
+  check-migrations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11.9"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Fails if model changes exist that don't have a migration yet
+      # Run "manage.py makemigrations" and commit changes
+      - name: Check for outdated migrations
+        run: python manage.py makemigrations --check --dry-run
+
+      # Fails if the migration targets get updated.
+      # Run "manage.py migratefixture --update-targets" commit changes
+      - name: Check for outdated targets
+        run: |
+          python manage.py migratefixture --update-targets
+          git diff --exit-code pyproject.toml
