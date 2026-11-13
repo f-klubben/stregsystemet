@@ -18,12 +18,12 @@
 {% else %}{% if not forloop.first %},
 {% endif %}{% endif %}
 {{ product_with_counts.1 }} {{ product_with_counts.0.name }}{% endfor %}
-for tilsammen {{cost|money}} kr.
+for tilsammen {{cost|money_sd}}.
 </b>
 {% if member_has_low_balance %}
 <div class="blink">
     <h2>
-        Balance: <span class="remainingbalance">{{member_balance}}</span> kr.
+        Balance: <span class="remainingbalance">{{member_balance}} 𝓕$</span>.
     </h2>
 </div>
 {% endif %}

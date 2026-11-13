@@ -273,10 +273,9 @@ class SaleViewTests(TestCase):
 
     def test_quicksale_has_status_line(self):
         response = self.client.post(reverse('quickbuy', args=(1,)), {"quickbuy": "jokke 1"})
-
         self.assertContains(
             response,
-            "<b><span class=\"username\">jokke</span> har lige købt 1 Limfjordsporter for tilsammen " "9.00 kr.</b>",
+            "<b><span class=\"username\">jokke</span> har lige købt 1 Limfjordsporter for tilsammen " "9.00 𝓕$.\n</b>",
             html=True,
         )
 

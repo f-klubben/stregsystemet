@@ -14,8 +14,8 @@
 
    {% spaceless %}
    <h4>Du {% if negative_balance %}
-   skylder <span style="color: red;">{{member.balance|money|cut:"-"}}</span> kroner
-   {% else %}har {{member.balance|money}} kroner til gode!
+   skylder <span style="color: red;">{{member.balance|money_sd|cut:"-"}}</span>
+   {% else %}har {{member.balance|money_sd}} til gode!
    {% endif %}
    </h4>
    {% endspaceless %}
@@ -40,7 +40,7 @@
       <tr>
          <th>Dato og tidspunkt</th>
          <th>Produkt</th>
-         <th>Pris</th>
+         <th>Pris (𝓕$)</th>
       </tr>
       {% autoescape off %}
       {% for sale in last_sale_list %}
@@ -103,7 +103,7 @@
       </tr>
       <tr>
          <td>Forbrug</td>
-         <td>{{stats.total_amount|money}} 𝓕$ / {{stats.total_purchases}} køb</td>
+         <td>{{stats.total_amount|money_sd}} / {{stats.total_purchases}} køb</td>
       </tr>
    </table>
    <a href="/{{room.id}}/send_csv_mail/{{member.id}}/">Anmod om bruger data</a>

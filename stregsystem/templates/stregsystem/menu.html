@@ -26,9 +26,9 @@
 
   <h4>Du
     {% if negative_balance %}
-      skylder <span style="color: red;">{{member.balance|money|cut:"-"}}</span> kroner
+      skylder <span style="color: red;">{{member.balance|money_sd|cut:"-"}}</span>
       {% else %}
-      har {{member.balance|money}} kroner til gode!
+      har {{member.balance|money_sd}} til gode!
     {% endif %}
   </h4>
 
@@ -54,7 +54,7 @@
   <div id="message">
   {% block message %}
     {% if bought %}
-      <blink><b>Du har lige købt en {{bought.name}} til {{bought.price|money}} kr.</b></blink>
+      <blink><b>Du har lige købt en {{bought.name}} til {{bought.price|money_sd}}</b></blink>
     {% endif %}
     {% if promille %}
       {% if is_ballmer_peaking %}
@@ -88,7 +88,7 @@
           <table class="default">
             <tr>
               <th>Produkt</th>
-              <th>Pris</th>
+              <th>Pris (𝓕$)</th>
             </tr>
             {% for pair in product_note_pair_list|partition:"2"|first %}
               <tr>
@@ -98,7 +98,7 @@
                   {% endfor %}
                   <button value="{{ pair.product.id }}" name="product_id" class="linkalike">{{pair.product.name}}</button>
                 </td>
-                <td class="price">{{pair.product.price|money}} kr</td>
+                <td class="price">{{pair.product.price|money}}</td>
               </tr>
             {% endfor %}
           </table>
@@ -106,7 +106,7 @@
             <table class="default">
               <tr>
                 <th>Produkt</th>
-                <th>Pris</th>
+                <th>Pris (𝓕$)</th>
               </tr>
               {% for pair in product_note_pair_list|partition:"2"|last %}
               <tr>
@@ -116,7 +116,7 @@
                   {% endfor %}
                   <button value="{{ pair.product.id }}" name="product_id" class="linkalike">{{pair.product.name}}</button>
                 </td>
-                <td class="price">{{pair.product.price|money}} kr</td>
+                <td class="price">{{pair.product.price|money}}</td>
               </tr>
               {% endfor %}
             </table>
