@@ -9,7 +9,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.html import escape
 from django.utils import timezone
-from stregsystem.templatetags.stregsystem_extras import money_sd, money
+from stregsystem.templatetags.stregsystem_extras import money_sd, money_sd_en, money
 from stregsystem.utils import rows_to_csv
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ def send_welcome_mail(member):
     send_template_mail(
         member,
         "welcome.html",
-        {**vars(member), 'formatted_balance': money_sd(member.balance)},
+        {**vars(member), 'formatted_balance_da': money_sd(member.balance), 'formatted_balance_en': money_sd_en(member.balance)},
         "F-Klubben - Velkommen!",
         cc=["tilmeld@fklub.dk"],
     )

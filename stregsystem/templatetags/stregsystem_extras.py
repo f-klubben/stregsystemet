@@ -27,6 +27,14 @@ def money_sd(value):
         value = 0
     return "{0:.2f} 𝓕$".format(value / 100.0)
 
+# Like money_sd, but formatted for English
+@register.filter
+def money_sd_en(value):
+    if value is None:
+        value = 0
+    return "𝓕${0:.2f}".format(value / 100.0)
+
+
 
 @register.filter
 def multiply(value, arg):
