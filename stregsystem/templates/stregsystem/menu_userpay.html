@@ -34,7 +34,8 @@
   <div class="horizontal-table">
     {% for amount in amounts %}
       <div>
-        <b>{{amount | floatformat:2}} kr.</b>
+        <b>{{amount | money}} kr.</b>
+	<br/><i><small>Giver {{amount | money_sd}}</small></i>
         <br /><br />
         <a href="mobilepay://send?phone=90601&comment={{ member.username }}&amount={{ amount }}">
           {% mobilepay_qr member.username amount %}

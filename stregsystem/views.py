@@ -333,17 +333,17 @@ def menu_userpay(request, room_id, member_id):
     if not member.signup_approved():
         return render(request, 'stregsystem/error_signup_not_approved.html', locals())
 
-    amounts = {100, 200}
+    amounts = {10000, 20000}
 
     try:
         last_payment = member.payment_set.order_by('-timestamp')[0]
-        amounts.add(last_payment.amount / 100.0)
+        amounts.add(last_payment.amount)
     except IndexError:
         last_payment = None
 
     negative_balance = member.balance < 0
     if negative_balance:
-        amounts.add(-member.balance / 100.0)
+        amounts.add(-member.balance)
 
     amounts = sorted(amounts)
 
