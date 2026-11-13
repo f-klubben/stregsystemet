@@ -377,7 +377,7 @@ components:
       type: integer
       example: 20000
     stregkroner_balance:
-      description: Stregbalance in kroner, only used in API-Sale
+      description: Stregbalance in stregdollars, only used in API-Sale
       type: number
       format: float
       example: 182.00
