@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 import json
+import uuid
 from typing import TYPE_CHECKING
 from collections import Counter
 from copy import deepcopy
@@ -47,6 +48,7 @@ from stregsystem.models import (
     NamedProduct,
     ApprovalModel,
     ProductNote,
+    Intent,
 )
 from stregsystem.purchase_heatmap import prepare_heatmap_template_context
 from stregsystem.templatetags.stregsystem_extras import caffeine_emoji_render
@@ -2441,3 +2443,236 @@ class ApiTests(TestCase):
 
     def get_member_id(self, username: str) -> "_MonkeyPatchedWSGIResponse":
         return self.client.get(reverse('api_member_id'), {'username': username})
+
+
+class ApiSaleTests(TestCase):
+    """
+    Tests for the /api/sale endpoint.
+
+    Most of the API is covered by Dredd and OpenAPI. These tests cover the
+    case-insensitive username comparison in particular.
+    """
+
+    fixtures = ["initial_data"]
+
+    def setUp(self):
+        self.member = Member.objects.get(username="jokke")
+        self.room = Room.objects.get(pk=1)
+        self.product = Product.objects.get(pk=1)
+
+    def post_sale(self, buystring, member_id=None, room_id=None) -> "_MonkeyPatchedWSGIResponse":
+        return self.client.post(
+            reverse('api_sale'),
+            json.dumps(
+                {
+                    'buystring': buystring,
+                    'room': room_id if room_id is not None else self.room.pk,
+                    'member_id': member_id if member_id is not None else self.member.pk,
+                }
+            ),
+            content_type="application/json",
+        )
+
+    def assert_successful_sale(self, response: "_MonkeyPatchedWSGIResponse") -> None:
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body['status'], 200)
+        self.assertEqual(body['msg'], 'OK')
+        self.assertEqual(body['values']['order']['items'], [self.product.pk])
+
+    def test_sale_with_exact_username_succeeds(self):
+        sales_before = Sale.objects.count()
+        balance_before = self.member.balance
+
+        response = self.post_sale(f'{self.member.username} {self.product.pk}')
+
+        self.assert_successful_sale(response)
+        self.assertEqual(Sale.objects.count(), sales_before + 1)
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.balance, balance_before - self.product.price)
+
+    def test_sale_with_uppercase_username_succeeds(self):
+        response = self.post_sale(f'{self.member.username.upper()} {self.product.pk}')
+
+        self.assert_successful_sale(response)
+
+    def test_sale_with_mixed_case_username_succeeds(self):
+        response = self.post_sale(f'{self.member.username.title()} {self.product.pk}')
+
+        self.assert_successful_sale(response)
+
+    def test_sale_with_username_of_another_member_is_rejected(self):
+        other_member = Member.objects.get(username="jan")
+        sales_before = Sale.objects.count()
+        balance_before = self.member.balance
+
+        with self.assertLogs('django.request', level='WARNING'):
+            response = self.post_sale(f'{other_member.username.upper()} {self.product.pk}')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content, b"Username does not match member_id")
+        self.assertEqual(Sale.objects.count(), sales_before)
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.balance, balance_before)
+
+    def test_sale_username_comparison_uses_casefold(self):
+        member = Member.objects.create(username="Straße", balance=10000, signup_due_paid=True)
+
+        response = self.post_sale(f'{member.username.upper()} {self.product.pk}', member_id=member.pk)
+
+        self.assert_successful_sale(response)
+
+
+class ApiSaleIntentTests(TestCase):
+    def setUp(self):
+        self.url = reverse("api_sale_intent")
+        self.room = Room.objects.create(name="Test Room")
+        self.valid_payload = {
+            "productstring": "product123",
+            "room_id": str(self.room.pk),
+            "webhook_url": "",
+            "max_expires_in_seconds": 300,
+        }
+
+    def test_get_returns_400(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 400)
+
+    def test_put_returns_400(self):
+        response = self.client.put(self.url)
+        self.assertEqual(response.status_code, 400)
+
+    def test_delete_returns_400(self):
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, 400)
+
+    def _post(self, payload):
+        return self.client.post(
+            self.url,
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+
+    def test_valid_request_returns_201(self):
+        response = self._post(self.valid_payload)
+        self.assertEqual(response.status_code, 201)
+
+    def test_valid_request_creates_intent(self):
+        self._post(self.valid_payload)
+        self.assertEqual(Intent.objects.count(), 1)
+
+    def test_response_contains_expected_keys(self):
+        response = self._post(self.valid_payload)
+        body = response.json()
+        for key in ("id", "secret", "status", "confirmation_url", "expires_at", "productstring", "room_id"):
+            self.assertIn(key, body)
+
+    def test_response_productstring_matches_input(self):
+        response = self._post(self.valid_payload)
+        self.assertEqual(response.json()["productstring"], self.valid_payload["productstring"])
+
+    def test_response_room_id_matches_input(self):
+        response = self._post(self.valid_payload)
+        self.assertEqual(response.json()["room_id"], str(self.room.pk))
+
+    def test_response_status_is_pending(self):
+        response = self._post(self.valid_payload)
+        self.assertEqual(response.json()["status"], Intent.INITIATED)
+
+    def test_response_id_is_valid_uuid(self):
+        response = self._post(self.valid_payload)
+        body = response.json()
+        uuid.UUID(body["id"])  # raises ValueError if invalid
+
+    def test_response_secret_is_valid_uuid(self):
+        response = self._post(self.valid_payload)
+        uuid.UUID(response.json()["secret"])
+
+    def test_confirmation_url_contains_intent_id(self):
+        response = self._post(self.valid_payload)
+        body = response.json()
+        self.assertIn(body["id"], body["confirmation_url"])
+
+
+class IntentLifecycleTests(TestCase):
+    def setUp(self):
+        self.member = Member.objects.create(username="lowdough", active=True, balance=10000)
+
+        user = User.objects.create_user("lowdough_user", password="test_password")
+        self.member.paired_user = user
+        self.member.save()
+        self.client.force_login(user)
+
+        self.room = Room.objects.create(name="Test Room")
+        self.product = Product.objects.create(name="Club Mate", price=1000, active=True)
+
+        self.intent = Intent.objects.create(
+            room=self.room,
+            member=self.member,
+            product_string=f"{self.product.id}",
+            expires_at=timezone.now() + datetime.timedelta(hours=1),
+        )
+        self.accept_url = reverse("pay_intent_accept", args=[self.intent.id])
+
+    def test_accepting_intent_finalizes_and_deducts_balance(self):
+        self.client.post(self.accept_url)
+
+        self.intent.refresh_from_db()
+        self.member.refresh_from_db()
+        self.assertEqual(self.intent.status, Intent.FINALIZED)
+        self.assertEqual(self.member.balance, 9000)
+
+    def test_accepting_expired_intent_does_not_deduct_balance(self):
+        self.intent.expires_at = timezone.now() - datetime.timedelta(hours=1)
+        self.intent.save()
+
+        self.client.post(self.accept_url)
+
+        self.intent.refresh_from_db()
+        self.member.refresh_from_db()
+        self.assertEqual(self.intent.status, Intent.EXPIRED)
+        self.assertEqual(self.member.balance, 10000)
+
+    def test_accepting_intent_with_insufficient_funds_leaves_pending(self):
+        self.member.balance = 0
+        self.member.save()
+
+        self.client.post(self.accept_url)
+
+        self.intent.refresh_from_db()
+        self.assertEqual(self.intent.status, Intent.PENDING)
+
+    def test_topping_up_finalizes_pending_intent(self):
+        # Get the member into a pending state first
+        self.member.balance = 0
+        self.member.save()
+        self.client.post(self.accept_url)
+        self.intent.refresh_from_db()
+        self.assertEqual(self.intent.status, Intent.PENDING)
+
+        # Now top up, signal should finalize intent
+        Payment.objects.create(member=self.member, amount=10000, notes="Top-up")
+
+        self.intent.refresh_from_db()
+        self.member.refresh_from_db()
+        self.assertEqual(self.intent.status, Intent.FINALIZED)
+        self.assertEqual(self.member.balance, 9000)
+
+    def test_intent_cannot_be_accepted_twice(self):
+        self.client.post(self.accept_url)
+        self.client.post(self.accept_url)
+
+        # Only one product should have been deducted
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.balance, 9000)
+
+    def test_topping_up_does_not_finalize_another_members_intent(self):
+        other_member = Member.objects.create(username="other", active=True, balance=0)
+        self.member.balance = 0
+        self.member.save()
+        self.client.post(self.accept_url)
+
+        Payment.objects.create(member=other_member, amount=10000, notes="Top-up")
+
+        self.intent.refresh_from_db()
+        self.assertEqual(self.intent.status, Intent.PENDING)
