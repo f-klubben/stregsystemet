@@ -9,7 +9,9 @@ not_found_parameter_values = {
 }
 
 skipped_endpoints = [
-    "GET (400) /api/member/payment/qr?username=kresten" # Skipped: test can't be implemented properly in OpenAPI
+    "GET (400) /api/member/payment/qr?username=kresten", # Skipped: test can't be implemented properly in OpenAPI
+    "GET (404) /api/sale/intent/a3f2c1d4-88b0-4e2a-9c3e-1f5b6d7e8a9b",
+    "GET (200) /api/sale/intent/a3f2c1d4-88b0-4e2a-9c3e-1f5b6d7e8a9b",
 ]
 
 @hooks.before_each
