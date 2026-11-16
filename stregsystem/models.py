@@ -633,8 +633,11 @@ class MobilePayment(ApprovalModel):
             processed_mobile_payment = MobilePayment.objects.get(id=row['id'].id)
             # If approved, we need to create a payment and relate said payment to the mobilepayment.
             processed_mobile_payment.status = row['status']
-            processed_mobile_payment.member = Member.objects.get(id=row['member'].id)
-            processed_mobile_payment.submit_processed_mobile_payment(admin_user)
+            if processed_mobile_payment.status == ApprovalModel.IGNORED:
+                processed_mobile_payment.log_approval(admin_user, "Ignored")
+            else:
+                processed_mobile_payment.member = Member.objects.get(id=row['member'].id)
+                processed_mobile_payment.submit_processed_mobile_payment(admin_user)
             processed_mobile_payment.save()
 
         # Return how many records were modified.
