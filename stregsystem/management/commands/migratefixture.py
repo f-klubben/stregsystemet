@@ -77,6 +77,10 @@ class Command(BaseCommand):
         try:
             self._migrate_to_targets(targets)
 
+            for dependency in self._load_fixture_dependencies(fixture):
+                self.stdout.write(f"Load prerequisite fixture {dependency}")
+                call_command("loaddata", str(dependency))
+
             self.stdout.write(f"Load fixture data for {fixture}")
             call_command("loaddata", str(fixture))
 
@@ -135,6 +139,21 @@ class Command(BaseCommand):
             data = tomllib.load(f)
 
         return data["tool"]["migratefixture"]["targets"]
+
+    def _load_fixture_dependencies(self, fixture: Path) -> list[Path]:
+        with open(PYPROJECT_PATH, "rb") as f:
+            data = tomllib.load(f)
+
+        project_root = Path.cwd().resolve()
+        fixture_path = fixture.resolve()
+        try:
+            fixture_key = fixture_path.relative_to(project_root).as_posix()
+        except ValueError:
+            return []
+
+        dependencies = data["tool"]["migratefixture"].get("dependencies", {}).get(fixture_key, [])
+
+        return [(project_root / dependency).resolve() for dependency in dependencies]
 
     def _update_targets(self) -> None:
         loader = MigrationLoader(connection)
