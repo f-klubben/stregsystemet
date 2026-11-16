@@ -14,6 +14,8 @@ class AchievementForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # The icon can be provided either as an upload or via existing_icons.
+        self.fields['icon'].required = False
 
         folder_path = os.path.join(settings.MEDIA_ROOT, 'stregsystem/achievement')
         choices = [('', '---')]
@@ -23,6 +25,12 @@ class AchievementForm(forms.ModelForm):
                     path = os.path.join('stregsystem/achievement', filename)
                     choices.append((path, filename))
         self.fields['existing_icons'].choices = choices
+
+    def clean(self):
+        cleaned_data = super().clean() or {}
+        if not cleaned_data.get('icon') and not cleaned_data.get('existing_icons') and not self.instance.icon:
+            self.add_error('icon', 'Choose an image file or select an existing image.')
+        return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -39,15 +47,14 @@ class AchievementForm(forms.ModelForm):
 
             for filename in os.listdir(folder_path):
                 file_path = os.path.join(folder_path, filename)
-
-                # Check for matching hash
+                if not os.path.isfile(file_path):
+                    continue
                 with open(file_path, 'rb') as f:
                     existing_hash = hashlib.md5(f.read()).hexdigest()
-                    if uploaded_hash == existing_hash:
-                        # Match found — use existing file
-                        instance.icon.name = os.path.join('stregsystem/achievement', filename)
-                        match_found = True
-                        break
+                if uploaded_hash == existing_hash:
+                    instance.icon.name = os.path.join('stregsystem/achievement', filename)
+                    match_found = True
+                    break
 
             if not match_found:
                 # No match — reset file pointer and let Django upload it
