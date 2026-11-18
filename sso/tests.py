@@ -424,3 +424,13 @@ class MemberIdentityClaimTests(TestCase):
             response = self.client.get(reverse("oidc-connect-discovery-info"))
         self.assertIn("username", response.json()["claims_supported"])
         self.assertIn("name", response.json()["claims_supported"])
+
+
+class ProfileScopeTests(TestCase):
+    """Clients map the SSO identity to their own users, so the profile scope has to exist."""
+
+    def test_profile_scope_is_offered(self):
+        provider_settings = {**settings.OAUTH2_PROVIDER, "OIDC_ENABLED": True}
+        with self.settings(OAUTH2_PROVIDER=provider_settings):
+            response = self.client.get(reverse("oidc-connect-discovery-info"))
+        self.assertIn("profile", response.json()["scopes_supported"])

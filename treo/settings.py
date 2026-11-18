@@ -289,6 +289,8 @@ OAUTH2_PROVIDER = {
     "OAUTH2_VALIDATOR_CLASS": "sso.oauth2_validators.StregsystemOAuth2Validator",
     "SCOPES": {
         "openid": "OpenID Connect",
+        # The identity claims are mapped to this scope in sso/oauth2_validators.py
+        "profile": "Retrieve the member identity claims",
         "groups": "Retrieve the groups the member belongs to",
         "member:balance": "Retrieve balance",
         "member:active": "Retrieve active-status",

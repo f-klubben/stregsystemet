@@ -8,6 +8,16 @@ class StregsystemOAuth2Validator(OAuth2Validator):
         "username": "profile",
     }
 
+    def is_pkce_required(self, client_id, request):
+        """PKCE only protects public clients; server-side clients never send a code_challenge."""
+        from oauth2_provider.models import get_application_model
+
+        Application = get_application_model()
+        application = Application.objects.filter(client_id=client_id).first()
+        if application is None:
+            return True
+        return application.client_type == Application.CLIENT_PUBLIC
+
     def get_additional_claims(self):
         return {
             "groups": lambda request: list(request.user.groups.order_by("name").values_list("name", flat=True)),
