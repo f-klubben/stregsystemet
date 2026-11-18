@@ -1,6 +1,13 @@
+import random
+import string
+from typing import Optional
+from urllib.parse import urlparse, parse_qs
+from oauth2_provider.models import Application
+
 from django.contrib.auth import login, authenticate
 from django.contrib import messages
 from django.shortcuts import redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 from django.conf import settings
 
@@ -23,23 +30,50 @@ def _send_otp_email(member: Member, otp: str, redirect_url: str) -> None:
     send_fcode_mail(member, full_code, redirect_url)
 
 
+def _get_client_from_next(next_url: str) -> Optional[Application]:
+    parsed = urlparse(next_url)
+    params = parse_qs(parsed.query)
+    client_id = params.get("client_id", [None])[0]
+
+    if not client_id:
+        return None
+
+    try:
+        return Application.objects.get(client_id=client_id)
+    except Application.DoesNotExist:
+        return None
+
+
 class CustomLoginView(View):
     template_name = "modal/login.html"
 
+    def _render(self, request, context):
+        messages.warning(request, f"Log ind for at fortsætte til {context['next']}")
+        return render(request, self.template_name, context)
+
+    def _get_next(self, request):
+        next_url = request.GET.get("next") or request.POST.get("next", "/")
+        if url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        ):
+            return next_url
+        return "/"
+
     def get(self, request):
         stage = 1
-        next = request.GET.get("next") or request.POST.get("next", "/")
-        messages.info(request, "Log ind for at fortsætte")
-        return render(request, self.template_name, locals())
+        next = self._get_next(request)
+        return self._render(request, locals())
 
     def post(self, request):
         stage = int(request.POST.get("stage", "1"))
-        next = request.GET.get("next") or request.POST.get("next", "/")
+        next = self._get_next(request)
         username = request.POST.get("username", "").strip()
 
         if not username:
             messages.error(request, "Indtast dit brugernavn")
-            return render(request, self.template_name, locals())
+            return self._render(request, locals())
 
         try:
             member = Member.objects.get(username=username)
@@ -47,11 +81,11 @@ class CustomLoginView(View):
             messages.error(request, "Der findes ingen stregbruger med det navn")
             if stage == 2:
                 return redirect("sso_login")
-            return render(request, self.template_name, locals())
+            return self._render(request, locals())
 
         if not member.email:
             messages.error(request, "Din stregbruger har ingen mailadresse. Kontakt TREO'en på treo@fklub.dk for hjælp")
-            return render(request, self.template_name, locals())
+            return self._render(request, locals())
 
         masked_email = member.masked_email
         otp_ttl = settings.SSO_CODE_DURATION_MIN * 60
@@ -63,10 +97,13 @@ class CustomLoginView(View):
 
             stage = 2
             messages.info(request, "En F-kode er blevet sendt til din mailadresse")
-            return render(request, self.template_name, locals())
+            return self._render(request, locals())
 
         if stage == 2:  # Try to validate OTP
             otp = request.POST.get("otp", "")
+            # Fallback: combine individual otp_1 through otp_5 fields
+            if not otp:
+                otp = "".join(request.POST.get(f"otp_{i}", "") for i in range(1, MemberOTPRequest.OTP_DIGITS + 1))
 
             user = authenticate(request, username=username, otp=otp)
 
@@ -84,7 +121,7 @@ class CustomLoginView(View):
                     )
                 else:
                     messages.error(request, "Forkert F-kode. Dobbelttjek mailen og forsøg igen")
-                return render(request, self.template_name, locals())
+                return self._render(request, locals())
 
             login(request, user, backend="sso.auth_backends.PasswordlessMemberBackend")
             return redirect(next or "index")
