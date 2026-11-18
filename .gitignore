@@ -28,3 +28,6 @@ result
 
 # vscode user and workspace settings
 .vscode/
+
+# openapi gen
+openapi/out/
