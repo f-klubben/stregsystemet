@@ -20,6 +20,7 @@ from stregsystem.models import (
     PendingSignup,
     Theme,
     ProductNote,
+    Intent,
 )
 from stregsystem.templatetags.stregsystem_extras import money
 from stregsystem.utils import (
@@ -383,7 +384,7 @@ class MobilePaymentAdmin(BaseAdmin):
     really_delete_selected.short_description = "Delete and refund selected entries"
 
 
-class LogEntryAdmin(BaseAdmin):
+class LogEntryAdmin(admin.ModelAdmin):
     date_hierarchy = 'action_time'
     list_filter = ['content_type', 'action_flag']
     search_fields = ['object_repr', 'change_message', 'user__username']
@@ -452,6 +453,18 @@ class ProductNoteAdmin(BaseAdmin):
     actions = [toggle_active_selected_products]
 
 
+class IntentAdmin(BaseAdmin):
+    def _get_fields_to_display(self):
+        return [
+            'status',
+            'product_string',
+            'member',
+            'room',
+            'expires_at',
+            'id',
+        ] + super()._get_fields_to_display()
+
+
 admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(Member, MemberAdmin)
@@ -465,3 +478,4 @@ admin.site.register(MobilePayment, MobilePaymentAdmin)
 admin.site.register(PendingSignup)
 admin.site.register(Theme, ThemeAdmin)
 admin.site.register(ProductNote, ProductNoteAdmin)
+admin.site.register(Intent, IntentAdmin)

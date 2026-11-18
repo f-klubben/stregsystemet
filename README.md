@@ -75,6 +75,8 @@ To use it do the following:
 3. ???
 4. Profit
 
+Test data for different apps will likely be found within their respective folders. So in general you should be able to load testdata using the [Persistent Testdata guide](#persistent-testdata).
+
 Admin panel: <http://127.0.0.1:8000/admin/>  
 Login: `tester:treotreo`
 
@@ -87,6 +89,7 @@ There are different members that help you test different things:
 | nodough | Has no stregdollars |
 | lowdough | Only has 15 stregdollars |
 
+<a id="persistent-testdata"></a>
 Persistent Testdata
 -------
 Using `runserver` will automatically reload django on code change, and persist data in the database configured in `local.cfg` (can be whatever backend you want to use).
