@@ -46,57 +46,57 @@ paths:
       tags:
         - Member
       summary: Get member info
-      description: Gets a member's balance, username, active-status and name.
+      description: Gets a member's balance, username, active-status and name by username.
       operationId: api_member_info
       parameters:
-        - $ref: '#/components/parameters/member_id_param'
+        - $ref: '#/components/parameters/username_param'
       responses:
         '200':
           $ref: '#/components/responses/MemberFound'
         '400':
-          $ref: '#/components/responses/MemberIdParameter_BadResponse'
+          $ref: '#/components/responses/MemberUsernameParameter_BadResponse'
   /api/member/balance:
     get:
       tags:
         - Member
       summary: Get member balance
-      description: Gets a member's balance.
+      description: Gets a member's balance by username.
       operationId: api_member_balance
       parameters:
-        - $ref: '#/components/parameters/member_id_param'
+        - $ref: '#/components/parameters/username_param'
       responses:
         '200':
           $ref: '#/components/responses/MemberFound_Balance'
         '400':
-          $ref: '#/components/responses/MemberIdParameter_BadResponse'
+          $ref: '#/components/responses/MemberUsernameParameter_BadResponse'
   /api/member/active:
     get:
       tags:
         - Member
       summary: Get member active-status
-      description: Gets whether a member is active.
+      description: Gets whether a member is active by username.
       operationId: api_member_active
       parameters:
-        - $ref: '#/components/parameters/member_id_param'
+        - $ref: '#/components/parameters/username_param'
       responses:
         '200':
           $ref: '#/components/responses/MemberFound_Active'
         '400':
-          $ref: '#/components/responses/MemberIdParameter_BadResponse'
+          $ref: '#/components/responses/MemberUsernameParameter_BadResponse'
   /api/member/sales:
     get:
       tags:
         - Member
       summary: Get member sales
-      description: Gets a list of a member's purchases.
+      description: Gets a list of a member's purchases by username.
       operationId: api_member_sales
       parameters:
-        - $ref: '#/components/parameters/member_id_param'
+        - $ref: '#/components/parameters/username_param'
       responses:
         '200':
           $ref: '#/components/responses/MemberFound_Sales'
         '400':
-          $ref: '#/components/responses/MemberIdParameter_BadResponse'
+          $ref: '#/components/responses/MemberUsernameParameter_BadResponse'
   /api/member/get_id:
     get:
       tags:
@@ -288,14 +288,6 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/signup_id'
-    member_id_param:
-      name: member_id
-      in: query
-      description: ID of the member to retrieve.
-      required: true
-      schema:
-        $ref: '#/components/schemas/member_id'
-      example: 321
     room_id_param:
       name: room_id
       in: query
@@ -898,22 +890,6 @@ components:
               $ref: '#/components/examples/MemberNotFoundExample'
             missingMemberUsername:
               $ref: '#/components/examples/MissingMemberUsernameExample'
-    MemberIdParameter_BadResponse:
-      description: Member does not exist, invalid member ID, or missing parameter.
-      content:
-        text/html; charset=utf-8:
-          schema:
-            oneOf:
-              - $ref: '#/components/schemas/memberNotFoundMessage'
-              - $ref: '#/components/schemas/invalidMemberIdMessage'
-              - $ref: '#/components/schemas/missingMemberIdMessage'
-          examples:
-            memberNotFound:
-              $ref: '#/components/examples/MemberNotFoundExample'
-            invalidMemberId:
-              $ref: '#/components/examples/InvalidMemberIdExample'
-            missingMemberId:
-              $ref: '#/components/examples/MissingMemberIdExample'
     RoomIdParameter_BadResponse:
       description: Room does not exist, invalid room ID, or missing parameter.
       content:

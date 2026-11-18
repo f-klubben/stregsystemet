@@ -807,17 +807,21 @@ def get_active_items(request):
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
 
 
-def get_member_active(request):
-    member_id = request.GET.get('member_id') or None
-    if member_id is None:
-        return HttpResponseBadRequest("Parameter missing: member_id")
-    elif not member_id.isdigit():
-        return HttpResponseBadRequest("Parameter invalid: member_id")
+def _get_member_by_username(request) -> Member | HttpResponseBadRequest:
+    username = request.GET.get('username') or None
+    if username is None:
+        return HttpResponseBadRequest("Parameter missing: username")
 
     try:
-        member = Member.objects.get(pk=member_id)
-    except Member.DoesNotExist:
+        return Member.objects.get(username__iexact=username)
+    except (Member.DoesNotExist, Member.MultipleObjectsReturned):
         return HttpResponseBadRequest("Member not found")
+
+
+def get_member_active(request):
+    member = _get_member_by_username(request)
+    if isinstance(member, HttpResponseBadRequest):
+        return member
 
     return JsonResponse({'active': member.active})
 
@@ -845,16 +849,9 @@ def get_product_category_mappings(request):
 
 
 def get_member_sales(request):
-    member_id = request.GET.get('member_id') or None
-    if member_id is None:
-        return HttpResponseBadRequest("Parameter missing: member_id")
-    elif not member_id.isdigit():
-        return HttpResponseBadRequest("Parameter invalid: member_id")
-
-    try:
-        member = Member.objects.get(pk=member_id)
-    except Member.DoesNotExist:
-        return HttpResponseBadRequest("Member not found")
+    member = _get_member_by_username(request)
+    if isinstance(member, HttpResponseBadRequest):
+        return member
 
     count = 10 if request.GET.get('count') is None else int(request.GET.get('count') or 10)
     sales = Sale.objects.filter(member=member).order_by('-timestamp')[:count]
@@ -864,31 +861,17 @@ def get_member_sales(request):
 
 
 def get_member_balance(request):
-    member_id = request.GET.get('member_id') or None
-    if member_id is None:
-        return HttpResponseBadRequest("Parameter missing: member_id")
-    elif not member_id.isdigit():
-        return HttpResponseBadRequest("Parameter invalid: member_id")
-
-    try:
-        member = Member.objects.get(pk=member_id)
-    except Member.DoesNotExist:
-        return HttpResponseBadRequest("Member not found")
+    member = _get_member_by_username(request)
+    if isinstance(member, HttpResponseBadRequest):
+        return member
 
     return JsonResponse({'balance': member.balance})
 
 
 def get_member_info(request):
-    member_id = str(request.GET.get('member_id')) or None
-    if member_id is None:
-        return HttpResponseBadRequest("Parameter missing: member_id")
-    elif not member_id.isdigit():
-        return HttpResponseBadRequest("Parameter invalid: member_id")
-
-    try:
-        member = Member.objects.get(pk=member_id)
-    except Member.DoesNotExist:
-        return HttpResponseBadRequest("Member not found")
+    member = _get_member_by_username(request)
+    if isinstance(member, HttpResponseBadRequest):
+        return member
 
     return JsonResponse(
         {
