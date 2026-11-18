@@ -383,3 +383,44 @@ class GroupsClaimTests(TestCase):
     def test_discovery_route_does_not_match_suffixes(self):
         response = self.client.get("/.well-known/openid-configuration-extra")
         self.assertEqual(response.status_code, 404)
+
+
+class MemberIdentityClaimTests(TestCase):
+    """Clients map the SSO identity to their own users, so they need the stregusername."""
+
+    def setUp(self):
+        self.member = Member.objects.create(username="jeff", firstname="jeff", lastname="jefferson", gender="M")
+        self.member.generate_companion_user()
+        self.user = self.member.paired_user
+
+    def _claims(self, user, scopes):
+        from types import SimpleNamespace
+        from sso.oauth2_validators import StregsystemOAuth2Validator
+
+        request = SimpleNamespace(user=user, scopes=scopes)
+        return StregsystemOAuth2Validator().get_oidc_claims(None, None, request)
+
+    def test_member_claims_with_profile_scope(self):
+        claims = self._claims(self.user, ["openid", "profile"])
+        self.assertEqual(claims["username"], "jeff")
+        self.assertEqual(claims["name"], "jeff jefferson")
+
+    def test_member_claims_require_profile_scope(self):
+        claims = self._claims(self.user, ["openid"])
+        self.assertNotIn("username", claims)
+        self.assertNotIn("name", claims)
+
+    def test_member_claims_for_user_without_a_member(self):
+        from django.contrib.auth.models import User
+
+        stranger = User.objects.create_user(username="stranger", password="unused")
+        claims = self._claims(stranger, ["openid", "profile"])
+        self.assertIsNone(claims["username"])
+        self.assertIsNone(claims["name"])
+
+    def test_member_claims_in_discovery_document(self):
+        provider_settings = {**settings.OAUTH2_PROVIDER, "OIDC_ENABLED": True}
+        with self.settings(OAUTH2_PROVIDER=provider_settings):
+            response = self.client.get(reverse("oidc-connect-discovery-info"))
+        self.assertIn("username", response.json()["claims_supported"])
+        self.assertIn("name", response.json()["claims_supported"])
