@@ -1797,6 +1797,9 @@ class MobilePaymentTests(TestCase):
     def test_underscore_char(self):
         self.assertEqual(strip_emoji("_"), "_")
 
+    def test_singlequote_username(self):
+        self.assertEqual(strip_emoji("'"), "'")
+
     def test_mobilepaytool_race_no_error(self):
         # do autopayment
         MobilePayment.approve_member_filled_mobile_payments()
