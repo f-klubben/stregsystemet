@@ -298,9 +298,6 @@ def menu_userinfo(request, room_id, member_id):
     stats_none_refunded = Sale.objects.filter(member_id=member_id, refunded_at__isnull=True).aggregate(
         total_amount=Sum('price'), total_purchases=Count('timestamp')
     )
-    stats_refunded = Sale.objects.filter(member_id=member_id, refunded_at__isnull=False).aggregate(
-        total_amount=Sum('price'), total_purchases=Count('timestamp')
-    )
 
     paginator = Paginator(all_sales, 10)
     list_number = request.GET.get('purchaselist', 1)
