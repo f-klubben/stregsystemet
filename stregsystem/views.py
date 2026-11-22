@@ -63,6 +63,7 @@ from stregsystem.utils import (
     make_unprocessed_signups_query,
 )
 
+from .access import onsite_only, onsite_or_scope
 from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
 from .forms import PaymentToolForm, QRPaymentForm, PurchaseForm, SignupForm, RankingDateForm, SignupToolForm
@@ -720,6 +721,7 @@ def signup_tool(request):
 # API views
 
 
+@onsite_or_scope('member:payment')
 def get_payment_qr(request):
     form = QRPaymentForm(request.GET)
     if not form.is_valid():
@@ -788,6 +790,7 @@ def signup_status(request, signup_id):
     return render(request, "stregsystem/signup_status.html", locals())
 
 
+@onsite_or_scope('products:read')
 def get_active_items(request):
     room_id = request.GET.get('room_id') or None
 
@@ -807,6 +810,7 @@ def get_active_items(request):
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
 
 
+@onsite_or_scope('member:active')
 def get_member_active(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
@@ -822,6 +826,7 @@ def get_member_active(request):
     return JsonResponse({'active': member.active})
 
 
+@onsite_or_scope('member:id')
 def get_member_id(request):
     username = request.GET.get('username') or None
     if username is None:
@@ -835,6 +840,7 @@ def get_member_id(request):
     return JsonResponse({'member_id': member.pk})
 
 
+@onsite_or_scope('products:read')
 def get_product_category_mappings(request):
     return JsonResponse(
         {
@@ -844,6 +850,7 @@ def get_product_category_mappings(request):
     )
 
 
+@onsite_or_scope('member:sales')
 def get_member_sales(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
@@ -863,6 +870,7 @@ def get_member_sales(request):
     )
 
 
+@onsite_or_scope('member:balance')
 def get_member_balance(request):
     member_id = request.GET.get('member_id') or None
     if member_id is None:
@@ -878,6 +886,7 @@ def get_member_balance(request):
     return JsonResponse({'balance': member.balance})
 
 
+@onsite_or_scope('member:read')
 def get_member_info(request):
     member_id = str(request.GET.get('member_id')) or None
     if member_id is None:
@@ -908,12 +917,14 @@ def find_user_from_id(user_id: int):
         return None
 
 
+@onsite_or_scope('products:read')
 def get_named_products(request):
     items = NamedProduct.objects.all()
     items_dict = {item.name: item.product.id for item in items}
     return JsonResponse(items_dict, json_dumps_params={'ensure_ascii': False})
 
 
+@onsite_only
 def get_signup_status(request):
     username = request.GET.get('username') or None
     if username is None:
@@ -932,6 +943,7 @@ def get_signup_status(request):
         return JsonResponse({'due': 0, 'status': ApprovalModel.APPROVED})
 
 
+@onsite_only
 @csrf_exempt
 def post_signup(request):
     if request.method != "POST":
@@ -972,6 +984,7 @@ def post_signup(request):
         )
 
 
+@onsite_or_scope('sale:write')
 @csrf_exempt
 def api_sale(request):
     if request.method != "POST":
@@ -1025,6 +1038,7 @@ def api_sale(request):
         )
 
 
+@onsite_or_scope('intent:write')
 @csrf_exempt
 def api_sale_intent(request):
     if request.method != "POST":
@@ -1114,6 +1128,7 @@ def _create_intent(product_string, room, webhook_url, return_url, expires_at):
     )
 
 
+@onsite_or_scope('intent:read')
 def api_sale_intent_detailed_status(request, intent_id):
     intent = get_object_or_404(Intent, id=intent_id)
 

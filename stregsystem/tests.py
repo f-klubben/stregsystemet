@@ -20,12 +20,13 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages import get_messages
 from django.forms import model_to_dict
-from django.test import TestCase
-from django.urls import reverse
+from django.http import HttpResponse
+from django.test import RequestFactory, TestCase, override_settings
+from django.urls import get_resolver, reverse
 from django.utils import timezone
 from freezegun import freeze_time
 from stregreport import views
-from stregsystem import admin
+from stregsystem import access, admin
 from stregsystem import views as stregsystem_views
 from stregsystem.admin import CategoryAdmin, ProductAdmin, MemberForm
 from stregsystem.booze import ballmer_peak
@@ -2725,3 +2726,129 @@ class IntentLifecycleTests(TestCase):
 
         self.intent.refresh_from_db()
         self.assertEqual(self.intent.status, Intent.PENDING)
+
+
+class AccessGateTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.member = Member.objects.create(
+            username="jeff", firstname="jeff", lastname="jefferson", gender="M", balance=1234
+        )
+
+    def test_client_ip_is_remote_addr_without_a_forwarded_header(self):
+        self.assertEqual(access.client_ip(self.factory.get("/", REMOTE_ADDR="10.1.2.3")), "10.1.2.3")
+
+    def test_client_ip_uses_the_last_forwarded_entry(self):
+        request = self.factory.get("/", REMOTE_ADDR="127.0.0.1", HTTP_X_FORWARDED_FOR="1.2.3.4, 198.51.100.9")
+        self.assertEqual(access.client_ip(request), "198.51.100.9")
+
+    @override_settings(ONSITE_CIDRS=["not-a-cidr", "10.0.0.0/8"])
+    def test_is_onsite_uses_configured_cidrs_and_ignores_invalid_ones(self):
+        self.assertTrue(access.is_onsite(self.factory.get("/", REMOTE_ADDR="10.9.8.7")))
+        self.assertFalse(access.is_onsite(self.factory.get("/", REMOTE_ADDR="127.0.0.1")))
+        self.assertFalse(access.is_onsite(self.factory.get("/", REMOTE_ADDR="not-an-ip")))
+
+    def test_onsite_only_serves_on_site_and_rejects_off_site_requests(self):
+        self.assertEqual(
+            stregsystem_views.get_signup_status(self.factory.get("/", {"username": "jeff"})).status_code, 200
+        )
+        response = stregsystem_views.get_signup_status(
+            self.factory.get("/", {"username": "jeff"}, REMOTE_ADDR="203.0.113.7")
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_onsite_or_scope_serves_on_site_requests_without_a_token(self):
+        with mock.patch("stregsystem.access.protected_resource") as factory:
+            response = self._scoped_view()(self.factory.get("/", REMOTE_ADDR="127.0.0.1"))
+
+        self.assertEqual(response.content, b"served")
+        factory.assert_not_called()
+
+    def test_onsite_or_scope_delegates_off_site_requests_to_the_token(self):
+        def protected_resource(scopes):
+            return lambda view: lambda request: HttpResponse(",".join(scopes))
+
+        with mock.patch("stregsystem.access.protected_resource", protected_resource):
+            response = self._scoped_view()(self.factory.get("/", REMOTE_ADDR="203.0.113.7"))
+
+        self.assertEqual(response.content, b"member:balance")
+
+    def test_onsite_or_scope_forbids_off_site_requests_without_oidc(self):
+        with mock.patch("stregsystem.access.protected_resource", None):
+            response = self._scoped_view()(self.factory.get("/", REMOTE_ADDR="203.0.113.7"))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_scope_only_requires_a_token_from_any_network(self):
+        with mock.patch("stregsystem.access.protected_resource", None):
+            response = self._scope_only_view()(self.factory.get("/", REMOTE_ADDR="127.0.0.1"))
+        self.assertEqual(response.status_code, 403)
+
+        def protected_resource(scopes):
+            return lambda view: lambda request: HttpResponse(",".join(scopes))
+
+        with mock.patch("stregsystem.access.protected_resource", protected_resource):
+            response = self._scope_only_view()(self.factory.get("/", REMOTE_ADDR="127.0.0.1"))
+        self.assertEqual(response.content, b"member:balance")
+
+    def test_offsite_api_request_is_forbidden_without_a_token(self):
+        response = self.client.get(
+            reverse("api_member_balance"), {"member_id": self.member.pk}, REMOTE_ADDR="203.0.113.7"
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def _scoped_view(self):
+        @access.onsite_or_scope("member:balance")
+        def view(request):
+            return HttpResponse("served")
+
+        return view
+
+    def _scope_only_view(self):
+        @access.scope_only("member:balance")
+        def view(request):
+            return HttpResponse("served")
+
+        return view
+
+
+class ApiAccessTests(TestCase):
+    """Every /api/ endpoint declares its access, since the proxy lets /api through from anywhere."""
+
+    SCOPED = {
+        "api_member_info": ("member:read", stregsystem_views.get_member_info),
+        "api_member_balance": ("member:balance", stregsystem_views.get_member_balance),
+        "api_member_active": ("member:active", stregsystem_views.get_member_active),
+        "api_member_sales": ("member:sales", stregsystem_views.get_member_sales),
+        "api_member_id": ("member:id", stregsystem_views.get_member_id),
+        "api_payment_qr": ("member:payment", stregsystem_views.get_payment_qr),
+        "api_named_products": ("products:read", stregsystem_views.get_named_products),
+        "api_active_products": ("products:read", stregsystem_views.get_active_items),
+        "api_product_mappings": ("products:read", stregsystem_views.get_product_category_mappings),
+        "api_sale": ("sale:write", stregsystem_views.api_sale),
+        "api_sale_intent": ("intent:write", stregsystem_views.api_sale_intent),
+        "api_sale_intent_detailed_status": ("intent:read", stregsystem_views.api_sale_intent_detailed_status),
+    }
+    ON_SITE_ONLY = {
+        "api_signup": stregsystem_views.post_signup,
+        "api_signup_status": stregsystem_views.get_signup_status,
+    }
+    PUBLIC = {"api_version"}
+
+    def test_scoped_endpoints_require_their_scope(self):
+        for name, (scope, view) in self.SCOPED.items():
+            with self.subTest(name=name):
+                with mock.patch("stregsystem.access.protected_resource") as factory:
+                    factory.return_value = lambda view: lambda request: HttpResponse()
+                    view(RequestFactory().get("/api", REMOTE_ADDR="203.0.113.7"))
+                self.assertEqual(factory.call_args.kwargs["scopes"], [scope])
+
+    def test_on_site_only_endpoints_reject_off_site_requests(self):
+        for name, view in self.ON_SITE_ONLY.items():
+            with self.subTest(name=name):
+                response = view(RequestFactory().get("/api", REMOTE_ADDR="203.0.113.7"))
+                self.assertEqual(response.status_code, 403)
+
+    def test_every_api_endpoint_is_classified(self):
+        api_names = {name for name in get_resolver().reverse_dict if isinstance(name, str) and name.startswith("api_")}
+        self.assertEqual(api_names - set(self.SCOPED) - set(self.ON_SITE_ONLY) - self.PUBLIC, set())

@@ -54,6 +54,9 @@ PASSWORD =
 2=127.0.0.1
 3=localhost
 
+[access]
+ONSITE_CIDRS = 127.0.0.1/32, ::1/128, 10.0.0.0/8, 172.16.0.0/12, 130.225.192.0/21, 130.225.48.0/20, 192.38.48.0/20, 2001:878:300::/44
+
 [logging]
 HANDLERS = [
     "console",
@@ -93,6 +96,10 @@ ALLOWED_HOSTS = ["host.docker.internal"]
 
 for e in cfg.items("hostnames"):
     ALLOWED_HOSTS.append(e[1])
+
+
+# CIDR ranges that count as on-site; the reverse proxy lets /api through from anywhere.
+ONSITE_CIDRS = [cidr.strip() for cidr in cfg.get('access', 'ONSITE_CIDRS').split(',') if cidr.strip()]
 
 # Application definition
 
