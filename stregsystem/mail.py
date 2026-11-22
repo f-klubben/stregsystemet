@@ -34,6 +34,25 @@ def send_payment_mail(member, amount, mobilepay_comment):
     )
 
 
+def send_manual_sale_mail(order, reason):
+    member = order.member
+    send_template_mail(
+        member,
+        "manual_sale.html",
+        {
+            **vars(member),
+            'items': [
+                (item.product.name, item.count, money(item.price()))
+                for item in sorted(order.items, key=lambda item: item.product.id)
+            ],
+            'formatted_total': money(order.total()),
+            'formatted_balance': money(member.balance),
+            'reason': escape(reason),
+        },
+        "F-Klubben - køb registreret manuelt",
+    )
+
+
 data_sent = {}
 
 

@@ -16,7 +16,7 @@ from django.utils.dateparse import parse_datetime
 import stregsystem.parser as parser
 from django.core.exceptions import ValidationError
 from django.contrib.admin.models import LogEntry
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Permission, User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages import get_messages
 from django.forms import model_to_dict
@@ -2725,3 +2725,128 @@ class IntentLifecycleTests(TestCase):
 
         self.intent.refresh_from_db()
         self.assertEqual(self.intent.status, Intent.PENDING)
+
+
+class ManualSaleToolTests(TestCase):
+    def setUp(self):
+        self.member = Member.objects.create(username="jon", balance=100, email="jon@example.com")
+        self.room = Room.objects.create(name="room")
+        self.product = Product.objects.create(name="øl", price=1000, active=True)
+        self.user = User.objects.create(username="treo", is_staff=True)
+        self.user.user_permissions.add(Permission.objects.get(codename="manualsaletool_access"))
+        self.client.force_login(self.user)
+
+    def post(self, action, lines=((1, 2),), **overrides):
+        data = {
+            "member": self.member.pk,
+            "room": self.room.pk,
+            "reason": "Line System was down",
+            "send_mail": "on",
+            "action": action,
+            "form-TOTAL_FORMS": str(len(lines)),
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "1000",
+        }
+        for i, (product, amount) in enumerate(lines):
+            data[f"form-{i}-product"] = product
+            data[f"form-{i}-amount"] = amount
+        data.update(overrides)
+        return self.client.post(reverse("manual_sale_tool"), data)
+
+    def test_requires_permission(self):
+        self.client.force_login(User.objects.create(username="nobody", is_staff=True))
+        response = self.client.get(reverse("manual_sale_tool"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/admin/login", response.url)
+
+    def test_preview_does_not_register_anything(self):
+        response = self.post("Preview")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["preview"]["total"], 2000)
+        self.assertContains(response, "Confirm")
+        self.assertEqual(Sale.objects.count(), 0)
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.balance, 100)
+
+    def test_fill_from_buystring_previews(self):
+        response = self.client.post(reverse("manual_sale_tool"), {"buystring": "jon 1:2", "action": "fill"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["form"].initial["member"], self.member)
+        self.assertEqual(response.context["formset"].initial, [{"product": 1, "amount": 2}])
+        self.assertEqual(response.context["preview"]["total"], 2000)
+        self.assertEqual(Sale.objects.count(), 0)
+
+    def test_fill_without_member_fills_products_only(self):
+        response = self.client.post(reverse("manual_sale_tool"), {"buystring": "1:2", "action": "fill"})
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context["form"].initial.get("member"))
+        self.assertEqual(response.context["formset"].initial, [{"product": 1, "amount": 2}])
+
+    def test_fill_reports_unparsable_buystring(self):
+        response = self.client.post(reverse("manual_sale_tool"), {"buystring": "nobody 1", "action": "fill"})
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context["preview"])
+        self.assertIn("Could not parse the buystring", " ".join(str(m) for m in get_messages(response.wsgi_request)))
+
+    def test_confirm_requires_room(self):
+        self.post("Confirm", room="")
+        self.assertEqual(Sale.objects.count(), 0)
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.balance, 100)
+
+    def test_room_and_reason_persist_after_confirm(self):
+        with patch("stregsystem.views.send_manual_sale_mail"):
+            self.post("Confirm")
+        response = self.client.get(reverse("manual_sale_tool"))
+        self.assertEqual(response.context["form"].initial["room"], self.room.pk)
+        self.assertEqual(response.context["form"].initial["reason"], "Line System was down")
+        self.assertContains(response, f'<option value="{self.room.pk}" selected>')
+
+    def test_room_and_reason_empty_on_first_visit(self):
+        response = self.client.get(reverse("manual_sale_tool"))
+        self.assertIsNone(response.context["form"].initial["room"])
+        self.assertEqual(response.context["form"].initial["reason"], "")
+
+    def test_linked_from_admin_index(self):
+        response = self.client.get(reverse("admin:index"))
+        self.assertContains(response, reverse("manual_sale_tool"))
+
+    def test_confirm_allows_negative_balance(self):
+        with patch("stregsystem.views.send_manual_sale_mail") as mail:
+            response = self.post("Confirm")
+        self.assertRedirects(response, reverse("manual_sale_tool"))
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.balance, 100 - 2000)
+        self.assertEqual(Sale.objects.count(), 2)
+        self.assertTrue(self.member.has_stregforbud())
+        mail.assert_called_once()
+
+        log = LogEntry.objects.get(content_type=ContentType.objects.get_for_model(Member))
+        self.assertEqual(log.user, self.user)
+        self.assertTrue(log.change_message.startswith("Manual sale: 1:2"))
+        self.assertIn("Line System was down", log.change_message)
+
+    def test_multiple_lines(self):
+        Product.objects.create(name="cola", price=500, active=True)
+        with patch("stregsystem.views.send_manual_sale_mail"):
+            self.post("Confirm", lines=((1, 2), (2, 1)))
+        self.assertEqual(Sale.objects.count(), 3)
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.balance, 100 - 2500)
+
+    def test_inactive_product_can_be_billed(self):
+        self.product.active = False
+        self.product.save()
+        self.post("Confirm")
+        self.assertEqual(Sale.objects.count(), 2)
+
+    def test_inactive_member_can_be_billed(self):
+        Member.objects.filter(pk=self.member.pk).update(active=False)
+        self.post("Confirm")
+        self.assertEqual(Sale.objects.count(), 2)
+
+    def test_no_mail_when_unchecked(self):
+        with patch("stregsystem.views.send_manual_sale_mail") as mail:
+            self.post("Confirm", send_mail="")
+        mail.assert_not_called()

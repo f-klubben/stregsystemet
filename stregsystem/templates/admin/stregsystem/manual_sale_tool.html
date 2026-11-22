@@ -1,0 +1,163 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% load stregsystem_extras %}
+
+{% block title %}Manual sale{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../">Hjem</a></div>{% endblock %}
+
+{% block extrahead %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+{{ form.media }}
+<link rel="stylesheet" type="text/css" href="{% static 'stregsystem/select2-stregsystem.css' %}"/>
+{% endblock %}
+
+{% block content %}
+<div class="module">
+    <h1>Manual sale</h1>
+    <p>
+        Registers purchases on a member's account even if their balance can't cover it, e.g. purchases written on
+        paper while the Line System was down. Products are billed at their current price, and products which are
+        no longer active can be billed as well.
+    </p>
+    <form method="post">{% csrf_token %}
+        <label for="id_buystring">Buystring</label>
+        <input type="text" name="buystring" id="id_buystring" size="60" autocomplete="off"
+               placeholder="username 2:3 cola 42">
+        <input type="submit" name="action" value="Fill"/>
+    </form>
+</div>
+
+<br>
+
+<form method="post" id="manualsaleform">{% csrf_token %}
+    <div class="module">
+        <table>
+            <tr>
+                <th><label for="{{ form.member.id_for_label }}">Member</label></th>
+                <td>{{ form.member }}{{ form.member.errors }}</td>
+            </tr>
+            <tr>
+                <th><label for="{{ form.room.id_for_label }}">Room</label></th>
+                <td>{{ form.room }}{{ form.room.errors }}</td>
+            </tr>
+            <tr>
+                <th><label for="{{ form.reason.id_for_label }}">Reason</label></th>
+                <td>
+                    {{ form.reason }}
+                    <br><span class="helptext">{{ form.reason.help_text }}</span>
+                    {{ form.reason.errors }}
+                </td>
+            </tr>
+            <tr>
+                <th><label for="{{ form.send_mail.id_for_label }}">Send mail</label></th>
+                <td>{{ form.send_mail }}{{ form.send_mail.errors }}</td>
+            </tr>
+        </table>
+
+        <h2>Products</h2>
+        {{ formset.management_form }}
+        <table id="salelines">
+            <thead>
+            <tr>
+                <th>Product</th>
+                <th>Amount</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for line in formset %}
+                <tr class="dynamic-form">
+                    <td>{{ line.product }}{{ line.product.errors }}</td>
+                    <td>{{ line.amount }}{{ line.amount.errors }}</td>
+                    <td></td>
+                </tr>
+            {% endfor %}
+            <tr id="formTemplate" style="display: none">
+                <td>{{ formset.empty_form.product }}</td>
+                <td>{{ formset.empty_form.amount }}</td>
+                <td></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="submit-row">
+            <input type="submit" name="action" value="Preview"/>
+            {% if preview %}
+                <input type="submit" name="action" value="Confirm" class="default"/>
+            {% endif %}
+        </div>
+    </div>
+</form>
+
+{% if preview %}
+    <br>
+    <div class="module">
+        <h2>Preview</h2>
+        <table>
+            <tr>
+                <th>Product</th>
+                <th>Count</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+            {% for product, count, price in preview.items %}
+                <tr>
+                    <td>{{ product.id }} - {{ product.name|striptags }}</td>
+                    <td>{{ count }}</td>
+                    <td>{{ product.price|money }}</td>
+                    <td>{{ price|money }}</td>
+                </tr>
+            {% endfor %}
+            <tr>
+                <th colspan="3">Total</th>
+                <th>{{ preview.total|money }}</th>
+            </tr>
+        </table>
+        <p>
+            Balance: {{ preview.balance_before|money }} &rarr; <b>{{ preview.balance_after|money }}</b><br>
+            {% if preview.room %}
+                Room: {{ preview.room }}
+            {% else %}
+                <b>Select a room to confirm</b>
+            {% endif %}
+        </p>
+    </div>
+{% endif %}
+
+<br>
+
+<div class="module">
+    <h2>Recent manual sales</h2>
+    <table>
+        <tr>
+            <th>When</th>
+            <th>By</th>
+            <th>Member</th>
+            <th>Details</th>
+        </tr>
+        {% for log in manual_sales %}
+            <tr>
+                <td>{{ log.action_time }}</td>
+                <td>{{ log.user }}</td>
+                <td>{{ log.object_repr }}</td>
+                <td>{{ log.change_message }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="4">No manual sales yet.</td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<script src="{% static 'stregsystem/jquery.formset.js' %}"></script>
+<script>
+    $(function () {
+        $('#salelines tbody tr').formset({
+            formTemplate: $('#formTemplate'),
+            addText: 'Add product',
+            deleteText: 'Remove',
+        });
+    });
+</script>
+{% endblock %}

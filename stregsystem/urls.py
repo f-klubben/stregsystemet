@@ -22,6 +22,7 @@ urlpatterns = [
     re_path(r'^$', views.roomindex, name="index"),
     re_path(r'^admin/batch/$', views.batch_payment, name="batch"),
     re_path(r'^admin/payment_tool/$', views.payment_tool, name="payment_tool"),
+    re_path(r'^admin/sale_tool/$', views.manual_sale_tool, name="manual_sale_tool"),
     re_path(r'^admin/signup_tool/$', views.signup_tool, name="signup_tool"),
     re_path(r'^signup/$', views.signup, name="signup"),
     re_path(r'^signup/(?P<signup_id>\d+)$', views.signup_status, name="signup_status"),

@@ -1,0 +1,32 @@
+<html>
+    <head></head>
+    <body>
+        <p>
+            Hej {{ firstname }}!<br><br>
+            Der er registreret følgende køb på din konto "{{ username }}":<br><br>
+            {% for name, count, price in items %}
+                {{ count }} x {{ name }}: {{ price }} stregdollars<br>
+            {% endfor %}
+            <br>
+            I alt: {{ formatted_total }} stregdollars.<br>
+            Din saldo er nu {{ formatted_balance }} stregdollars.<br><br>
+            {% if reason %}{{ reason }}<br><br>{% endif %}
+            Hvis saldoen er negativ skylder du F-Klubben penge. Du kan indbetale via MobilePay (QR-koden i stregsystemet) eller i baren.<br><br>
+            Mvh,<br>
+            TREOen<br>
+            ====================================================================<br>
+            Hello {{ firstname }}!<br><br>
+            The following purchases have been registered on your account "{{ username }}":<br><br>
+            {% for name, count, price in items %}
+                {{ count }} x {{ name }}: {{ price }} stregdollars<br>
+            {% endfor %}
+            <br>
+            Total: {{ formatted_total }} stregdollars.<br>
+            Your balance is now {{ formatted_balance }} stregdollars.<br><br>
+            {% if reason %}{{ reason }}<br><br>{% endif %}
+            If your balance is negative you owe F-Klubben money. You can deposit via MobilePay (the QR-code in the stregsystem) or at the bar.<br><br>
+            Kind regards,<br>
+            TREOen
+        </p>
+    </body>
+</html>

@@ -171,21 +171,28 @@ class Order(object):
         return sum((x.price() for x in self.items))
 
     @transaction.atomic
-    def execute(self):
+    def execute(self, manual=False):
+        """
+        manual: skip the funds and inventory checks (paper entry of past purchases).
+        """
         transaction = PayTransaction(amount=self.total())
 
         # Check if we have enough inventory to fulfill the order
-        for item in self.items:
-            if (
-                item.product.start_date is not None
-                and (item.product.bought + item.count > item.product.quantity)
-                and item.product.quantity != 0
-            ):
-                raise NoMoreInventoryError()
+        if not manual:
+            for item in self.items:
+                if (
+                    item.product.start_date is not None
+                    and (item.product.bought + item.count > item.product.quantity)
+                    and item.product.quantity != 0
+                ):
+                    raise NoMoreInventoryError()
 
         # Take update lock on member row
         self.member = Member.objects.select_for_update().get(id=self.member.id)
-        self.member.fulfill(transaction)
+        if manual:
+            self.member.balance += transaction.change()
+        else:
+            self.member.fulfill(transaction)
 
         # Collect all the sales of the order
         sales = []
@@ -792,7 +799,10 @@ class Sale(BaseModel):
             ["product", "timestamp"],
         ]
 
-        permissions = (("access_sales_reports", "Can access sales reports"),)
+        permissions = (
+            ("access_sales_reports", "Can access sales reports"),
+            ("manualsaletool_access", "Manual sale tool access"),
+        )
 
     def price_display(self):
         return money(self.price) + " kr."
