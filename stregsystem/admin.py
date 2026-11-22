@@ -114,6 +114,10 @@ class SaleAdmin(BaseAdmin):
                 del actions['refund_sales']
         return actions
 
+    permissions = [
+        ("refund_sale", "Can refund sales"),
+    ]
+
     actions = [refund_sales]
     search_fields = ['^member__username', '=product__id', 'product__name']
     valid_lookups = 'member'

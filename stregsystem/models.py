@@ -820,6 +820,7 @@ class Sale(BaseModel):
             + str(self.timestamp)
         )
 
+    @transaction.atomic
     def process_refund(self, admin_user: Optional[User]) -> None:
         if self.is_refunded():
             raise RuntimeError("Sale has already been refunded")
