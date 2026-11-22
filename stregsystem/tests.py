@@ -15,7 +15,9 @@ import pytz
 from django.utils.dateparse import parse_datetime
 import stregsystem.parser as parser
 from django.core.exceptions import ValidationError
+from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages import get_messages
 from django.forms import model_to_dict
 from django.test import TestCase
@@ -1702,6 +1704,52 @@ class MobilePaymentTests(TestCase):
 
         # ensure member balance is original amount, as deletion of mobilepayment should revert change
         self.assertEqual(Member.objects.get(username__exact="jdoe").balance, self.members["jdoe"]['balance'])
+
+    def test_ignored_mobilepayment_does_not_spam_logentry(self):
+        ignored_payment = MobilePayment.objects.get(transaction_id__exact="016E027417049990")
+        self.assertIsNotNone(ignored_payment.member)
+        ignored_payment.status = MobilePayment.IGNORED
+        ignored_payment.save()
+
+        approved_payment = MobilePayment.objects.get(transaction_id__exact="241E027449465355")
+        approved_payment.status = MobilePayment.APPROVED
+        approved_payment.save()
+
+        # This would previously log ignored
+        MobilePayment.submit_all_processed_mobile_payments(self.super_user)
+
+        ignored_logs = LogEntry.objects.filter(
+            object_id=ignored_payment.pk,
+            content_type_id=ContentType.objects.get_for_model(MobilePayment).pk,
+            change_message="Ignored",
+        )
+        self.assertEqual(ignored_logs.count(), 0)
+
+        ignored_payment.refresh_from_db()
+        approved_payment.refresh_from_db()
+        self.assertIsNone(ignored_payment.payment)
+        self.assertIsNotNone(approved_payment.payment)
+
+    def test_process_submitted_ignored_creates_single_logentry(self):
+        submitted = deepcopy(self.fixture_form_data_no_change)
+        submitted[4]['status'] = MobilePayment.IGNORED
+        ignored_payment = submitted[4]['id']
+
+        self.assertEqual(MobilePayment.process_submitted(submitted, self.super_user), 1)
+
+        ignored_logs = LogEntry.objects.filter(
+            object_id=ignored_payment.pk,
+            content_type_id=ContentType.objects.get_for_model(MobilePayment).pk,
+            change_message="Ignored",
+        )
+        self.assertEqual(ignored_logs.count(), 1)
+
+        ignored_payment.refresh_from_db()
+        self.assertEqual(ignored_payment.status, MobilePayment.IGNORED)
+        self.assertIsNone(ignored_payment.payment)
+
+        MobilePayment.submit_all_processed_mobile_payments(self.super_user)
+        self.assertEqual(ignored_logs.count(), 1)
 
     def test_member_balance_on_delete_unset_mobilepayment(self):
         # member balance unchanged before submission
