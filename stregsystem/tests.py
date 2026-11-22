@@ -983,6 +983,28 @@ class SaleTests(TestCase):
         self.assertIsNone(sale.id)
 
 
+class SaleAdminTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_superuser('superuser', 'test@example.com', 'very_secure')
+        self.member = Member.objects.create(username="jon", balance=0)
+        self.product = Product.objects.create(name="beer", price=100, active=True)
+        self.sale = Sale.objects.create(member=self.member, product=self.product, price=self.product.price)
+        self.client.login(username="superuser", password="very_secure")
+
+    def test_delete_refunded_sale_does_not_refund_again(self):
+        self.sale.process_refund(self.admin)
+        self.assertEqual(Member.objects.get(pk=self.member.pk).balance, 100)
+
+        response = self.client.post(
+            reverse('admin:stregsystem_sale_delete', kwargs={'object_id': self.sale.pk}),
+            {'post': 'yes'},
+            follow=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Member.objects.get(pk=self.member.pk).balance, 100)
+
+
 class MemberTests(TestCase):
     def test_fulfill_pay_transaction(self):
         member = Member(balance=100)
