@@ -584,19 +584,16 @@ class MobilePayment(ApprovalModel):
 
     @transaction.atomic
     def submit_processed_mobile_payment(self, admin_user: User):
-        if self.status == ApprovalModel.APPROVED:
-            if not self.member.signup_due_paid:
-                signup = PendingSignup.objects.get(member=self.member)
-                signup.pay_towards_due(self)
-            else:
-                payment = Payment(member=self.member, amount=self.amount)
-                # Save payment and foreign key to MobilePayment field
-                payment.save(mbpayment=self)
-                payment.log_from_mobile_payment(self, admin_user)
-                self.payment = payment
-                self.save()
-        elif self.status == ApprovalModel.IGNORED:
-            self.log_approval(admin_user, "Ignored")
+        if not self.member.signup_due_paid:
+            signup = PendingSignup.objects.get(member=self.member)
+            signup.pay_towards_due(self)
+        else:
+            payment = Payment(member=self.member, amount=self.amount)
+            # Save payment and foreign key to MobilePayment field
+            payment.save(mbpayment=self)
+            payment.log_from_mobile_payment(self, admin_user)
+            self.payment = payment
+            self.save()
 
     @classmethod
     @transaction.atomic
@@ -636,8 +633,11 @@ class MobilePayment(ApprovalModel):
             processed_mobile_payment = MobilePayment.objects.get(id=row['id'].id)
             # If approved, we need to create a payment and relate said payment to the mobilepayment.
             processed_mobile_payment.status = row['status']
-            processed_mobile_payment.member = Member.objects.get(id=row['member'].id)
-            processed_mobile_payment.submit_processed_mobile_payment(admin_user)
+            if processed_mobile_payment.status == ApprovalModel.IGNORED:
+                processed_mobile_payment.log_approval(admin_user, "Ignored")
+            else:
+                processed_mobile_payment.member = Member.objects.get(id=row['member'].id)
+                processed_mobile_payment.submit_processed_mobile_payment(admin_user)
             processed_mobile_payment.save()
 
         # Return how many records were modified.
