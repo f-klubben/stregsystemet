@@ -152,9 +152,10 @@ class SaleAdmin(BaseAdmin):
     get_room_name.admin_order_field = "room__name"
 
     def delete_model(self, request, obj):
-        transaction = PayTransaction(obj.price)
-        obj.member.rollback(transaction)
-        obj.member.save()
+        if (isinstance(obj, Sale)) and not obj.is_refunded():
+            transaction = PayTransaction(obj.price)
+            obj.member.rollback(transaction)
+            obj.member.save()
         super(SaleAdmin, self).delete_model(request, obj)
 
     def save_model(self, request, obj, form, change):
