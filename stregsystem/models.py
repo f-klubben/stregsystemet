@@ -832,10 +832,7 @@ class Sale(BaseModel):
         self.refunded_by = admin_user
         self.save()
 
-        # Refund the user
-        refund_transaction = GetTransaction(amount=self.price)
-        self.member.fulfill(refund_transaction)
-        self.member.save()
+        Payment.objects.create(member=self.member, amount=self.price)
 
     def is_refunded(self):
         return self.refunded_at is not None

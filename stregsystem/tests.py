@@ -927,6 +927,8 @@ class SaleTests(TestCase):
             sale_1.process_refund(admin)
             self.member.refresh_from_db()
             self.assertEqual(self.member.balance, 101)
+            refund_payment = Payment.objects.get(member=self.member)
+            self.assertEqual(refund_payment.amount, sale_1.price)
             self.assertEqual(sale_1.refunded_by, admin)
             self.assertIsNotNone(sale_1.refunded_at)
             assert sale_1.refunded_at is not None
