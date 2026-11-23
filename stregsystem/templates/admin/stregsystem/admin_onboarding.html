@@ -29,7 +29,7 @@
 <div id="content-main">
 	<h1>Onboarding af admins</h1>
 	<p>Vælg de medlemmer der skal have admin-adgang, og hvilke grupper de skal i. Hvert medlem får
-		straks en companion-bruger, staff-adgang til admin og de valgte grupper. Adgangskoden kan
+		straks en companion-bruger, staff-adgang til admin og de valgte grupper. Adgangskoden
 		genereres og sendes til medlemmets mailadresse.</p>
 
 	{% if results %}
@@ -47,9 +47,9 @@
 			{% for result in results %}
 			<tr>
 				<td>{{ result.member.username }}</td>
-				<td>{{ result.user.username }}</td>
+				<td>{{ result.user.username }}{% if result.previous_username %} (tidligere {{ result.previous_username }}){% endif %}</td>
 				<td>{{ result.groups|join:", " }}</td>
-				<td>{% if result.password_sent %}Sendt til {{ result.member.email }}{% else %}Ikke ændret{% endif %}</td>
+				<td>Sendt til {{ result.member.email }}</td>
 			</tr>
 			{% endfor %}
 		</table>
@@ -64,13 +64,6 @@
 			{{ options_form.groups.label_tag }}
 			{{ options_form.groups }}
 			<p class="help">{{ options_form.groups.help_text }}</p>
-		</div>
-
-		<div class="option-row">
-			{{ options_form.generate_password.errors }}
-			{{ options_form.generate_password }}
-			{{ options_form.generate_password.label_tag }}
-			<p class="help">{{ options_form.generate_password.help_text }}</p>
 		</div>
 
 		{{ formset.management_form }}

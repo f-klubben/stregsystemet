@@ -1177,7 +1177,7 @@ class AdminOnboardingTests(TestCase):
         self.staff = User.objects.create_user("staffer", password="very_secure", is_staff=True)
         self.staff.user_permissions.add(Permission.objects.get(codename="admin_onboarding"))
 
-    def _post(self, members, generate_password=True, groups=None, row_groups=None, usernames=None):
+    def _post(self, members, groups=None, row_groups=None, usernames=None):
         self.client.login(username="staffer", password="very_secure")
         data = {
             "groups": [str(group.pk) for group in (groups if groups is not None else [self.group])],
@@ -1190,8 +1190,6 @@ class AdminOnboardingTests(TestCase):
             data[f"form-{i}-member"] = str(member.pk)
             data[f"form-{i}-groups"] = [str(group.pk) for group in (row_groups or {}).get(i, [])]
             data[f"form-{i}-username"] = (usernames or {}).get(i, "")
-        if generate_password:
-            data["generate_password"] = "on"
         return self.client.post(reverse("admin_onboarding"), data)
 
     def test_requires_permission(self):
@@ -1248,14 +1246,17 @@ class AdminOnboardingTests(TestCase):
         mock_mail.assert_not_called()
 
     @mock.patch("stregsystem.views.send_admin_onboarding_mail", autospec=True)
-    def test_onboards_without_generating_password(self, mock_mail: MagicMock):
-        response = self._post([self.member], generate_password=False)
+    def test_existing_password_is_reset_and_emailed(self, mock_mail: MagicMock):
+        self.member.generate_companion_user()
+        self.member.paired_user.set_password("old_password")
+        self.member.paired_user.save()
 
-        self.assertEqual(response.status_code, 200)
+        self._post([self.member])
+
         self.member.refresh_from_db()
-        self.assertTrue(self.member.paired_user.is_staff)
-        self.assertEqual(list(self.member.paired_user.groups.all()), [self.group])
-        mock_mail.assert_not_called()
+        _, _, password, _ = mock_mail.call_args[0]
+        self.assertTrue(self.member.paired_user.check_password(password))
+        self.assertFalse(self.member.paired_user.check_password("old_password"))
 
     @mock.patch("stregsystem.views.send_admin_onboarding_mail", autospec=True)
     def test_row_groups_are_added_alongside_the_shared_groups(self, mock_mail: MagicMock):
@@ -1355,10 +1356,53 @@ class AdminOnboardingTests(TestCase):
     def test_member_email_is_transferred_to_the_companion_user(self, mock_mail: MagicMock):
         self.member.generate_companion_user()
 
-        self._post([self.member], generate_password=False)
+        self._post([self.member])
 
         self.member.refresh_from_db()
         self.assertEqual(self.member.paired_user.email, self.member.email)
+
+    @mock.patch("stregsystem.views.send_admin_onboarding_mail", autospec=True)
+    def test_case_variant_duplicate_usernames_are_rejected(self, mock_mail: MagicMock):
+        other = Member.objects.create(
+            username="bob", firstname="bob", lastname="bob", gender="M", email="bob@example.com"
+        )
+
+        response = self._post([self.member, other], usernames={0: "Same", 1: "same"})
+
+        self.assertContains(response, "brugt på flere medlemmer")
+        self.member.refresh_from_db()
+        other.refresh_from_db()
+        self.assertIsNone(self.member.paired_user)
+        self.assertIsNone(other.paired_user)
+        mock_mail.assert_not_called()
+
+    @mock.patch("stregsystem.views.send_admin_onboarding_mail", autospec=True)
+    def test_result_reports_all_groups_of_an_existing_user(self, mock_mail: MagicMock):
+        kiosk = Group.objects.create(name="Kiosk")
+        self.member.generate_companion_user()
+        self.member.paired_user.groups.add(kiosk)
+
+        response = self._post([self.member])
+
+        self.assertEqual(response.context["results"][0]["groups"], ["Kiosk", "TREO"])
+        self.assertEqual(response.context["results"][0]["previous_username"], None)
+        _, _, _, mail_groups = mock_mail.call_args[0]
+        self.assertEqual(mail_groups, ["Kiosk", "TREO"])
+
+    @mock.patch("stregsystem.views.send_admin_onboarding_mail", autospec=True)
+    def test_rename_of_an_existing_user_is_reported(self, mock_mail: MagicMock):
+        self.member.generate_companion_user()
+        self.member.paired_user.username = "treo_jeff"
+        self.member.paired_user.save()
+
+        response = self._post([self.member], usernames={0: "jeffrey"})
+
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.paired_user.username, "jeffrey")
+        self.assertEqual(response.context["results"][0]["previous_username"], "treo_jeff")
+        self.assertContains(response, "(tidligere treo_jeff)")
+        log_entry = LogEntry.objects.get(object_id=self.member.pk)
+        self.assertIn("renamed from treo_jeff to jeffrey", log_entry.change_message)
 
 
 class ProductActivatedListFilterTests(TestCase):

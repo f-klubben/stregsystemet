@@ -37,12 +37,6 @@ class AdminOnboardingOptionsForm(forms.Form):
         label="Admin-grupper",
         help_text="Medlemmerne bliver medlem af alle valgte grupper og får staff-adgang til admin.",
     )
-    generate_password = forms.BooleanField(
-        required=False,
-        initial=True,
-        label="Generér adgangskode og send den på mail",
-        help_text="Nulstiller adgangskoden, hvis medlemmet allerede har en companion-bruger.",
-    )
 
 
 class ApprovalToolForm(forms.ModelForm):
