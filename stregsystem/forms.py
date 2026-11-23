@@ -1,6 +1,8 @@
 import datetime
 
 from django import forms
+from django.contrib.auth.models import Group
+from django.contrib.auth.validators import UnicodeUsernameValidator
 
 from stregsystem.models import MobilePayment, Member, ApprovalModel, PendingSignup
 from django_select2 import forms as s2forms
@@ -9,6 +11,38 @@ from django_select2 import forms as s2forms
 class Select2MemberWidget(s2forms.ModelSelect2Widget):
     search_fields = ['username__icontains', 'firstname__icontains', 'lastname__icontains', 'email__icontains']
     model = Member
+
+
+class AdminOnboardingMemberForm(forms.Form):
+    member = forms.ModelChoiceField(queryset=Member.objects.all(), widget=Select2MemberWidget, label="Medlem")
+    username = forms.CharField(
+        required=False,
+        max_length=150,
+        validators=[UnicodeUsernameValidator()],
+        label="Brugernavn",
+        widget=forms.TextInput(attrs={"placeholder": "medlemmets brugernavn"}),
+    )
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.all(),
+        widget=forms.SelectMultiple,
+        required=False,
+        label="Grupper",
+    )
+
+
+class AdminOnboardingOptionsForm(forms.Form):
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        label="Admin-grupper",
+        help_text="Medlemmerne bliver medlem af alle valgte grupper og får staff-adgang til admin.",
+    )
+    generate_password = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Generér adgangskode og send den på mail",
+        help_text="Nulstiller adgangskoden, hvis medlemmet allerede har en companion-bruger.",
+    )
 
 
 class ApprovalToolForm(forms.ModelForm):
