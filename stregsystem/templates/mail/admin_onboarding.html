@@ -1,0 +1,39 @@
+{% comment %}
+Context is vars(member) plus admin_username, password and groups
+{% endcomment %}
+<html>
+    <head></head>
+    <body>
+        Hej {{ firstname }}!<br><br>
+        Du er blevet oprettet som administrator i F-klubbens stregsystem.<br><br>
+
+        Du kan logge ind på <a href="https://stregsystem.fklub.dk/admin/">fklub.dk/admin/</a> med:<br>
+        Brugernavn: <b>{{ admin_username }}</b><br>
+        Adgangskode: <b>{{ password }}</b><br><br>
+
+        Du er medlem af følgende grupper: {{ groups|join:", " }}.<br>
+        Skift din adgangskode efter første login under "Change password" i admin.<br><br>
+
+        Har du spørgsmål, kan du kontakte FIT på <a href="mailto:fit@fklub.dk">fit@fklub.dk</a>.<br><br>
+
+        Med venlig hilsen,<br>
+        F-klubben <br><br>
+
+        ====================================== <br><br>
+
+        Hi {{ firstname }}!<br><br>
+        You have been created as an administrator of F-klubben's stregsystem.<br><br>
+
+        You can log in at <a href="https://stregsystem.fklub.dk/admin/">fklub.dk/admin/</a> with:<br>
+        Username: <b>{{ admin_username }}</b><br>
+        Password: <b>{{ password }}</b><br><br>
+
+        You are a member of the following groups: {{ groups|join:", " }}.<br>
+        Please change your password after your first login under "Change password" in the admin.<br><br>
+
+        If you have any questions, contact FIT at <a href="mailto:fit@fklub.dk">fit@fklub.dk</a>.<br><br>
+
+        Best regards,<br>
+        F-klubben
+    </body>
+</html>

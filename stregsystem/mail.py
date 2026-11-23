@@ -34,6 +34,20 @@ def send_payment_mail(member, amount, mobilepay_comment):
     )
 
 
+def send_admin_onboarding_mail(member, user, password, group_names):
+    send_template_mail(
+        member,
+        "admin_onboarding.html",
+        {
+            **vars(member),
+            "admin_username": user.username,
+            "password": password,
+            "groups": group_names,
+        },
+        "F-Klubben - Adgang til stregsystemets admin",
+    )
+
+
 data_sent = {}
 
 
