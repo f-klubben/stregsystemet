@@ -1007,9 +1007,6 @@ class PendingSignup(ApprovalModel):
             processed_signup.status = row['status']
             processed_signup.save()
 
-            # Trigger welcome mail if sign-up is also paid.
-            processed_signup.member.trigger_welcome_mail()
-
         # Return how many records were modified.
         return len(pending_signup_ids)
 
