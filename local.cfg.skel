@@ -21,3 +21,9 @@ PASSWORD =
 [hostnames]
 2=127.0.0.1
 3=localhost
+
+[access]
+# CIDR ranges that count as on-site: loopback, private networks, and Aalborg
+# University's ranges (campus and VPN). API requests from outside them need an
+# OIDC token with the required scope.
+ONSITE_CIDRS = 127.0.0.1/32, ::1/128, 10.0.0.0/8, 172.16.0.0/12, 130.225.192.0/21, 130.225.48.0/20, 192.38.48.0/20, 2001:878:300::/44
