@@ -22,6 +22,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from stregsystem.models import Category, Member, Sale, Product
 
+from oauth2_provider.models import AccessToken, RefreshToken, Application
+
 logger = logging.getLogger(__name__)
 
 
@@ -300,3 +302,39 @@ def get_member_rankings(member, from_date, to_date):
             my_count,
         )
     return result
+
+
+def get_user_oauth_sessions(user):
+    tokens = RefreshToken.objects.filter(user=user, revoked__isnull=True).select_related("application")
+
+    sessions = []
+
+    for t in tokens:
+        access_token = t.access_token
+        sessions.append(
+            {
+                "id": t.id,
+                "application": access_token.application.name if t.application else None,
+                "scope": access_token.scope if access_token else None,
+            }
+        )
+
+    return sessions
+
+
+def revoke_refresh_token(refresh_token):
+    try:
+        rt = RefreshToken.objects.select_related("access_token").get(
+            id=refresh_token.pk,
+        )
+
+        # mark refresh token revoked
+        rt.revoked = timezone.now()
+        rt.save(update_fields=["revoked"])
+
+        # remove access token if exists
+        if rt.access_token:
+            rt.access_token.delete()
+
+    except RefreshToken.DoesNotExist:
+        pass

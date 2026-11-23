@@ -73,8 +73,8 @@ button[type="submit"]:hover { background: #333; }
   margin-bottom: .4rem;
 }
 .messages .error { background: #fff0f0; color: #c0392b; border: 1px solid #fcc; }
+.messages .warning { background: #f0f4ff; color: #555; border: 1px solid #c7d7ff; }
 .messages .info  { background: #f0faf5; color: #1a7f4b; border: 1px solid #b2e5cc; }
-
 
 h1 {
   margin-bottom: .35rem;

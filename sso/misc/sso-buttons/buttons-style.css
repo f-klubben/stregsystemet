@@ -1,0 +1,71 @@
+:root {
+    --flå: #202A45;
+    --frå: #202332;
+    --f: #ffffff;
+}
+
+.member {
+    --btn-bg: var(--flå);
+    --btn-border: var(--frå);
+    --btn-color: var(--f);
+}
+
+.volunteer {
+    --btn-bg: var(--f);
+    --btn-border: var(--frå);
+    --btn-color: var(--flå);
+}
+
+.fclub-sso-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.fclub-sso-button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 44px;
+    padding: 0 16px;
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--btn-border);
+    background-color: var(--btn-bg);
+    color: var(--btn-color);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont,
+               "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    text-decoration: none;
+    transition: background-color 0.25s ease, color 0.25s ease,
+              border 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+
+.fclub-sso-button.member:hover {
+    background-color: var(--f);
+    color: #000;
+}
+
+.fclub-sso-button.member:hover .fclub-sso-logo {
+    filter: invert(0);
+}
+
+.fclub-sso-button.volunteer:hover {
+}
+
+.fclub-sso-logo {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.member > .fclub-sso-logo {
+    filter: invert(1);
+}
