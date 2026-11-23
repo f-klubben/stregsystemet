@@ -1,6 +1,7 @@
 import os
 from tempfile import TemporaryDirectory
 
+from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.test import override_settings, TestCase
 from django.urls import reverse
@@ -8,7 +9,7 @@ from django.conf import settings
 
 from sso.auth_backends import PasswordlessMemberBackend
 from sso.models import MemberOTPRequest
-from stregsystem.models import Member
+from stregsystem.models import Member, PendingSignup
 
 
 class GenerateKeyCommandTests(TestCase):
@@ -111,6 +112,23 @@ class Stage1ViewTests(BaseLoginTestCase):
         response = self._post_stage1("jeff")
         self.assertIn("masked_email", response.context)
         self.assertNotIn("jeff@example.com", response.context["masked_email"])
+
+    def test_unpaid_member_returns_error(self):
+        self.member.signup_due_paid = False
+        self.member.save()
+        response = self._post_stage1("jeff")
+        self.assertEqual(response.context["stage"], 1)
+        messages = [m.message for m in response.context["messages"]]
+        self.assertTrue(any("oprettelsesgebyr" in m.lower() for m in messages))
+        self.assertEqual(MemberOTPRequest.objects.filter(member=self.member).count(), 0)
+
+    def test_unapproved_member_returns_error(self):
+        PendingSignup.objects.create(member=self.member)
+        response = self._post_stage1("jeff")
+        self.assertEqual(response.context["stage"], 1)
+        messages = [m.message for m in response.context["messages"]]
+        self.assertTrue(any("godkendt" in m.lower() for m in messages))
+        self.assertEqual(MemberOTPRequest.objects.filter(member=self.member).count(), 0)
 
 
 class Stage2ViewTests(BaseLoginTestCase):
@@ -434,3 +452,23 @@ class ProfileScopeTests(TestCase):
         with self.settings(OAUTH2_PROVIDER=provider_settings):
             response = self.client.get(reverse("oidc-connect-discovery-info"))
         self.assertIn("profile", response.json()["scopes_supported"])
+
+
+class AdminLoginTests(TestCase):
+    """Staff logins must keep working without a Member or SSO, and vice versa."""
+
+    def setUp(self):
+        self.admin_url = reverse("admin:index")
+
+    def test_staff_user_without_member_can_log_in(self):
+        User.objects.create_user(username="treo", password="secret", is_staff=True)
+        response = self.client.post(
+            reverse("admin:login"), {"username": "treo", "password": "secret", "next": self.admin_url}
+        )
+        self.assertRedirects(response, self.admin_url, fetch_redirect_response=False)
+
+    def test_companion_user_has_no_admin_access(self):
+        member = Member.objects.create(username="jeff", email="jeff@example.com")
+        member.generate_companion_user()
+        self.client.force_login(member.paired_user)
+        self.assertEqual(self.client.get(self.admin_url).status_code, 302)

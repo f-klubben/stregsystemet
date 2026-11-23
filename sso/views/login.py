@@ -1,5 +1,3 @@
-import random
-import string
 from typing import Optional
 from urllib.parse import urlparse, parse_qs
 from oauth2_provider.models import Application
@@ -85,6 +83,20 @@ class CustomLoginView(View):
 
         if not member.email:
             messages.error(request, "Din stregbruger har ingen mailadresse. Kontakt TREO'en på treo@fklub.dk for hjælp")
+            return self._render(request, locals())
+
+        if not member.signup_due_paid:
+            messages.error(
+                request,
+                "Din stregbruger mangler at betale oprettelsesgebyret. Kontakt TREO'en på treo@fklub.dk for hjælp",
+            )
+            return self._render(request, locals())
+
+        if not member.signup_approved():
+            messages.error(
+                request,
+                "Din stregbruger mangler at blive godkendt af TREO'en. Kontakt TREO'en på treo@fklub.dk for hjælp",
+            )
             return self._render(request, locals())
 
         masked_email = member.masked_email
