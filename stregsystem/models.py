@@ -1,10 +1,11 @@
+from __future__ import annotations
 import datetime
 import urllib.parse
 import uuid
 from abc import abstractmethod
 from collections import Counter
 from email.utils import parseaddr
-from typing import List
+from typing import Optional, List
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
@@ -194,6 +195,7 @@ class Order(object):
             for i in range(item.count):
                 s = Sale(member=self.member, product=item.product, room=self.room, price=item.product.price)
                 sales.append(s)
+
         # Save all the sales
         Sale.objects.bulk_create(sales)
 
@@ -351,7 +353,7 @@ class Member(BaseModel):  # id automatisk...
         calculation_start = now - timedelta(hours=12)
 
         alcohol_sales = self.sale_set.filter(
-            timestamp__gt=calculation_start, product__alcohol_content_ml__gt=0.0
+            timestamp__gt=calculation_start, product__alcohol_content_ml__gt=0.0, refunded_at__isnull=True
         ).order_by('timestamp')
         alcohol_timeline = [(s.timestamp, s.product.alcohol_content_ml) for s in alcohol_sales]
 
@@ -381,7 +383,9 @@ class Member(BaseModel):  # id automatisk...
             [
                 Intake(x.timestamp, x.product.caffeine_content_mg)
                 for x in self.sale_set.filter(
-                    timestamp__gt=timezone.now() - CAFFEINE_TIME_INTERVAL, product__caffeine_content_mg__gt=0
+                    timestamp__gt=timezone.now() - CAFFEINE_TIME_INTERVAL,
+                    product__caffeine_content_mg__gt=0,
+                    refunded_at__isnull=True,
                 ).order_by('timestamp')
             ]
         )
@@ -396,6 +400,7 @@ class Member(BaseModel):  # id automatisk...
                 sale__timestamp__gt=start_of_week,
                 sale__timestamp__lte=now,
                 sale__product__categories__in=coffee_category,
+                sale__refunded_at__isnull=True,
             )
             .annotate(Count('sale'))
             .order_by('-sale__count', 'username')
@@ -714,9 +719,9 @@ class Product(BaseModel):  # id automatisk...
         # bought count - Jesper 27/09-2017
         if self.start_date is None:
             return 0
-        return self.sale_set.filter(timestamp__gt=date_to_midnight(self.start_date)).aggregate(bought=Count("id"))[
-            "bought"
-        ]
+        return self.sale_set.filter(
+            timestamp__gt=date_to_midnight(self.start_date), refunded_at__isnull=True
+        ).aggregate(bought=Count("id"))["bought"]
 
     def is_active(self):
         expired = self.deactivate_date is not None and self.deactivate_date <= timezone.now()
@@ -786,6 +791,8 @@ class Sale(BaseModel):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     price = models.IntegerField()
+    refunded_at = models.DateTimeField(blank=True, null=True)
+    refunded_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
 
     class Meta(BaseModel.Meta):
         index_together = [
@@ -806,15 +813,56 @@ class Sale(BaseModel):
         return self.__str__()
 
     def __str__(self):
-        return self.member.username + " " + self.product.name + " (" + money(self.price) + ") " + str(self.timestamp)
+        return (
+            self.member.username
+            + (" [REFUNDED]" if self.is_refunded() else " ")
+            + self.product.name
+            + " ("
+            + money(self.price)
+            + ") "
+            + str(self.timestamp)
+        )
+
+    @transaction.atomic
+    def process_refund(self, admin_user: Optional[User]) -> None:
+        if self.is_refunded():
+            raise RuntimeError("Sale has already been refunded")
+
+        if admin_user is not None and not admin_user.is_staff:
+            raise RuntimeError("Only staff users can refund sales")
+
+        self.refunded_at = timezone.now()
+        self.refunded_by = admin_user
+        self.save()
+
+        Payment.objects.create(member=self.member, amount=self.price)
+
+    def is_refunded(self):
+        return self.refunded_at is not None
 
     def save(self, *args, **kwargs):
-        if self.id:
+        if not self._is_save_allowed():
             raise RuntimeError("Updates of sales are not allowed")
+
         super(Sale, self).save(*args, **kwargs)
 
+    def _is_save_allowed(self):
+        # New sale, always allow save
+        if not self.exists_in_database():
+            return True
+
+        database_value = Sale.objects.get(pk=self.pk)
+
+        if database_value.refunded_at is None and self.refunded_at is not None:
+            return True  # Allow saving if we're processing a refund (setting refunded_at from None to a timestamp)
+
+        return False  # Otherwise, disallow save
+
+    def exists_in_database(self):
+        return self.pk is not None and Sale.objects.filter(pk=self.pk).exists()
+
     def delete(self, *args, **kwargs):
-        if self.id:
+        if self.pk:
             super(Sale, self).delete(*args, **kwargs)
         else:
             raise RuntimeError("You can't delete a sale that hasn't happened")

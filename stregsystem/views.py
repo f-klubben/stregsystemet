@@ -175,7 +175,7 @@ def _multibuy_hint(now, member):
     # Get a timestamp to fetch sales for the member for the last 60 sec
     earliest_recent_sale = now - datetime.timedelta(seconds=60)
     # get the sales with this timestamp
-    recent_sales = Sale.objects.filter(member=member, timestamp__gt=earliest_recent_sale)
+    recent_sales = Sale.objects.filter(member=member, timestamp__gt=earliest_recent_sale, refunded_at__isnull=True)
     number_of_recent_distinct_sales = recent_sales.values('timestamp').distinct().count()
     recent_unique_sales = recent_sales.values('product').distinct().annotate(total=Count('product'))
 
@@ -291,14 +291,17 @@ def menu_userinfo(request, room_id, member_id):
     if not member.signup_approved():
         return render(request, 'stregsystem/error_signup_not_approved.html', locals())
 
-    stats = Sale.objects.filter(member_id=member_id).aggregate(
+    all_sales: QuerySet[Sale] = member.sale_set.order_by('-timestamp')
+
+    stats_none_refunded = Sale.objects.filter(member_id=member_id, refunded_at__isnull=True).aggregate(
         total_amount=Sum('price'), total_purchases=Count('timestamp')
     )
 
-    all_sales = member.sale_set.order_by('-timestamp')
     paginator = Paginator(all_sales, 10)
     list_number = request.GET.get('purchaselist', 1)
     last_sale_list = paginator.get_page(list_number)
+
+    anySaleHasBeenRefundedInPage = any(sale.refunded_at is not None for sale in last_sale_list)
 
     last_payment = member.get_last_payment()
 
@@ -368,7 +371,12 @@ def menu_userrank(request, room_id, member_id):
 
     def ranking(category_ids, from_d, to_d):
         qs = (
-            Member.objects.filter(sale__product__in=category_ids, sale__timestamp__gt=from_d, sale__timestamp__lte=to_d)
+            Member.objects.filter(
+                sale__product__in=category_ids,
+                sale__timestamp__gt=from_d,
+                sale__timestamp__lte=to_d,
+                sale__refunded_at__isnull=True,
+            )
             .annotate(Count('sale'))
             .order_by('-sale__count', 'username')
         )
@@ -389,6 +397,7 @@ def menu_userrank(request, room_id, member_id):
             sale__product__in=category_ids,
             sale__timestamp__gt=from_d,
             sale__timestamp__lte=to_d,
+            sale__refunded_at__isnull=True,
         )
         if member not in qs:
             return 0
@@ -401,12 +410,13 @@ def menu_userrank(request, room_id, member_id):
             product__in=category_ids,
             timestamp__gt=from_d,
             timestamp__lte=to_d,
+            refunded_at__isnull=True,
         )
         return qs.count()
 
     # let user know when they first purchased a product
     member_first_purchase = "Ikke endnu, køb en limfjordsporter!"
-    first_purchase = Sale.objects.filter(member=member_id).order_by('-timestamp')
+    first_purchase = Sale.objects.filter(member=member_id, refunded_at__isnull=True).order_by('-timestamp')
     if first_purchase.exists():
         member_first_purchase = first_purchase.last().timestamp
 
@@ -857,7 +867,7 @@ def get_member_sales(request):
         return HttpResponseBadRequest("Member not found")
 
     count = 10 if request.GET.get('count') is None else int(request.GET.get('count') or 10)
-    sales = Sale.objects.filter(member=member).order_by('-timestamp')[:count]
+    sales = Sale.objects.filter(member=member, refunded_at__isnull=True).order_by('-timestamp')[:count]
     return JsonResponse(
         {'sales': [{'timestamp': s.timestamp, 'product': s.product.name, 'price': s.product.price} for s in sales]}
     )

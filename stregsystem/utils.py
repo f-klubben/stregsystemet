@@ -36,7 +36,7 @@ def make_active_productlist_query(queryset) -> QuerySet:
     )
     # This query selects all the candidates that are out of stock.
     candidates_out_of_stock = (
-        active_candidates.filter(sale__timestamp__gt=F("start_date"))
+        active_candidates.filter(sale__timestamp__gt=F("start_date"), sale__refunded_at__isnull=True)
         .annotate(c=Count("sale__id"))
         .filter(c__gte=F("quantity"))
         .values("id")
@@ -54,7 +54,7 @@ def make_inactive_productlist_query(queryset) -> QuerySet:
         Q(active=True) & (Q(deactivate_date=None) | Q(deactivate_date__gte=now))
     ).values("id")
     inactive_out_of_stock = (
-        queryset.filter(sale__timestamp__gt=F("start_date"))
+        queryset.filter(sale__timestamp__gt=F("start_date"), sale__refunded_at__isnull=True)
         .annotate(c=Count("sale__id"))
         .filter(c__gte=F("quantity"))
         .values("id")
@@ -252,6 +252,7 @@ def _sales(product_ids, from_date, to_date):
         product_id__in=product_ids,
         timestamp__gt=from_date,
         timestamp__lte=to_date,
+        refunded_at__isnull=True,
     ).order_by()  # clear any default ordering so it doesn't leak into GROUP BY
 
 
