@@ -292,8 +292,6 @@ def menu_userinfo(request, room_id, member_id):
         return render(request, 'stregsystem/error_signup_not_approved.html', locals())
 
     all_sales: QuerySet[Sale] = member.sale_set.order_by('-timestamp')
-    all_none_refunded_sales = all_sales.filter(refunded_at__isnull=True)
-    all_refunded_sales = all_sales.filter(refunded_at__isnull=False)
 
     stats_none_refunded = Sale.objects.filter(member_id=member_id, refunded_at__isnull=True).aggregate(
         total_amount=Sum('price'), total_purchases=Count('timestamp')
