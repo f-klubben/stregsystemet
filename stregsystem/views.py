@@ -175,7 +175,7 @@ def _multibuy_hint(now, member):
     # Get a timestamp to fetch sales for the member for the last 60 sec
     earliest_recent_sale = now - datetime.timedelta(seconds=60)
     # get the sales with this timestamp
-    recent_sales = Sale.objects.filter(member=member, timestamp__gt=earliest_recent_sale)
+    recent_sales = Sale.objects.filter(member=member, timestamp__gt=earliest_recent_sale, refunded_at__isnull=True)
     number_of_recent_distinct_sales = recent_sales.values('timestamp').distinct().count()
     recent_unique_sales = recent_sales.values('product').distinct().annotate(total=Count('product'))
 
@@ -418,7 +418,7 @@ def menu_userrank(request, room_id, member_id):
 
     # let user know when they first purchased a product
     member_first_purchase = "Ikke endnu, køb en limfjordsporter!"
-    first_purchase = Sale.objects.filter(member=member_id).order_by('-timestamp')
+    first_purchase = Sale.objects.filter(member=member_id, refunded_at__isnull=True).order_by('-timestamp')
     if first_purchase.exists():
         member_first_purchase = first_purchase.last().timestamp
 
@@ -869,7 +869,7 @@ def get_member_sales(request):
         return HttpResponseBadRequest("Member not found")
 
     count = 10 if request.GET.get('count') is None else int(request.GET.get('count') or 10)
-    sales = Sale.objects.filter(member=member).order_by('-timestamp')[:count]
+    sales = Sale.objects.filter(member=member, refunded_at__isnull=True).order_by('-timestamp')[:count]
     return JsonResponse(
         {'sales': [{'timestamp': s.timestamp, 'product': s.product.name, 'price': s.product.price} for s in sales]}
     )

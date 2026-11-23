@@ -353,7 +353,7 @@ class Member(BaseModel):  # id automatisk...
         calculation_start = now - timedelta(hours=12)
 
         alcohol_sales = self.sale_set.filter(
-            timestamp__gt=calculation_start, product__alcohol_content_ml__gt=0.0
+            timestamp__gt=calculation_start, product__alcohol_content_ml__gt=0.0, refunded_at__isnull=True
         ).order_by('timestamp')
         alcohol_timeline = [(s.timestamp, s.product.alcohol_content_ml) for s in alcohol_sales]
 
@@ -383,7 +383,9 @@ class Member(BaseModel):  # id automatisk...
             [
                 Intake(x.timestamp, x.product.caffeine_content_mg)
                 for x in self.sale_set.filter(
-                    timestamp__gt=timezone.now() - CAFFEINE_TIME_INTERVAL, product__caffeine_content_mg__gt=0
+                    timestamp__gt=timezone.now() - CAFFEINE_TIME_INTERVAL,
+                    product__caffeine_content_mg__gt=0,
+                    refunded_at__isnull=True,
                 ).order_by('timestamp')
             ]
         )
@@ -398,6 +400,7 @@ class Member(BaseModel):  # id automatisk...
                 sale__timestamp__gt=start_of_week,
                 sale__timestamp__lte=now,
                 sale__product__categories__in=coffee_category,
+                sale__refunded_at__isnull=True,
             )
             .annotate(Count('sale'))
             .order_by('-sale__count', 'username')
@@ -716,9 +719,9 @@ class Product(BaseModel):  # id automatisk...
         # bought count - Jesper 27/09-2017
         if self.start_date is None:
             return 0
-        return self.sale_set.filter(timestamp__gt=date_to_midnight(self.start_date)).aggregate(bought=Count("id"))[
-            "bought"
-        ]
+        return self.sale_set.filter(
+            timestamp__gt=date_to_midnight(self.start_date), refunded_at__isnull=True
+        ).aggregate(bought=Count("id"))["bought"]
 
     def is_active(self):
         expired = self.deactivate_date is not None and self.deactivate_date <= timezone.now()

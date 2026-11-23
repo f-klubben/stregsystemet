@@ -58,6 +58,7 @@ def _sales_to_user_in_period(username, start_date, end_date, product_list, produ
             id__in=product_list,
             sale__timestamp__gte=start_date,
             sale__timestamp__lte=end_date,
+            sale__refunded_at__isnull=True,
         )
         .annotate(cnt=Count("id"))
         .values_list("name", "cnt")
@@ -285,6 +286,7 @@ def sales_product(request, ids, from_time, to_time, error=None):
         query = reduce(lambda x, y: x | y, [Q(id=z) for z in ids])
         query &= Q(sale__timestamp__gt=from_date_time_tz_aware)
         query &= Q(sale__timestamp__lte=to_date_time_tz_aware)
+        query &= Q(sale__refunded_at__isnull=True)
         result = Product.objects.filter(query).annotate(Count('sale'), Sum('sale__price'))
 
         count = 0
@@ -342,7 +344,12 @@ def sale_product_rank(ids, from_time, to_time, rank_limit=10):
 # gives a list of member object, with the additional field sale__price__sum__formatted which is the number of money spent in the period given.
 def sale_money_rank(from_time, to_time, rank_limit=10):
     stat_list = (
-        Member.objects.filter(active=True, sale__timestamp__gt=from_time, sale__timestamp__lte=to_time)
+        Member.objects.filter(
+            active=True,
+            sale__timestamp__gt=from_time,
+            sale__timestamp__lte=to_time,
+            sale__refunded_at__isnull=True,
+        )
         .annotate(Sum('sale__price'))
         .order_by('-sale__price__sum', 'username')[:rank_limit]
     )
@@ -402,17 +409,27 @@ def first_of_month(date):
 @permission_required("stregsystem.access_sales_reports")
 def daily(request):
     current_date = timezone.now().replace(hour=0, minute=0, second=0)
-    latest_sales = Sale.objects.prefetch_related('product', 'member').order_by('-timestamp')[:7]
+    latest_sales = (
+        Sale.objects.filter(refunded_at__isnull=True).prefetch_related('product', 'member').order_by('-timestamp')[:7]
+    )
     top_today = (
-        Product.objects.filter(sale__timestamp__gt=current_date).annotate(Count('sale')).order_by('-sale__count')[:7]
+        Product.objects.filter(sale__timestamp__gt=current_date, sale__refunded_at__isnull=True)
+        .annotate(Count('sale'))
+        .order_by('-sale__count')[:7]
     )
 
     startTime_day = timezone.now() - datetime.timedelta(hours=24)
-    revenue_day = (Sale.objects.filter(timestamp__gt=startTime_day).aggregate(Sum("price"))["price__sum"]) or 0.0
+    revenue_day = (
+        Sale.objects.filter(timestamp__gt=startTime_day, refunded_at__isnull=True).aggregate(Sum("price"))["price__sum"]
+    ) or 0.0
     startTime_month = timezone.now() - datetime.timedelta(days=30)
-    revenue_month = (Sale.objects.filter(timestamp__gt=startTime_month).aggregate(Sum("price"))["price__sum"]) or 0.0
+    revenue_month = (
+        Sale.objects.filter(timestamp__gt=startTime_month, refunded_at__isnull=True).aggregate(Sum("price"))[
+            "price__sum"
+        ]
+    ) or 0.0
     top_month_category = (
-        Category.objects.filter(product__sale__timestamp__gt=startTime_month)
+        Category.objects.filter(product__sale__timestamp__gt=startTime_month, product__sale__refunded_at__isnull=True)
         .annotate(sale=Count("product__sale"))
         .order_by("-sale")[:7]
     )
@@ -423,7 +440,7 @@ def daily(request):
 def sales_api(request):
     startTime_month = timezone.now() - datetime.timedelta(days=30)
     qs = (
-        Sale.objects.filter(timestamp__gt=startTime_month)
+        Sale.objects.filter(timestamp__gt=startTime_month, refunded_at__isnull=True)
         .annotate(day=TruncDay('timestamp'))
         .values('day')
         .annotate(c=Count('*'))
@@ -473,7 +490,7 @@ def user_purchases_in_categories(request):
             user_sales_per_category = {}
             for c in categories:
                 user_sales_per_category_q = (
-                    Member.objects.filter(sale__product__categories=c)
+                    Member.objects.filter(sale__product__categories=c, sale__refunded_at__isnull=True)
                     .annotate(sales=Count("*"))
                     .order_by("sale__product__categories")
                     .values_list(
@@ -489,7 +506,7 @@ def user_purchases_in_categories(request):
                     user_sales_per_category[user_id][category_name] = sale_count
 
             users = (
-                Member.objects.filter(sale__product__categories__in=categories)
+                Member.objects.filter(sale__product__categories__in=categories, sale__refunded_at__isnull=True)
                 .annotate(total_sales=Count("*"))
                 .order_by("-total_sales")
                 .values_list(

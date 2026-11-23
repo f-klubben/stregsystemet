@@ -46,7 +46,7 @@ def send_userdata_mail(member):
         return False
     data_sent[member.id] = now
 
-    sales: list[Sale] = member.sale_set.order_by("timestamp")
+    sales: list[Sale] = member.sale_set.filter(refunded_at__isnull=True).order_by("timestamp")
     payments: list[Payment] = member.payment_set.order_by("timestamp")
     mobilepayments: list[MobilePayment] = member.mobilepayment_set.order_by("timestamp")
     mobilepay_payments: list[Payment] = [mobilepayment.payment for mobilepayment in mobilepayments]

@@ -220,7 +220,11 @@ class AchievementTask(BaseModel):
         return purchase_days.count() == self.goal_value
 
     def _is_first_purchase_since(self, member: Member, period_start: datetime) -> bool:
-        first_sale = Sale.objects.filter(timestamp__gte=period_start).order_by('timestamp', 'id').first()
+        first_sale = (
+            Sale.objects.filter(timestamp__gte=period_start, refunded_at__isnull=True)
+            .order_by('timestamp', 'id')
+            .first()
+        )
         return first_sale is not None and first_sale.member == member
 
     def _period_start(self) -> datetime:
@@ -666,7 +670,11 @@ def _filter_relevant_sales(
     achievements: list[Achievement], member: Member, now: datetime
 ) -> dict[AchievementTask, QuerySet[Sale, Sale]]:
     # Start with all sales for this member, select related to reduce hits
-    member_sales = Sale.objects.filter(member=member).select_related('product').prefetch_related('product__categories')
+    member_sales = (
+        Sale.objects.filter(member=member, refunded_at__isnull=True)
+        .select_related('product')
+        .prefetch_related('product__categories')
+    )
     task_to_sales: dict[AchievementTask, QuerySet[Sale, Sale]] = {}
 
     for achievement in achievements:
