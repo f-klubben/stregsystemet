@@ -1,0 +1,171 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Admin onboarding{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url 'admin:index' %}">Hjem</a></div>{% endblock %}
+
+{% block extrahead %}
+{{ formset.media.css }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<style>
+	#content-main { width: 800px; margin: auto; float: none; }
+	#onboardingform table { width: 100%; }
+	#onboardingform table select { width: 100%; }
+	#onboardingform table input[type=text] { width: 100%; }
+	#onboardingform col.member { width: 25%; }
+	#onboardingform col.username { width: 20%; }
+	#onboardingform col.user { width: 20%; }
+	#onboardingform col.groups { width: 25%; }
+	#onboardingform col.delete { width: 10%; }
+	#onboardingform td.delete { text-align: center; }
+	#onboardingform td.user { color: #666; font-size: 0.9em; }
+	#onboardingform .option-row { margin-bottom: 15px; }
+	#onboardingform .option-row ul { list-style: none; margin: 5px 0; padding: 0; }
+	#onboardingform .help { color: #666; font-size: 0.9em; margin: 3px 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+	<h1>Onboarding af admins</h1>
+	<p>Vælg de medlemmer der skal have admin-adgang, og hvilke grupper de skal i. Hvert medlem får
+		straks en companion-bruger, staff-adgang til admin og de valgte grupper. Adgangskoden
+		genereres og sendes til medlemmets mailadresse.</p>
+
+	{% if results %}
+	<div class="module">
+		<table>
+			<caption>Resultat</caption>
+			<thead>
+				<tr>
+					<th>Medlem</th>
+					<th>Admin-brugernavn</th>
+					<th>Grupper</th>
+					<th>Adgangskode</th>
+				</tr>
+			</thead>
+			{% for result in results %}
+			<tr>
+				<td>{{ result.member.username }}</td>
+				<td>{{ result.user.username }}{% if result.previous_username %} (tidligere {{ result.previous_username }}){% endif %}</td>
+				<td>{{ result.groups|join:", " }}</td>
+				<td>Sendt til {{ result.member.email }}</td>
+			</tr>
+			{% endfor %}
+		</table>
+	</div>
+	{% endif %}
+
+	<form method="post" action="" id="onboardingform">{% csrf_token %}
+		{{ options_form.non_field_errors }}
+
+		<div class="option-row">
+			{{ options_form.groups.errors }}
+			{{ options_form.groups.label_tag }}
+			{{ options_form.groups }}
+			<p class="help">{{ options_form.groups.help_text }}</p>
+		</div>
+
+		{{ formset.management_form }}
+		{{ formset.non_form_errors }}
+		<table id="membertable">
+			<colgroup>
+				<col class="member"/>
+				<col class="username"/>
+				<col class="user"/>
+				<col class="groups"/>
+				<col class="delete"/>
+			</colgroup>
+			<thead>
+				<tr>
+					<th>Medlem</th>
+					<th>Brugernavn</th>
+					<th>Nuværende bruger</th>
+					<th>Grupper</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for form in formset %}
+				<tr>
+					<td>{{ form.member }}{{ form.member.errors }}</td>
+					<td>{{ form.username }}{{ form.username.errors }}</td>
+					<td class="user"></td>
+					<td>{{ form.groups }}{{ form.groups.errors }}</td>
+					<td class="delete">{{ form.DELETE }}</td>
+				</tr>
+				{% endfor %}
+				{% with formset.empty_form as form %}
+				<tr id="formTemplate" style="display: none">
+					<td>{{ form.member }}{{ form.member.errors }}</td>
+					<td>{{ form.username }}{{ form.username.errors }}</td>
+					<td class="user"></td>
+					<td>{{ form.groups }}{{ form.groups.errors }}</td>
+					<td class="delete">{{ form.DELETE }}</td>
+				</tr>
+				{% endwith %}
+			</tbody>
+		</table>
+		<input type="submit" value="Onboard" />
+	</form>
+</div>
+
+{{ formset.media.js }}
+<script src="{% static 'stregsystem/jquery.formset.js' %}?v=2"></script>
+<script type="text/javascript">
+	function initSelect2(row) {
+		row.find('.django-select2').not('[name*="__prefix__"]').each(function () {
+			if (!$(this).hasClass('select2-hidden-accessible')) {
+				$(this).djangoSelect2();
+			}
+		});
+	}
+
+	function updateUserCell(row) {
+		const cell = row.find('td.user');
+		const input = row.find('input[name$="-username"]');
+		const memberId = row.find('select.django-select2').val();
+		if (!memberId) {
+			cell.text('');
+			input.attr('placeholder', 'medlemmets brugernavn');
+			return;
+		}
+		fetch('?member=' + encodeURIComponent(memberId), { credentials: 'same-origin' })
+			.then((response) => (response.ok ? response.json() : null))
+			.then((data) => {
+				if (!data) return;
+				input.attr('placeholder', data.suggested_username);
+				if (!data.paired_user) {
+					cell.text('Nej');
+					return;
+				}
+				let text = data.paired_user + (data.is_staff ? ' (staff)' : '');
+				if (data.groups.length) text += ' – ' + data.groups.join(', ');
+				cell.text(text);
+			});
+	}
+
+	function wireRow(row) {
+		initSelect2(row);
+		row.find('select.django-select2')
+			.off('.onboarding')
+			.on('change.onboarding', function () {
+				updateUserCell(row);
+			});
+		updateUserCell(row);
+	}
+
+	$(function () {
+		initSelect2($('#membertable'));
+		$('#membertable tbody tr').formset({
+			formTemplate: $('#formTemplate'),
+			addText: 'Tilføj medlem',
+			deleteText: 'Fjern',
+			added: wireRow,
+		});
+		$('#membertable tbody tr.dynamic-form').each(function () {
+			wireRow($(this));
+		});
+	});
+</script>
+{% endblock %}

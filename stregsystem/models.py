@@ -241,6 +241,9 @@ class Member(BaseModel):  # id automatisk...
     signup_due_paid = models.BooleanField(default=True)
     paired_user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
 
+    class Meta(BaseModel.Meta):
+        permissions = (("admin_onboarding", "Onboard admin personnel"),)
+
     stregforbud_override = False
 
     # I don't know if this is actually used anywhere - Jesper 17/09-2017

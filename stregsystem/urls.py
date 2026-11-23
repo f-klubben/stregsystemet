@@ -21,6 +21,7 @@ Including another URLconf
 urlpatterns = [
     re_path(r'^$', views.roomindex, name="index"),
     re_path(r'^admin/batch/$', views.batch_payment, name="batch"),
+    re_path(r'^admin/onboarding/$', views.admin_onboarding, name="admin_onboarding"),
     re_path(r'^admin/payment_tool/$', views.payment_tool, name="payment_tool"),
     re_path(r'^admin/signup_tool/$', views.signup_tool, name="signup_tool"),
     re_path(r'^signup/$', views.signup, name="signup"),

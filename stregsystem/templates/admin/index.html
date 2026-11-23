@@ -38,6 +38,13 @@
                 <td>&nbsp;</td>
             {% endif %}
             </tr>
+            {% if forloop.last and '/admin/stregsystem/' in app.app_url and perms.stregsystem.admin_onboarding %}
+            <tr>
+                <th scope="row"><a href="/admin/onboarding/">Onboarding af admins</a></th>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+            </tr>
+            {% endif %}
         {% endfor %}
         </table>
         </div>
@@ -45,6 +52,21 @@
 {% else %}
     <p>{% trans "You don't have permission to edit anything." %}</p>
 {% endif %}
+
+  {% if not app_list %}
+  {% if perms.stregsystem.admin_onboarding %}
+    <div class="module">
+        <table>
+        <caption><a class="section">Stregsystem</a></caption>
+            <tr>
+                <th scope="row"><a href="/admin/onboarding/">Onboarding af admins</a></th>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+            </tr>
+        </table>
+    </div>
+  {% endif %}
+  {% endif %}
 
 
   {% if perms.stregsystem.access_sales_reports %}
