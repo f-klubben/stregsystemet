@@ -2466,6 +2466,28 @@ class ApiTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
 
+    def test_member_data_endpoints_lookup_by_username(self) -> None:
+        endpoint_names = (
+            'api_member_info',
+            'api_member_balance',
+            'api_member_active',
+            'api_member_sales',
+        )
+
+        for endpoint_name in endpoint_names:
+            with self.subTest(endpoint=endpoint_name):
+                response = self.client.get(reverse(endpoint_name), {'username': 'MARTIN_P'})
+                self.assertEqual(response.status_code, 200)
+
+                id_only_response = self.client.get(reverse(endpoint_name), {'member_id': self.member.pk})
+                self.assertEqual(id_only_response.status_code, 400)
+
+    def test_member_data_endpoints_require_existing_username(self) -> None:
+        response = self.client.get(reverse('api_member_info'), {'username': 'unknown_member'})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content, b"Member not found")
+
     def test_member_get_id_ignores_username_case(self) -> None:
         for username in ("martin_p", "MARTIN_P", "Martin_P"):
             with self.subTest(username=username):
