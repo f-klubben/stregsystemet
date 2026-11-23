@@ -109,6 +109,19 @@
     </div>
   {% endif %}
 
+  {% if perms.stregsystem.manualsaletool_access %}
+    <div class="module">
+        <table>
+        <caption><a class="section">Salg</a></caption>
+            <tr>
+                <th scope="row"><a href = "/admin/sale_tool/">Manual sale</a></th>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+            </tr>
+        </table>
+    </div>
+  {% endif %}
+
 
 </div>
 {% endblock %}

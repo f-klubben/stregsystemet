@@ -2,13 +2,27 @@ import datetime
 
 from django import forms
 
-from stregsystem.models import MobilePayment, Member, ApprovalModel, PendingSignup
+from stregsystem.models import MobilePayment, Member, ApprovalModel, PendingSignup, Product, Room
 from django_select2 import forms as s2forms
 
 
 class Select2MemberWidget(s2forms.ModelSelect2Widget):
     search_fields = ['username__icontains', 'firstname__icontains', 'lastname__icontains', 'email__icontains']
     model = Member
+
+
+class ManualSaleForm(forms.Form):
+    member = forms.ModelChoiceField(queryset=Member.objects.all(), widget=Select2MemberWidget)
+    room = forms.ModelChoiceField(queryset=Room.objects.all(), required=False)
+    reason = forms.CharField(
+        required=False, widget=forms.Textarea(attrs={'rows': 4}), help_text="Shown to the member in the mail"
+    )
+    send_mail = forms.BooleanField(required=False, initial=True)
+
+
+class ManualSaleLineForm(forms.Form):
+    product = forms.ModelChoiceField(queryset=Product.objects.all())
+    amount = forms.IntegerField(min_value=1, initial=1)
 
 
 class ApprovalToolForm(forms.ModelForm):

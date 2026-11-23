@@ -16,8 +16,10 @@ from collections import (
 
 from django.core.paginator import Paginator
 from django.contrib import messages
+from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required, login_required
+from django.contrib.contenttypes.models import ContentType
 from django.core import management
 from django.core.exceptions import ValidationError
 from django.db.models import Q, Count, Sum, QuerySet
@@ -65,7 +67,17 @@ from stregsystem.utils import (
 
 from .booze import ballmer_peak
 from .caffeine import caffeine_mg_to_coffee_cups
-from .forms import PaymentToolForm, QRPaymentForm, PurchaseForm, SignupForm, RankingDateForm, SignupToolForm
+from .forms import (
+    ManualSaleForm,
+    ManualSaleLineForm,
+    PaymentToolForm,
+    QRPaymentForm,
+    PurchaseForm,
+    SignupForm,
+    RankingDateForm,
+    SignupToolForm,
+)
+from .mail import send_manual_sale_mail
 from .management.commands.autopayment import submit_filled_mobilepayments
 from .purchase_heatmap import (
     prepare_heatmap_template_context,
@@ -698,6 +710,105 @@ def payment_tool(request):
         data['formset'] = paytool_form_set(queryset=make_unprocessed_mobilepayment_query())
 
     return render(request, "admin/stregsystem/approval_tools/payment_tool.html", data)
+
+
+@staff_member_required()
+@permission_required("stregsystem.manualsaletool_access")
+def manual_sale_tool(request):
+    SaleLineFormSet = forms.formset_factory(ManualSaleLineForm, extra=1)
+    action = request.POST.get('action', '').lower()
+    remembered = {
+        'room': request.session.get('manual_sale_room'),
+        'reason': request.session.get('manual_sale_reason', ''),
+    }
+    form = ManualSaleForm(initial=remembered)
+    formset = SaleLineFormSet()
+    preview = None
+    member, room, products = None, None, None
+
+    if action == 'fill':
+        buystring = request.POST.get('buystring', '').strip()
+        username, _, product_string = buystring.partition(' ')
+        member = Member.objects.filter(username__iexact=username).first()
+
+        try:
+            bought_ids = parser.parse(f"x {_pre_process(product_string if member else buystring)}")[1]
+        except parser.QuickBuyError as err:
+            messages.error(request, f"Could not parse the buystring here: {err.failed_part}")
+            bought_ids = []
+
+        counts = Counter(bought_ids)
+        found = Product.objects.in_bulk(counts)
+        unknown = set(counts) - set(found)
+        if unknown:
+            messages.error(request, f"Unknown product ids: {', '.join(str(pk) for pk in unknown)}")
+        else:
+            for pk, count in counts.items():
+                products = (products or []) + [found[pk]] * count
+
+        form = ManualSaleForm(initial={'member': member, **remembered} if member else remembered)
+        formset = SaleLineFormSet(
+            initial=[{'product': pk, 'amount': count} for pk, count in counts.items() if pk in found]
+        )
+
+    elif action in ('preview', 'confirm'):
+        form = ManualSaleForm(request.POST)
+        formset = SaleLineFormSet(request.POST)
+        if form.is_valid() and formset.is_valid():
+            member = form.cleaned_data['member']
+            room = form.cleaned_data['room']
+            products = [
+                line['product'] for line in formset.cleaned_data if line.get('product') for _ in range(line['amount'])
+            ]
+            request.session['manual_sale_room'] = room.pk if room else None
+            request.session['manual_sale_reason'] = form.cleaned_data['reason']
+
+    if member and products:
+        order = Order.from_products(member=member, products=products, room=room)
+        total = order.total()
+        items = sorted(order.items, key=lambda item: item.product.id)
+        preview = {
+            'items': [(item.product, item.count, item.price()) for item in items],
+            'total': total,
+            'room': room,
+            'balance_before': member.balance,
+            'balance_after': member.balance - total,
+        }
+        if action == 'confirm':
+            if not room:
+                form.add_error('room', "Select a room to register the sale")
+            else:
+                order.execute(manual=True)
+                LogEntry.objects.log_action(
+                    user_id=request.user.pk,
+                    content_type_id=ContentType.objects.get_for_model(Member).pk,
+                    object_id=order.member.pk,
+                    object_repr=str(order.member)[:200],
+                    action_flag=ADDITION,
+                    change_message=f"Manual sale: {' '.join(f'{item.product.pk}:{item.count}' for item in items)} "
+                    f"({money(total)}), reason: {form.cleaned_data['reason']}",
+                )
+                if form.cleaned_data['send_mail'] and order.member.email:
+                    send_manual_sale_mail(order, form.cleaned_data['reason'])
+                messages.success(request, f"Registered manual sale on {order.member.username}")
+                return redirect('manual_sale_tool')
+
+    manual_sales = LogEntry.objects.filter(
+        content_type=ContentType.objects.get_for_model(Member), change_message__startswith="Manual sale"
+    ).select_related('user')[:20]
+
+    return render(
+        request,
+        "admin/stregsystem/manual_sale_tool.html",
+        {
+            "form": form,
+            "formset": formset,
+            "preview": preview,
+            "manual_sales": manual_sales,
+            "select2_js": settings.SELECT2_JS,
+            "select2_css": settings.SELECT2_CSS,
+        },
+    )
 
 
 @staff_member_required()
