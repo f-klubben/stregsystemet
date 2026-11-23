@@ -844,7 +844,6 @@ class Sale(BaseModel):
         if not self._is_save_allowed():
             raise RuntimeError("Updates of sales are not allowed")
 
-        print(f"Saving Sale: member={self.member}, product={self.product}, room={self.room}, price={self.price}")
         super(Sale, self).save(*args, **kwargs)
 
     def _is_save_allowed(self):
