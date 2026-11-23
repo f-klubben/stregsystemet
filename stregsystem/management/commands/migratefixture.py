@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 import tomllib
@@ -9,16 +10,12 @@ import tomli_w
 from django.apps import apps
 from django.conf import settings
 from django.core.management import BaseCommand, CommandParser, call_command
-from django.db import connection, connections
+from django.core.serializers.json import Serializer as JSONSerializer
+from django.core.serializers.python import Deserializer as PythonDeserializer
+from django.db import connection, connections, models
 from django.db.migrations.loader import MigrationLoader
 
 PYPROJECT_PATH: str = "pyproject.toml"
-DUMP_EXCLUDES: list[str] = [
-    "auth.permission",
-    "contenttypes",
-    "admin.logentry",
-    "sessions",
-]
 
 
 class Command(BaseCommand):
@@ -77,6 +74,10 @@ class Command(BaseCommand):
         try:
             self._migrate_to_targets(targets)
 
+            for dependency in self._load_fixture_dependencies(fixture):
+                self.stdout.write(f"Load prerequisite fixture {dependency}")
+                call_command("loaddata", str(dependency))
+
             self.stdout.write(f"Load fixture data for {fixture}")
             call_command("loaddata", str(fixture))
 
@@ -118,23 +119,57 @@ class Command(BaseCommand):
         self.stdout.write("Dumping fixtures")
 
         buffer = StringIO()
-        call_command(
-            "dumpdata",
-            exclude=DUMP_EXCLUDES,
-            natural_foreign=True,
-            natural_primary=True,
+        JSONSerializer().serialize(
+            self._load_fixture_objects(fixture),
+            stream=buffer,
             indent=2,
-            stdout=buffer,
+            use_natural_foreign_keys=True,
+            use_natural_primary_keys=True,
         )
 
         # Written only after a successful dump so a failure does not truncate the fixture
         fixture.write_text(buffer.getvalue())
+
+    def _load_fixture_objects(self, fixture: Path) -> list[models.Model]:
+        # Only dump the fixture's own objects, prerequisites share the temporary database
+        objects: list[models.Model] = []
+
+        for entry in json.loads(fixture.read_text()):
+            model = apps.get_model(entry["model"])
+
+            if "pk" in entry:
+                pk = entry["pk"]
+            else:
+                pk = next(PythonDeserializer([entry], ignorenonexistent=True)).object.pk
+
+            obj = model._default_manager.filter(pk=pk).first()
+            if obj is None:
+                self.stderr.write(f"Error: {entry['model']} from {fixture.name} is not in the database")
+                continue
+            objects.append(obj)
+
+        return objects
 
     def _load_targets(self) -> dict[str, str]:
         with open(PYPROJECT_PATH, "rb") as f:
             data = tomllib.load(f)
 
         return data["tool"]["migratefixture"]["targets"]
+
+    def _load_fixture_dependencies(self, fixture: Path) -> list[Path]:
+        with open(PYPROJECT_PATH, "rb") as f:
+            data = tomllib.load(f)
+
+        project_root = Path.cwd().resolve()
+        fixture_path = fixture.resolve()
+        try:
+            fixture_key = fixture_path.relative_to(project_root).as_posix()
+        except ValueError:
+            return []
+
+        dependencies = data["tool"]["migratefixture"].get("dependencies", {}).get(fixture_key, [])
+
+        return [(project_root / dependency).resolve() for dependency in dependencies]
 
     def _update_targets(self) -> None:
         loader = MigrationLoader(connection)
