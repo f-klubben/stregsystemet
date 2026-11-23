@@ -57,9 +57,7 @@ def send_userdata_mail(member):
     sales: list[Sale] = member.sale_set.order_by("timestamp")
     payments: list[Payment] = member.payment_set.order_by("timestamp")
     mobilepayments: list[MobilePayment] = member.mobilepayment_set.order_by("timestamp")
-    mobilepay_payments: list[Payment] = [
-        mobilepayment.payment for mobilepayment in mobilepayments
-    ]
+    mobilepay_payments: list[Payment] = [mobilepayment.payment for mobilepayment in mobilepayments]
 
     if member.gender in [i for (i, _) in member.GENDER_CHOICES]:
         gender = [text for (i, text) in member.GENDER_CHOICES if member.gender == i][0]
@@ -67,15 +65,11 @@ def send_userdata_mail(member):
         gender = member.gender
 
     sales_csv = rows_to_csv(
-        [["Timestamp", "Name", "Price"]]
-        + [[sale.timestamp, sale.product.name, sale.price] for sale in sales]
+        [["Timestamp", "Name", "Price"]] + [[sale.timestamp, sale.product.name, sale.price] for sale in sales]
     )
     payments_csv = rows_to_csv(
         [["Timestamp", "Amount", "Is Mobilepay"]]
-        + [
-            [payment.timestamp, payment.amount, payment in mobilepay_payments]
-            for payment in payments
-        ]
+        + [[payment.timestamp, payment.amount, payment in mobilepay_payments] for payment in payments]
     )
     userdata_csv = rows_to_csv(
         [
