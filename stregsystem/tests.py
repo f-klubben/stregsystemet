@@ -2373,6 +2373,20 @@ class MailTests(TestCase):
         signup_request.approve()
         mock_mail_method.assert_called_once()
 
+    @mock.patch('stregsystem.models.send_welcome_mail', autospec=True)
+    def test_welcome_mail_sent_once_on_signup_tool_approval(self, mock_mail_method: MagicMock):
+        mock_mail_method.return_value = None
+
+        member = Member.objects.create(username="jeff", email="test@example.com", signup_due_paid=False)
+        member.signup_due_paid = True
+        member.save()
+        signup_request = PendingSignup.objects.create(member=member)
+        admin_user = User.objects.create(username="signup_admin")
+
+        PendingSignup.process_submitted([{'id': signup_request, 'status': ApprovalModel.APPROVED}], admin_user)
+
+        mock_mail_method.assert_called_once()
+
 
 class DateAttributeTestCase(TestCase):
     def test_created_at_field(self):
