@@ -14,8 +14,8 @@
 
   {% spaceless %}
   <h4>Du {% if negative_balance %}
-    skylder <span style="color: red;">{{member.balance|money|cut:"-"}}</span> kroner
-    {% else %}har {{member.balance|money}} kroner til gode!
+    skylder <span style="color: red;">{{member.balance|money_sd|cut:"-"}}</span>
+    {% else %}har {{member.balance|money_sd}} til gode!
     {% endif %}
   </h4>
   {% endspaceless %}
@@ -34,7 +34,8 @@
   <div class="horizontal-table">
     {% for amount in amounts %}
       <div>
-        <b>{{amount | floatformat:2}} kr.</b>
+        <b>{{amount | money}} kr.</b>
+	<br/><i><small>Giver {{amount | money_sd}}</small></i>
         <br /><br />
         <a href="mobilepay://send?phone=90601&comment={{ member.username }}&amount={{ amount }}">
           {% mobilepay_qr member.username amount %}
