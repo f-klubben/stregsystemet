@@ -16,6 +16,7 @@ from stregreport.forms import CategoryReportForm
 from stregsystem.models import Category, Member, Product, Sale
 from stregreport.models import BreadRazzia, RazziaEntryOld
 from stregsystem.templatetags.stregsystem_extras import money
+import re
 
 
 @permission_required("stregsystem.access_sales_reports")
@@ -31,7 +32,7 @@ def sales(request):
     if request.method == 'POST':
         try:
             return sales_product(
-                request, parse_id_string(request.POST['products']), request.POST['from_date'], request.POST['to_date']
+                request, parse_ids_string(request.POST['products']), request.POST['from_date'], request.POST['to_date']
             )
         except RuntimeError as ex:
             return sales_product(request, None, None, None, error=ex.__str__())
@@ -375,9 +376,12 @@ def fjule_party(year):
     return first_december + datetime.timedelta(days=days_to_add)
 
 
-def parse_id_string(id_string):
+# "  (whitespace) 23   (whitespace)   43 (whitespace)   " -> [23, 43]
+def parse_ids_string(ids_string):
     try:
-        return list(map(int, id_string.split(' ')))
+        id_strings = re.split(r"\s+", ids_string.strip())
+        id_ints = list(map(int, id_strings))
+        return id_ints
     except ValueError as ex:
         raise RuntimeError("The list contained an invalid id: {}".format(ex.__str__()))
 

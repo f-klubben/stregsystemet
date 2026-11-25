@@ -24,6 +24,8 @@ from django.conf.global_settings import DEFAULT_AUTO_FIELD
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 PYPROJECT_PATH = os.path.join(BASE_DIR, "pyproject.toml")
+SSO_CODE_DURATION_MIN = 15
+SSO_MAX_ATTEMPTS = 3
 
 # @UPGRADE remove the specific unicode "u" here when we finalize the upgrade to
 # python3. It's only required to satisfy python2 StringIO
@@ -76,7 +78,7 @@ DEBUG = cfg.getboolean("debug", "DEBUG")
 
 CSRF_COOKIE_SECURE = cfg.getboolean("debug", "CSRF_COOKIE_SECURE")
 CSRF_COOKIE_HTTPONLY = cfg.getboolean("debug", "CSRF_COOKIE_HTTPONLY")
-CSRF_TRUSTED_ORIGINS = ["https://fappen.fklub.dk", "https://stregsystem.fklub.dk"]
+CSRF_TRUSTED_ORIGINS = ["https://fappen.fklub.dk", "https://stregsystem.fklub.dk", "http://host.docker.internal"]
 SESSION_COOKIE_SECURE = cfg.getboolean("debug", "SESSION_COOKIT_SECURE")
 
 SECURE_BROWSER_XSS_FILTER = cfg.getboolean("debug", "SECURE_BROWSER_XSS_FILTER")
@@ -87,7 +89,7 @@ X_FRAME_OPTIONS = cfg.get("general", "X_FRAME_OPTIONS")
 
 # We don't have any default hostnames for debug
 # But you really should have some when you are deploying
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["host.docker.internal"]
 
 for e in cfg.items("hostnames"):
     ALLOWED_HOSTS.append(e[1])
@@ -108,6 +110,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'sso',
     'debug_toolbar',
 ]
 
@@ -252,9 +255,20 @@ LOGGING = {
         '': {
             'level': cfg.get('logging', 'LEVEL'),
             'handlers': json.loads(cfg.get('logging', 'HANDLERS'))
-        }
+        },
+        'django.server': {
+            'propagate': True,
+        },
+        'django.request': {
+            'propagate': True,
+        },
     }
 }
+
+AUTHENTICATION_BACKENDS = [
+    'sso.auth_backends.PasswordlessMemberBackend',
+    'django.contrib.auth.backends.ModelBackend',  # keep for admin/superusers
+]
 
 global STREGSYSTEM_VERSION, STREGSYSTEM_API_VERSION
 

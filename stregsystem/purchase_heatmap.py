@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, date
 from typing import List, NamedTuple, Tuple
 
 from stregsystem.models import Product, Member, Category
-from stregsystem.templatetags.stregsystem_extras import money
+from stregsystem.templatetags.stregsystem_extras import money_sd
 
 
 class HeatmapDay(NamedTuple):
@@ -115,7 +115,7 @@ class MoneySumHeatmapColorMode(HeatmapColorMode):
         return lerp_color((255, 255, 200), (255, 255, 0), lerp_value)  # Lightyellow - Yellow
 
     def get_day_summary(self, products: List[Product]) -> str:
-        return f"{money(sum(p.price for p in products))} 𝓕$ brugt"
+        return f"{money_sd(sum(p.price for p in products))} brugt"
 
     @staticmethod
     def get_products_money_sum(day_list: List[Tuple[date, List[Product]]]) -> int:
