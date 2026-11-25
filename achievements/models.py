@@ -306,8 +306,6 @@ class AchievementTask(BaseModel):
                 str_list.append(f"Top {self.goal_value} in Category '{self.category.name}' (Year)")
             else:
                 str_list.append(f"Top {self.goal_value} in Any Category (Year)")
-        elif self.task_type == self.IS_MULTIBUY_TASK_TYPE:
-            str_list.append("Multibuy")
         elif self.task_type == self.STREAK_DAYS_TASK_TYPE:
             str_list.append(f"Streak of {self.goal_value} days")
         elif self.task_type == self.FIRST_PURCHASE_OF_DAY_TASK_TYPE:
