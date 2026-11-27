@@ -18,6 +18,7 @@ dependencies = [
     "pytz==2026.1",
     "qrcode==8.2",
     "requests==2.33.0",
+    "vipps-api==0.1.1",
 ]
 
 [project.license]
