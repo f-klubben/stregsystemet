@@ -474,6 +474,7 @@ dependencies = [
     { name = "pytz" },
     { name = "qrcode" },
     { name = "requests" },
+    { name = "vipps-api" },
 ]
 
 [package.dev-dependencies]
@@ -496,6 +497,7 @@ requires-dist = [
     { name = "pytz", specifier = "==2026.1" },
     { name = "qrcode", specifier = "==8.2" },
     { name = "requests", specifier = "==2.33.0" },
+    { name = "vipps-api", specifier = "==0.1.1" },
 ]
 
 [package.metadata.requires-dev]
@@ -549,6 +551,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/53/0c/06f8b233b8fd13b9e5ee11424ef85419ba0d8ba0b3138bf360be2ff56953/urllib3-2.7.0.tar.gz", hash = "sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c", size = 433602, upload-time = "2026-05-07T16:13:18.596Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7f/3e/5db95bcf282c52709639744ca2a8b149baccf648e39c8cc87553df9eae0c/urllib3-2.7.0-py3-none-any.whl", hash = "sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897", size = 131087, upload-time = "2026-05-07T16:13:17.151Z" },
+]
+
+[[package]]
+name = "vipps-api"
+version = "0.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/15/be/ed09c697f0406c684bebaa05ebce8a126aaae8cc5b9008cf9feedf19c05a/vipps_api-0.1.1.tar.gz", hash = "sha256:27288dc34d0604b811f1ed1be2a0f5fc930f2705895d85cadc092b4d1ea6ac91", size = 5944, upload-time = "2026-11-23T22:36:23.338Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5b/96/b76507acef1c7c2d50e9abe4a0744b99d73797696ef43491f605ad0c55e8/vipps_api-0.1.1-py3-none-any.whl", hash = "sha256:c2a5c04d4bb7012f541d8fff536e68bdf15c5347dc999fa4e97c74dc5a152d95", size = 5574, upload-time = "2026-11-23T22:36:22.126Z" },
 ]
 
 [[package]]

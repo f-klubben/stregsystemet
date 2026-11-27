@@ -4,13 +4,14 @@ from django.core.management.base import BaseCommand
 from django.utils.dateparse import parse_datetime
 
 from requests import HTTPError
+from vipps_api.accounting import ReportAPI
+from vipps_api.utils import Utils
 
 from stregsystem.models import MobilePayment
+import json
 import logging
 
 from stregsystem.utils import mobile_payment_exact_match_member, strip_emoji
-
-from stregsystem.vipps_api import AccountingAPI
 
 
 class Command(BaseCommand):
@@ -21,6 +22,8 @@ class Command(BaseCommand):
 
     logger = logging.getLogger(__name__)
     days_back = None
+
+    myshop_number = 90601
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -35,27 +38,57 @@ class Command(BaseCommand):
         self.days_back = options['days_back'] if options['days_back'] <= 31 else 7
         self.import_mobilepay_payments()
 
+    def load_api(self) -> ReportAPI:
+        api = ReportAPI(Utils.load_accounting_api_keys(), self.myshop_number)
+        api.cursor = (self.read_tokens_file() or {}).get('cursor')
+        return api
+
+    def read_tokens_file(self) -> dict | None:
+        for path in (Utils.tokens_file, Utils.tokens_file_backup):
+            try:
+                with open(path) as json_file:
+                    return json.load(json_file)
+            except (OSError, ValueError):
+                continue
+
+        return None
+
+    def save_cursor(self, api: ReportAPI):
+        tokens: dict = self.read_tokens_file() or {
+            'client_id': api.tokens.client_id,
+            'client_secret': api.tokens.client_secret,
+        }
+
+        tokens['cursor'] = api.cursor
+
+        with open(Utils.tokens_file, 'w') as json_file:
+            json.dump(tokens, json_file, indent=2)
+
     def fetch_transactions(self) -> list:
-        # Do a client side check if token is good. If not - fetch another token.
         try:
             assert self.days_back is not None
 
             transactions = []
 
-            transactions.extend(AccountingAPI.get_transactions_latest_feed())
+            api = self.load_api()
+
+            transactions.extend(api.get_transactions_latest_feed())
+            self.save_cursor(api)
 
             for i in range(self.days_back):
                 past_date = date.today() - timedelta(days=i)
                 if past_date < self.manual_cutoff_date:
                     break
 
-                transactions.extend(AccountingAPI.get_transactions_historic(past_date))
+                transactions.extend(api.get_transactions_historic(past_date))
 
             return transactions
         except HTTPError as e:
             self.logger.error(f"Got an HTTP error when trying to fetch transactions: {e.response}")
         except Exception as e:
             self.logger.error(f'Got an error when trying to fetch transactions: {e}')
+
+        return []
 
     def import_mobilepay_payments(self):
         transactions = self.fetch_transactions()
