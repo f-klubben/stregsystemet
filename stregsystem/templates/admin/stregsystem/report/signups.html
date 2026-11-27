@@ -1,0 +1,52 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Signup-rapport{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../../">Hjem</a>&nbsp;&rsaquo;&nbsp;<a href="../../">Stregsystem</a>&nbsp;&rsaquo;&nbsp;<a href="../">Reports</a>&nbsp;&rsaquo;&nbsp;Signup-rapport</div>{% endblock %}
+
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}" />
+<script type="text/javascript">window.__admin_media_prefix__ = "/media/";</script>
+
+<script type="text/javascript" src="/admin/jsi18n/"></script>
+<script type="text/javascript" src="{% static 'admin/js/admin/RelatedObjectLookups.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/actions.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/calendar.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/admin/DateTimeShortcuts.js' %}"></script>
+
+<div id="content-main">
+    <h1>Signup-rapport</h1>
+    <form action="./" method="post">{% csrf_token %}
+        <label for="id_from_date" class="required">Fra:</label>
+        <p class="datetime">Dato: <input id="id_from_date" type="text" class="vDateField" name="from_date" size="10" value="{{from_date_str}}" /></p>
+        <label for="id_to_date" class="required">Til:</label>
+        <p class="datetime">Dato: <input id="id_to_date" type="text" class="vDateField" name="to_date" size="10" value="{{to_date_str}}" /></p>
+        <input type="submit" value="Vis">
+        <br />
+        <label><small>Antal nye brugere i en angivet tidsperiode</small></label>
+    </form>
+    <br /><br />
+    {% if signups_count %}
+        <p>Der blev oprettet {{signups_count}} medlemmer mellem {{from_date_str}} og {{to_date_str}}.</p>
+    {% endif %}
+    {% if signups %}
+        <table border="1" cellspacing="2" cellpadding="2">
+            <tr>
+                <th valign="top" colspan="4">Salg</th>
+            </tr>
+            <tr>
+                <th>Brugernavn</th>
+                <th>Signup-dato</th>
+                <th>Medlemsgebyr</th>
+            </tr>
+            {% for signup in signups %}
+                <tr>
+                    <td>{{signup.0}}</td>
+                    <td>{{signup.1}}</td>
+                    <td>{% if signup.2 %}✅ Betalt{% else %}❌ Mangler{% endif %}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+</div>
+{% endblock %}

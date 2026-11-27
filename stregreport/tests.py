@@ -2,11 +2,12 @@ import datetime
 
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 from stregreport import views
 from stregreport.models import BreadRazzia
 from freezegun import freeze_time
 
-from stregsystem.models import Category
+from stregsystem.models import Category, Member
 
 
 class ParseIdsStringTests(TestCase):
@@ -191,3 +192,62 @@ class RazziaTests(TestCase):
         self.assertEqual(response_add.status_code, 200)
         self.assertTemplateUsed(response_members, "admin/stregsystem/razzia/members.html")
         self.assertContains(response_members, "jokke", status_code=200)
+
+
+class SignupReportTests(TestCase):
+    def setUp(self) -> None:
+        self.tz = timezone.get_current_timezone()
+
+    def test_parse_local_date(self) -> None:
+        parsed_time = views.parse_local_date("19-10-2026")
+
+        aware_time = timezone.datetime(
+            year=2026,
+            month=10,
+            day=19,
+            hour=0,
+            minute=0,
+            second=0,
+            tzinfo=self.tz,
+        )
+        self.assertEqual(parsed_time, aware_time)
+
+        utc_time = timezone.localtime(aware_time, timezone=timezone.utc)
+        self.assertEqual(parsed_time.day, 19)
+        self.assertEqual(utc_time.day, 18)
+
+    def test_current_local_date(self) -> None:
+        local_date = views.current_local_date()
+        utc_date = timezone.datetime.now(timezone.utc)
+
+        self.assertLess(local_date - local_date, utc_date - local_date)
+
+    def test_aware_date_to_local_str(self) -> None:
+        aware_time = timezone.datetime(
+            year=2026,
+            month=10,
+            day=19,
+            hour=0,
+            minute=30,
+            second=0,
+            tzinfo=self.tz,
+        )
+
+        local_str = views.aware_date_to_local_str(aware_time)
+
+        utc_time = timezone.localtime(aware_time, timezone=timezone.timezone.utc)
+
+        self.assertEqual(utc_time.day, 18)
+        self.assertEqual(local_str, "19-10-2026")
+
+    def test_inclusive_date_range(self) -> None:
+        Member.objects.create().save()
+
+        to_date = views.current_local_date()
+        from_date = to_date - timezone.timedelta(days=30)
+
+        date_range = views.inclusive_date_range(from_date, to_date)
+
+        query = Member.objects.filter(created_at__range=date_range)
+
+        self.assertGreater(query.count(), 0)
